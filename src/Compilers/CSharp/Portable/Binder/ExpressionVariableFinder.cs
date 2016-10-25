@@ -109,18 +109,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var label in node.Labels)
             {
-                var match = label as CasePatternSwitchLabelSyntax;
-                if (match != null)
+                switch (label.Kind())
                 {
-                    var previousNodeToBind = _nodeToBind;
-                    _nodeToBind = match;
-                    Visit(match.Pattern);
-                    if (match.WhenClause != null)
-                    {
-                        VisitNodeToBind(match.WhenClause.Condition);
-                    }
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        {
+                            var switchLabel = (CasePatternSwitchLabelSyntax)label;
+                            var previousNodeToBind = _nodeToBind;
+                            _nodeToBind = switchLabel;
+                            Visit(switchLabel.Pattern);
+                            if (switchLabel.WhenClause != null)
+                            {
+                                VisitNodeToBind(switchLabel.WhenClause.Condition);
+                            }
 
-                    _nodeToBind = previousNodeToBind;
+                            _nodeToBind = previousNodeToBind;
+                            break;
+                        }
+                    case SyntaxKind.CaseSwitchLabel:
+                        {
+                            var switchlabel = (CaseSwitchLabelSyntax)label;
+                            VisitNodeToBind(switchlabel.Value);
+                            break;
+                        }
                 }
             }
         }

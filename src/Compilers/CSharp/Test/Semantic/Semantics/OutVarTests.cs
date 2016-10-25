@@ -26947,6 +26947,40 @@ class H
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
         }
 
+        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        public void ExpressionVariableInCase()
+        {
+            string source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (true)
+        {
+            case TakeOutParam(3, out var x):
+                break;
+        }
+    }
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            // The point of this test is that it should not crash.
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case TakeOutParam(3, out var x):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "TakeOutParam(3, out var x)").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                );
+        }
+
         private static void VerifyModelForOutField(
             SemanticModel model,
             DeclarationExpressionSyntax decl,
