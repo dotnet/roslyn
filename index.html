@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Roslyn by chainoy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Roslyn</h1>
+      <h2 class="project-tagline">The .NET Compiler Platform (&quot;Roslyn&quot;) provides open-source C# and Visual Basic compilers with rich code analysis APIs.</h2>
+      <a href="https://github.com/chainoy/roslyn" class="btn">View on GitHub</a>
+      <a href="https://github.com/chainoy/roslyn/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/chainoy/roslyn/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h2>
+<a id="welcome-to-the-net-compiler-platform-roslyn" class="anchor" href="#welcome-to-the-net-compiler-platform-roslyn" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to the .NET Compiler Platform ("Roslyn")</h2>
+
+<h3>
+<a id="windows---unit-tests" class="anchor" href="#windows---unit-tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Windows - Unit Tests</h3>
+
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Debug x86</th>
+<th align="center">Debug x64</th>
+<th align="center">Release x86</th>
+<th align="center">Release x64</th>
+<th align="center">Determinism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><strong>master</strong></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/badge/icon" alt="Build Status"></a></td>
+</tr>
+<tr>
+<td align="center"><strong>dev15-rc</strong></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_debug_unit32/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_debug_unit32/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_debug_unit64/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_debug_unit64/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_release_unit32/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_release_unit32/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_release_unit64/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_release_unit64/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_determinism/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/windows_determinism/badge/icon" alt="Build Status"></a></td>
+</tr>
+</tbody>
+</table>
+
+<h3>
+<a id="linuxmac---unit-tests" class="anchor" href="#linuxmac---unit-tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linux/Mac - Unit Tests</h3>
+
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Linux</th>
+<th align="center">Mac OSX</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><strong>master</strong></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/linux_debug/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/linux_debug/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon" alt="Build Status"></a></td>
+</tr>
+<tr>
+<td align="center"><strong>dev15-rc</strong></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/linux_debug/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/linux_debug/badge/icon" alt="Build Status"></a></td>
+<td align="center"><a href="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/mac_debug/"><img src="https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc/job/mac_debug/badge/icon" alt="Build Status"></a></td>
+</tr>
+</tbody>
+</table>
+
+<p><a href="https://gitter.im/dotnet/roslyn?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/dotnet/roslyn"></a></p>
+
+<p>Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.</p>
+
+<h3>
+<a id="download-c-and-visual-basic" class="anchor" href="#download-c-and-visual-basic" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Download C# and Visual Basic</h3>
+
+<p>Want to start developing in C# and Visual Basic? Download <a href="https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx">Visual Studio 2015</a>, 
+which has the latest features built-in. There are also <a href="https://azure.microsoft.com/en-us/marketplace/virtual-machines/all/?term=Visual+Studio+2015">prebuilt Azure VM images</a> available with VS 2015 already installed.</p>
+
+<p>To install the latest release without Visual Studio, run one of the following <a href="https://dist.nuget.org/index.html">nuget</a> command lines:</p>
+
+<pre><code>nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
+nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
+</code></pre>
+
+<p>Daily NuGet builds of the project are also available in our MyGet feed:</p>
+
+<blockquote>
+<p><a href="https://dotnet.myget.org/F/roslyn/api/v3/index.json">https://dotnet.myget.org/F/roslyn/api/v3/index.json</a></p>
+</blockquote>
+
+<h3>
+<a id="source-code" class="anchor" href="#source-code" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Source code</h3>
+
+<ul>
+<li>Clone the sources: <code>git clone https://github.com/dotnet/roslyn.git</code>
+</li>
+<li>
+<a href="http://source.roslyn.io/">Enhanced source view</a>, powered by Roslyn </li>
+<li><a href="https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging">Building, testing and debugging the sources</a></li>
+</ul>
+
+<h3>
+<a id="get-started" class="anchor" href="#get-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get started</h3>
+
+<ul>
+<li>Tutorial articles by Alex Turner in MSDN Magazine
+
+<ul>
+<li><a href="https://msdn.microsoft.com/en-us/magazine/dn879356">Use Roslyn to Write a Live Code Analyzer for Your API</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/magazine/dn904670.aspx">Adding a Code Fix to your Roslyn Analyzer</a></li>
+</ul>
+</li>
+<li>
+<a href="https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview">Roslyn Overview</a> </li>
+<li><a href="https://github.com/dotnet/roslyn/wiki/VS-2015-RC-API-Changes">API Changes between CTP 6 and RC</a></li>
+<li><a href="https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs">Samples and Walkthroughs</a></li>
+<li><a href="https://github.com/dotnet/roslyn/tree/master/docs">Documentation</a></li>
+<li><a href="https://github.com/dotnet/roslyn/tree/master/docs/analyzers">Analyzer documentation</a></li>
+<li><a href="https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer">Syntax Visualizer Tool</a></li>
+<li><a href="http://roslynquoter.azurewebsites.net">Syntax Quoter Tool</a></li>
+<li>
+<a href="https://github.com/dotnet/roslyn/wiki/Roadmap">Roadmap</a> </li>
+<li><a href="https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+">Language Design Notes</a></li>
+<li><a href="https://github.com/dotnet/roslyn/wiki/FAQ">FAQ</a></li>
+<li>Also take a look at our <a href="https://github.com/dotnet/roslyn/wiki">Wiki</a> for more information on how to contribute, what the labels on issue mean, etc.</li>
+</ul>
+
+<h3>
+<a id="contribute" class="anchor" href="#contribute" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contribute!</h3>
+
+<p>Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. </p>
+
+<ul>
+<li><a href="https://github.com/dotnet/roslyn/wiki/Contributing-Code">How to Contribute</a></li>
+<li>
+<a href="https://github.com/dotnet/roslyn/pulls">Pull requests</a>: <a href="https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr">Open</a>/<a href="https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed">Closed</a>
+</li>
+</ul>
+
+<p>Looking for something to work on? The list of <a href="https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22">up for grabs issues</a> is a great place to start.</p>
+
+<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>.  For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a> or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p>
+
+<h3>
+<a id="net-foundation" class="anchor" href="#net-foundation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>.NET Foundation</h3>
+
+<p>This project is part of the <a href="http://www.dotnetfoundation.org/projects">.NET Foundation</a> along with other
+projects like <a href="https://github.com/dotnet/corefx/">the class libraries for .NET Core</a>. </p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/chainoy/roslyn">Roslyn</a> is maintained by <a href="https://github.com/chainoy">chainoy</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
