@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ParserErrorMessageTests : CSharpTestBase
+    public class ParserErrorMessageTests : ParsingTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
@@ -4482,6 +4482,51 @@ public class C
     //         try { } catch when (true) {}
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(6, 23)
                 );
+        }
+
+        [Fact]
+        public void MissingCommaInAttribute()
+        {
+            var text =
+@"[One Two] // error: missing comma
+class TestClass { }";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify(
+                // (1,6): error CS1003: Syntax error, ',' expected
+                // [One Two] // error: missing comma
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Two").WithArguments(",", "").WithLocation(1, 6)
+                );
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "One");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken, ""); // missing
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Two");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "TestClass");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
         }
 
         #endregion

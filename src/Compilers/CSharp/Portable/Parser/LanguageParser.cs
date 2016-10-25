@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    // comma is optional, but if it is here it should be followed by another attribute
+                    // comma is optional, but if it is present it may be followed by another attribute
                     nodes.AddSeparator(this.EatToken());
 
                     // check for legal trailing comma
@@ -1058,7 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (this.IsPossibleAttribute())
                 {
-                    nodes.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    // report missing comma
+                    nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     nodes.Add(this.ParseAttribute());
                 }
                 else if (this.SkipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
