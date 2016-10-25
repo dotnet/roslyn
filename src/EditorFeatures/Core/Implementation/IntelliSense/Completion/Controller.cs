@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode),
+                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }

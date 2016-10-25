@@ -506,11 +506,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
-                if (model.SuggestionModeItem != null)
-                {
-                    return bestFilterMatch != null && bestFilterMatch.DisplayText == model.SuggestionModeItem.DisplayText;
-                }
-
                 if (bestFilterMatch == null || model.UseSuggestionMode)
                 {
                     return false;
