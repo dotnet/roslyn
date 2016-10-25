@@ -10,7 +10,6 @@
     <RootNamespace>Roslyn.Test.Performance.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
