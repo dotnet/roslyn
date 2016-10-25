@@ -25,7 +25,7 @@ namespace BuildBoss
             var allGood = true;
             var list = new List<string>();
 
-            foreach (var projectPath in Directory.EnumerateFiles(Path.Combine(sourcePath, "src"), "*proj", SearchOption.AllDirectories))
+            foreach (var projectPath in Directory.EnumerateFiles(sourcePath, "*proj", SearchOption.AllDirectories))
             {
                 var relativePath = GetRelativePath(sourcePath, projectPath);
                 if (Exclude(config, relativePath))
