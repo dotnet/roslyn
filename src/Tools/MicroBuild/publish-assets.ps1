@@ -98,6 +98,11 @@ try
     {
         $nupkg = $package.id + "." + $package.version + ".nupkg"
         Write-Host "  Uploading '$nupkg' to '$sourceUrl'"
+        if (-not (test-path $nupkg))
+        {
+            Write-Error "NuGet $nupkg does not exist"
+            $exitCode = 6
+        }
 
         if (-not $test) 
         {
@@ -124,11 +129,11 @@ try
     pushd $vsixPath
     foreach ($extension in $extensions.extensions.extension)
     {
-        $vsix = $extension.id + ".vsix"
+        $vsix = join-path $extension.path ($extension.id + ".vsix")
         if (-not (test-path $vsix)) 
         {
             Write-Error "VSIX $vsix does not exist"
-            $extiCode = 5
+            $exitCode = 6
         }
 
         $requestUrl = "https://dotnet.myget.org/F/roslyn/vsix/upload"
