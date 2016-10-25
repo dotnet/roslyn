@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
-                SecondarySort = ConstructSecondarySortString(declaredSymbolInfo);
+                SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
 
                 var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;
                 Debug.Assert(declaredNavigableItem != null);
@@ -59,13 +60,32 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 });
             }
 
-            private static string ConstructSecondarySortString(DeclaredSymbolInfo declaredSymbolInfo)
+            private static readonly char[] s_dotArray = { '.' };
+
+            private static string ConstructSecondarySortString(
+                Document document,
+                DeclaredSymbolInfo declaredSymbolInfo)
             {
-                var secondarySortString = string.Concat(
-                    declaredSymbolInfo.ParameterCount.ToString("X4"),
-                    declaredSymbolInfo.TypeParameterCount.ToString("X4"),
-                    declaredSymbolInfo.Name);
-                return secondarySortString;
+                var parts = ArrayBuilder<string>.GetInstance();
+                try
+                {
+                    parts.Add(declaredSymbolInfo.ParameterCount.ToString("X4"));
+                    parts.Add(declaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                    parts.Add(declaredSymbolInfo.Name);
+
+                    // For partial types, we break up the file name into pieces.  i.e. If we have
+                    // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
+                    // the secondary sort string.  That way "Outer.cs" will be weighted above
+                    // "Outer.Inner.cs"
+                    var fileName = Path.GetFileNameWithoutExtension(document.FilePath ?? "");
+                    parts.AddRange(fileName.Split(s_dotArray));
+
+                    return string.Join(" ", parts);
+                }
+                finally
+                {
+                    parts.Free();
+                }
             }
         }
     }
