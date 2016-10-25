@@ -13,16 +13,21 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            var sourceDir = args[0];
-            Console.WriteLine(sourceDir);
-            var configPath = Path.Combine(sourceDir, @"build\config\BuildBossData.json");
+            string sourcePath;
+            if (!ParseArgs(args, out sourcePath))
+            {
+                Usage();
+                return 1;
+            }
+
+            var configPath = Path.Combine(sourcePath, @"build\config\BuildBossData.json");
             var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
             var allGood = true;
             var list = new List<string>();
 
-            foreach (var projectPath in Directory.EnumerateFiles(Path.Combine(sourceDir, "src"), "*proj", SearchOption.AllDirectories))
+            foreach (var projectPath in Directory.EnumerateFiles(Path.Combine(sourcePath, "src"), "*proj", SearchOption.AllDirectories))
             {
-                var relativePath = GetRelativePath(sourceDir, projectPath);
+                var relativePath = GetRelativePath(sourcePath, projectPath);
                 if (Exclude(config, relativePath))
                 {
                     continue;
@@ -39,12 +44,6 @@ namespace BuildBoss
                     list.Add(relativePath);
                     allGood = false;
                 }
-            }
-
-            // Print it all out in the end for easy editting.
-            foreach (var item in list)
-            {
-                Console.WriteLine(item);
             }
 
             return allGood ? 0 : 1;
@@ -89,6 +88,23 @@ namespace BuildBoss
             }
 
             return false;
+        }
+
+        private static bool ParseArgs(string[] args, out string sourcePath)
+        {
+            if (args.Length != 1)
+            {
+                sourcePath = null;
+                return false;
+            }
+
+            sourcePath = args[0];
+            return true;
+        }
+
+        private static void Usage()
+        {
+            Console.WriteLine($"BuildBoss <source path>");
         }
     }
 }
