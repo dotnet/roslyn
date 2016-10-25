@@ -263,18 +263,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
-            var commonLocation = syntaxNode.GetLocation();
-            var document = solution.GetDocument(commonLocation.SourceTree);
-
-            if (document == null)
-            {
-                return null;
-            }
-
             using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
             {
+                var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
+
+                return semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
             }
         }
     }
