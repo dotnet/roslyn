@@ -1674,5 +1674,44 @@ class Program
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "12");
         }
+
+        [Fact, WorkItem(14707, "https://github.com/dotnet/roslyn/issues/14707")]
+        public void ParenthesizedGuardClause()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        object[] oa = { null, new Rectangle(1, 1), new Rectangle(1, 2) };
+        foreach (object o in oa)
+        {
+            switch (o)
+            {
+                case Rectangle s when (s.Length == s.Height):
+                    System.Console.WriteLine($""S {s.Length}"");
+                    break;
+                case Rectangle r when ((true && (r.Length != r.Height))):
+                    System.Console.WriteLine($""R {r.Height} {r.Length}"");
+                    break;
+                default:
+                    System.Console.WriteLine($""other"");
+                    break;
+            }
+        }
+    }
+}
+class Rectangle
+{
+    public int Height, Length;
+    public Rectangle(int x, int y) { Height = x; Length = y; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"other
+S 1
+R 1 2");
+        }
     }
 }

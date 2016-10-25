@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Parent.Kind() == SyntaxKind.WhenClause);
+            Debug.Assert(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>() != null);
             return ifConditionGotoBody;
         }
 
