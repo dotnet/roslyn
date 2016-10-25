@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
-        protected readonly Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
+        protected Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
         // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even

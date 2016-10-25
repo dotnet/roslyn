@@ -714,10 +714,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C.<>c__DisplayClass1_0: {a, <F>b__1}",
-                "C.<>c__DisplayClass1_1: {b, <F>b__3}",
-                "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
-                "C: {<F>b__1_0, <F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}");
+               "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
+               "C.<>c__DisplayClass1_1: {b, <F>b__3}",
+               "C: {<F>b__1_0, <F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}",
+               "C.<>c__DisplayClass1_0: {a, <F>b__1}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;

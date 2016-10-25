@@ -1128,11 +1128,11 @@ class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>1</methodOrdinal>
-          <closure offset=""102"" />
           <closure offset=""41"" />
-          <lambda offset=""149"" closure=""0"" />
-          <lambda offset=""73"" closure=""1"" />
-          <lambda offset=""87"" closure=""1"" />
+          <closure offset=""102"" />
+          <lambda offset=""149"" closure=""1"" />
+          <lambda offset=""73"" closure=""0"" />
+          <lambda offset=""87"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>

@@ -30,6 +30,184 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() => Local(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis2()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local() => 10 + this.P;
+        int Local2(int x) => x + Local();
+
+        int y = 100;
+        var a = new Func<int>(() => Local2(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis3()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local() 
+        {
+            if (this.P < 5)
+            {
+                return Local2(this.P++);
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        int Local2(int x) => x + Local();
+
+        int y = 100;
+        var a = new Func<int>(() => Local2(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+
+        }
+
+        [Fact]
+        public void TwoFrames()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 0;
+    public void M()
+    {
+        int x = 0;
+
+        var a = new Func<int>(() =>
+        {
+            int Local() => x + this.P;
+            int z = 0;
+            int Local3() => z + Local();
+            return Local3();
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "0");
+        }
+
+        [Fact]
+        public void SameFrame()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int x = 10;
+        int Local() => x + this.P;
+
+        int y = 100;
+        int Local2() => y + Local();
+        Console.WriteLine(Local2());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+        }
+
+        [Fact]
+        public void MutuallyRecursiveThisCapture()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local()
+        {
+            if (this.P < 5)
+            {
+                return Local2(this.P++);
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        int Local2(int x) => x + Local();
+        Console.WriteLine(Local());
+    }
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameterLocalFunction()
         {
