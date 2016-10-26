@@ -19384,5 +19384,247 @@ public class B1
             var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp1.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_01()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test((X1:1, Y1:2));
+        var t1 = (X1:3, Y1:4);
+        Test(t1);
+        Test((5, 6));
+        var t2 = (7, 8);
+        Test(t2);
+    }
+
+    public static void Test(AA val)
+    {
+    }
+}
+
+class AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_02()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test((X1:1, Y1:2));
+        var t1 = (X1:3, Y1:4);
+        Test(t1);
+        Test((5, 6));
+        var t2 = (7, 8);
+        Test(t2);
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_03()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        (int X1, int Y1)? t1 = (X1:3, Y1:4);
+        Test(t1);
+        (int, int)? t2 = (7, 8);
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+        t1 = null;
+        Test(t1);
+        t2 = null;
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(3, 4)
+(7, 8)
+--
+--");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_04()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test(new AA());
+    }
+
+    public static void Test((int X1, int Y1) val)
+    {
+        System.Console.WriteLine(val);	
+    }
+}
+
+class AA
+{
+    public static implicit operator (int, int) (AA x)
+    {
+        return (1, 2);
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:@"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_05()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test(new AA());
+    }
+
+    public static void Test((int X1, int Y1) val)
+    {
+        System.Console.WriteLine(val);	
+    }
+}
+
+class AA
+{
+    public static implicit operator (int X1, int Y1) (AA x)
+    {
+        return (1, 2);
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_06()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        BB<(int X1, int Y1)>? t1 = new BB<(int X1, int Y1)>();
+        Test(t1);
+        BB<(int, int)>? t2 = new BB<(int, int)>();
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+        t1 = null;
+        Test(t1);
+        t2 = null;
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA (BB<(int X1, int Y1)> x)
+    {
+        System.Console.WriteLine(""implicit operator AA"");	
+        return new AA();
+    }
+}
+
+struct BB<T>
+{
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"implicit operator AA
+implicit operator AA
+--
+--");
+        }
     }
 }

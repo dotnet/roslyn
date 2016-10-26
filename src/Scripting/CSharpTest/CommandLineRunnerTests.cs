@@ -37,12 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             string workingDirectory = null)
         {
             var io = new TestConsoleIO(input);
+            var buildPaths = new BuildPaths(
+                clientDir: AppContext.BaseDirectory,
+                workingDir: workingDirectory ?? AppContext.BaseDirectory,
+                sdkDir: null,
+                tempDir: Path.GetTempPath());
 
             var compiler = new CSharpInteractiveCompiler(
                 responseFile,
-                workingDirectory ?? AppContext.BaseDirectory,
-                null,
-                AppContext.BaseDirectory,
+                buildPaths,
                 args ?? s_defaultArgs,
                 new NotImplementedAnalyzerLoader());
 

@@ -17198,6 +17198,231 @@ BC41009: The tuple element name 'd' is ignored because a different name is speci
 
         End Sub
 
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((X1:=1, Y1:=2))
+        Dim t1 = (X1:=3, Y1:=4)
+        Test(t1)
+        Test((5, 6))
+        Dim t2 = (7, 8)
+        Test(t2)
+    End Sub
+
+    Shared Sub Test(val As AA)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((X1:=1, Y1:=2))
+        Dim t1 = (X1:=3, Y1:=4)
+        Test(t1)
+        Test((5, 6))
+        Dim t2 = (7, 8)
+        Test(t2)
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim t1 As (X1 as Integer, Y1 as Integer)?  = (X1:=3, Y1:=4)
+        Test(t1)
+        Dim t2 As (Integer, Integer)? = (7, 8)
+        Test(t2)
+        System.Console.WriteLine("--")	
+        t1 = Nothing
+        Test(t1)
+        t2 = Nothing
+        Test(t2)
+        System.Console.WriteLine("--")	
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(3, 4)
+(7, 8)
+--
+--
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test(new AA())
+    End Sub
+
+    Shared Sub Test(val As (X1 As Integer, Y1 As Integer))
+        System.Console.WriteLine(val)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As AA) As (Integer, Integer)
+        return (1, 2)
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test(new AA())
+    End Sub
+
+    Shared Sub Test(val As (X1 As Integer, Y1 As Integer))
+        System.Console.WriteLine(val)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As AA) As (X1 As Integer, Y1 As Integer)
+        return (1, 2)
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim t1 As BB(Of (X1 as Integer, Y1 as Integer))? = New BB(Of (X1 as Integer, Y1 as Integer))()
+        Test(t1)
+        Dim t2 As BB(Of (Integer, Integer))? = New BB(Of (Integer, Integer))()
+        Test(t2)
+        System.Console.WriteLine("--")	
+        t1 = Nothing
+        Test(t1)
+        t2 = Nothing
+        Test(t2)
+        System.Console.WriteLine("--")	
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As BB(Of (X1 As Integer, Y1 As Integer))) As AA
+        System.Console.WriteLine("implicit operator AA")	
+        return new AA()
+    End Operator
+End Structure
+
+Public Structure BB(Of T)
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+implicit operator AA
+implicit operator AA
+--
+--
+")
+        End Sub
+
     End Class
 
 End Namespace

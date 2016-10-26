@@ -55,6 +55,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -70,6 +71,8 @@
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
     <Compile Include="Structure\BlockContextProvider.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

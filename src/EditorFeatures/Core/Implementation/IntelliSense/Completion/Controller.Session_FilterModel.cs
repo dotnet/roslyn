@@ -284,14 +284,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             private CompletionItem GetBestCompletionItemBasedOnMRU(
                 ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
             {
+                if (chosenItems.Length == 0)
+                {
+                    return null;
+                }
+
+                // Try to find the chosen item has been most
+                // recently used.
                 var bestItem = chosenItems.FirstOrDefault();
-                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                for (int i = 0, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
                     var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                     var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
                     if (mruIndex2 < mruIndex1)
+                    {
+                        bestItem = chosenItem;
+                    }
+                }
+
+                // If our best item appeared in the MRU list, use it
+                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
+                {
+                    return bestItem;
+                }
+
+                // Otherwise use the chosen item that has the highest
+                // matchPriority.
+                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                {
+                    var chosenItem = chosenItems[i];
+                    var bestItemPriority = bestItem.Rules.MatchPriority;
+                    var currentItemPriority = chosenItem.Rules.MatchPriority;
+
+                    if (currentItemPriority > bestItemPriority)
                     {
                         bestItem = chosenItem;
                     }
@@ -442,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return true;
                     }
 
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0)
+                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
                     {
                         return true;
                     }

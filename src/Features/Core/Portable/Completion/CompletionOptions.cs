@@ -7,10 +7,10 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionOptions
     {
-        // This is serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
         public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
         
-        // This is serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
 
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,

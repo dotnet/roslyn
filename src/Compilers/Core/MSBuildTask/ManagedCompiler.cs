@@ -418,11 +418,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
+                    var workingDir = CurrentDirectoryToUse();
                     var buildPaths = new BuildPaths(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
-                        workingDir: CurrentDirectoryToUse());
+                        workingDir: workingDir,
+                        tempDir: BuildClient.GetTempPath(workingDir));
 
                     var responseTask = DesktopBuildClient.RunServerCompilation(
                         Language,
@@ -535,7 +537,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // if ToolTask didn't override. MSBuild uses the process directory.
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
+            {
                 workingDirectory = Directory.GetCurrentDirectory();
+            }
             return workingDirectory;
         }
 

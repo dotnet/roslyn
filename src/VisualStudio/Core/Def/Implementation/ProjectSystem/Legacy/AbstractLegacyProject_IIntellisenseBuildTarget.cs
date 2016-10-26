@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this.ProjectFilePath)}_*.designtime.log";
 
-            var logFileDescription = string.Format(ServicesVSResources.To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_2_Open_a_Visual_Studio_Developer_Command_Prompt_3_Set_environment_variable_TraceDesignTime_to_true_set_TraceDesignTime_true_4_Delete_vs_directory_suo_file_5_Restart_VS_from_the_command_prompt_you_set_the_environment_varaible_devenv_6_Open_the_solution_7_Check_0_and_look_for_the_failed_tasks_FAILED, logFilePath);
+            var logFileDescription = string.Format(ServicesVSResources.To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows, logFilePath);
             if (string.IsNullOrWhiteSpace(reason))
             {
                 return logFileDescription;

@@ -62,24 +62,31 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static BuildRequest Create(RequestLanguage language,
                                           string workingDirectory,
+                                          string tempDirectory,
                                           IList<string> args,
                                           string keepAlive = null,
                                           string libDirectory = null)
         {
             Log("Creating BuildRequest");
             Log($"Working directory: {workingDirectory}");
+            Log($"Temp directory: {tempDirectory}");
             Log($"Lib directory: {libDirectory ?? "null"}");
 
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = ImmutableArray.CreateBuilder<Argument>(requestLength);
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
             if (keepAlive != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.KeepAlive, 0, keepAlive));
+            }
 
             if (libDirectory != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));
+            }
 
             for (int i = 0; i < args.Count; ++i)
             {
@@ -507,6 +514,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Request a server shutdown from the client
             Shutdown,
+
+            // The directory to use for temporary operations.
+            TempDirectory,
         }
 
         /// <summary>
