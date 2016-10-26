@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -64,7 +65,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckRoslynProjectType(TextWriter textWriter)
         {
-            var element = GetAllPropertyGroupElements().FirstOrDefault(x => x.Name.LocalName == "RoslynProjectType");
+            var element = FindSingleProperty("RoslynProjectType");
             var type = element?.Value.Trim();
 
             var allGood = true;
@@ -75,6 +76,7 @@ namespace BuildBoss
             }
 
             allGood &= IsVsixCorrectlySpecified(textWriter, type);
+            allGood &= IsUnitTestCorrectlySpecified(textWriter, type);
 
             return allGood;
         }
@@ -102,7 +104,7 @@ namespace BuildBoss
 
         private bool IsVsixCorrectlySpecified(TextWriter textWriter, string roslynProjectType)
         {
-            var element = GetAllPropertyGroupElements().FirstOrDefault(x => x.Name.LocalName == "ProjectTypeGuids");
+            var element = FindSingleProperty("ProjectTypeGuids");
             if (element == null)
             {
                 return true;
@@ -127,6 +129,43 @@ namespace BuildBoss
             return true;
         }
 
+        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, string roslynProjectType)
+        {
+            if (ProjectType != ProjectType.CSharp && ProjectType != ProjectType.Basic)
+            {
+                return true;
+            }
+
+            if (roslynProjectType == "Dependency")
+            {
+                return true;
+            }
+
+            var element = FindSingleProperty("AssemblyName");
+            if (element == null)
+            {
+                textWriter.WriteLine($"Need to specify AssemblyName");
+                return false;
+            }
+
+            var name = element.Value.Trim();
+            if (Regex.IsMatch(name, @"UnitTest(s?)\.dll", RegexOptions.IgnoreCase))
+            {
+                switch (roslynProjectType)
+                {
+                    case "UnitTest":
+                    case "UnitTestNext":
+                        // This is correct
+                        break;
+                    default:
+                        textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
         private IEnumerable<XElement> GetAllPropertyGroupElements()
         {
             var groups = _projectData.XPathSelectElements("//mb:PropertyGroup", _manager);
@@ -138,5 +177,7 @@ namespace BuildBoss
                 }
             }
         }
+
+        private XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);
     }
 }
