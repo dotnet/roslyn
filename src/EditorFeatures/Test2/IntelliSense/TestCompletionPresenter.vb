@@ -29,9 +29,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                       subjectBuffer As ITextBuffer,
                                       sessionOpt As ICompletionSession) As ICompletionPresenterSession _
             Implements IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession).CreateSession
-            Return New CompletionPresenterSession(
+            Dim session = New CompletionPresenterSession(
                 _completionSetFactory, _completionBroker,
                 _glyphService, textView, subjectBuffer)
+
+            _testState.CurrentCompletionPresenterSession = session
+
+            AddHandler session.Dismissed, Sub()
+                                              _testState.CurrentCompletionPresenterSession = Nothing
+                                          End Sub
+
+            Return session
         End Function
     End Class
 End Namespace

@@ -159,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #End Region
 
 #Region "Completion Operations"
+
         Public Overloads Sub SendTab()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
             MyBase.SendTab(Sub(a, n) handler.ExecuteCommand(a, n), Sub() EditorOperations.InsertText(vbTab))
@@ -253,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
+                Assert.Equal(isHardSelected.Value, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
             End If
 
             If displayText IsNot Nothing Then
