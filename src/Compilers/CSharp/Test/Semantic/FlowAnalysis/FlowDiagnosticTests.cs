@@ -2024,9 +2024,38 @@ public class OperationExecutor
         #endregion
 
         [Fact, WorkItem(545347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
-        public void FieldInAbstractClass()
+        public void FieldInAbstractClass_UnusedField()
         {
-            CreateCompilationWithMscorlib(@"abstract class AbstractType { public int Kind; }").VerifyDiagnostics();
+            var text = @"
+abstract class AbstractType
+{
+    public int Kind;
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (4,16): warning CS0649: Field 'AbstractType.Kind' is never assigned to, and will always have its default value 0
+                //     public int Kind;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Kind").WithArguments("AbstractType.Kind", "0").WithLocation(4, 16));
+        }
+
+        [Fact, WorkItem(545347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545347")]
+        public void FieldInAbstractClass_FieldUsedInChildType()
+        {
+            var text = @"
+abstract class AbstractType
+{
+    public int Kind;
+}
+class ChildType : AbstractType
+{
+    public ChildType()
+    {
+        this.Kind = 1;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         [Fact]

@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly RefKind _refKind;
 
         protected SourceDelegateMethodSymbol(
             SourceMemberContainerTypeSymbol delegateType,
@@ -35,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_parameters.IsDefault);
             _parameters = parameters;
         }
-
-        internal override RefKind RefKind => _refKind;
 
         internal static void AddDelegateMembers(
             SourceMemberContainerTypeSymbol delegateType,
