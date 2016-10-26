@@ -140,9 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             VSCompletion value;
             if (!CompletionItemMap.TryGetValue(item, out value))
             {
-                value = new CustomCommitCompletion(CompletionPresenterSession, item, displayText);
+                value = new CustomCommitCompletion(CompletionPresenterSession, item);
                 CompletionItemMap.Add(item, value);
             }
+
+            value.DisplayText = displayText ?? item.DisplayText;
 
             return value;
         }

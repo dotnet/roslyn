@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly CompletionPresenterSession _completionPresenterSession;
         internal readonly CompletionItem CompletionItem;
         private readonly ImageMoniker _imageMoniker;
-        private readonly string _displayText;
 
         public CustomCommitCompletion(
             CompletionPresenterSession completionPresenterSession,
-            CompletionItem completionItem,
-            string displayText)
+            CompletionItem completionItem)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState
@@ -32,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
-            _displayText = displayText ?? completionItem.DisplayText;
             _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
         }
 
@@ -44,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _completionPresenterSession.OnCompletionItemCommitted(CompletionItem);
         }
 
-        public override string DisplayText => _displayText;
+        public override string DisplayText { get; set; }
 
         public override string InsertionText => DisplayText;
 
