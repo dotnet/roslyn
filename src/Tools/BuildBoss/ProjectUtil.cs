@@ -16,14 +16,16 @@ namespace BuildBoss
         private readonly ProjectData _data;
         private readonly XDocument _document;
         private readonly XmlNamespaceManager _manager;
+        private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
         internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectUtil(ProjectData data)
+        internal ProjectUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
         {
             _data = data;
             _document = data.Document;
+            _solutionMap = solutionMap;
             _manager = new XmlNamespaceManager(new NameTable());
             _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
         }
@@ -40,6 +42,7 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
                 allGood &= CheckRoslynProjectType(textWriter);
+                allGood &= CheckProjectReferences(textWriter);
             }
 
             return allGood;
@@ -141,6 +144,26 @@ namespace BuildBoss
             return true;
         }
 
+        private bool CheckProjectReferences(TextWriter textWriter)
+        {
+            var allGood = true;
+
+            // It's important that every reference be included in the solution.  MSBuild does not necessarily
+            // apply all configuration entries to projects which are compiled via referenes but not included
+            // in the solution.
+            var declaredList = GetDeclaredProjectReferences(_data);
+            foreach (var key in declaredList)
+            {
+                if (!_solutionMap.ContainsKey(key))
+                {
+                    textWriter.WriteLine($"Project reference {key.FileName} is not included in the solution");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
         private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
@@ -188,6 +211,20 @@ namespace BuildBoss
                     yield return element;
                 }
             }
+        }
+
+        private List<ProjectKey> GetDeclaredProjectReferences(ProjectData data)
+        {
+            var references = data.Document.XPathSelectElements("//mb:ProjectReference", _manager);
+            var list = new List<ProjectKey>();
+            foreach (var r in references)
+            {
+                var relativePath = r.Attribute("Include").Value;
+                var path = Path.Combine(data.Directory, relativePath);
+                list.Add(new ProjectKey(path));
+            }
+
+            return list;
         }
 
         private XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);

@@ -74,33 +74,16 @@ namespace BuildBoss
 
         private static bool ProcessProject(string solutionPath, ProjectData projectData, Dictionary<ProjectKey, ProjectData> map)
         {
-            var util = new ProjectUtil(projectData);
+            var util = new ProjectUtil(projectData, map);
             var textWriter = new StringWriter();
             if (!util.CheckAll(textWriter))
             {
-                var relativePath = GetRelativePath(solutionPath, projectData.FilePath);
-                Console.WriteLine($"Checking {relativePath} failed");
+                Console.WriteLine($"Checking {projectData.FilePath} failed");
                 Console.WriteLine(textWriter.ToString());
                 return false;
             }
 
             return true;
-        }
-
-        private static string GetRelativePath(string basePath, string fullPath)
-        {
-            if (!fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new Exception($"{fullPath} doesn't begin with {basePath}");
-            }
-
-            var path = fullPath.Substring(basePath.Length);
-            if (path.Length > 0 && path[0] == '\\')
-            {
-                path = path.Substring(1);
-            }
-
-            return path;
         }
 
         private static bool ParseCommandLine(string[] args, out string configFile, out string basePath, out List<string> solutionFilePaths)

@@ -15,6 +15,7 @@ namespace BuildBoss
         internal XDocument Document { get; }
 
         internal string FileName => Path.GetFileName(FilePath);
+        internal string Directory => Path.GetDirectoryName(FilePath);
         internal ProjectFileType ProjectFileType => ProjectEntryUtil.GetProjectFileType(FilePath);
 
         internal ProjectData(string filePath)
