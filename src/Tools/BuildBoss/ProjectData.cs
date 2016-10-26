@@ -38,6 +38,7 @@ namespace BuildBoss
     internal static class ProjectDataUtil
     {
         internal static readonly Guid FolderProjectType = new Guid("{2150E333-8FDC-42A3-9474-1A3956D46DE8}");
+        internal static readonly Guid VsixProjectType = new Guid("{82B43B9B-A64C-4715-B499-D71E9CA2BD60}");
 
         internal static ProjectType GetProjectType(string path)
         {

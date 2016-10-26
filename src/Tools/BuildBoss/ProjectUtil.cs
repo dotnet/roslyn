@@ -65,13 +65,23 @@ namespace BuildBoss
         private bool CheckRoslynProjectType(TextWriter textWriter)
         {
             var element = GetAllPropertyGroupElements().FirstOrDefault(x => x.Name.LocalName == "RoslynProjectType");
-            if (element == null)
+            var type = element?.Value.Trim();
+
+            var allGood = true;
+            if (type != null && !IsValidRoslynProjectType(type))
             {
-                return true;
+                allGood = false;
+                textWriter.WriteLine($@"Value ""{type}"" is illegal for RoslynProjectType");
             }
 
-            var value = element.Value.Trim();
-            switch (value)
+            allGood &= IsVsixCorrectlySpecified(textWriter, type);
+
+            return allGood;
+        }
+
+        private static bool IsValidRoslynProjectType(string type)
+        {
+            switch (type)
             {
                 case "Dll":
                 case "ExeDesktop":
@@ -86,9 +96,35 @@ namespace BuildBoss
                 case "Custom":
                     return true;
                 default:
-                    textWriter.WriteLine($@"Value ""{value}"" is illegal for RoslynProjectType");
                     return false;
             }
+        }
+
+        private bool IsVsixCorrectlySpecified(TextWriter textWriter, string roslynProjectType)
+        {
+            var element = GetAllPropertyGroupElements().FirstOrDefault(x => x.Name.LocalName == "ProjectTypeGuids");
+            if (element == null)
+            {
+                return true;
+            }
+
+            foreach (var rawValue in element.Value.Split(';'))
+            {
+                var value = rawValue.Trim();
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                var guid = Guid.Parse(value);
+                if (guid == ProjectDataUtil.VsixProjectType && roslynProjectType != "Vsix")
+                {
+                    textWriter.WriteLine("Vsix projects must specify <RoslynProjectType>Vsix</RoslynProjectType>");
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private IEnumerable<XElement> GetAllPropertyGroupElements()

@@ -34,6 +34,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
