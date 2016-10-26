@@ -316,11 +316,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestPrimitiveArrayValues()
+        public void TestInt32EncodingKinds()
         {
-            TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_1, StreamObjectWriter.EncodingKind.Int32_0 + 1);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_2, StreamObjectWriter.EncodingKind.Int32_0 + 2);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_3, StreamObjectWriter.EncodingKind.Int32_0 + 3);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_4, StreamObjectWriter.EncodingKind.Int32_0 + 4);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_5, StreamObjectWriter.EncodingKind.Int32_0 + 5);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_6, StreamObjectWriter.EncodingKind.Int32_0 + 6);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_7, StreamObjectWriter.EncodingKind.Int32_0 + 7);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_8, StreamObjectWriter.EncodingKind.Int32_0 + 8);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_9, StreamObjectWriter.EncodingKind.Int32_0 + 9);
+            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_10, StreamObjectWriter.EncodingKind.Int32_0 + 10);
         }
 
+        [Fact]
+        public void TestUInt32EncodingKinds()
+        {
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_1, StreamObjectWriter.EncodingKind.UInt32_0 + 1);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_2, StreamObjectWriter.EncodingKind.UInt32_0 + 2);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_3, StreamObjectWriter.EncodingKind.UInt32_0 + 3);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_4, StreamObjectWriter.EncodingKind.UInt32_0 + 4);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_5, StreamObjectWriter.EncodingKind.UInt32_0 + 5);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_6, StreamObjectWriter.EncodingKind.UInt32_0 + 6);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_7, StreamObjectWriter.EncodingKind.UInt32_0 + 7);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_8, StreamObjectWriter.EncodingKind.UInt32_0 + 8);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_9, StreamObjectWriter.EncodingKind.UInt32_0 + 9);
+            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_10, StreamObjectWriter.EncodingKind.UInt32_0 + 10);
+        }
 
         private void TestRoundTripCompressedUint(uint value)
         {
@@ -344,6 +367,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0x80000000u)); // highest bit set not allowed
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0x40000000u)); // second highest bit set not allowed
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0xC0000000u)); // both high bits set not allowed
+        }
+
+        [Fact]
+        public void TestArraySizes()
+        {
+            TestArrayValues<byte>(1, 2, 3, 4, 5);
+            TestArrayValues<sbyte>(1, 2, 3, 4, 5);
+            TestArrayValues<short>(1, 2, 3, 4, 5);
+            TestArrayValues<ushort>(1, 2, 3, 4, 5);
+            TestArrayValues<int>(1, 2, 3, 4, 5);
+            TestArrayValues<uint>(1, 2, 3, 4, 5);
+            TestArrayValues<long>(1, 2, 3, 4, 5);
+            TestArrayValues<ulong>(1, 2, 3, 4, 5);
+            TestArrayValues<decimal>(1m, 2m, 3m, 4m, 5m);
+            TestArrayValues<float>(1.0f, 2.0f, 3.0f, 4.0f, 5.0f);
+            TestArrayValues<double>(1.0, 2.0, 3.0, 4.0, 5.0);
+            TestArrayValues<char>('1', '2', '3', '4', '5');
+            TestArrayValues<string>("1", "2", "3", "4", "5");
+            TestArrayValues(
+                new TypeWithOneMember<int>(1),
+                new TypeWithOneMember<int>(2),
+                new TypeWithOneMember<int>(3),
+                new TypeWithOneMember<int>(4),
+                new TypeWithOneMember<int>(5));
+        }
+
+        private void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
+        {
+            TestRoundTripValue((T[])null);
+            TestRoundTripValue(new T[] { });
+            TestRoundTripValue(new T[] { v1 });
+            TestRoundTripValue(new T[] { v1, v2 });
+            TestRoundTripValue(new T[] { v1, v2, v3 });
+            TestRoundTripValue(new T[] { v1, v2, v3, v4 });
+            TestRoundTripValue(new T[] { v1, v2, v3, v4, v5 });
+        }
+
+        [Fact]
+        public void TestPrimitiveArrayValues()
+        {
+            TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
         }
 
         [Fact]
@@ -485,7 +549,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue("\uD800\uDC00"); // valid surrogate pair
             TestRoundTripValue("\uDC00\uD800"); // invalid surrogate pair
             TestRoundTripValue("\uD800"); // incomplete surrogate pair
-            TestRoundTripValue(DateTime.Now);
             TestRoundTripValue<object>(null);
             TestRoundTripValue(ConsoleColor.Cyan);
             TestRoundTripValue(EByte.Value);
@@ -497,6 +560,46 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(ELong.Value);
             TestRoundTripValue(EULong.Value);
             TestRoundTripValue(typeof(object));
+        }
+
+        [Fact]
+        public void TestInt32Values()
+        {
+            TestRoundTripValue<Int32>(0);
+            TestRoundTripValue<Int32>(1);
+            TestRoundTripValue<Int32>(2);
+            TestRoundTripValue<Int32>(3);
+            TestRoundTripValue<Int32>(4);
+            TestRoundTripValue<Int32>(5);
+            TestRoundTripValue<Int32>(6);
+            TestRoundTripValue<Int32>(7);
+            TestRoundTripValue<Int32>(8);
+            TestRoundTripValue<Int32>(9);
+            TestRoundTripValue<Int32>(10);
+            TestRoundTripValue<Int32>(-1);
+            TestRoundTripValue<Int32>(Int32.MinValue);
+            TestRoundTripValue<Int32>(Byte.MaxValue);
+            TestRoundTripValue<Int32>(UInt16.MaxValue);
+            TestRoundTripValue<Int32>(Int32.MaxValue);
+        }
+
+        [Fact]
+        public void TestUInt32Values()
+        {
+            TestRoundTripValue<UInt32>(0);
+            TestRoundTripValue<UInt32>(1);
+            TestRoundTripValue<UInt32>(2);
+            TestRoundTripValue<UInt32>(3);
+            TestRoundTripValue<UInt32>(4);
+            TestRoundTripValue<UInt32>(5);
+            TestRoundTripValue<UInt32>(6);
+            TestRoundTripValue<UInt32>(7);
+            TestRoundTripValue<UInt32>(8);
+            TestRoundTripValue<UInt32>(9);
+            TestRoundTripValue<UInt32>(10);
+            TestRoundTripValue<Int32>(Byte.MaxValue);
+            TestRoundTripValue<Int32>(UInt16.MaxValue);
+            TestRoundTripValue<Int32>(Int32.MaxValue);
         }
 
         [Fact]
@@ -522,7 +625,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripMember("\uD800\uDC00"); // valid surrogate pair
             TestRoundTripMember("\uDC00\uD800"); // invalid surrogate pair
             TestRoundTripMember("\uD800"); // incomplete surrogate pair
-            TestRoundTripMember(DateTime.Now);
             TestRoundTripMember<object>(null);
             TestRoundTripMember(ConsoleColor.Cyan);
             TestRoundTripMember(EByte.Value);
@@ -591,7 +693,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteString("\uD800\uDC00"); // valid surrogate pair
             writer.WriteString("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteString("\uD800"); // incomplete surrogate pair
-            writer.WriteDateTime(_testNow);
         }
 
         private static void TestReadingPrimitiveAPIs(ObjectReader reader)
@@ -616,7 +717,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", reader.ReadString()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", reader.ReadString()); // invalid surrogate pair
             Assert.Equal("\uD800", reader.ReadString()); // incomplete surrogate pair
-            Assert.Equal(_testNow, reader.ReadDateTime());
         }
 
         [Fact]

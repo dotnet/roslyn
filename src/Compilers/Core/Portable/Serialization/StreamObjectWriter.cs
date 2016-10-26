@@ -19,13 +19,36 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
-        private readonly BinaryWriter _writer;          // writes primitives to stream
-        private readonly ObjectBinder _binder;          // provides object and type encoding
+        private readonly BinaryWriter _writer;
+        private readonly ObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly ReferenceMap _referenceMap;        // object instance to reference-id map
-        private readonly Stack<Variant> _valueStack;        // stack of member/element values from object/array contents pending emit
-        private readonly VariantListWriter _memberWriter;   // used to get object member values
+        /// <summary>
+        /// Map of serialized object's reference ids.
+        /// </summary>
+        private readonly ReferenceMap _referenceMap;
+
+        /// <summary>
+        /// The stack of values (object members or array elements) in order to be emitted.
+        /// </summary>
+        private readonly Stack<Variant> _valueStack;
+
+        /// <summary>
+        /// The list of member values written by the member writer
+        /// </summary>
+        private readonly List<Variant> _memberList;
+
+        /// <summary>
+        /// An <see cref="ObjectWriter"/> that is used to write object members into a list of variants.
+        /// </summary>
+        private readonly VariantListWriter _memberWriter;
+
+        // collection pools to reduce GC overhead
+        internal static readonly ObjectPool<List<Variant>> s_variantListPool
+            = new ObjectPool<List<Variant>>(() => new List<Variant>(20));
+
+        internal static readonly ObjectPool<Stack<Variant>> s_variantStackPool
+            = new ObjectPool<Stack<Variant>>(() => new Stack<Variant>(20));
 
         /// <summary>
         /// Creates a new instance of a <see cref="StreamObjectWriter"/>.
@@ -45,13 +68,17 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _referenceMap = ReferenceMap.Create(knownObjects);
+            _referenceMap = new ReferenceMap(knownObjects);
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
-            _valueStack = new Stack<Variant>();
-            _memberWriter = new VariantListWriter();
+            _valueStack = s_variantStackPool.Allocate();
+            _memberList = s_variantListPool.Allocate();
+            _memberWriter = new VariantListWriter(_memberList);
         }
 
+        /// <summary>
+        /// The <see cref="ObjectBinder"/> used for writing object instances and types.
+        /// </summary>
         public ObjectBinder Binder
         {
             get { return _binder; }
@@ -60,6 +87,12 @@ namespace Roslyn.Utilities
         public void Dispose()
         {
             _referenceMap.Dispose();
+
+            _memberList.Clear();
+            s_variantListPool.Free(_memberList);
+
+            _valueStack.Clear();
+            s_variantStackPool.Free(_valueStack);
         }
 
         public override void WriteBoolean(bool value)
@@ -128,11 +161,6 @@ namespace Roslyn.Utilities
             _writer.Write(value);
         }
 
-        public override void WriteDateTime(DateTime value)
-        {
-            _writer.Write(value.ToBinary());
-        }
-
         public override void WriteString(string value)
         {
             WriteStringValue(value);
@@ -164,7 +192,7 @@ namespace Roslyn.Utilities
                     break;
 
                 case VariantKind.Boolean:
-                    _writer.Write((byte)(value.AsBoolean() ? EncodingKind.Boolean_T : EncodingKind.Boolean_F));
+                    _writer.Write((byte)(value.AsBoolean() ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
                     break;
 
                 case VariantKind.Byte:
@@ -295,16 +323,17 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// An <see cref="ObjectWriter"/> that writes into a list of <see cref="Variant"/>.
+        /// </summary>
         private class VariantListWriter : ObjectWriter
         {
             private readonly List<Variant> _list;
 
-            public VariantListWriter()
+            public VariantListWriter(List<Variant> list)
             {
-                _list = new List<Variant>();
+                _list = list;
             }
-
-            public List<Variant> List => _list;
 
             public override void WriteBoolean(bool value)
             {
@@ -371,11 +400,6 @@ namespace Roslyn.Utilities
                 _list.Add(Variant.FromUInt16(value));
             }
 
-            public override void WriteDateTime(DateTime value)
-            {
-                _list.Add(Variant.FromDateTime(value));
-            }
-
             public override void WriteString(string value)
             {
                 if (value == null)
@@ -394,58 +418,53 @@ namespace Roslyn.Utilities
             }
         }
 
-        private class ReferenceMap : IDisposable
+        /// <summary>
+        /// An object reference to reference-id map, that can share base data efficiently.
+        /// </summary>
+        private class ReferenceMap
         {
-            internal static readonly ObjectPool<Dictionary<object, int>> DictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128), 2);
-
-            private readonly ReferenceMap _baseData;
-            private readonly Dictionary<object, int> _valueToIdMap = DictionaryPool.Allocate();
+            private readonly ImmutableDictionary<object, int> _baseMap;
+            private readonly Dictionary<object, int> _valueToIdMap;
             private int _nextId;
 
-            private ReferenceMap(ObjectData data)
-            {
-                if (data != null)
-                {
-                    foreach (var value in data.Objects)
-                    {
-                        _valueToIdMap.Add(value, _valueToIdMap.Count);
-                    }
-                }
+            private static readonly ObjectPool<Dictionary<object, int>> s_dictionaryPool =
+                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
-                _nextId = _valueToIdMap.Count;
+            private ReferenceMap(ImmutableDictionary<object, int> baseMap)
+            {
+                _baseMap = baseMap;
+                _valueToIdMap = s_dictionaryPool.Allocate();
+                _nextId = _baseMap != null ? _baseMap.Count : 0;
             }
 
-            private ReferenceMap(ReferenceMap baseData)
+            public ReferenceMap(ObjectData data)
+                : this(data != null ? GetBaseMap(data) : null)
             {
-                _baseData = baseData;
-                _nextId = baseData?._nextId ?? 0;
             }
 
-            public static ReferenceMap Create(ObjectData data = null)
-            {
-                if (data != null)
-                {
-                    return new ReferenceMap(GetBaseWriterData(data));
-                }
-                else
-                {
-                    return new ReferenceMap(data);
-                }
-            }
+            private static readonly ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>> s_baseDataMap
+                = new ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>>();
 
-            private static readonly ConditionalWeakTable<ObjectData, ReferenceMap> s_baseDataMap
-                = new ConditionalWeakTable<ObjectData, ReferenceMap>();
-
-            private static ReferenceMap GetBaseWriterData(ObjectData data)
+            private static ImmutableDictionary<object, int> GetBaseMap(ObjectData data)
             {
-                ReferenceMap baseData;
+                ImmutableDictionary<object, int> baseData;
                 if (!s_baseDataMap.TryGetValue(data, out baseData))
                 {
-                    baseData = s_baseDataMap.GetValue(data, _data => new ReferenceMap(_data));
+                    baseData = s_baseDataMap.GetValue(data, CreateBaseMap);
                 }
 
                 return baseData;
+            }
+
+            private static ImmutableDictionary<object, int> CreateBaseMap(ObjectData data)
+            {
+                var builder = ImmutableDictionary<object, int>.Empty.ToBuilder();
+                for (int i = 0; i < data.Objects.Length; i++)
+                {
+                    builder.Add(data.Objects[i], i);
+                }
+
+                return builder.ToImmutable();
             }
 
             public void Dispose()
@@ -454,35 +473,28 @@ namespace Roslyn.Utilities
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    DictionaryPool.ForgetTrackedObject(_valueToIdMap);
+                    s_dictionaryPool.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {
                     _valueToIdMap.Clear();
-                    DictionaryPool.Free(_valueToIdMap);
+                    s_dictionaryPool.Free(_valueToIdMap);
                 }
             }
 
-            public bool TryGetId(object value, out int id)
+            public bool TryGetReferenceId(object value, out int referenceId)
             {
-                if (_baseData != null && _baseData.TryGetId(value, out id))
+                if (_baseMap != null && _baseMap.TryGetValue(value, out referenceId))
                 {
                     return true;
                 }
 
-                return _valueToIdMap.TryGetValue(value, out id);
-            }
-
-            private int GetNextId()
-            {
-                var id = _nextId;
-                _nextId++;
-                return id;
+                return _valueToIdMap.TryGetValue(value, out referenceId);
             }
 
             public int Add(object value)
             {
-                var id = this.GetNextId();
+                var id = _nextId++;
                 _valueToIdMap.Add(value, id);
                 return id;
             }
@@ -535,7 +547,7 @@ namespace Roslyn.Utilities
             else
             {
                 int id;
-                if (_referenceMap.TryGetId(value, out id))
+                if (_referenceMap.TryGetReferenceId(value, out id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -853,7 +865,7 @@ namespace Roslyn.Utilities
         private void WriteType(Type type)
         {
             int id;
-            if (_referenceMap.TryGetId(type, out id))
+            if (_referenceMap.TryGetReferenceId(type, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -891,7 +903,7 @@ namespace Roslyn.Utilities
 
             // write object ref if we already know this instance
             int id;
-            if (_referenceMap.TryGetId(instance, out id))
+            if (_referenceMap.TryGetReferenceId(instance, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -919,19 +931,19 @@ namespace Roslyn.Utilities
                 }
 
                 // gather instance members by writing them into a list of variants
-                _memberWriter.List.Clear();
+                _memberList.Clear();
                 typeWriter(_memberWriter, instance);
 
                 // emit object header up front
-                this.WriteObjectHeader(instance, (uint)_memberWriter.List.Count);
+                this.WriteObjectHeader(instance, (uint)_memberList.Count);
 
                 // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
                 // TODO: consider optimizing for objects that only contain primitive members.
 
                 // push all members in reverse order so we later emit the first member written first
-                for (int i = _memberWriter.List.Count - 1; i >= 0; i--)
+                for (int i = _memberList.Count - 1; i >= 0; i--)
                 {
-                    _valueStack.Push(_memberWriter.List[i]);
+                    _valueStack.Push(_memberList[i]);
                 }
             }
         }
@@ -940,7 +952,7 @@ namespace Roslyn.Utilities
         {
             _referenceMap.Add(instance);
 
-            _writer.Write((byte)EncodingKind.Object_W);
+            _writer.Write((byte)EncodingKind.Object);
 
             Type type = instance.GetType();
             this.WriteType(type);
@@ -994,7 +1006,7 @@ namespace Roslyn.Utilities
             TypeRef,      // type ref id as 4 bytes 
             TypeRef_B,    // type ref id as 1 byte
             TypeRef_S,    // type ref id as 2 bytes
-            Object_W,     // IObjectWritable
+            Object,       
             ObjectRef,    // object ref id as 4 bytes
             ObjectRef_B,  // object ref id as 1 byte
             ObjectRef_S,  // object ref id as 2 bytes
@@ -1003,8 +1015,8 @@ namespace Roslyn.Utilities
             StringRef,    // string ref id as 4-bytes
             StringRef_B,  // string ref id as 1-byte
             StringRef_S,  // string ref id as 2-bytes
-            Boolean_T,    // boolean true
-            Boolean_F,    // boolean false
+            Boolean_True,
+            Boolean_False,
             Char,
             Int8,
             Int16,

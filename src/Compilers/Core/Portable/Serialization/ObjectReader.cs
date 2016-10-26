@@ -19,7 +19,6 @@ namespace Roslyn.Utilities
         public abstract uint ReadUInt32();
         public abstract ulong ReadUInt64();
         public abstract ushort ReadUInt16();
-        public abstract DateTime ReadDateTime();
         public abstract string ReadString();
         public abstract object ReadValue();
     }

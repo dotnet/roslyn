@@ -259,9 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private static SyntaxTree CheckSerializable(SyntaxTree tree)
         {
             var stream = new MemoryStream();
-            tree.GetRoot().SerializeTo(stream);
+            var root = tree.GetRoot();
+            root.SerializeTo(stream);
             stream.Position = 0;
-            var deserialized = CSharpSyntaxNode.DeserializeFrom(stream);
+            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             return tree;
         }
 

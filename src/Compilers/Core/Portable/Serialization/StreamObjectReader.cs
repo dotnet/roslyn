@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+    using SOW = StreamObjectWriter;
     using EncodingKind = StreamObjectWriter.EncodingKind;
     using Variant = StreamObjectWriter.Variant;
     using VariantKind = StreamObjectWriter.VariantKind;
@@ -20,14 +21,37 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
     {
-        private readonly BinaryReader _reader;              // reads primitives from stream
-        private readonly ObjectBinder _binder;              // provides object and type decoding
+        private readonly BinaryReader _reader;
+        private readonly ObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly ReferenceMap _referenceMap;        // reference-id to object instance map
-        private readonly Stack<Variant> _valueStack;        // member/element values used by consumers (objects and arrays)
-        private readonly Stack<Consumer> _consumerStack;    // stack of consumers (objects and arrays needing values before they can be constructed)
-        private readonly VariantListReader _memberReader;   // used to provide member values when reading objects
+        /// <summary>
+        /// Map of reference id's to deserialized objects.
+        /// </summary>
+        private readonly ReferenceMap _referenceMap;
+
+        /// <summary>
+        /// Stack of values (object members and array elements) used to construct consumers (objects and arrays)
+        /// </summary>
+        private readonly Stack<Variant> _valueStack;
+
+        /// <summary>
+        /// stack of consumers (objects and arrays needing values before they can be constructed)
+        /// </summary>
+        private readonly Stack<Consumer> _consumerStack;
+
+        /// <summary>
+        /// List of members that object decoders/deserializers can read from.
+        /// </summary>
+        private readonly List<Variant> _memberList;
+
+        /// <summary>
+        /// Used to provide member values when reading and constructing objects.
+        /// </summary>
+        private readonly VariantListReader _memberReader;
+
+        private static readonly ObjectPool<Stack<Consumer>> s_consumerStackPool
+            = new ObjectPool<Stack<Consumer>>(() => new Stack<Consumer>(20));
 
         /// <summary>
         /// Creates a new instance of a <see cref="StreamObjectReader"/>.
@@ -47,17 +71,27 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _referenceMap = ReferenceMap.Create(knownObjects);
+            _referenceMap = new ReferenceMap(knownObjects);
             _binder = binder;
             _cancellationToken = cancellationToken;
-            _valueStack = new Stack<Variant>();
-            _consumerStack = new Stack<Consumer>();
-            _memberReader = new VariantListReader();
+            _valueStack = SOW.s_variantStackPool.Allocate();
+            _consumerStack = s_consumerStackPool.Allocate();
+            _memberList = SOW.s_variantListPool.Allocate();
+            _memberReader = new VariantListReader(_memberList);
         }
 
         public void Dispose()
         {
             _referenceMap.Dispose();
+
+            _valueStack.Clear();
+            SOW.s_variantStackPool.Free(_valueStack);
+
+            _consumerStack.Clear();
+            s_consumerStackPool.Free(_consumerStack);
+
+            _memberList.Clear();
+            SOW.s_variantListPool.Free(_memberList);
         }
 
         public override bool ReadBoolean()
@@ -126,11 +160,6 @@ namespace Roslyn.Utilities
             return _reader.ReadUInt16();
         }
 
-        public override DateTime ReadDateTime()
-        {
-            return DateTime.FromBinary(_reader.ReadInt64());
-        }
-
         public override string ReadString()
         {
             return ReadStringValue();
@@ -171,7 +200,7 @@ namespace Roslyn.Utilities
                 {
                     consumer = _consumerStack.Pop();
 
-                    var constructed = (consumer.Reader != null)
+                    var constructed = (consumer.IsObjectConsumer)
                         ? ConstructObject(consumer.Type, consumer.ElementCount, consumer.Reader, consumer.Id)
                         : ConstructArray(consumer.Type, consumer.ElementCount);
 
@@ -191,7 +220,7 @@ namespace Roslyn.Utilities
             public readonly Func<ObjectReader, object> Reader;
             public readonly int Id;
 
-            public Consumer(Type type, int elementCount, int stackStart, Func<ObjectReader, object> reader, int id)
+            private Consumer(Type type, int elementCount, int stackStart, Func<ObjectReader, object> reader, int id)
             {
                 this.Type = type;
                 this.ElementCount = elementCount;
@@ -199,6 +228,18 @@ namespace Roslyn.Utilities
                 this.Reader = reader;
                 this.Id = id;
             }
+
+            public static Consumer CreateObjectConsumer(Type type, int memberCount, int stackStart, Func<ObjectReader, object> reader, int id)
+            {
+                return new Consumer(type, memberCount, stackStart, reader, id);
+            }
+
+            public static Consumer CreateArrayConsumer(Type elementType, int elementCount, int stackStart)
+            {
+                return new Consumer(elementType, elementCount, stackStart, reader: null, id: 0);
+            }
+
+            public bool IsObjectConsumer => this.Reader != null;
         }
 
         private Variant ReadVariant()
@@ -208,9 +249,9 @@ namespace Roslyn.Utilities
             {
                 case EncodingKind.Null:
                     return Variant.Null;
-                case EncodingKind.Boolean_T:
+                case EncodingKind.Boolean_True:
                     return Variant.FromBoolean(true);
-                case EncodingKind.Boolean_F:
+                case EncodingKind.Boolean_False:
                     return Variant.FromBoolean(false);
                 case EncodingKind.Int8:
                     return Variant.FromSByte(_reader.ReadSByte());
@@ -277,7 +318,7 @@ namespace Roslyn.Utilities
                 case EncodingKind.StringRef_B:
                 case EncodingKind.StringRef_S:
                     return Variant.FromString(ReadStringValue(kind));
-                case EncodingKind.Object_W:
+                case EncodingKind.Object:
                 case EncodingKind.ObjectRef:
                 case EncodingKind.ObjectRef_B:
                 case EncodingKind.ObjectRef_S:
@@ -305,12 +346,10 @@ namespace Roslyn.Utilities
             private readonly List<Variant> _list;
             private int _index;
 
-            public VariantListReader()
+            public VariantListReader(List<Variant> list)
             {
-                _list = new List<Variant>();
+                _list = list;
             }
-
-            public List<Variant> List => _list;
 
             public void Reset()
             {
@@ -390,11 +429,6 @@ namespace Roslyn.Utilities
                 return Next().AsUInt16();
             }
 
-            public override DateTime ReadDateTime()
-            {
-                return Next().AsDateTime();
-            }
-
             public override String ReadString()
             {
                 var next = Next();
@@ -414,63 +448,29 @@ namespace Roslyn.Utilities
             }
         }
 
-        private class ReferenceMap : IDisposable
+        /// <summary>
+        /// An reference-id to object map, that can share base data efficiently.
+        /// </summary>
+        private class ReferenceMap
         {
-            internal static readonly ObjectPool<List<object>> ListPool =
-                new ObjectPool<List<object>>(() => new List<object>(128), 2);
-
-            private readonly ReferenceMap _baseData;
-            private readonly List<object> _values = ListPool.Allocate();
+            private readonly ObjectData _baseData;
             private readonly int _baseDataCount;
+            private readonly List<object> _values;
 
-            private ReferenceMap(ObjectData data)
-            {
-                if (data != null)
-                {
-                    foreach (var value in data.Objects)
-                    {
-                        _values.Add(value);
-                    }
-                }
-            }
+            internal static readonly ObjectPool<List<object>> s_objectListPool
+                = new ObjectPool<List<object>>(() => new List<object>(20));
 
-            private ReferenceMap(ReferenceMap baseData)
+            public ReferenceMap(ObjectData baseData)
             {
-                Debug.Assert(baseData?._baseData == null, "Should be <= 1 level deep");
                 _baseData = baseData;
-                _baseDataCount = baseData?._values.Count ?? 0;
+                _baseDataCount = baseData != null ? _baseData.Objects.Length : 0;
+                _values = s_objectListPool.Allocate();
             }
 
             public void Dispose()
             {
                 _values.Clear();
-                ListPool.Free(_values);
-            }
-
-            public static ReferenceMap Create(ObjectData data = null)
-            {
-                if (data != null)
-                {
-                    return new ReferenceMap(GetBaseReaderData(data));
-                }
-                else
-                {
-                    return new ReferenceMap(data);
-                }
-            }
-
-            private static readonly ConditionalWeakTable<ObjectData, ReferenceMap> s_baseDataMap
-                = new ConditionalWeakTable<ObjectData, ReferenceMap>();
-
-            private static ReferenceMap GetBaseReaderData(ObjectData data)
-            {
-                ReferenceMap baseData;
-                if (!s_baseDataMap.TryGetValue(data, out baseData))
-                {
-                    baseData = s_baseDataMap.GetValue(data, _data => new ReferenceMap(_data));
-                }
-
-                return baseData;
+                s_objectListPool.Free(_values);
             }
 
             public int GetNextReferenceId()
@@ -479,7 +479,7 @@ namespace Roslyn.Utilities
                 return _baseDataCount + _values.Count - 1;
             }
 
-            public void AddValue(int referenceId, object value)
+            public void SetValue(int referenceId, object value)
             {
                 _values[referenceId - _baseDataCount] = value;
             }
@@ -490,7 +490,7 @@ namespace Roslyn.Utilities
                 {
                     if (referenceId < _baseDataCount)
                     {
-                        return _baseData.GetValue(referenceId);
+                        return _baseData.Objects[referenceId];
                     }
                     else
                     {
@@ -580,7 +580,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            _referenceMap.AddValue(id, value);
+            _referenceMap.SetValue(id, value);
             return value;
         }
 
@@ -619,7 +619,7 @@ namespace Roslyn.Utilities
                 // custom type case
                 elementType = this.ReadType(elementKind);
 
-                _consumerStack.Push(new Consumer(elementType, length, _valueStack.Count, null, 0));
+                _consumerStack.Push(Consumer.CreateArrayConsumer(elementType, length, _valueStack.Count));
                 return Variant.None;
             }
         }
@@ -874,7 +874,7 @@ namespace Roslyn.Utilities
                     }
 
                     var type = _binder.GetType(new TypeKey(assemblyName, typeName));
-                    _referenceMap.AddValue(id, type);
+                    _referenceMap.SetValue(id, type);
                     return type;
 
                 default:
@@ -941,7 +941,7 @@ namespace Roslyn.Utilities
                 case EncodingKind.ObjectRef_S:
                     return Variant.FromObject(_referenceMap.GetValue(_reader.ReadUInt16()));
 
-                case EncodingKind.Object_W:
+                case EncodingKind.Object:
                     int id = _referenceMap.GetNextReferenceId();
 
                     Type type = this.ReadType();
@@ -964,7 +964,7 @@ namespace Roslyn.Utilities
                     }
                     else
                     {
-                        _consumerStack.Push(new Consumer(type, (int)memberCount, _valueStack.Count, reader, id));
+                        _consumerStack.Push(Consumer.CreateObjectConsumer(type, (int)memberCount, _valueStack.Count, reader, id));
                         return Variant.None;
                     }
 
@@ -980,11 +980,11 @@ namespace Roslyn.Utilities
             // take members from the stack
             for (int i = 0; i < memberCount; i++)
             {
-                _memberReader.List.Add(_valueStack.Pop());
+                _memberList.Add(_valueStack.Pop());
             }
 
             // reverse list so that first member to be read is first
-            _memberReader.List.Reverse();
+            _memberList.Reverse();
 
             // invoke the deserialization constructor to create instance and read & assign members           
             var instance = reader(_memberReader);
@@ -994,7 +994,7 @@ namespace Roslyn.Utilities
                 throw new InvalidOperationException($"Deserialization constructor for '{type.Name}' was expected to read {memberCount} values, but read {_memberReader.Position} values instead.");
             }
 
-            _referenceMap.AddValue(id, instance);
+            _referenceMap.SetValue(id, instance);
 
             return Variant.FromObject(instance);
         }

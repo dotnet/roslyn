@@ -24,12 +24,12 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Gets a function that reads an object of the specified type from an <see cref="ObjectReader"/>.
+        /// Gets a function that reads an type's members from an <see cref="ObjectReader"/> and constructs an instance with those members.
         /// </summary>
         public abstract Func<ObjectReader, object> GetReader(Type type);
 
         /// <summary>
-        /// Gets a function that writes an objects members to a <see cref="ObjectWriter"/>.
+        /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
         /// </summary>
         public virtual Action<ObjectWriter, object> GetWriter(object instance)
         {          

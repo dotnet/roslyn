@@ -19,7 +19,6 @@ namespace Roslyn.Utilities
         public abstract void WriteUInt32(uint value);
         public abstract void WriteUInt64(ulong value);
         public abstract void WriteUInt16(ushort value);
-        public abstract void WriteDateTime(DateTime value);
         public abstract void WriteString(string value);
         public abstract void WriteValue(object value);
     }
