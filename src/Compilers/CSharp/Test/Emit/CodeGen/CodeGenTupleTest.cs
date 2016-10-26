@@ -19431,6 +19431,12 @@ namespace ConsoleApplication5
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
         }
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
@@ -19481,6 +19487,13 @@ namespace ConsoleApplication5
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify:false);
+
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+
         }
 
 
@@ -19835,6 +19848,58 @@ namespace ConsoleApplication5
             // since dynamic flags were not aligned, we have ignored the flags
             Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
 
+        }
+
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode004()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo => ref new (int, dynamic)[]{(1, 42)}[0];
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo;
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo => ref base.Foo;
+    }
+}
+";
+
+            var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+
+            var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo { get; }", m.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo.get", m.GetMethod.ToTestDisplayString());
+
+            var b = m.OverriddenProperty;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo { get; }", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo.get", b.GetMethod.ToTestDisplayString());
         }
 
     }
