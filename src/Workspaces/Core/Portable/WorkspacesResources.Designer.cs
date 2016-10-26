@@ -909,6 +909,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Option &apos;{0}&apos; has an unsupported type to use with {1}. You should specify a parsing function..
+        /// </summary>
+        internal static string Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function {
+            get {
+                return ResourceManager.GetString("Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_funct" +
+                        "ion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Non-Field Members.
         /// </summary>
         internal static string Non_Field_Members {
