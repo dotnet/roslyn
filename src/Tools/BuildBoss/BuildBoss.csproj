@@ -27,8 +27,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="ProjectType.cs" />
     <Compile Include="ProjectUtil.cs" />
+    <Compile Include="RoslynProjectData.cs" />
     <Compile Include="SharedUtil.cs" />
-    <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectEntry.cs" />
     <Compile Include="SolutionUtil.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -65,44 +65,57 @@ namespace BuildBoss
         /// </summary>
         private bool CheckRoslynProjectType(TextWriter textWriter)
         {
-            var element = FindSingleProperty("RoslynProjectType");
-            var type = element?.Value.Trim();
-
-            var allGood = true;
-            if (type != null && !IsValidRoslynProjectType(type))
+            RoslynProjectData data;
+            if (!ParseRoslynProjectData(textWriter, out data))
             {
-                allGood = false;
-                textWriter.WriteLine($@"Value ""{type}"" is illegal for RoslynProjectType");
+                return false;
             }
 
-            allGood &= IsVsixCorrectlySpecified(textWriter, type);
-            allGood &= IsUnitTestCorrectlySpecified(textWriter, type);
+            var allGood = true;
+            allGood &= IsVsixCorrectlySpecified(textWriter, data);
+            allGood &= IsUnitTestCorrectlySpecified(textWriter, data);
 
             return allGood;
         }
 
-        private static bool IsValidRoslynProjectType(string type)
+        private bool ParseRoslynProjectData(TextWriter textWriter, out RoslynProjectData data)
         {
-            switch (type)
+            data = default(RoslynProjectData);
+
+            var typeElement = FindSingleProperty("RoslynProjectType");
+            if (typeElement != null)
             {
-                case "Dll":
-                case "ExeDesktop":
-                case "ExeCoreClr":
-                case "UnitTest":
-                case "UnitTestNext":
-                case "CompilerGeneratorTool":
-                case "DeploymentCompilerGeneratorTools":
-                case "Deployment":
-                case "Vsix":
-                case "Dependency":
-                case "Custom":
-                    return true;
-                default:
+                var value = typeElement.Value.Trim();
+                var kind = RoslynProjectData.GetRoslynProjectKind(value);
+                if (kind == null)
+                {
+                    textWriter.WriteLine($"Unrecognized RoslynProjectKnid value {value}");
                     return false;
+                }
+
+                data = new RoslynProjectData(kind.Value, kind.Value, value);
+                return true;
+            }
+            else
+            { 
+                var outputType = FindSingleProperty("OutputType");
+                switch (outputType?.Value.Trim())
+                {
+                    case "Exe":
+                    case "WinExe":
+                        data = new RoslynProjectData(RoslynProjectKind.Exe);
+                        return true;
+                    case "Library":
+                        data = new RoslynProjectData(RoslynProjectKind.Dll);
+                        return true;
+                    default:
+                        textWriter.WriteLine($"Unrecognized OutputType value {outputType?.Value.Trim()}");
+                        return false;
+                }
             }
         }
 
-        private bool IsVsixCorrectlySpecified(TextWriter textWriter, string roslynProjectType)
+        private bool IsVsixCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             var element = FindSingleProperty("ProjectTypeGuids");
             if (element == null)
@@ -119,7 +132,7 @@ namespace BuildBoss
                 }
 
                 var guid = Guid.Parse(value);
-                if (guid == ProjectDataUtil.VsixProjectType && roslynProjectType != "Vsix")
+                if (guid == ProjectEntryUtil.VsixProjectType && data.EffectiveKind != RoslynProjectKind.Vsix)
                 {
                     textWriter.WriteLine("Vsix projects must specify <RoslynProjectType>Vsix</RoslynProjectType>");
                     return false;
@@ -129,14 +142,14 @@ namespace BuildBoss
             return true;
         }
 
-        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, string roslynProjectType)
+        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             if (ProjectType != ProjectType.CSharp && ProjectType != ProjectType.Basic)
             {
                 return true;
             }
 
-            if (roslynProjectType == "Dependency")
+            if (data.EffectiveKind == RoslynProjectKind.Depedency)
             {
                 return true;
             }
@@ -151,10 +164,10 @@ namespace BuildBoss
             var name = element.Value.Trim();
             if (Regex.IsMatch(name, @"UnitTest(s?)\.dll", RegexOptions.IgnoreCase))
             {
-                switch (roslynProjectType)
+                switch (data.EffectiveKind)
                 {
-                    case "UnitTest":
-                    case "UnitTestNext":
+                    case RoslynProjectKind.UnitTest:
+                    case RoslynProjectKind.UnitTestNext:
                         // This is correct
                         break;
                     default:

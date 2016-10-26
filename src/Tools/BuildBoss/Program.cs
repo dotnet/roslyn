@@ -65,7 +65,7 @@ namespace BuildBoss
             return allGood;
         }
 
-        private static bool ProcessProject(string projectFilePath, ProjectData projectData)
+        private static bool ProcessProject(string projectFilePath, ProjectEntry projectData)
         {
             var doc = XDocument.Load(projectFilePath);
             var projectType = projectData.ProjectType;
