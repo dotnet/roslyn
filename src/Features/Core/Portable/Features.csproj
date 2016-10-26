@@ -670,6 +670,8 @@
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
+    <Compile Include="Workspace\ProjectCacheService.cs" />
+    <Compile Include="Workspace\ProjectCacheService.SimpleMRUCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FeaturesResources.resx">

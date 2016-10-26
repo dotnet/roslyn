@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -39,6 +40,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<string, DiagnosticAnalysisResultBuilder>.Empty, ImmutableDictionary<string, AnalyzerTelemetryInfo>.Empty);
             }
 
+            var cacheService = _project.Solution.Workspace.Services.GetService<IProjectCacheService>();
+            using (var cache = cacheService.EnableCaching(_project.Id))
+            {
+                return await AnalyzeAsync(analyzerMap, analyzers, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
+            BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            bool reportSuppressedDiagnostics,
+            bool logAnalyzerExecutionTime,
+            CancellationToken cancellationToken)
+        {
             var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: can we support analyzerExceptionFilter in remote host? 
@@ -70,9 +85,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                                                      analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                                                      _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+            return DiagnosticAnalysisResultMap.Create(
+                builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
         }
 
         private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

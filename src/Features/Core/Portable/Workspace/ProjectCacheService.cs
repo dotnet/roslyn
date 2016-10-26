@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
+namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
     /// This service will implicitly cache previous Compilations used by each supported Workspace implementation.
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private readonly SimpleMRUCache _implicitCache;
         private readonly ImplicitCacheMonitor _implicitCacheMonitor;
-        
+
+        public ProjectCacheService(Workspace workspace)
+        {
+            _workspace = workspace;
+        }
+
         public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
             _workspace = workspace;
 
-            // Only create implicit cache for Visual Studio Workspace (the cost of the
-            // cache likely outweighs the benefit for the other types of Workspaces).
-            if (workspace?.Kind == WorkspaceKind.Host)
-            {
-                _implicitCache = new SimpleMRUCache();
-                _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
-            }
+            _implicitCache = new SimpleMRUCache();
+            _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
         }
 
         public bool IsImplicitCacheEmpty
