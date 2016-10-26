@@ -28,5 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Assert.Equal(@"temp\a.cs", formatter.RelativizeNormalizedPath(@"X:\rootdir\dir\temp\a.cs"));
             Assert.Equal(@"Y:\rootdir\dir\a.cs", formatter.RelativizeNormalizedPath(@"Y:\rootdir\dir\a.cs"));
         }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(14725, "https://github.com/dotnet/roslyn/issues/14725")]
+        public void RelativizeNormalizedPathShouldHandleRootPaths()
+        {
+            var formatter = new CommandLineDiagnosticFormatter(
+                baseDirectory: @"C:\",
+                displayFullPaths: false,
+                displayEndLocations: false);
+
+            Assert.Equal(@"temp.cs", formatter.RelativizeNormalizedPath(@"c:\temp.cs"));
+        }
     }
 }

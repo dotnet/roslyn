@@ -66,7 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var directory = PathUtilities.GetDirectoryName(normalizedPath);
             if (string.Compare(directory, 0, normalizedBaseDirectory, 0, normalizedBaseDirectory.Length, StringComparison.OrdinalIgnoreCase) == 0)
             {
-                return normalizedPath.Substring(normalizedBaseDirectory.Length + 1);
+                return PathUtilities.IsDirectorySeparator(normalizedBaseDirectory.Last())
+                    ? normalizedPath.Substring(normalizedBaseDirectory.Length)
+                    : normalizedPath.Substring(normalizedBaseDirectory.Length + 1);
             }
 
             return normalizedPath;
