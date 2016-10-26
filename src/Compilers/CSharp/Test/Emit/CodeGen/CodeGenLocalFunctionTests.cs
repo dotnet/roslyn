@@ -121,6 +121,66 @@ class C
         }
 
         [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis4()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() =>
+        {
+            var b = (Func<int, int>)Local;
+            return b(y);
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis5()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() =>
+        {
+            var b = new Func<int, int>(Local);
+            return b(y);
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
         public void TwoFrames()
         {
             var src = @"

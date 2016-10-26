@@ -1088,7 +1088,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
                 {
-                    return node;
+                    return new PartiallyLoweredLocalFunctionReference(
+                        node,
+                        new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
                 }
                 return base.VisitDelegateCreationExpression(node);
             }
@@ -1120,7 +1122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conversion.ConversionKind == ConversionKind.MethodGroup &&
                     conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
                 {
-                    return conversion;
+                    return new PartiallyLoweredLocalFunctionReference(
+                        conversion,
+                        new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
                 }
                 return base.VisitConversion(conversion);
             }
