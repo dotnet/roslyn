@@ -13,52 +13,72 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            string sourcePath;
-            string configPath;
-            if (!ParseArgs(args, out sourcePath, out configPath))
-            {
+            string configFile;
+            string basePath;
+            List<string> solutionFilePaths;
+            if (!ParseCommandLine(args, out configFile, out basePath, out solutionFilePaths))
+            { 
                 Usage();
                 return 1;
             }
 
-            var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configPath));
-            var allGood = true;
-            var list = new List<string>();
-
-            foreach (var projectPath in Directory.EnumerateFiles(sourcePath, "*proj", SearchOption.AllDirectories))
+            if (configFile != null)
             {
-                var relativePath = GetRelativePath(sourcePath, projectPath);
-                if (Exclude(config, relativePath))
+                var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configFile));
+                foreach (var target in config.Targets)
                 {
-                    continue;
+                    solutionFilePaths.Add(Path.IsPathRooted(target)
+                        ? target
+                        : Path.Combine(basePath, target));
                 }
+            }
 
-                var doc = XDocument.Load(projectPath);
-                var projectType = GetProjectType(projectPath);
-                var util = new ProjectUtil(projectType, projectPath, doc);
-                var textWriter = new StringWriter();
-                if (!util.CheckAll(textWriter))
-                {
-                    Console.WriteLine($"Checking {relativePath} failed");
-                    Console.WriteLine(textWriter.ToString());
-                    list.Add(relativePath);
-                    allGood = false;
-                }
+            var allGood = true;
+            foreach (var solutionFilePath in solutionFilePaths)
+            {
+                allGood &= ProcessSolution(solutionFilePath);
             }
 
             return allGood ? 0 : 1;
         }
 
-        private static ProjectType GetProjectType(string path)
+        private static bool ProcessSolution(string solutionFilePath)
         {
-            switch (Path.GetExtension(path))
+            var solutionPath = Path.GetDirectoryName(solutionFilePath);
+            var projectDataList = SolutionUtil.ParseProjects(solutionFilePath);
+            var allGood = true;
+            var count = 0;
+            foreach (var projectData in projectDataList)
             {
-                case ".csproj": return ProjectType.CSharp;
-                case ".vbproj": return ProjectType.Basic;
-                case ".shproj": return ProjectType.Shared;
-                default:
-                    return ProjectType.Unknown;
+                if (projectData.IsFolder)
+                {
+                    continue;
+                }
+
+                var projectFilePath = Path.Combine(solutionPath, projectData.RelativeFilePath);
+                allGood &= ProcessProject(projectFilePath, projectData);
+                count++;
             }
+
+            var result = allGood ? "passed" : "FAILED";
+            Console.WriteLine($"Processing {Path.GetFileName(solutionFilePath)} ... {result} ({count} projects processed)");
+            return allGood;
+        }
+
+        private static bool ProcessProject(string projectFilePath, ProjectData projectData)
+        {
+            var doc = XDocument.Load(projectFilePath);
+            var projectType = projectData.ProjectType;
+            var util = new ProjectUtil(projectType, projectFilePath, doc);
+            var textWriter = new StringWriter();
+            if (!util.CheckAll(textWriter))
+            {
+                Console.WriteLine($"Checking {projectData.RelativeFilePath} failed");
+                Console.WriteLine(textWriter.ToString());
+                return false;
+            }
+
+            return true;
         }
 
         private static string GetRelativePath(string basePath, string fullPath)
@@ -77,58 +97,51 @@ namespace BuildBoss
             return path;
         }
 
-        private static bool Exclude(BuildBossConfig config, string projectRelativePath)
+        private static bool ParseCommandLine(string[] args, out string configFile, out string basePath, out List<string> solutionFilePaths)
         {
-            foreach (var exclude in config.Exclude)
-            {
-                if (projectRelativePath.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool ParseArgs(string[] args, out string sourcePath, out string configPath)
-        {
-            configPath = null;
-            sourcePath = null;
+            configFile = null;
+            basePath = AppContext.BaseDirectory;
+            solutionFilePaths = new List<string>();
 
             var i = 0;
             while (i < args.Length)
             {
                 var current = args[i];
-                if (current == "-config")
+                switch (current.ToLower())
                 {
-                    if (i + 1 >= args.Length)
-                    {
-                        Console.WriteLine("The -config option requires a parameter");
-                        return false;
-                    }
+                    case "-config":
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("config requires an argument");
+                            return false;
+                        }
 
-                    configPath = args[i + 1];
-                    i += 2;
-                }
-                else
-                {
-                    break;
+                        configFile = args[i + 1];
+                        i += 2;
+                        break;
+                    case "-basepath":
+                        if (i + 1 >= args.Length)
+                        {
+                            Console.WriteLine("basePath requise and argument");
+                            return false;
+                        }
+
+                        basePath = args[i + 1];
+                        i += 2;
+                        break;
+                    default:
+                        solutionFilePaths.Add(current);
+                        i++;
+                        break;
                 }
             }
 
-            if (i + 1 != args.Length)
-            {
-                return false;
-            }
-
-            sourcePath = args[i];
-            configPath = configPath ?? Path.Combine(sourcePath, @"build\config\BuildBossData.json");
             return true;
         }
 
         private static void Usage()
         {
-            Console.WriteLine($"BuildBoss [-config <config path>] <source path>");
+            Console.WriteLine($"BuildBoss [-config <config file path] [-basePath <base path>] <solution paths>");
         }
     }
 }
