@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class PatternSwitchTests : CSharpTestBase
+    public class PatternSwitchTests : PatternMatchingTestBase
     {
         [Fact]
         public void EqualConstant()
@@ -1686,7 +1686,8 @@ class Program
     {
         switch (true)
         {
-            case new object() is int x:
+            case new object() is int x1:
+                System.Console.WriteLine(x1);
                 break;
         }
     }
@@ -1696,12 +1697,18 @@ class Program
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
-                //             case new object() is int x:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x").WithLocation(8, 18),
+                //             case new object() is int x1:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new object() is int x1").WithLocation(8, 18),
                 // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
@@ -1714,7 +1721,8 @@ class Program
     {
         switch (args)
         {
-            case is EnvDTE.Project project:
+            case is EnvDTE.Project x1:
+                System.Console.WriteLine(x1);
                 break;
         }
     }
@@ -1724,12 +1732,18 @@ class Program
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (7,18): error CS1525: Invalid expression term 'is'
-                //             case is EnvDTE.Project project:
+                //             case is EnvDTE.Project x1:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(7, 18),
                 // (7,21): error CS0246: The type or namespace name 'EnvDTE' could not be found (are you missing a using directive or an assembly reference?)
-                //             case is EnvDTE.Project project:
+                //             case is EnvDTE.Project x1:
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
     }
 }
