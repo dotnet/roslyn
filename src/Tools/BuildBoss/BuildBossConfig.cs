@@ -10,9 +10,9 @@ namespace BuildBoss
     public sealed class BuildBossConfig
     {
         /// <summary>
-        /// The set of projects and paths to exclude.
+        /// The solutions targetted by this scan
         /// </summary>
-        [JsonProperty(PropertyName = "exclude")]
-        public string[] Exclude { get; set; }
+        [JsonProperty(PropertyName = "targets")]
+        public string[] Targets { get; set; }
     }
 }
