@@ -25,6 +25,8 @@
   <ItemGroup>
     <Compile Include="BuildBossConfig.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectKey.cs" />
     <Compile Include="ProjectType.cs" />
     <Compile Include="ProjectUtil.cs" />
     <Compile Include="RoslynProjectData.cs" />

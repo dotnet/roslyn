@@ -46,17 +46,24 @@ namespace BuildBoss
         {
             var solutionPath = Path.GetDirectoryName(solutionFilePath);
             var projectDataList = SolutionUtil.ParseProjects(solutionFilePath);
-            var allGood = true;
-            var count = 0;
-            foreach (var projectData in projectDataList)
+            var map = new Dictionary<ProjectKey, ProjectData>();
+            foreach (var projectEntry in projectDataList)
             {
-                if (projectData.IsFolder)
+                if (projectEntry.IsFolder)
                 {
                     continue;
                 }
 
-                var projectFilePath = Path.Combine(solutionPath, projectData.RelativeFilePath);
-                allGood &= ProcessProject(projectFilePath, projectData);
+                var projectFilePath = Path.Combine(solutionPath, projectEntry.RelativeFilePath);
+                var projectData = new ProjectData(projectFilePath);
+                map.Add(projectData.Key, projectData);
+            }
+
+            var allGood = true;
+            var count = 0;
+            foreach (var projectData in map.Values.OrderBy(x => x.FileName))
+            {
+                allGood &= ProcessProject(solutionPath, projectData, map);
                 count++;
             }
 
@@ -65,15 +72,14 @@ namespace BuildBoss
             return allGood;
         }
 
-        private static bool ProcessProject(string projectFilePath, ProjectEntry projectData)
+        private static bool ProcessProject(string solutionPath, ProjectData projectData, Dictionary<ProjectKey, ProjectData> map)
         {
-            var doc = XDocument.Load(projectFilePath);
-            var projectType = projectData.ProjectType;
-            var util = new ProjectUtil(projectType, projectFilePath, doc);
+            var util = new ProjectUtil(projectData);
             var textWriter = new StringWriter();
             if (!util.CheckAll(textWriter))
             {
-                Console.WriteLine($"Checking {projectData.RelativeFilePath} failed");
+                var relativePath = GetRelativePath(solutionPath, projectData.FilePath);
+                Console.WriteLine($"Checking {relativePath} failed");
                 Console.WriteLine(textWriter.ToString());
                 return false;
             }

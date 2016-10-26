@@ -18,7 +18,7 @@ namespace BuildBoss
         internal Guid TypeGuid { get; }
 
         internal bool IsFolder => TypeGuid == ProjectEntryUtil.FolderProjectType;
-        internal ProjectType ProjectType => ProjectEntryUtil.GetProjectType(RelativeFilePath);
+        internal ProjectFileType ProjectType => ProjectEntryUtil.GetProjectFileType(RelativeFilePath);
 
         internal ProjectEntry(
             string relativeFilePath,
@@ -40,15 +40,15 @@ namespace BuildBoss
         internal static readonly Guid FolderProjectType = new Guid("{2150E333-8FDC-42A3-9474-1A3956D46DE8}");
         internal static readonly Guid VsixProjectType = new Guid("{82B43B9B-A64C-4715-B499-D71E9CA2BD60}");
 
-        internal static ProjectType GetProjectType(string path)
+        internal static ProjectFileType GetProjectFileType(string path)
         {
             switch (Path.GetExtension(path))
             {
-                case ".csproj": return ProjectType.CSharp;
-                case ".vbproj": return ProjectType.Basic;
-                case ".shproj": return ProjectType.Shared;
+                case ".csproj": return ProjectFileType.CSharp;
+                case ".vbproj": return ProjectFileType.Basic;
+                case ".shproj": return ProjectFileType.Shared;
                 default:
-                    return ProjectType.Unknown;
+                    return ProjectFileType.Unknown;
             }
         }
 

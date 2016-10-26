@@ -13,17 +13,17 @@ namespace BuildBoss
 {
     internal sealed class ProjectUtil
     {
-        private readonly XDocument _projectData;
+        private readonly ProjectData _data;
+        private readonly XDocument _document;
         private readonly XmlNamespaceManager _manager;
 
-        internal ProjectType ProjectType { get; }
-        internal string ProjectFilePath { get; }
+        internal ProjectFileType ProjectType => _data.ProjectFileType;
+        internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectUtil(ProjectType projectType, string projectFilePath, XDocument projectData)
+        internal ProjectUtil(ProjectData data)
         {
-            ProjectType = projectType;
-            ProjectFilePath = projectFilePath;
-            _projectData = projectData;
+            _data = data;
+            _document = data.Document;
             _manager = new XmlNamespaceManager(new NameTable());
             _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
         }
@@ -31,7 +31,7 @@ namespace BuildBoss
         internal bool CheckAll(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectType.CSharp || ProjectType == ProjectType.Basic)
+            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
             {
                 allGood &= CheckForProperty(textWriter, "RestorePackages");
                 allGood &= CheckForProperty(textWriter, "SolutionDir");
@@ -39,9 +39,8 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "FileUpgradeFlags");
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
+                allGood &= CheckRoslynProjectType(textWriter);
             }
-
-            allGood &= CheckRoslynProjectType(textWriter);
 
             return allGood;
         }
@@ -144,7 +143,7 @@ namespace BuildBoss
 
         private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
-            if (ProjectType != ProjectType.CSharp && ProjectType != ProjectType.Basic)
+            if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
             {
                 return true;
             }
@@ -181,7 +180,7 @@ namespace BuildBoss
 
         private IEnumerable<XElement> GetAllPropertyGroupElements()
         {
-            var groups = _projectData.XPathSelectElements("//mb:PropertyGroup", _manager);
+            var groups = _document.XPathSelectElements("//mb:PropertyGroup", _manager);
             foreach (var group in groups)
             {
                 foreach (var element in group.Elements())
