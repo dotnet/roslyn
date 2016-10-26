@@ -62,16 +62,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MultiLineIfBlock
                     Return BindMultiLineIfBlock(DirectCast(node, MultiLineIfBlockSyntax), diagnostics)
 
+                Case SyntaxKind.ElseIfStatement
+                    ' ElseIf without a preceding If.
+                    Debug.Assert(node.ContainsDiagnostics)
+                    Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
+
                 Case SyntaxKind.SelectBlock
                     Return BindSelectBlock(DirectCast(node, SelectBlockSyntax), diagnostics)
 
-                Case SyntaxKind.CaseStatement,
-                     SyntaxKind.SelectStatement
-                    ' Valid select/case statement within select case statement is handled in BindSelectBlock.
-                    ' We should reach here only for invalid case statements which are not inside any SelectBlock.
+                Case SyntaxKind.CaseStatement
+                    ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
+                    ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
                     ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
                     Debug.Assert(node.ContainsDiagnostics)
-                    Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                    Dim caseStatement = DirectCast(node, CaseStatementSyntax)
+                    Dim statement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(statement), hasErrors:=True)
 
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
@@ -219,14 +226,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' a loop statement is legal as long as it is part of a do loop block
                     If Not SyntaxFacts.IsDoLoopBlock(node.Parent.Kind) Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whileOrUntilClause = DirectCast(node, LoopStatementSyntax).WhileOrUntilClause
+                        Dim childNodes = If(whileOrUntilClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whileOrUntilClause.Condition, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.CatchStatement
                     ' a catch statement is legal as long as it is part of a catch block
                     If Not node.Parent.Kind = SyntaxKind.CatchBlock Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whenClause = DirectCast(node, CatchStatementSyntax).WhenClause
+                        Dim childNodes = If(whenClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whenClause.Filter, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.ResumeStatement, SyntaxKind.ResumeNextStatement, SyntaxKind.ResumeLabelStatement

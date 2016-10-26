@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal static class BraceCompletionOptions
     {
-        // This is serialized by the Visual Studio-specific LanguageSettingsSerializer
+        // This is serialized by the Visual Studio-specific LanguageSettingsPersister
         [ExportOption]
         public static readonly PerLanguageOption<bool> EnableBraceCompletion = new PerLanguageOption<bool>(nameof(BraceCompletionOptions), nameof(EnableBraceCompletion), defaultValue: true);
     }
