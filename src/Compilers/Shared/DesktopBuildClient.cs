@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var clientDir = AppContext.BaseDirectory;
             var sdkDir = GetRuntimeDirectoryOpt();
             var workingDir = Directory.GetCurrentDirectory();
-            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
+            var tempDir = GetTempPath(workingDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
@@ -94,11 +95,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
 
-            if (pipeNameOpt == null)
-            {
-                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
-            }
-
             return RunServerCompilationCore(
                 language,
                 arguments,
@@ -122,6 +118,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
+            if (pipeName == null)
+            {
+                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            }
+
+            if (buildPaths.TempDirectory == null)
+            {
+                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            }
+
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -168,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         var request = BuildRequest.Create(language,
                                                           buildPaths.WorkingDirectory,
+                                                          buildPaths.TempDirectory,
                                                           arguments,
                                                           keepAlive,
                                                           libEnvVariable);

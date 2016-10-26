@@ -489,6 +489,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.Locations[0]);
             }
 
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)returnType != null && returnType.SpecialType != SpecialType.System_Void &&
+                !block.HasErrors && !diagnostics.HasAnyResolvedErrors() && block.Statements.Length > 0)
+            {
+                BoundStatement first = block.Statements[0];
+                if (first.Kind == BoundKind.ReturnStatement)
+                {
+                    var returnStmt = (BoundReturnStatement)first;
+                    if (returnStmt.ExpressionOpt != null && (object)returnStmt.ExpressionOpt.Type == null)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }
+            }
+
             var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: false)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 

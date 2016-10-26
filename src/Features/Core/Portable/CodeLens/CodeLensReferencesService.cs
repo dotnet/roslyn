@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
             new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
@@ -123,12 +124,16 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var symbol = semanticModel.GetDeclaredSymbol(node);
             var glyph = symbol?.GetGlyph();
+            var startLinePosition = location.GetLineSpan().StartLinePosition;
+            var documentId = solution.GetDocument(location.SourceTree)?.Id;
 
             return new ReferenceLocationDescriptor(longName,
                 semanticModel.Language,
                 glyph,
-                location,
-                solution.GetDocument(location.SourceTree)?.Id,
+                startLinePosition.Line,
+                startLinePosition.Character,
+                documentId.ProjectId.Id,
+                documentId.Id,
                 line.TrimEnd(),
                 referenceSpan.Start,
                 referenceSpan.Length,

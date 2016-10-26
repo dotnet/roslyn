@@ -2265,5 +2265,53 @@ class C
                 Await state.AssertSelectedCompletionItem("Moo1")
             End Using
         End Function
+
+        <WorkItem(14085, "https://github.com/dotnet/roslyn/issues/14085")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypingDoesNotOverrideExactMatch() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.IO;
+class C
+{
+    void Moo1()
+    {
+        string path = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendTypeChars("Path")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Path")
+            End Using
+        End Function
+
+        <WorkItem(14085, "https://github.com/dotnet/roslyn/issues/14085")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function MRUOverTargetTyping() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.IO;
+using System.Threading.Tasks;
+class C
+{
+    async Task Moo()
+    {
+        await Moo().$$
+    }
+}
+            ]]></Document>)
+
+                state.SendTypeChars("Configure")
+                state.SendTab()
+                For i = 1 To "ConfigureAwait".Length
+                    state.SendBackspace()
+                Next
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("ConfigureAwait")
+            End Using
+        End Function
     End Class
 End Namespace

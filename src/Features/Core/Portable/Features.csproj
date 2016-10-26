@@ -304,10 +304,8 @@
     <Compile Include="Structure\Syntax\AbstractSyntaxStructureProvider.cs" />
     <Compile Include="Structure\Syntax\AbstractSyntaxTriviaStructureProvider.cs" />
     <Compile Include="Structure\Syntax\BlockSpanCollector.cs" />
-    <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
-    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\INamingStyle.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\NamingStyle.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingStylePreferencesInfo.cs" />
@@ -664,10 +662,6 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
     <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
-    <Compile Include="SymbolCategorization\ExportSymbolCategorizerAttribute.cs" />
-    <Compile Include="SymbolCategorization\ISymbolCategorizationService.cs" />
-    <Compile Include="SymbolCategorization\SymbolCategorizationService.cs" />
-    <Compile Include="SymbolCategorization\ThreadLocalSymbolCategorizer.cs" />
     <Compile Include="Common\SymbolDisplayPartKindTags.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
