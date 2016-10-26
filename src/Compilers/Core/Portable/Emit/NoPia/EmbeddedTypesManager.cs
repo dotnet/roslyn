@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedProperty,
         TEmbeddedParameter,
         TEmbeddedTypeParameter> : CommonEmbeddedTypesManager
-        where TPEModuleBuilder : CommonPEModuleBuilder, Cci.IModule
+        where TPEModuleBuilder : CommonPEModuleBuilder
         where TModuleCompilationState : CommonModuleCompilationState
         where TEmbeddedTypesManager : EmbeddedTypesManager<TPEModuleBuilder, TModuleCompilationState, TEmbeddedTypesManager, TSyntaxNode, TAttributeData, TSymbol, TAssemblySymbol, TNamedTypeSymbol, TFieldSymbol, TMethodSymbol, TEventSymbol, TPropertySymbol, TParameterSymbol, TTypeParameterSymbol, TEmbeddedType, TEmbeddedField, TEmbeddedMethod, TEmbeddedEvent, TEmbeddedProperty, TEmbeddedParameter, TEmbeddedTypeParameter>
         where TSyntaxNode : SyntaxNode

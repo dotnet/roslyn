@@ -5,16 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
-        private readonly CommonMessageProvider _messageProvider;
-
         // symbols:
         private readonly SymbolMatcher _symbolMap;
 
@@ -38,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
+        private readonly LambdaSyntaxFacts _lambdaSyntaxFacts;
+
         public EncVariableSlotAllocator(
-            CommonMessageProvider messageProvider,
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousTopLevelMethod,
@@ -51,14 +50,13 @@ namespace Microsoft.CodeAnalysis.Emit
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
             int awaiterCount,
-            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
+            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt,
+            LambdaSyntaxFacts lambdaSyntaxFacts)
         {
-            Debug.Assert(messageProvider != null);
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousTopLevelMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
-            _messageProvider = messageProvider;
             _symbolMap = symbolMap;
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
@@ -71,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _awaiterMapOpt = awaiterMapOpt;
             _lambdaMapOpt = lambdaMapOpt;
             _closureMapOpt = closureMapOpt;
+            _lambdaSyntaxFacts = lambdaSyntaxFacts;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -135,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Emit
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<TypedConstant> dynamicTransformFlags,
+            ImmutableArray<TypedConstant> tupleElementNames)
         {
             if (id.IsNone)
             {
@@ -176,8 +175,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 id,
                 pdbAttributes,
                 constraints,
-                isDynamic,
-                dynamicTransformFlags);
+                dynamicTransformFlags,
+                tupleElementNames);
         }
 
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
@@ -190,12 +189,9 @@ namespace Microsoft.CodeAnalysis.Emit
             DiagnosticBag diagnostics, 
             out int slotIndex)
         {
-            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
-            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
             if (_hoistedLocalSlotsOpt == null)
             {
-                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
-                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
                 slotIndex = -1;
                 return false;
             }
@@ -226,12 +222,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
         {
-            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
-            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
             if (_awaiterMapOpt == null)
             {
-                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
-                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
                 slotIndex = -1;
                 return false;
             }
@@ -260,7 +253,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody 
+                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
+                : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -276,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = _lambdaSyntaxFacts.TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);
                 if (previousSyntax == null)
                 {
                     previousSyntaxOffset = 0;

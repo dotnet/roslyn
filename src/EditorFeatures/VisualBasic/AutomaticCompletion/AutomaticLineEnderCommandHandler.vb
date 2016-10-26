@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
         Protected Overrides Function GetEndingString(document As Document, position As Integer, cancellationToken As CancellationToken) As String
             ' prepare expansive information from document
-            Dim root = DirectCast(document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), SyntaxNode)
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+            Dim text = root.SyntaxTree.GetText(cancellationToken)
 
             ' get line where the caret is on
             Dim line = text.Lines.GetLineFromPosition(position)

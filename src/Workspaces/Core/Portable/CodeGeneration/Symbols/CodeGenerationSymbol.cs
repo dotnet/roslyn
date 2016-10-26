@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             SyntaxAnnotation[] annotations;
             annotationsTable.TryGetValue(this, out annotations);
-            return annotations ?? SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+            return annotations ?? Array.Empty<SyntaxAnnotation>();
         }
 
         internal CodeGenerationSymbol WithAdditionalAnnotations(params SyntaxAnnotation[] annotations)
@@ -271,11 +271,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
         {
             throw new NotImplementedException();
-        }
-
-        public SymbolKey GetSymbolId()
-        {
-            return null;
         }
 
         public virtual string MetadataName

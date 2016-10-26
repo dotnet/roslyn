@@ -15,7 +15,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     <ExportLanguageService(GetType(ICommandLineParserService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicCommandLineArgumentsFactoryService
+    Friend Class VisualBasicCommandLineParserService
         Implements ICommandLineParserService
 
         Public Function Parse(arguments As IEnumerable(Of String), baseDirectory As String, isInteractive As Boolean, sdkDirectory As String) As CommandLineArguments Implements ICommandLineParserService.Parse

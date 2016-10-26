@@ -3,7 +3,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindReferences
@@ -12,8 +11,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindReferences
         Inherits AbstractFindReferencesService
 
         <ImportingConstructor>
-        Protected Sub New(<ImportMany> presenters As IEnumerable(Of IReferencedSymbolsPresenter))
-            MyBase.New(presenters)
+        Protected Sub New(<ImportMany> referencedSymbolsPresenters As IEnumerable(Of IDefinitionsAndReferencesPresenter),
+                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter),
+                          <ImportMany> externalReferencesProviders As IEnumerable(Of IFindReferencesResultProvider))
+            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
+        End Sub
+    End Class
+
+    <ExportLanguageService(GetType(IStreamingFindReferencesService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicStreamingFindReferencesService
+        Inherits AbstractFindReferencesService
+
+        <ImportingConstructor>
+        Protected Sub New(<ImportMany> referencedSymbolsPresenters As IEnumerable(Of IDefinitionsAndReferencesPresenter),
+                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter),
+                          <ImportMany> externalReferencesProviders As IEnumerable(Of IFindReferencesResultProvider))
+            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
         End Sub
     End Class
 End Namespace

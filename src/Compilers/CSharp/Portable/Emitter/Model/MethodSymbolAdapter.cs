@@ -218,15 +218,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnType is ByRefReturnErrorTypeSymbol;
+                return this.RefKind == RefKind.Ref;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            ByRefReturnErrorTypeSymbol byRefType = this.ReturnType as ByRefReturnErrorTypeSymbol;
-            return ((PEModuleBuilder)context.Module).Translate(
-                (object)byRefType == null ? this.ReturnType : byRefType.ReferencedType,
+            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -581,11 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             userDefined = this.GetReturnTypeAttributes();
             this.AddSynthesizedReturnTypeAttributes(ref synthesized);
-
-            if (userDefined.IsEmpty && synthesized == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
-            }
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.

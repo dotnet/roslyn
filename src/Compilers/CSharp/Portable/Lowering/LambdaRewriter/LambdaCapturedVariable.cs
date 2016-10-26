@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -64,6 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                 }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
+                {
+                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
+                }
             }
 
             Debug.Assert(variable.Name != null);
@@ -79,7 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaFrame = local.Type.OriginalDefinition as LambdaFrame;
                 if ((object)lambdaFrame != null)
                 {
-                    return lambdaFrame.ConstructIfGeneric(frame.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
+                    // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
+                    var typeArguments = frame.TypeArgumentsNoUseSiteDiagnostics;
+                    if (typeArguments.Length > lambdaFrame.Arity)
+                    {
+                        typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);
+                    }
+                    return lambdaFrame.ConstructIfGeneric(typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
                 }
             }
 

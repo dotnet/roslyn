@@ -6,9 +6,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
@@ -41,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Property
 
         Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
+                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional workspaceKind As String = Nothing)
@@ -50,18 +52,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
-                .Where(Function(f) f.Metadata.Language = language) _
-                .Concat(extraCompletionProviders) _
-                .ToList()
+            If extraCompletionProviders IsNot Nothing Then
+                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
+                completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+            End If
 
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
+                GetService(Of IWaitIndicator)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
-                completionProviders,
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
@@ -73,8 +75,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
-
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
         End Sub
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateCSharpTestState(
                 documentElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateTestStateFromWorkspace(
                 workspaceElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
                 Optional workspaceKind As String = Nothing) As TestState
@@ -236,7 +236,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
-        Public Async Function AssertSelectedCompletionItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedCompletionItem(
+                               Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
@@ -255,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If shouldFormatOnCommit.HasValue Then
-                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.ShouldFormatOnCommit)
+                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Rules.FormatOnCommit)
             End If
 
 #If False Then
@@ -265,7 +266,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #End If
 
             If description IsNot Nothing Then
-                Assert.Equal(description, (Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).GetFullText())
+                Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await service.GetDescriptionAsync(
+                    document, Me.CurrentCompletionPresenterSession.SelectedItem)
+                Assert.Equal(description, itemDescription.Text)
             End If
         End Function
 
@@ -336,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 suffix)
         End Function
 
-        Private Function GetDisplayText(parts As IEnumerable(Of SymbolDisplayPart)) As String
+        Private Function GetDisplayText(parts As IEnumerable(Of TaggedText)) As String
             Return String.Join(String.Empty, parts.Select(Function(p) p.ToString()))
         End Function
 

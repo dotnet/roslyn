@@ -3,8 +3,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor
 {

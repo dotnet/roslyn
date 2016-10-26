@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !MSBUILD12
 using Microsoft.Build.Construction;
-#endif
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -138,7 +136,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             VersionStamp version = default(VersionStamp);
 
-#if !MSBUILD12
             Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
@@ -165,41 +162,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
             }
-#else
-            SolutionFile solutionFile = null;
-
-            using (var reader = new StreamReader(absoluteSolutionPath))
-            {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(absoluteSolutionPath));
-                var text = await reader.ReadToEndAsync().ConfigureAwait(false);
-                solutionFile = SolutionFile.Parse(new StringReader(text));
-            }
-
-            var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
-
-            // a list to accumulate all the loaded projects
-            var loadedProjects = new LoadState(null);
-
-            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-
-            // load all the projects
-            foreach (var projectBlock in solutionFile.ProjectBlocks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string absoluteProjectPath;
-                if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, reportMode, out absoluteProjectPath))
-                {
-                    IProjectFileLoader loader;
-                    if (TryGetLoaderFromProjectPath(absoluteProjectPath, reportMode, out loader))
-                    { 
-                        // projects get added to 'loadedProjects' as side-effect
-                        // never prefer metadata when loading solution, all projects get loaded if they can.
-                        var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-#endif
 
             // construct workspace from loaded project infos
             return SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Projects);
@@ -215,12 +177,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                throw new InvalidOperationException(string.Format(WorkspacesResources.InvalidSolutionFilePath, path));
+                throw new InvalidOperationException(string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
             }
 
             if (!File.Exists(absolutePath))
             {
-                throw new FileNotFoundException(string.Format(WorkspacesResources.SolutionFileNotFound, absolutePath));
+                throw new FileNotFoundException(string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath));
             }
 
             return absolutePath;
@@ -259,8 +221,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private Dictionary<ProjectId, ProjectInfo> _projectIdToProjectInfoMap
                 = new Dictionary<ProjectId, ProjectInfo>();
 
-            private List<ProjectInfo> _projectInfoList
-                = new List<ProjectInfo>();
+            /// <summary>
+            /// Used to memoize results of <see cref="ProjectAlreadyReferencesProject"/> calls.
+            /// Reset any time internal state is changed.
+            /// </summary>
+            private Dictionary<ProjectId, Dictionary<ProjectId, bool>> _projectAlreadyReferencesProjectResultCache
+                = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
 
             private readonly Dictionary<string, ProjectId> _projectPathToProjectIdMap
                 = new Dictionary<string, ProjectId>();
@@ -276,17 +242,45 @@ namespace Microsoft.CodeAnalysis.MSBuild
             public void Add(ProjectInfo info)
             {
                 _projectIdToProjectInfoMap.Add(info.Id, info);
-                _projectInfoList.Add(info);
+                //Memoized results of ProjectAlreadyReferencesProject may no longer be correct;
+                //reset the cache.
+                _projectAlreadyReferencesProjectResultCache.Clear();
             }
 
-            public bool TryGetValue(ProjectId id, out ProjectInfo info)
+            /// <summary>
+            /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
+            /// on the project identified by <paramref name="targetProject"/>.
+            /// </summary>
+            public bool ProjectAlreadyReferencesProject(ProjectId fromProject, ProjectId targetProject)
             {
-                return _projectIdToProjectInfoMap.TryGetValue(id, out info);
+                Dictionary<ProjectId, bool> fromProjectMemo;
+
+                if ( !_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out fromProjectMemo))
+                {
+                    fromProjectMemo = new Dictionary<ProjectId, bool>();
+                    _projectAlreadyReferencesProjectResultCache.Add(fromProject, fromProjectMemo);
+                }
+
+                bool answer;
+
+                if ( !fromProjectMemo.TryGetValue(targetProject, out answer))
+                {
+                    ProjectInfo info;
+                    answer =
+                        _projectIdToProjectInfoMap.TryGetValue(fromProject, out info) &&
+                        info.ProjectReferences.Any(pr =>
+                            pr.ProjectId == targetProject ||
+                            ProjectAlreadyReferencesProject(pr.ProjectId, targetProject)
+                        );
+                    fromProjectMemo.Add(targetProject, answer);
+                }
+
+                return answer;
             }
 
-            public IReadOnlyList<ProjectInfo> Projects
+            public IEnumerable<ProjectInfo> Projects
             {
-                get { return _projectInfoList; }
+                get { return _projectIdToProjectInfoMap.Values; }
             }
 
             public ProjectId GetProjectId(string fullProjectPath)
@@ -503,7 +497,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (paths.Contains(doc.FilePath))
                 {
-                    _workspace.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, string.Format(WorkspacesResources.DuplicateSourceFileInProject, doc.FilePath, projectFilePath), projectId));
+                    _workspace.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath), projectId));
                 }
 
                 paths.Add(doc.FilePath);
@@ -564,7 +558,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         // If that other project already has a reference on us, this will cause a circularity.
                         // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
                         // must be taken at least once.
-                        if (ProjectAlreadyReferencesProject(loadedProjects, projectId, targetProject: thisProjectId))
+                        if (loadedProjects.ProjectAlreadyReferencesProject(projectId, targetProject: thisProjectId))
                         {
                             // We'll try to make this metadata if we can
                             var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
@@ -592,18 +586,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return resolvedReferences;
-        }
-
-        /// <summary>
-        /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
-        /// on the project identified by <paramref name="targetProject"/>.
-        /// </summary>
-        private bool ProjectAlreadyReferencesProject(LoadState loadedProjects, ProjectId fromProject, ProjectId targetProject)
-        {
-            ProjectInfo info;
-
-            return loadedProjects.TryGetValue(fromProject, out info) && info.ProjectReferences.Any(pr => pr.ProjectId == targetProject ||
-                ProjectAlreadyReferencesProject(loadedProjects, pr.ProjectId, targetProject));
         }
 
         /// <summary>
@@ -654,7 +636,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
                 return null;
             }
 
@@ -662,7 +644,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 ReportFailure(
                     mode,
-                    string.Format(WorkspacesResources.ProjectFileNotFound, path),
+                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, path),
                     msg => new FileNotFoundException(msg));
                 return null;
             }
@@ -696,7 +678,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     else
                     {
                         loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
                         return false;
                     }
                 }
@@ -706,7 +688,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     if (loader == null)
                     {
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
                         return false;
                     }
                 }
@@ -721,7 +703,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (commandLineParser == null)
                     {
                         loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
                         return false;
                     }
                 }
@@ -738,7 +720,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (Exception)
             {
-                ReportFailure(mode, string.Format(WorkspacesResources.InvalidProjectFilePath, path));
+                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
                 absolutePath = null;
                 return false;
             }
@@ -747,7 +729,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 ReportFailure(
                     mode,
-                    string.Format(WorkspacesResources.ProjectFileNotFound, absolutePath),
+                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
                     msg => new FileNotFoundException(msg));
                 return false;
             }

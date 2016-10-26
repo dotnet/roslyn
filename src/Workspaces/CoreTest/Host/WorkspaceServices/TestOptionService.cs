@@ -2,31 +2,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class TestOptionService
     {
-        public static OptionService GetService()
+        public static OptionServiceFactory.OptionService GetService()
         {
             var features = new Dictionary<string, object>();
             features.Add("Features", new List<string>(new[] { "Test Features" }));
-            return new OptionService(new[]
+            return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
-                new[]
-                {
-                    new Lazy<IOptionSerializer, OptionSerializerMetadata>(
-                    () =>
-                    {
-                        return new TestOptionSerializer();
-                    },
-                    new OptionSerializerMetadata(features))
-                });
+                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: null);
         }
 
         internal class TestOptionsProvider : IOptionProvider
@@ -34,20 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public IEnumerable<IOption> GetOptions()
             {
                 yield return new Option<bool>("Test Feature", "Test Name", false);
-            }
-        }
-
-        internal class TestOptionSerializer : IOptionSerializer
-        {
-            public bool TryFetch(OptionKey optionKey, out object value)
-            {
-                value = null;
-                return false;
-            }
-
-            public bool TryPersist(OptionKey optionKey, object value)
-            {
-                return false;
             }
         }
     }

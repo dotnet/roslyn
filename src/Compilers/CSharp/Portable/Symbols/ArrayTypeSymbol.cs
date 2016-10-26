@@ -5,10 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Optimize for most common case - no sizes and all dimensions are zero lower bound.
             if (sizes.IsDefaultOrEmpty && lowerBounds.IsDefault)
             {
-                return new MDArray(elementType, rank, array, customModifiers);
+                return new MDArrayNoSizesOrBounds(elementType, rank, array, customModifiers);
             }
 
             return new MDArrayWithSizesAndBounds(elementType, rank, sizes, lowerBounds, array, customModifiers);
@@ -93,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return CreateSZArray(elementType, declaringAssembly.GetSpecialType(SpecialType.System_Array), GetSZArrayInterfaces(elementType, declaringAssembly), customModifiers);
         }
+
+        internal abstract ArrayTypeSymbol WithElementType(TypeSymbol elementType);
 
         private static ImmutableArray<NamedTypeSymbol> GetSZArrayInterfaces(
             TypeSymbol elementType,
@@ -328,17 +326,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as ArrayTypeSymbol, comparison);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
         {
-            return Equals(other, false, false);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(ArrayTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -346,13 +344,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) ||
-                !other.ElementType.Equals(ElementType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                !other.ElementType.Equals(ElementType, comparison))
             {
                 return false;
             }
 
             // Make sure custom modifiers and bounds are the same.
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
             {
                 var mod = this.CustomModifiers;
                 var otherMod = other.CustomModifiers;
@@ -512,6 +510,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _interfaces = constructedInterfaces;
             }
 
+            internal override ArrayTypeSymbol WithElementType(TypeSymbol newElementType)
+            {
+                ImmutableArray<NamedTypeSymbol> newInterfaces = _interfaces;
+                if (newInterfaces.Length>0)
+                {
+                    newInterfaces = newInterfaces.SelectAsArray(i => i.OriginalDefinition.Construct(newElementType));
+                }
+
+                return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces, CustomModifiers);
+            }
+
             public override int Rank
             {
                 get
@@ -545,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents MDARRAY - multi-dimensional array (possibly of rank 1)
         /// </summary>
-        private class MDArray : ArrayTypeSymbol
+        private abstract class MDArray : ArrayTypeSymbol
         {
             private readonly int _rank;
 
@@ -580,6 +589,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
+        }
+
+        private sealed class MDArrayNoSizesOrBounds : MDArray
+        {
+            internal MDArrayNoSizesOrBounds(
+                TypeSymbol elementType,
+                int rank,
+                NamedTypeSymbol array,
+                ImmutableArray<CustomModifier> customModifiers)
+                : base(elementType, rank, array, customModifiers)
+            {
+            }
+
+            internal override ArrayTypeSymbol WithElementType(TypeSymbol elementType)
+            {
+                return new MDArrayNoSizesOrBounds(elementType, Rank, BaseTypeNoUseSiteDiagnostics, CustomModifiers);
+            }
 
             internal override bool HasDefaultSizesAndLowerBounds
             {
@@ -608,6 +634,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(lowerBounds.IsDefaultOrEmpty || (!lowerBounds.IsEmpty && (lowerBounds.Length != rank || !lowerBounds.All(b => b == 0))));
                 _sizes = sizes.NullToEmpty();
                 _lowerBounds = lowerBounds;
+            }
+
+            internal override ArrayTypeSymbol WithElementType(TypeSymbol elementType)
+            {
+                return new MDArrayWithSizesAndBounds(elementType, Rank, _sizes, _lowerBounds, BaseTypeNoUseSiteDiagnostics, CustomModifiers);
             }
 
             internal override ImmutableArray<int> Sizes

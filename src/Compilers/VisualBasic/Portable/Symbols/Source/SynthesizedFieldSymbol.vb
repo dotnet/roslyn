@@ -59,6 +59,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
+            Dim compilation = Me.DeclaringCompilation
+            If Type.ContainsTupleNames() AndAlso
+                compilation.HasTupleNamesAttributes AndAlso
+                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+
+                AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
+            End If
+
             Dim sourceType = TryCast(ContainingSymbol, SourceMemberContainerTypeSymbol)
 
             ' if parent is not from source, it must be a frame.
@@ -68,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
-            AddSynthesizedAttribute(attributes, sourceType.DeclaringCompilation.TrySynthesizeAttribute(
+            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
         End Sub
 

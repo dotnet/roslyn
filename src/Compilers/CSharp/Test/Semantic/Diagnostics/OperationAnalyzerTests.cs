@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class OperationAnalyzerTests : CompilingTestBase
     {
+        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
+
         [Fact]
         public void EmptyArrayCSharp()
         {
@@ -139,6 +141,41 @@ class C
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
                 Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "goto;").WithLocation(11, 9),
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void PatternsNoCrash()
+        {
+            // ensure that the combination of pattern-matching with ioperation analyzers does not crash.
+            const string source = @"
+class C
+{
+    public static void Main() {}
+    public void M1(object o)
+    {
+        switch (o)
+        {
+            //case string { Length is 2 }:
+            //    break;
+            case string s:
+                break;
+            //case System.Collections.ArrayList(2):
+            //    break;
+        }
+        //let x = o is object t ? t : null;
+        //o = o match (
+        //    case string { Length is 2 }: null
+        //    case string s: s
+        //    case System.Collections.ArrayList(2): x
+        //    case *: throw null
+        //);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithIOperationsFeature())
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false
                 );
         }
 
@@ -1300,7 +1337,7 @@ class Test
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
-                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", "Insufficient stack to continue executing the program safely. This can happen from having too many functions on the call stack or function on the stack using too much stack space.").WithLocation(1, 1),
+                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", new InsufficientExecutionStackException().Message).WithLocation(1, 1),
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
         }
 
@@ -1869,31 +1906,57 @@ public class A
 }
 
 ";
-            // with IOperation disabled (by default)
+            // with IOperation disabled (by default), public methods
             CreateCompilationWithMscorlib45(source)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1() }, null, null, true,
-                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer1", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
-
-            CreateCompilationWithMscorlib45(source)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer2() }, null, null, true,
-                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer2", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.AnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
 
             CreateCompilationWithMscorlib45(source)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer3() }, null, null, true,
-                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.IOperationFeatureFlagTestAnalyzer3", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.CompilationStartAnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
 
-            // with IOperation enabled
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SemanticModelAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+
+            // with IOperation disabled (by default), internal methods
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelInternalAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(6, 17));
+
+            // with IOperation enabled, public methods
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer1() }, null, null, true,
-                Diagnostic(IOperationFeatureFlagTestAnalyzer1.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
 
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer2() }, null, null, true,
-                Diagnostic(IOperationFeatureFlagTestAnalyzer2.OperationActionDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
 
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new IOperationFeatureFlagTestAnalyzer3() }, null, null, true,
-                Diagnostic(IOperationFeatureFlagTestAnalyzer3.GetOperationDescriptor.Id, "1").WithLocation(6, 17));
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelAnalyzer.GetOperationDescriptor.Id, "1").WithLocation(6, 17));
+
+            // with IOperation enabled, internal methods
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelInternalAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(6, 17));
         }
     }
 }

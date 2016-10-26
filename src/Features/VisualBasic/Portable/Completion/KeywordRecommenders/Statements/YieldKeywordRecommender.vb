@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Yield", VBFeaturesResources.YieldKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Yield", VBFeaturesResources.Produces_an_element_of_an_IEnumerable_or_IEnumerator))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

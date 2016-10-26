@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal partial class AbstractImplementAbstractClassService
+    internal partial class AbstractImplementAbstractClassService<TClassSyntax>
     {
         private partial class Editor
         {

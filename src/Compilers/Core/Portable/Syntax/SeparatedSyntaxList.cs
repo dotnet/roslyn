@@ -573,5 +573,15 @@ namespace Microsoft.CodeAnalysis
 
             return SpecializedCollections.EmptyEnumerator<TNode>();
         }
+
+        public static implicit operator SeparatedSyntaxList<SyntaxNode>(SeparatedSyntaxList<TNode> nodes)
+        {
+            return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
+        }
+
+        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        {
+            return new SeparatedSyntaxList<TNode>(nodes._list);
+        }
     }
 }

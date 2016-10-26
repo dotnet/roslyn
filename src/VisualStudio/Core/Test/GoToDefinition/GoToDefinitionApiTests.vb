@@ -2,9 +2,9 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Roslyn.Test.Utilities
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 WpfTestCase.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a WaitAndGetResult call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    symbolInfo.Symbol, document.Project, {}, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using

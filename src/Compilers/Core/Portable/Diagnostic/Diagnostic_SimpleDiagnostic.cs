@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
                 _warningLevel = warningLevel;
                 _location = location ?? Location.None;
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
-                _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
+                _messageArgs = messageArgs ?? Array.Empty<object>();
                 _properties = properties ?? ImmutableDictionary<string, string>.Empty;
                 _isSuppressed = isSuppressed;
             }

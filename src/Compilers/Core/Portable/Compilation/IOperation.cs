@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
@@ -7,6 +8,11 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    [InternalImplementationOnly]
     public interface IOperation
     {
         /// <summary>
@@ -87,6 +93,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
         FixedStatement = 0x30,
+
+        LocalFunctionStatement = 0x31,
 
         // Statements that occur only in Visual Basic.
 

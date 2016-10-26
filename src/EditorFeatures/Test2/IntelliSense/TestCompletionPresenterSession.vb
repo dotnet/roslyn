@@ -1,13 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -21,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public CompletionItems As IList(Of CompletionItem)
         Public SelectedItem As CompletionItem
         Public IsSoftSelected As Boolean
-        Public Builder As CompletionItem
+        Public SuggestionModeItem As CompletionItem
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
         Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
@@ -35,17 +29,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub PresentItems(triggerSpan As ITrackingSpan,
                                 completionItems As IList(Of CompletionItem),
                                 selectedItem As CompletionItem,
-                                presetBuilder As CompletionItem,
+                                suggestionModeItem As CompletionItem,
                                 suggestionMode As Boolean,
                                 isSoftSelected As Boolean,
                                 completionItemFilters As ImmutableArray(Of CompletionItemFilter),
-                                completionItemToFilterText As IReadOnlyDictionary(Of CompletionItem, String)) Implements ICompletionPresenterSession.PresentItems
+                                filterText As String) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
             Me.CompletionItems = completionItems
             Me.SelectedItem = selectedItem
             Me.IsSoftSelected = isSoftSelected
-            Me.Builder = presetBuilder
+            Me.SuggestionModeItem = suggestionModeItem
         End Sub
 
         Public Sub Dismiss() Implements ICompletionPresenterSession.Dismiss

@@ -3,6 +3,7 @@
 using System;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
@@ -10,20 +11,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         private readonly CSharpProjectShimWithServices _project;
 
-        public CSharpProjectCodeModel(CSharpProjectShimWithServices project, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider)
+        public CSharpProjectCodeModel(CSharpProjectShimWithServices project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
             : base(project, visualStudioWorkspace, serviceProvider)
         {
             _project = project;
         }
 
-        internal override bool CanCreateFileCodeModelThroughProject(string fileName)
+        internal override bool CanCreateFileCodeModelThroughProject(string filePath)
         {
-            return _project.CanCreateFileCodeModelThroughProject(fileName);
+            return _project.CanCreateFileCodeModelThroughProject(filePath);
         }
 
-        internal override object CreateFileCodeModelThroughProject(string fileName)
+        internal override object CreateFileCodeModelThroughProject(string filePath)
         {
-            return _project.CreateFileCodeModelThroughProject(fileName);
+            return _project.CreateFileCodeModelThroughProject(filePath);
         }
     }
 }

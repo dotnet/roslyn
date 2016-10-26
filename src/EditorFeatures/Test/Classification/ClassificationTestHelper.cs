@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         internal static void Verify(
             string expectedText,
             IEnumerable<Tuple<string, string>> expectedClassifications,
-            IList<SymbolDisplayPart> actualContent)
+            IList<TaggedText> actualContent)
         {
             Verify(
                 expectedText,

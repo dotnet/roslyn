@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal class DashboardAdornmentProvider : IWpfTextViewConnectionListener
     {

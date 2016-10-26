@@ -5,9 +5,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function GetTypeHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "GetType",
-$"{VBFeaturesResources.GettypeFunction}
-{ReturnsSystemTypeObject}
-GetType({VBWorkspaceResources.Typename}) As Type")
+$"{VBFeaturesResources.GetType_function}
+{VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name}
+GetType({VBWorkspaceResources.typeName}) As Type")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

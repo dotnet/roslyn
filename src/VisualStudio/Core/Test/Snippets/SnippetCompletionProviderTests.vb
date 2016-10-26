@@ -2,8 +2,10 @@
 
 Imports System.ComponentModel.Composition.Hosting
 Imports System.Composition
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Roslyn.Test.Utilities
@@ -22,7 +24,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
-                Assert.Equal((Await testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).ToDisplayString(), "Description")
+
+                Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim service = document.Project.LanguageServices.GetService(Of CompletionService)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, testState.CurrentCompletionPresenterSession.SelectedItem)
+                Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
 

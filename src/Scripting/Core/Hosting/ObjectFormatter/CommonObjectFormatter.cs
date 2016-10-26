@@ -131,8 +131,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     builder.Append(", ");
                 }
 
-                builder.Append(FormatRefKind(parameter));
-                builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, options));
+                if (parameter.ParameterType.IsByRef)
+                {
+                    builder.Append(FormatRefKind(parameter));
+                    builder.Append(' ');
+                    builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType.GetElementType(), options));
+                }
+                else
+                {
+                    builder.Append(TypeNameFormatter.FormatTypeName(parameter.ParameterType, options));
+                }
             }
 
             builder.Append(')');

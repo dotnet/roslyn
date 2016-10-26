@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -140,6 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override bool ReturnsVoid
         {
             get { return false; }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
         }
 
         public override TypeSymbol ReturnType

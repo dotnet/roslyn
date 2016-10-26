@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var version = VersionStamp.Create(utcTime.AddDays(1));
 
                 var key = "document";
-                var serializer = new DiagnosticDataSerializer(analyzerVersion, version);
+                var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
                 Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
                 var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
 
-                AssertDiagnostics(diagnostics, recovered);
+                AssertDiagnostics(diagnostics, recovered.Value);
             }
         }
 
@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var version = VersionStamp.Create(utcTime.AddDays(1));
 
                 var key = "project";
-                var serializer = new DiagnosticDataSerializer(analyzerVersion, version);
+                var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
                 Assert.True(await serializer.SerializeAsync(document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
                 var recovered = await serializer.DeserializeAsync(document, key, CancellationToken.None);
 
-                AssertDiagnostics(diagnostics, recovered);
+                AssertDiagnostics(diagnostics, recovered.Value);
             }
         }
 

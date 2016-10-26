@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
@@ -749,14 +748,37 @@ End Class
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestNotInValidCaseElse() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n For Each a In args \n Select a \n Case Else \n [|Exit Select|] ' here \n End Select \n Next \n End Sub \n End Module"))
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        For Each a In args
+            Select a
+                Case Else
+                    [|Exit Select|] ' here 
+            End Select
+        Next
+    End Sub
+End Module")
         End Function
 
         <WorkItem(547099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547099")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Async Function TestCollapseDuplicateBlockKinds() As Task
             Await TestActionCountAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Do \n Do While True \n [|Exit Function|] ' here \n Loop \n Loop \n End Sub \n End Module"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Do
+            Do While True
+                [|Exit Function|] ' here 
+            Loop
+        Loop
+    End Sub
+End Module",
             3)
         End Function
 
@@ -839,7 +861,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.Change_0_to_1, "Function", "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit Function")})
         End Function
 
         <WorkItem(531354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531354")>
@@ -854,7 +876,7 @@ Class C
 End Class
 </File>
 
-            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert, "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit")})
+            Await TestExactActionSetOfferedAsync(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.Insert_0, "Sub"), String.Format(VBFeaturesResources.Delete_the_0_statement1, "Exit")})
         End Function
     End Class
 End Namespace

@@ -605,7 +605,7 @@ class B
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,
@@ -645,9 +645,8 @@ public class Picard { }
             var assembly = GetAssembly(source);
             var picard = assembly.GetType("Picard");
             var jeanLuc = picard.Instantiate();
-            var result = FormatResult("says", CreateDkmClrValue(jeanLuc), declaredType: new BadType(picard));
-            Verify(result,
-                EvalFailedResult("says", BadType.Exception.Message, null, null, DkmEvaluationResultFlags.None));
+            var result = FormatAsyncResult("says", "says", CreateDkmClrValue(jeanLuc), declaredType: new BadType(picard));
+            Assert.Equal(BadType.Exception, result.Exception);
         }
 
         private class BadType : DkmClrType

@@ -2,8 +2,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Roslyn.Test.Utilities;
 using Xunit;
 using SyntaxUtilities = Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxUtilities;
 

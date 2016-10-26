@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
@@ -72,19 +72,27 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.Compilation.IsIOperationFeatureEnabled())
+            if (!this.Compilation.IsIOperationFeatureEnabled())
             {
-                try
-                {
-                    return GetOperationCore(node, cancellationToken);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                }
-                return null;
+                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
-            throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+
+            return GetOperationInternal(node, cancellationToken);
+        }
+
+        internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                return GetOperationCore(node, cancellationToken);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
+                Debug.Assert(false);
+            }
+
+            return null;
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);

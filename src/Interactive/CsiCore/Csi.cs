@@ -18,11 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             try
             {
                 var responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName);
-
+                var buildPaths = new BuildPaths(
+                    clientDir: AppContext.BaseDirectory,
+                    workingDir: Directory.GetCurrentDirectory(),
+                    sdkDir: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    tempDir: Path.GetTempPath());
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
-                    baseDirectory: Directory.GetCurrentDirectory(),
-                    sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    buildPaths: buildPaths,
                     args: args,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.Error.WriteLine(ex.ToString());
                 return 1;
             }
         }

@@ -77,7 +77,6 @@ Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
-Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions other) -> bool
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.LanguageVersion.get -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
@@ -106,10 +105,13 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Kind() -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CSharpSyntaxTree() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CloneNodeAsRoot<T>(T node) -> T
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetCompilationUnitRoot(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.CSharpSyntaxWalker(Microsoft.CodeAnalysis.SyntaxWalkerDepth depth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth
@@ -868,13 +870,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithFixedKeyword(Micro
 Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax.WithStatement(Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.FixedStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.ForEachKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.InKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Statement.get -> Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.SyntaxToken inKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax
@@ -2497,10 +2493,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(object obj) -> 
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Features.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.PreprocessorSymbolNames.get -> System.Collections.Generic.IEnumerable<string>
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Language.get -> string
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorList(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -3270,8 +3263,6 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.XmlTextSyntax.Accept(Microsoft.Cod
 override Microsoft.CodeAnalysis.CSharp.Syntax.XmlTextSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
-override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToFullString() -> string
-override sealed Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ToString() -> string
 static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Default.get -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
 static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ParseConditionalCompilationSymbols(string value, out System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Collections.Generic.IEnumerable<string>
 static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(string assemblyName, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> syntaxTrees = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation

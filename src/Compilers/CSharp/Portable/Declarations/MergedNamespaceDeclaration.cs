@@ -29,13 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MergedNamespaceDeclaration(ImmutableArray.Create(declaration));
         }
 
-        public static MergedNamespaceDeclaration Create(
-            MergedNamespaceDeclaration mergedDeclaration,
-            SingleNamespaceDeclaration declaration)
-        {
-            return new MergedNamespaceDeclaration(mergedDeclaration._declarations.Add(declaration));
-        }
-
         public override DeclarationKind Kind
         {
             get

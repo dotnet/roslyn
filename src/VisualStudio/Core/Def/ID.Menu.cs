@@ -13,8 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int ContextResolve = 0x3740;            // IDM_CSHARP_CTX_RESOLVE
             public const int ImplementInterface = 0x3800;        // IDM_CSHARP_IMPLEMENT_INTERFACE
             public const int ContextImplementInterface = 0x3850; // IDM_CSHARP_CTX_IMPLEMENT_INTERFACE
-            public const int Organize = 0x3900;                  // IDM_CSHARP_ORGANIZE
-            public const int ContextOrganize = 0x3950;           // IDM_CSHARP_CTX_ORGANIZE
             public const int Generate = 0x3951;                  // IDM_CSHARP_GENERATE
             public const int ContextGenerate = 0x3952;           // IDM_CSHARP_CTX_GENERATE
         }

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(Name, new[] { WorkspaceKind.Host }), Shared]
     internal class DesignerAttributeIncrementalAnalyzerProvider : IncrementalAnalyzerProviderBase
     {
         public const string Name = "DesignerAttributeIncrementalAnalyzerProvider";

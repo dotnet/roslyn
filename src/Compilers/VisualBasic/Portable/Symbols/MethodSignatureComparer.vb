@@ -4,11 +4,6 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Enum SymbolComparisonResults
@@ -44,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks></remarks>
         TotalParameterCountMismatch = 1 << 15
+        TupleNamesMismatch = 1 << 16
 
         AllParameterMismatches =
             OptionalParameterMismatch Or
@@ -54,9 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CustomModifierMismatch Or
             ParameterByrefMismatch Or
             ParamArrayMismatch Or
-            OptionalParameterValueMismatch
+            OptionalParameterValueMismatch Or
+            TupleNamesMismatch
 
-        AllMismatches = (1 << 16) - 1
+        AllMismatches = (1 << 17) - 1
 
         ' The set of mismatches for DetailedCompare that are ignored
         ' when testing for conflicting method in a class, or first 
@@ -70,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             OptionalParameterMismatch Or
             OptionalParameterValueMismatch Or
             PropertyAccessorMismatch Or
-            CallingConventionMismatch
+            CallingConventionMismatch Or
+            TupleNamesMismatch
 
         ' The set of mismatches for DetailedCompare that are ignored
         ' when finding the method/property that was implemented.
@@ -80,7 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             NameMismatch Or
             ConstraintMismatch Or
             CustomModifierMismatch Or
-            PropertyAccessorMismatch
+            PropertyAccessorMismatch Or
+            TupleNamesMismatch
+
     End Enum
 
     ''' <summary>
@@ -100,7 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=False,
                                         considerByRef:=True,
                                         considerCallingConvention:=True,
-                                        considerCustomModifiers:=True)
+                                        considerCustomModifiers:=True,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare all aspects.
@@ -111,7 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=True,
                                         considerByRef:=True,
                                         considerCallingConvention:=True,
-                                        considerCustomModifiers:=True)
+                                        considerCustomModifiers:=True,
+                                        considerTupleNames:=True)
 
         ''' <summary>
         ''' This instance is used to compare parameter and return types, including byref.
@@ -122,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=False,
                                         considerByRef:=True,
                                         considerCallingConvention:=False,
-                                        considerCustomModifiers:=False)
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare custom modifiers, parameter and return types, including byref.
@@ -133,7 +136,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=False,
                                         considerByRef:=True,
                                         considerCallingConvention:=False,
-                                        considerCustomModifiers:=True)
+                                        considerCustomModifiers:=True,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to search for methods that have the same signature, return type,
@@ -145,7 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=True,
                                         considerByRef:=True,
                                         considerCallingConvention:=True,
-                                        considerCustomModifiers:=False)
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to search for methods that have identical signatures in every regard.
@@ -156,7 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=False,
                                         considerByRef:=True,
                                         considerCallingConvention:=True,
-                                        considerCustomModifiers:=True)
+                                        considerCustomModifiers:=True,
+                                        considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake methods in type projection.
@@ -174,68 +180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         considerTypeConstraints:=False,
                                         considerByRef:=False,
                                         considerCallingConvention:=False,
-                                        considerCustomModifiers:=False)
-
-
-#If False Then
-        ' These are various method signature comparers that C# used. I will enable various ones
-        ' with the correct options, on an as needed basis.
-
-        ''' <summary>
-        ''' This instance is used when trying to determine if one method implicitly implements another,
-        ''' according to the C# definition.
-        ''' The method signatures, type constraints, and return types must match.  Custom modifiers are ignored.
-        ''' </summary>
-        Public Shared ReadOnly CSharpImplicitMethodImplementationComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=False)
-
-        ''' <summary>
-        ''' This instance is used to search for methods that would conflict with declared property accessors.
-        ''' </summary>
-        Public Shared ReadOnly PropertyAccessorComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=False,
-                                        considerTypeConstraints:=False,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=False)
-
-        ''' <summary>
-        ''' This instance is used to check whether one method overrides another, according to the C# definition.
-        ''' </summary>
-        Public Shared ReadOnly CSharpMethodOverrideComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=False,
-                                        considerTypeConstraints:=False,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=False)
-
-        ''' <summary>
-        ''' Same as CSharpMethodOverrideComparer except that it pays attention to custom modifiers.  
-        ''' </summary>
-        Public Shared ReadOnly CSharpCustomModifierMethodOverrideComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=False,
-                                        considerTypeConstraints:=False,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=True)
-
-        ''' <summary>
-        ''' This instance is the same as RuntimeMethodSignatureComparer, except that it also considers
-        ''' type constraints (as required by the C# definition of implicit method implementation).
-        ''' CONSIDER: just use RuntimeMethodSignatureComparer?
-        ''' </summary>
-        Public Shared ReadOnly RuntimeImplicitMethodImplementationComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True)
-
-#End If
+                                        considerCustomModifiers:=False,
+                                        considerTupleNames:=False)
 
         ' Compare the "unqualified" part of the method name (no explicit part)
         Private ReadOnly _considerName As Boolean
@@ -255,18 +201,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider custom modifiers on/in parameters and return types (if return is considered).
         Private ReadOnly _considerCustomModifiers As Boolean
 
+        ' Consider tuple names in parameters and return types (if return is considered).
+        Private ReadOnly _considerTupleNames As Boolean
+
         Private Sub New(considerName As Boolean,
                         considerReturnType As Boolean,
                         considerTypeConstraints As Boolean,
                         considerCallingConvention As Boolean,
                         considerByRef As Boolean,
-                        considerCustomModifiers As Boolean)
+                        considerCustomModifiers As Boolean,
+                        considerTupleNames As Boolean)
             Me._considerName = considerName
             Me._considerReturnType = considerReturnType
             Me._considerTypeConstraints = considerTypeConstraints
             Me._considerCallingConvention = considerCallingConvention
             Me._considerByRef = considerByRef
             Me._considerCustomModifiers = considerCustomModifiers
+            Me._considerTupleNames = considerTupleNames
         End Sub
 
 #Region "IEqualityComparer(Of MethodSymbol) Members"
@@ -295,14 +246,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim typeSubstitution1 = GetTypeSubstitution(method1)
             Dim typeSubstitution2 = GetTypeSubstitution(method2)
             If _considerReturnType Then
-                If Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers) Then
+                If Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers, _considerTupleNames) Then
                     Return False
                 End If
             End If
 
             If method1.ParameterCount > 0 OrElse method2.ParameterCount > 0 Then
                 If Not HaveSameParameterTypes(method1.Parameters, typeSubstitution1, method2.Parameters, typeSubstitution2,
-                                              _considerByRef, _considerCustomModifiers) Then
+                                              _considerByRef, _considerCustomModifiers, _considerTupleNames) Then
                     Return False
                 End If
             End If
@@ -382,12 +333,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim typeSubstitution1 As New LazyTypeSubstitution(method1)
             Dim typeSubstitution2 As New LazyTypeSubstitution(method2)
 
-            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
-                results = results Or DetailedReturnTypeCompare(New TypeWithModifiers(method1.OriginalDefinition.ReturnType, method1.OriginalDefinition.ReturnTypeCustomModifiers),
+            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
+                Dim origDef1 = method1.OriginalDefinition
+                Dim origDef2 = method2.OriginalDefinition
+                results = results Or DetailedReturnTypeCompare(origDef1.ReturnsByRef,
+                                                               New TypeWithModifiers(origDef1.ReturnType, origDef1.ReturnTypeCustomModifiers),
                                                                typeSubstitution1.Value,
-                                                               New TypeWithModifiers(method2.OriginalDefinition.ReturnType, method2.OriginalDefinition.ReturnTypeCustomModifiers),
+                                                               origDef2.ReturnsByRef,
+                                                               New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers),
                                                                typeSubstitution2.Value,
-                                                               comparisons)
+                                                               comparisons,
+                                                               stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If
@@ -472,23 +428,46 @@ Done:
 
         ' Compare two return types and return the detailed comparison of them.
         Public Shared Function DetailedReturnTypeCompare(
+            returnsByRef1 As Boolean,
             type1 As TypeWithModifiers,
             typeSubstitution1 As TypeSubstitution,
+            returnsByRef2 As Boolean,
             type2 As TypeWithModifiers,
             typeSubstitution2 As TypeSubstitution,
-            comparisons As SymbolComparisonResults
+            comparisons As SymbolComparisonResults,
+            Optional stopIfAny As SymbolComparisonResults = 0
         ) As SymbolComparisonResults
+            If returnsByRef1 <> returnsByRef2 Then
+                Return SymbolComparisonResults.ReturnTypeMismatch
+            End If
+
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
+            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
-            ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                   (type1 <> type2) Then
-                Return SymbolComparisonResults.CustomModifierMismatch
             End If
 
-            Return Nothing
+            Dim result As SymbolComparisonResults = 0
+
+            If (comparisons And SymbolComparisonResults.TupleNamesMismatch) <> 0 AndAlso
+                    Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreTupleNames) Then
+                result = result Or SymbolComparisonResults.TupleNamesMismatch
+                If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    GoTo Done
+                End If
+            End If
+
+            If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
+                   Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                result = result Or SymbolComparisonResults.CustomModifierMismatch
+                If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
+                    GoTo Done
+                End If
+            End If
+
+Done:
+            Return result
         End Function
 
         Public Shared Function DetailedParameterCompare(
@@ -545,7 +524,8 @@ Done:
                 If (comparisons And
                     (SymbolComparisonResults.OptionalParameterTypeMismatch Or
                      SymbolComparisonResults.RequiredParameterTypeMismatch Or
-                     SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
+                     SymbolComparisonResults.CustomModifierMismatch Or
+                     SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
                     checkTypes = True
                     typeSubstitution1 = lazyTypeSubstitution1.Value
                     typeSubstitution2 = lazyTypeSubstitution2.Value
@@ -582,7 +562,7 @@ Done:
                             type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
                         End If
 
-                        If Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
+                        If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
                             If bothOptional Then
                                 results = results Or SymbolComparisonResults.OptionalParameterTypeMismatch
                                 If (stopIfAny And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -594,11 +574,26 @@ Done:
                                     GoTo Done
                                 End If
                             End If
-                        ElseIf (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                               (type1 <> type2 OrElse param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
-                            results = results Or SymbolComparisonResults.CustomModifierMismatch
-                            If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
-                                GoTo Done
+                        Else
+                            If (comparisons And SymbolComparisonResults.TupleNamesMismatch) <> 0 AndAlso
+                                Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB And
+                                                Not TypeCompareKind.IgnoreTupleNames) Then
+
+                                results = results Or SymbolComparisonResults.TupleNamesMismatch
+                                If (stopIfAny And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                                    GoTo Done
+                                End If
+                            End If
+
+                            If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
+                                       (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And
+                                                    Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
+                                           param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef) Then
+
+                                results = results Or SymbolComparisonResults.CustomModifierMismatch
+                                If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
+                                    GoTo Done
+                                End If
                             End If
                         End If
                     End If
@@ -696,7 +691,8 @@ Done:
         Public Shared Function HaveSameParameterTypes(params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
                                                        params2 As ImmutableArray(Of ParameterSymbol), typeSubstitution2 As TypeSubstitution,
                                                        considerByRef As Boolean,
-                                                       considerCustomModifiers As Boolean) As Boolean
+                                                       considerCustomModifiers As Boolean,
+                                                       considerTupleNames As Boolean) As Boolean
             Dim numParams = params1.Length
 
             If numParams <> params2.Length Then
@@ -721,13 +717,15 @@ Done:
                     type2 = New TypeWithModifiers(param2.Type, param2.CustomModifiers)
                 End If
 
-                'the runtime compares custom modifiers using (effectively) SequenceEqual
+                Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
+                If Not type1.IsSameType(type2, comparison) Then
+                    Return False
+                End If
+
                 If considerCustomModifiers Then
-                    If type1 <> type2 OrElse param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef Then
+                    If param1.CountOfCustomModifiersPrecedingByRef <> param2.CountOfCustomModifiersPrecedingByRef Then
                         Return False
                     End If
-                ElseIf Not type1.Type.IsSameTypeIgnoringCustomModifiers(type2.Type) Then
-                    Return False
                 End If
 
                 If considerByRef AndAlso param1.IsByRef <> param2.IsByRef Then
@@ -738,7 +736,21 @@ Done:
             Return True
         End Function
 
-        Private Shared Function HaveSameReturnTypes(method1 As MethodSymbol, typeSubstitution1 As TypeSubstitution, method2 As MethodSymbol, typeSubstitution2 As TypeSubstitution, considerCustomModifiers As Boolean) As Boolean
+        Friend Shared Function MakeTypeCompareKind(considerCustomModifiers As Boolean, considerTupleNames As Boolean) As TypeCompareKind
+            Dim comparison As TypeCompareKind = TypeCompareKind.ConsiderEverything
+            If Not considerCustomModifiers Then
+                comparison = comparison Or TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds
+            End If
+            If Not considerTupleNames Then
+                comparison = comparison Or TypeCompareKind.IgnoreTupleNames
+            End If
+
+            Return comparison
+        End Function
+
+        Private Shared Function HaveSameReturnTypes(method1 As MethodSymbol, typeSubstitution1 As TypeSubstitution,
+                                                    method2 As MethodSymbol, typeSubstitution2 As TypeSubstitution,
+                                                    considerCustomModifiers As Boolean, considerTupleNames As Boolean) As Boolean
             'short-circuit type map building in the easiest cases
             Dim isSub1 = method1.IsSub
             Dim isSub2 = method2.IsSub
@@ -748,13 +760,18 @@ Done:
                 Return True
             End If
 
-            Dim returnType1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(method1.OriginalDefinition.ReturnType, method1.OriginalDefinition.ReturnTypeCustomModifiers))
-            Dim returnType2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(method2.OriginalDefinition.ReturnType, method2.OriginalDefinition.ReturnTypeCustomModifiers))
+            If method1.ReturnsByRef <> method2.ReturnsByRef Then
+                Return False
+            End If
+
+            Dim origDef1 = method1.OriginalDefinition
+            Dim origDef2 = method2.OriginalDefinition
+            Dim returnType1 = SubstituteType(typeSubstitution1, New TypeWithModifiers(origDef1.ReturnType, origDef1.ReturnTypeCustomModifiers))
+            Dim returnType2 = SubstituteType(typeSubstitution2, New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers))
 
             ' the runtime compares custom modifiers using (effectively) SequenceEqual
-            Return If(considerCustomModifiers,
-                      returnType1 = returnType2,
-                      returnType1.Type.IsSameTypeIgnoringCustomModifiers(returnType2.Type))
+            Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
+            Return returnType1.IsSameType(returnType2, comparison)
         End Function
 
         ' If this method is generic, get a TypeSubstitution that substitutes IndexedTypeParameterSymbols
@@ -889,7 +906,7 @@ Done:
 
         Private Shared Function ContainsIgnoringCustomModifiers(types As ArrayBuilder(Of TypeSymbol), type As TypeSymbol) As Boolean
             For Each t In types
-                If t.IsSameTypeIgnoringCustomModifiers(type) Then
+                If t.IsSameTypeIgnoringAll(type) Then
                     Return True
                 End If
             Next

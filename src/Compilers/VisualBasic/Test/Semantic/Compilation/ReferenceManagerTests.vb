@@ -559,14 +559,8 @@ End Class
             CompileAndVerify(main, verify:=False, validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
-                    Dim refs As List(Of String) = New List(Of String)()
 
-                    For Each assemblyRef In reader.AssemblyReferences
-                        Dim row = reader.GetAssemblyReference(assemblyRef)
-                        refs.Add(reader.GetString(row.Name) & " " & row.Version.Major & "." & row.Version.Minor)
-                    Next
-
-                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, refs)
+                    AssertEx.SetEqual({"mscorlib 4.0", "RefLibV1 1.0", "Lib 2.0"}, reader.DumpAssemblyReferences())
                 End Sub)
         End Sub
 
@@ -1069,7 +1063,7 @@ End Class
             c.VerifyDiagnostics()
             Dim symbolA2 = c.GetReferencedAssemblySymbol(refA2)
             Assert.True(TypeOf symbolA2 Is VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected")
-            Assert.Equal(1, (DirectCast(refA2.GetMetadata(), AssemblyMetadata)).CachedSymbols.WeakCount)
+            Assert.Equal(1, (DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata)).CachedSymbols.WeakCount)
 
             GC.KeepAlive(symbolA2)
 
@@ -1603,13 +1597,13 @@ End Class
 
             Dim refa = AssemblyMetadata.CreateFromImage(a.EmitToArray()).GetReference(display:="A")
             Dim b = CreateCompilationWithMscorlibAndReferences(sourceB, {refa})
-            Dim refmetadata = DirectCast(refa.GetMetadata(), AssemblyMetadata)
+            Dim refmetadata = DirectCast(refa.GetMetadataNoCopy(), AssemblyMetadata)
 
             Dim CopyRefMetaData = refmetadata.Copy
             Assert.NotEqual(refmetadata, CopyRefMetaData)
             Assert.Equal(refmetadata.GetAssembly.ToString, CopyRefMetaData.GetAssembly.ToString)
 
-            Dim mca1 As Metadata = refa.GetMetadata()
+            Dim mca1 As Metadata = refa.GetMetadataNoCopy()
             Dim Copymca1 = mca1.Copy()
             Assert.NotEqual(mca1, Copymca1)
             Assert.Equal(mca1.ToString, Copymca1.ToString)

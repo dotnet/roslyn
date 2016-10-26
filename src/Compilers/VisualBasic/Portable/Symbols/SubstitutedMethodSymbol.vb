@@ -291,6 +291,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
 
+        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return OriginalDefinition.ReturnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
                 Return OriginalDefinition.ReturnType.InternalSubstituteTypeParameters(Me.TypeSubstitution).Type
@@ -433,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get

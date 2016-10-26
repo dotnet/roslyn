@@ -40,14 +40,21 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             }
         }
 
-        public virtual void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
+        public void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
-            throw new NotImplementedException();
+            InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
+                MethodId.GetChildren,
+                r =>
+                {
+                    r.GetChildren(this, workList, initialRequestSize, inspectionContext, completionRoutine);
+                    return (object)null;
+                });
         }
 
-        public virtual string GetUnderlyingString()
+        public string GetUnderlyingString()
         {
-            throw new NotImplementedException();
+            return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetUnderlyingString, r => r.GetUnderlyingString(this));
         }
     }
 }

@@ -13,14 +13,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         internal ICompilationVerifier CompileAndVerifyExperimental(
             string source,
+            MessageID feature,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -127,11 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<PEAssembly> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
+            CSharpCompilationOptions options = null,
             bool verify = true)
         {
-            var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            options = options ??
+                ((expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
-            var compilation = CreateExperimentalCompilationWithMscorlib45(source, additionalRefs, options);
+            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, additionalRefs, options);
 
             return CompileAndVerify(
                 compilation: compilation,
@@ -374,8 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 assemblyName: assemblyName);
         }
 
-        public static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
             string text,
+            MessageID feature,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
@@ -387,7 +391,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 refs.AddRange(references);
             }
             refs.Add(MscorlibRef_v4_0_30316_17626);
-            return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, options, assemblyName);
+
+            var parseOptions = TestOptions.Regular.WithExperimental(feature);
+            return CreateCompilation(new[] { Parse(text, sourceFileName, parseOptions) }, refs, options, assemblyName);
+        }
+
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            string[] texts,
+            MessageID feature,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "",
+            string sourceFileName = "")
+        {
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef_v4_0_30316_17626);
+
+            var parseOptions = TestOptions.Regular.WithExperimental(feature);
+            return CreateCompilation((from text in texts select Parse(text, sourceFileName, parseOptions)).ToArray(), refs, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
@@ -914,6 +939,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers);
 
             return sb.ToString();
+        }
+
+        internal static string VisualizeIL(CompilationTestData testData, Func<MethodSymbol, bool> predicate)
+        {
+            var builder = testData.GetIL(m => predicate((MethodSymbol)m));
+            return ILBuilderVisualizer.ILBuilderToString(builder);
         }
 
         private static string GetContainingTypeMetadataName(IMethodSymbol method)

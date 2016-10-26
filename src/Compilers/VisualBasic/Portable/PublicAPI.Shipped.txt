@@ -1207,6 +1207,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Decimal = 0 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Hexadecimal = 1 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Octal = 2 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
+Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase.Binary = 3 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralBase
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax.Token() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax.Update(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind, token As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.LiteralExpressionSyntax
@@ -1930,6 +1931,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax.Update(syncLoc
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax.WithExpression(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax.WithSyncLockKeyword(syncLockKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SyncLockStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.SyntaxNodeRemover
+Microsoft.CodeAnalysis.VisualBasic.Syntax.SyntaxNodeRemover.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TernaryConditionalExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TernaryConditionalExpressionSyntax.CloseParenToken() -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TernaryConditionalExpressionSyntax.Condition() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
@@ -2397,7 +2399,9 @@ Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(asClauseSyntax As Micro
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.Type(newExpressionSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.NewExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.WithIdentifier(simpleName As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax, identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
+Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.AddAssignmentStatement = 249 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.AddExpression = 307 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
@@ -3236,7 +3240,6 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.TryGetSpeculativeSemant
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.TryGetSpeculativeSemanticModelForMethodBody(semanticModel As Microsoft.CodeAnalysis.SemanticModel, position As Integer, method As Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax, ByRef speculativeModel As Microsoft.CodeAnalysis.SemanticModel) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.LanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic14, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbols() -> System.Collections.Immutable.ImmutableArray(Of System.Collections.Generic.KeyValuePair(Of String, Object))
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithFeatures(features As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, String))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
@@ -3264,8 +3267,11 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.New(visitIntoStruct
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.CloneNodeAsRoot(Of T)(node As T) -> T
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.GetCompilationUnitRoot(cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).New() -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker.New(depth As Microsoft.CodeAnalysis.SyntaxWalkerDepth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> Void
 Microsoft.CodeAnalysis.VisualBasicExtensions
@@ -3298,8 +3304,6 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgument
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgumentSyntax.IsNamed() -> Boolean
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.IsNamed() -> Boolean
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.GlobalImport.Equals(other As Microsoft.CodeAnalysis.VisualBasic.GlobalImport) -> Boolean
 Overloads Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(other As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions) -> Boolean
@@ -4377,10 +4381,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(obj 
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Features() -> System.Collections.Generic.IReadOnlyDictionary(Of String, String)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbolNames() -> System.Collections.Generic.IEnumerable(Of String)
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ChildThatContainsPosition(position As Integer) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Language() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SerializeTo(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.WriteTo(writer As System.IO.TextWriter) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitAccessorBlock(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorBlockSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitAccessorStatement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorStatementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode

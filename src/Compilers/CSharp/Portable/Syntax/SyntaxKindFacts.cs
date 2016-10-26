@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
+                case SyntaxKind.TupleType:
                     return true;
                 default:
                     return IsName(kind);
@@ -410,6 +411,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostDecrementExpression;
                 default:
                     return SyntaxKind.None;
+            }
+        }
+
+        internal static bool IsIncrementOrDecrementOperator(SyntaxKind token)
+        {
+            switch (token)
+            {
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -1564,14 +1577,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "typevar";
                 case SyntaxKind.GlobalKeyword:
                     return "global";
+                case SyntaxKind.NameOfKeyword:
+                    return "nameof";
                 case SyntaxKind.AsyncKeyword:
                     return "async";
                 case SyntaxKind.AwaitKeyword:
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.NameOfKeyword:
-                    return "nameof";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:

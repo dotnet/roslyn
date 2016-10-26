@@ -19,33 +19,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function DirectCastHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "DirectCast",
-$"{VBFeaturesResources.DirectcastFunction}
-{IntroducesTypeConversion}
-DirectCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+$"{VBFeaturesResources.DirectCast_function}
+{VBWorkspaceResources.Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type}
+DirectCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TryCastHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "TryCast",
-$"{VBFeaturesResources.TrycastFunction}
-{IntroducesSafeTypeConversion}
-TryCast({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+$"{VBFeaturesResources.TryCast_function}
+{VBWorkspaceResources.Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for}
+TryCast({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CTypeHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CType",
-$"{VBFeaturesResources.CtypeFunction}
-{ReturnsConvertResult}
-CType({Expression1}, {VBWorkspaceResources.Typename}) As {Result}")
+$"{VBFeaturesResources.CType_function}
+{VBWorkspaceResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type}
+CType({VBWorkspaceResources.expression}, {VBWorkspaceResources.typeName}) As {VBWorkspaceResources.result}")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function CBoolHelpTextTest() As Task
             Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "CBool",
-$"{String.Format(VBFeaturesResources.Function1, "CBool")}
-{String.Format(ConvertsToDataType, "Boolean")}
-CBool({Expression1}) As Boolean")
+$"{String.Format(VBFeaturesResources._0_function, "CBool")}
+{String.Format(VBWorkspaceResources.Converts_an_expression_to_the_0_data_type, "Boolean")}
+CBool({VBWorkspaceResources.expression}) As Boolean")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>

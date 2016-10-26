@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
-    public class SyntaxTreeRootTests : SpeculativeSemanticModelTestsBase
+    public class SyntaxTreeRootTests
     {
         [Fact]
         public void SyntaxTreeCreateAcceptsAnySyntaxNode()
@@ -107,28 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
         private void CheckTree(SyntaxTree tree)
         {
-#if false // https://github.com/dotnet/roslyn/issues/4453
-            CheckAllMembers(
-                tree,
-                new Dictionary<Type, Func<object>> 
-                { 
-                    { typeof(CSharpSyntaxTree), () => tree },
-                    { typeof(TextSpan), () => TextSpan.FromBounds(0, 0) },
-                    { typeof(SourceText), () => new StringText("class { }") },
-                    { typeof(SyntaxNodeOrToken), () => new SyntaxNodeOrToken(tree.GetRoot()) },
-                    { typeof(SyntaxNodeOrToken), () => new SyntaxNodeOrToken(tree.GetRoot()) },
-                },
-                new Dictionary<MemberInfo, Type>
-                {
-                    { typeof(CSharpSyntaxTree).GetMethod("GetCompilationUnitRoot"), typeof(InvalidCastException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(CSharpSyntaxNode) }), typeof(ArgumentNullException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(SyntaxToken) }), typeof(InvalidOperationException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(SyntaxTrivia) }), typeof(InvalidOperationException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(SyntaxNode) }), typeof(ArgumentNullException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(SyntaxToken) }), typeof(InvalidOperationException) },
-                    { typeof(CSharpSyntaxTree).GetMethod("GetDiagnostics", new[] { typeof(SyntaxTrivia) }), typeof(InvalidOperationException) },
-                });
-#endif
+            Assert.Throws<InvalidCastException>(() => { var _ = (CSharpSyntaxTree) (Object) tree.GetCompilationUnitRoot(); });
+            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((CSharpSyntaxNode) null); });
+            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxToken) ); });
+            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((SyntaxNode) null); });
+            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxTrivia) ); });
         }
     }
 }

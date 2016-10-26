@@ -53,11 +53,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim codeActions = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
                 codeActions = MassageActions(codeActions)
                 Dim codeAction = codeActions(codeActionIndex)
-                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
-                Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
 
                 Dim oldSolution = workspace.CurrentSolution
-                Dim updatedSolution = edit.ChangedSolution
+                Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
+
+                For Each operation In operations
+                    If operation.ApplyDuringTests Then
+                        operation.Apply(workspace, CancellationToken.None)
+                    End If
+                Next
+
+                Dim updatedSolution = workspace.CurrentSolution
 
                 verifySolutions?.Invoke(oldSolution, updatedSolution)
 
@@ -112,7 +118,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
-                    result.Add(Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes)))
+                    result.Add(Tuple.Create(diagnostic, New CodeFixCollection(
+                                            fixer, diagnostic.Location.SourceSpan, fixes,
+                                            fixAllState:=Nothing, supportedScopes:=Nothing, firstDiagnostic:=Nothing)))
                 End If
             Next
 

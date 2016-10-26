@@ -291,8 +291,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var languageServices = workspace.Services.GetLanguageServices(language);
 
-            var compilationOptions = CreateCompilationOptions(workspace, projectElement, language);
             var parseOptions = GetParseOptions(projectElement, language, languageServices);
+            var compilationOptions = CreateCompilationOptions(workspace, projectElement, language, parseOptions);
 
             var references = CreateReferenceList(workspace, projectElement);
             var analyzers = CreateAnalyzerList(workspace, projectElement);
@@ -344,16 +344,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 parseOptions = GetParseOptionsWithLanguageVersion(language, parseOptions, languageVersionAttribute);
             }
 
+            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
+            if (featuresAttribute != null)
+            {
+                parseOptions = GetParseOptionsWithFeatures(parseOptions, featuresAttribute);
+            }
+
             var documentationMode = GetDocumentationMode(projectElement);
             if (documentationMode != null)
             {
                 parseOptions = parseOptions.WithDocumentationMode(documentationMode.Value);
-            }
-
-            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
-            if (featuresAttribute != null)
-            {
-                parseOptions = parseOptions.WithFeatures(featuresAttribute.Value.Split(',').Select(f => KeyValuePair.Create(f, "true")));
             }
 
             return parseOptions;
@@ -374,6 +374,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 throw new ArgumentException("Unexpected language '{0}' for generating custom parse options.", language);
             }
+        }
+
+        private static ParseOptions GetParseOptionsWithFeatures(ParseOptions parseOptions, XAttribute featuresAttribute)
+        {
+            var entries = featuresAttribute.Value.Split(';');
+            var features = entries.Select(x =>
+            {
+                var split = x.Split('=');
+
+                var key = split[0];
+                var value = split.Length == 2 ? split[1] : "true";
+
+                return new KeyValuePair<string, string>(key, value);
+            });
+
+            return parseOptions.WithFeatures(features);
         }
 
         private static ParseOptions GetParseOptionsWithLanguageVersion(string language, ParseOptions parseOptions, XAttribute languageVersionAttribute)
@@ -438,15 +454,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static CompilationOptions CreateCompilationOptions(
             TestWorkspace workspace,
             XElement projectElement,
-            string language)
+            string language,
+            ParseOptions parseOptions)
         {
             var compilationOptionsElement = projectElement.Element(CompilationOptionsElementName);
             return language == LanguageNames.CSharp || language == LanguageNames.VisualBasic
-                ? CreateCompilationOptions(workspace, language, compilationOptionsElement)
+                ? CreateCompilationOptions(workspace, language, compilationOptionsElement, parseOptions)
                 : null;
         }
 
-        private static CompilationOptions CreateCompilationOptions(TestWorkspace workspace, string language, XElement compilationOptionsElement)
+        private static CompilationOptions CreateCompilationOptions(TestWorkspace workspace, string language, XElement compilationOptionsElement, ParseOptions parseOptions)
         {
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
@@ -477,9 +494,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         rootNamespace = new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).RootNamespace;
                     }
 
+                    // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
                        ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
-                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace);
+                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
+                            .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }
             }
             else
@@ -503,8 +522,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (language == LanguageNames.VisualBasic)
             {
+                // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                 compilationOptions = ((VisualBasicCompilationOptions)compilationOptions).WithRootNamespace(rootNamespace)
-                                                                                        .WithGlobalImports(globalImports);
+                                                                                        .WithGlobalImports(globalImports)
+                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ?? 
+                                                                                            VisualBasicParseOptions.Default);
             }
 
             return compilationOptions;
@@ -805,6 +827,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return references;
+        }
+
+        public static bool IsWorkspaceElement(string text)
+        {
+            return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// that holds on to a <see cref="CodeAction"/> and the set of
     /// <see cref="Diagnostic"/>s that this <see cref="CodeAction"/> will fix.
     /// </summary>
-    internal class CodeFix
+    internal sealed class CodeFix
     {
         internal readonly Project Project;
         internal readonly CodeAction Action;

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             var count = (int)reader.ReadCompressedUInt();
             if (count == 0)
             {
-                _arguments = SpecializedCollections.EmptyObjects;
+                _arguments = Array.Empty<object>();
             }
             else if (count > 0)
             {
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis
                 if (symbol != null)
                 {
                     argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
-                    argumentsToUse[i] = _messageProvider.ConvertSymbolToString(_errorCode, symbol);
+                    argumentsToUse[i] = _messageProvider.GetErrorDisplayString(symbol);
                 }
             }
 

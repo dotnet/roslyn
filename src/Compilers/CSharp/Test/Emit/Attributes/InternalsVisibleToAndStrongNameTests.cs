@@ -398,7 +398,7 @@ public class C {}";
             Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void PublicKeyFromOptions_PublicSign()
         {
             // attributes are ignored
@@ -409,7 +409,12 @@ public class C {}
 ";
 
             var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // warning CS7103: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
+                Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyNameAttribute").WithLocation(1, 1),
+                // warning CS7103: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
+                Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyFileAttribute").WithLocation(1, 1)
+            );
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
 
             var metadata = ModuleMetadata.CreateFromImage(c.EmitToArray());
@@ -420,7 +425,7 @@ public class C {}
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyFileFromAttributes_PublicSign()
         {
             string source = @"
@@ -429,13 +434,16 @@ public class C {}
 ";
             var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithPublicSign(true));
             c.VerifyDiagnostics(
-    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                // warning CS7103: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
+                Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyFileAttribute").WithLocation(1, 1),
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1)
+            );
 
             Assert.True(c.Options.PublicSign);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyContainerFromAttributes_PublicSign()
         {
             string source = @"
@@ -444,8 +452,11 @@ public class C {}
 ";
             var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithPublicSign(true));
             c.VerifyDiagnostics(
-    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                // warning CS7103: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
+                Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyNameAttribute").WithLocation(1, 1),
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1)
+            );
 
             Assert.True(c.Options.PublicSign);
         }
@@ -1003,6 +1014,68 @@ public class C
         #endregion
 
         #region Signing
+
+        [Fact]
+        public void MaxSizeKey()
+        {
+            var pubKey = TestResources.General.snMaxSizePublicKeyString;
+            string pubKeyToken = "1540923db30520b2";
+            var pubKeyTokenBytes = new byte[] { 0x15, 0x40, 0x92, 0x3d, 0xb3, 0x05, 0x20, 0xb2 };
+
+            var comp = CreateCompilationWithMscorlib($@"
+using System;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""MaxSizeComp2, PublicKey={pubKey}, PublicKeyToken={pubKeyToken}"")]
+
+internal class C
+{{
+    public static void M()
+    {{
+        Console.WriteLine(""Called M"");
+    }}
+}}",
+                options: TestOptions.ReleaseDll
+                         .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+                         .WithStrongNameProvider(s_defaultProvider));
+
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.IsRealSigned);
+            VerifySignedBitSetAfterEmit(comp);
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken);
+
+            var src = @"
+class D
+{
+    public static void Main()
+    {
+        C.M();
+    }
+}";
+            var comp2 = CreateCompilationWithMscorlib(src, 
+references: new[] { comp.ToMetadataReference() },
+assemblyName: "MaxSizeComp2",
+options: TestOptions.ReleaseExe
+        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+        .WithStrongNameProvider(s_defaultProvider));
+
+            CompileAndVerify(comp2, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
+
+            var comp3 = CreateCompilationWithMscorlib(src, 
+references: new[] { comp.EmitToImageReference() },
+assemblyName: "MaxSizeComp2",
+options: TestOptions.ReleaseExe
+        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
+        .WithStrongNameProvider(s_defaultProvider));
+
+            CompileAndVerify(comp3, expectedOutput: "Called M");
+            Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey);
+            Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
+        }
 
         [Fact]
         public void SignIt()

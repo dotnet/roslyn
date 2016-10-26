@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -39,13 +37,16 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-rc2-23931\ref\netstandard1.5\System.Runtime.Loader.dll">
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0$(CoreFXVersionSuffix)\ref\netstandard1.5\System.Runtime.Loader.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
       <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
@@ -157,7 +158,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -130,6 +130,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestBinary()
+        {
+            await TestAsync(
+@"class Program { void Main ( ) { Color . [|Blue|] ; } } enum Color { Red = 0b01 } ",
+@"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0b01 , Blue = 0b10 } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestHex1()
         {
             await TestAsync(
@@ -175,6 +183,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
             await TestAsync(
 @"class Program { void Main ( ) { Color . [|Blue|] ; } } enum Color : long { Red = long.MaxValue } ",
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = long.MaxValue , Blue = long.MinValue } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestGenerateAfterEnumWithLongMaxValueInBinary()
+        {
+            await TestAsync(
+@"class Program { void Main ( ) { Color . [|Blue|] ; } } enum Color : long { Red = 0b0111111111111111111111111111111111111111111111111111111111111111 } ",
+@"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0b0111111111111111111111111111111111111111111111111111111111111111 , Blue = 0b1000000000000000000000000000000000000000000000000000000000000000 } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]

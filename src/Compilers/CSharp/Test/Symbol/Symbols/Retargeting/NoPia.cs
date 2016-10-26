@@ -1367,6 +1367,355 @@ public class LocalTypes3
         }
 
         [ClrOnlyFact]
+        public void ValueTupleWithMissingCanonicalType()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[CompilerGenerated, TypeIdentifier(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""S1"")]
+public struct S1 { }
+
+public class C
+{
+    public ValueTuple<S1, S1> Test1()
+    {
+        throw new Exception();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+
+            var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { comp },
+                                null,
+                                new MetadataReference[] { },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+
+            var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { },
+                                null,
+                                new MetadataReference[] { comp.ToMetadataReference() },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+        }
+
+        [ClrOnlyFact]
+        public void EmbeddedValueTuple()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System
+{
+    [CompilerGenerated, TypeIdentifier(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""ValueTuple"")]
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+public class C
+{
+    public ValueTuple<int, int> Test1()
+    {
+        throw new Exception();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+
+            var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { comp },
+                                null,
+                                new MetadataReference[] { },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies1[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+
+            var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
+                                new CSharpCompilation[] { },
+                                null,
+                                new MetadataReference[] { comp.ToMetadataReference() },
+                                null);
+
+            Assert.Equal(SymbolKind.ErrorType, assemblies2[0].GlobalNamespace.GetMember<MethodSymbol>("C.Test1").ReturnType.Kind);
+        }
+
+        [ClrOnlyFact]
+        public void CannotEmbedValueTuple()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+";
+
+            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            string source = @"
+public class C
+{
+    public System.ValueTuple<string, string> TestValueTuple()
+    {
+        throw new System.Exception();
+    }
+    public (int, int) TestTuple()
+    {
+        throw new System.Exception();
+    }
+    public object TestTupleLiteral()
+    {
+        return (1, 2);
+    }
+    public void TestDeconstruction()
+    {
+        int x, y;
+        (x, y) = new C();
+    }
+    public void Deconstruct(out int a, out int b) { a = b = 1; }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+              // (8,12): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (int, int) TestTuple()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 12),
+                // (4,19): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<string, string> TestValueTuple()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "ValueTuple<string, string>").WithArguments("System.ValueTuple<T1, T2>").WithLocation(4, 19),
+                // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         return (1, 2);
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
+                // (19,9): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y) = new C()").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
+            };
+
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferred()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest1
+{
+    (int, int) M();
+    S<int> M2();
+}";
+
+            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyEmitDiagnostics();
+
+            string source = @"
+public interface ITest2 : ITest1 { }
+";
+
+            // We should expect errors as generic types cannot be embedded
+            // Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+            };
+
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/13200")]
+        public void CannotEmbedValueTupleImplicitlyReferredFromMetadata()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct S<T> { }
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var libSource = @"
+public class D
+{
+    public static (int, int) M() { throw new System.Exception(); }
+    public static S<int> M2() { throw new System.Exception(); }
+}";
+
+            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            var lib = CreateCompilationWithMscorlib(libSource, options: TestOptions.ReleaseDll, references: new[] { pia.ToMetadataReference() });
+            lib.VerifyEmitDiagnostics();
+
+            string source = @"
+public class C
+{
+    public void TestTupleFromMetadata()
+    {
+        D.M();
+        D.M2();
+    }
+    public void TestTupleAssignmentFromMetadata()
+    {
+        var t = D.M();
+        t.ToString();
+        var t2 = D.M2();
+        t2.ToString();
+    }
+}";
+
+            // We should expect errors, as generic types cannot be embedded
+            // Issue https://github.com/dotnet/roslyn/issues/13200 tracks this
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+            };
+
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true), lib.ToMetadataReference() });
+            comp1.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true), lib.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ClrOnlyFact]
+        public void CheckForUnembeddableTypesInTuples()
+        {
+            string piaSource = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+[assembly: ImportedFromTypeLib(""Pia1.dll"")]
+
+public struct Generic<T1> { }
+";
+
+            var pia = CreateCompilationWithMscorlib(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            pia.VerifyDiagnostics();
+
+            string source = @"
+public class C
+{
+    public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+    {
+        throw new System.Exception();
+    }
+    public (Generic<int>, Generic<int>) Test2()
+    {
+        throw new System.Exception();
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { new CSharpCompilationReference(pia).WithEmbedInteropTypes(true) });
+            comp1.VerifyDiagnostics(
+                // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 13),
+                // (8,27): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 27),
+                // (4,30): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 30),
+                // (4,47): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 47)
+                );
+
+            var comp2 = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll,
+                            references: new MetadataReference[] { MetadataReference.CreateFromImage(pia.EmitToArray()).WithEmbedInteropTypes(true) });
+            comp2.VerifyDiagnostics(
+                // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 13),
+                // (8,27): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public (Generic<int>, Generic<int>) Test2()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<int>").WithArguments("Generic<T1>").WithLocation(8, 27),
+                // (4,30): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 30),
+                // (4,47): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //     public System.ValueTuple<Generic<string>, Generic<string>> Test1()
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 47)
+                );
+        }
+
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
             var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",

@@ -7,6 +7,7 @@
   <PropertyGroup>
     <ProjectGuid>{EF986D9B-8CFC-4ECB-9729-E260A1F84AFF}</ProjectGuid>
     <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <RoslynProjectType>Dependency</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="project.json" />

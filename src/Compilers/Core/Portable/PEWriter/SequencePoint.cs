@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     internal struct SequencePoint
     {

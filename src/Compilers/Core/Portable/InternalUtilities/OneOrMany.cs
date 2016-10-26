@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// Represents a single item or many items. 
+    /// Represents a single item or many items.
     /// </summary>
     /// <remarks>
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
@@ -63,9 +63,47 @@ namespace Roslyn.Utilities
             }
         }
 
-        public OneOrMany<T> Add(T item)
+        public OneOrMany<T> Add(T one)
         {
-            return new OneOrMany<T>(_many.IsDefault ? ImmutableArray.Create(_one, item) : _many.Add(item));
+            var builder = ArrayBuilder<T>.GetInstance();
+            if (_many.IsDefault)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+            builder.Add(one);
+            return new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+
+        internal struct Enumerator
+        {
+            private readonly OneOrMany<T> _collection;
+            private int _index;
+
+            internal Enumerator(OneOrMany<T> collection)
+            {
+                _collection = collection;
+                _index = -1;
+            }
+
+            public bool MoveNext()
+            {
+                _index++;
+                return _index < _collection.Count;
+            }
+
+            public T Current
+            {
+                get { return _collection[_index]; }
+            }
         }
     }
 

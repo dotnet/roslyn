@@ -921,7 +921,10 @@ class M
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,22): error CS0068: 'I.d': event in interface cannot have initializer
                 //     event MyDelegate d = new MyDelegate(M.f);   // CS0068
-                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "d").WithArguments("I.d"));
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "d").WithArguments("I.d").WithLocation(6, 22),
+                // (6,22): warning CS0067: The event 'I.d' is never used
+                //     event MyDelegate d = new MyDelegate(M.f);   // CS0068
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d").WithArguments("I.d").WithLocation(6, 22));
         }
 
         [Fact]
@@ -979,7 +982,10 @@ abstract class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,29): error CS0074: 'Test.e': abstract event cannot have initializer
                 //     public abstract event D e = null;   // CS0074
-                Diagnostic(ErrorCode.ERR_AbstractEventInitializer, "e").WithArguments("Test.e"));
+                Diagnostic(ErrorCode.ERR_AbstractEventInitializer, "e").WithArguments("Test.e").WithLocation(6, 29),
+                // (6,29): warning CS0414: The field 'Test.e' is assigned but its value is never used
+                //     public abstract event D e = null;   // CS0074
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("Test.e").WithLocation(6, 29));
         }
 
         [Fact]
@@ -1033,25 +1039,96 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '>' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, '(' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
                 // (5,14): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
                 // (5,14): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">"),
-                // (5,9): error CS0161: 'NS.C.F<>(int)': not all code paths return a value
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int)"));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
+                // (5,18): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
+                // (5,18): error CS1026: ) expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
+                // (5,9): error CS0161: 'C.F<>(int, ?)': not all code paths return a value
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, ?)").WithLocation(5, 9)
+    );
+        }
+
+        /// <summary>
+        /// Currently parser error 1001, 1003.  Is that good enough?
+        /// </summary>
+        [Fact()]
+        public void CS0081ERR_TypeParamMustBeIdentifier01WithCSharp6()
+        {
+            var text = @"namespace NS
+{
+  class C
+  {
+    int F<int>() { }  // CS0081
+  }
+}";
+            // Triage decision was made to have this be a parse error as the grammar specifies it as such.
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+                // (5,11): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
+                // (5,11): error CS1003: Syntax error, '>' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+                // (5,11): error CS1003: Syntax error, '(' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+                // (5,14): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
+                // (5,14): error CS1003: Syntax error, ',' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+                // (5,15): error CS1003: Syntax error, ',' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
+                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 15),
+                // (5,18): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
+                // (5,18): error CS1026: ) expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
+                // (5,15): error CS8124: Tuple must contain at least two elements.
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
+                // (5,9): error CS0161: 'C.F<>(int, ?)': not all code paths return a value
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, ?)").WithLocation(5, 9)
+                );
         }
 
         [Fact]
@@ -1688,6 +1765,7 @@ struct Foo
     public virtual int this[int x] { get { return 1;} set {;} }
     // use long for to prevent signature clash
     public abstract int this[long x] { get; set; }
+    public sealed override string ToString() => null;
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
@@ -1714,7 +1792,10 @@ struct Foo
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
                 // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual event System.EventHandler Bar6;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46),
+                // (15,35): error CS0106: The modifier 'sealed' is not valid for this item
+                //      public sealed override string ToString() => null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("sealed").WithLocation(15, 35));
         }
 
         [Fact]
@@ -1916,7 +1997,9 @@ abstract class B : A
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 51 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 47 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 7, Column = 51, IsWarning = true },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_UnreferencedEvent, Line = 8, Column = 47, IsWarning = true });
         }
 
         [Fact]
@@ -1994,16 +2077,19 @@ class B : A
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,51): error CS0113: A member 'B.Q' marked as override cannot be marked as new or virtual
                 //     internal virtual override event System.Action Q;
-                Diagnostic(ErrorCode.ERR_OverrideNotNew, "Q").WithArguments("B.Q"),
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, "Q").WithArguments("B.Q").WithLocation(9, 51),
                 // (8,48): error CS0113: A member 'B.P' marked as override cannot be marked as new or virtual
                 //     protected new override event System.Action P;
-                Diagnostic(ErrorCode.ERR_OverrideNotNew, "P").WithArguments("B.P"),
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, "P").WithArguments("B.P").WithLocation(8, 48),
                 // (8,48): warning CS0067: The event 'B.P' is never used
                 //     protected new override event System.Action P;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P").WithArguments("B.P").WithLocation(8, 48),
                 // (9,51): warning CS0067: The event 'B.Q' is never used
                 //     internal virtual override event System.Action Q;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("B.Q").WithLocation(9, 51),
+                // (4,42): warning CS0067: The event 'A.Q' is never used
+                //     internal virtual event System.Action Q;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Q").WithArguments("A.Q").WithLocation(4, 42));
         }
 
         [Fact]
@@ -8860,16 +8946,18 @@ namespace NS
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (31,32): error CS0533: 'NS.A3.foo' hides inherited abstract member 'NS.B3.foo()'
+                // (31,32): error CS0533: 'A3.foo' hides inherited abstract member 'B3.foo()'
                 //         new protected double[] foo;  // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("NS.A3.foo", "NS.B3.foo()"),
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("NS.A3.foo", "NS.B3.foo()").WithLocation(31, 32),
                 // (9,24): error CS0533: 'A1.foo' hides inherited abstract member 'B1.foo'
                 //     new protected enum foo { } // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.foo", "B1.foo"),
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.foo", "B1.foo").WithLocation(9, 24),
                 // (18,36): error CS0533: 'A1.A2.foo' hides inherited abstract member 'A1.B2.foo()'
                 //         new public delegate object foo(); // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.A2.foo", "A1.B2.foo()")
-                );
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.A2.foo", "A1.B2.foo()").WithLocation(18, 36),
+                // (31,32): warning CS0649: Field 'A3.foo' is never assigned to, and will always have its default value null
+                //         new protected double[] foo;  // CS0533
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "foo").WithArguments("NS.A3.foo", "null").WithLocation(31, 32));
         }
 
         [WorkItem(540464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540464")]
@@ -10248,9 +10336,12 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
     //         int i = 7;           // CS8036
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-    // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+    // (12,13): warning CS0169: The field 'cly.a' is never used
+    //         clx a = new clx();   // CS8036
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+    // (13,13): warning CS0169: The field 'cly.i' is never used
     //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
     // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
     //         static int s = 2;    // no error
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
@@ -17309,8 +17400,9 @@ public class B : A
     Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(8, 17)
                                 );
 
-            Assert.True(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
-            Assert.False(verifier.TestData.Methods.Keys.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
+            var methods = verifier.TestData.GetMethodsByName().Keys;
+            Assert.True(methods.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
+            Assert.False(methods.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
 
         [WorkItem(1084682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084682"), WorkItem(1036359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036359"), WorkItem(386, "CodePlex")]

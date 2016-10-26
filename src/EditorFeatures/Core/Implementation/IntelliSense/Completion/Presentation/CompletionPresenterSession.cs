@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -20,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private readonly ICompletionBroker _completionBroker;
         internal readonly IGlyphService GlyphService;
+        
         private readonly ITextView _textView;
-        private readonly ITextBuffer _subjectBuffer;
 
         public event EventHandler<EventArgs> Dismissed;
         public event EventHandler<CompletionItemEventArgs> ItemCommitted;
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
         public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
-        private readonly CompletionSet3 _completionSet;
+        private readonly ICompletionSet _completionSet;
 
         private ICompletionSession _editorSessionOpt;
         private bool _ignoreSelectionStatusChangedEvent;
@@ -38,7 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         // this scenario.
         private bool _isDismissed;
 
+        public ITextBuffer SubjectBuffer { get; }
+
         public CompletionPresenterSession(
+            ICompletionSetFactory completionSetFactory,
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
             ITextView textView,
@@ -47,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _completionBroker = completionBroker;
             this.GlyphService = glyphService;
             _textView = textView;
-            _subjectBuffer = subjectBuffer;
+            SubjectBuffer = subjectBuffer;
 
-            _completionSet = new CompletionSet3(this, textView, subjectBuffer);
+            _completionSet = completionSetFactory.CreateCompletionSet(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
@@ -57,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ITrackingSpan triggerSpan,
             IList<CompletionItem> completionItems,
             CompletionItem selectedItem,
-            CompletionItem presetBuilder,
+            CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
+            string filterText)
         {
             AssertIsForeground();
 
@@ -80,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             try
             {
                 _completionSet.SetCompletionItems(
-                    completionItems, selectedItem, presetBuilder, suggestionMode, 
-                    isSoftSelected, completionItemFilters, completionItemToFilterText);
+                    completionItems, selectedItem, suggestionModeItem, suggestionMode, 
+                    isSoftSelected, completionItemFilters, filterText);
             }
             finally
             {
@@ -132,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
         }
 
-        private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
+        private void OnCompletionSetSelectionStatusChanged(
+            object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
         {
             AssertIsForeground();
 
@@ -141,25 +144,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            var completionItem = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
-            var completionItemSelected = this.ItemSelected;
-            if (completionItemSelected != null && completionItem != null)
+            var item = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
+            if (item != null)
             {
-                completionItemSelected(this, new CompletionItemEventArgs(completionItem));
+                this.ItemSelected?.Invoke(this, new CompletionItemEventArgs(item));
             }
         }
 
         internal void AugmentCompletionSession(IList<CompletionSet> completionSets)
         {
-            Contract.ThrowIfTrue(completionSets.Contains(_completionSet));
-            completionSets.Add(_completionSet);
+            Contract.ThrowIfTrue(completionSets.Contains(_completionSet.CompletionSet));
+            completionSets.Add(_completionSet.CompletionSet);
         }
 
-        internal void OnIntelliSenseFiltersChanged(IReadOnlyList<IntellisenseFilter2> filters)
+        internal void OnIntelliSenseFiltersChanged(ImmutableDictionary<CompletionItemFilter, bool> filterStates)
         {
             this.FilterStateChanged?.Invoke(this,
-                new CompletionItemFilterStateChangedEventArgs(
-                    filters.ToImmutableDictionary(f => f.CompletionItemFilter, f => f.IsChecked)));
+                new CompletionItemFilterStateChangedEventArgs(filterStates));
         }
 
         public void Dismiss()

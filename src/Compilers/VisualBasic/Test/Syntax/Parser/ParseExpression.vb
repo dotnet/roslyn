@@ -206,7 +206,7 @@ Public Class ParseExpressionTest
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
         Assert.Equal("?", unexp(0).ToString())
-        Assert.Equal(36637, unexp(0).Errors(0).Code)
+        Assert.Equal(36637, unexp(0).Errors.First().Code)
     End Sub
 
     <Fact>
@@ -310,6 +310,89 @@ ToString]]>.Value)
     End Sub
 
     <Fact>
+    Public Sub ParseTuple1()
+        Dim expr = ParseExpression("(A, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+(
+42, 
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple2()
+        Dim expr = ParseExpression("(A, )", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("((A, ), ).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple3()
+        Dim expr = ParseExpression("(A:=1, B)")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=(A, B), C).C")
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+
+        expr = ParseExpression(<![CDATA[
+(
+A:=
+(
+A:=
+42, 
+A:=
+42
+),
+(
+42, 
+42
+)
+).
+ToString]]>.Value)
+
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1).Kind())
+    End Sub
+
+    <Fact>
+    Public Sub ParseTuple4()
+        Dim expr = ParseExpression("(A:=1)", expectsErrors:=False)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.Kind)
+        expr = ParseExpression("(A:=, C).C", expectsErrors:=True)
+        Assert.Equal(SyntaxKind.TupleExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.SimpleArgument, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.NameColonEquals, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(0).Kind())
+
+        Dim missingArg = expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).ChildNodesAndTokens()(1)
+        Assert.Equal(SyntaxKind.IdentifierName, missingArg.Kind)
+        Assert.Equal(True, missingArg.IsMissing)
+    End Sub
+
+    <Fact>
     Public Sub ParseIIF()
         Dim expr = ParseExpression("if(true,A,B)")
         Assert.Equal(SyntaxKind.TernaryConditionalExpression, expr.Kind)
@@ -341,6 +424,46 @@ ToString]]>.Value)
 
         expr = ParseExpression("New Moo() From{1,2,3}")
         Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+    End Sub
+
+    <Fact>
+    Public Sub ParseNewTuple()
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Sub Main()
+                    Dim x = New (A, B)
+                    Dim y = New (A, B)()
+                    Dim y = New (A As Integer, B$)
+                End Sub
+            End Module
+        ]]>,
+<errors>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
+</errors>
+        )
+
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Sub Main()
+                    Dim x As New (A, B)
+                    Dim y As New (A, B)()
+                    Dim y As New (A As Integer, B$)
+                End Sub
+
+                Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+                    ' this is actually ok, since it is an array
+                    Return (New(Integer, Integer)() {(4, 5)}, 5)
+                End Function
+            End Module
+        ]]>,
+                       <errors>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
+                       </errors>
+        )
     End Sub
 
     <Fact>

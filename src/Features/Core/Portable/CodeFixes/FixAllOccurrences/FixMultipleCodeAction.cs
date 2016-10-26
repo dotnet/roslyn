@@ -5,22 +5,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Fix multiple occurrences code action.
     /// </summary>
-    internal partial class FixMultipleCodeAction : FixAllCodeAction
+    internal partial class FixMultipleCodeAction : FixSomeCodeAction
     {
+        private readonly Diagnostic _triggerDiagnostic;
         private readonly string _title;
         private readonly string _computingFixWaitDialogMessage;
 
-        internal FixMultipleCodeAction(FixMultipleContext fixMultipleContext, FixAllProvider fixAllProvider, string title, string computingFixWaitDialogMessage, bool showPreviewChangesDialog)
-            : base(fixMultipleContext, fixAllProvider, showPreviewChangesDialog)
+        internal FixMultipleCodeAction(
+            FixAllState fixAllState,
+            Diagnostic triggerDiagnostic,
+            string title,
+            string computingFixWaitDialogMessage)
+            : base(fixAllState, showPreviewChangesDialog: false)
         {
+            _triggerDiagnostic = triggerDiagnostic;
             _title = title;
             _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
         }
 
-        public Diagnostic GetTriggerDiagnostic()
-        {
-            return ((FixMultipleContext)FixAllContext).GetTriggerDiagnostic();
-        }
+        public Diagnostic GetTriggerDiagnostic() => _triggerDiagnostic;
 
         public override string Title => _title;
         internal override string Message => _computingFixWaitDialogMessage;

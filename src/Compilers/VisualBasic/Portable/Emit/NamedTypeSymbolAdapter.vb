@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class NamedTypeSymbol
+    Partial Friend Class NamedTypeSymbol
         Implements ITypeReference
         Implements ITypeDefinition
         Implements INamedTypeReference
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not Me.IsAnonymousType)
-                Return Me.TypeKind = TYPEKIND.Enum
+                Return Me.TypeKind = TypeKind.Enum
             End Get
         End Property
 
@@ -392,16 +392,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
+        Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) _
+            As IEnumerable(Of Cci.TypeReferenceWithAttributes) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
-                Yield moduleBeingBuilt.Translate([interface],
-                                                 syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
-                                                 diagnostics:=context.Diagnostics,
-                                                 fromImplements:=True)
+                Dim typeRef = moduleBeingBuilt.Translate([interface],
+                                                            syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            diagnostics:=context.Diagnostics,
+                                                            fromImplements:=True)
+
+                Yield [interface].GetTypeRefWithAttributes(Me.DeclaringCompilation, typeRef)
             Next
         End Function
 

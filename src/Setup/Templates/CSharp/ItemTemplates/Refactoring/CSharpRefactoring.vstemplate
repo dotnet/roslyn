@@ -1,0 +1,14 @@
+﻿<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <TemplateID>Microsoft.CSharp.Class</TemplateID>
+    <DefaultName>Refactoring.cs</DefaultName>
+    <Name>Refactoring</Name>
+    <Description>Create a C# code refactoring.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <SortOrder>10</SortOrder>
+    <Icon></Icon>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.cs" ReplaceParameters="true">Refactoring.cs</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

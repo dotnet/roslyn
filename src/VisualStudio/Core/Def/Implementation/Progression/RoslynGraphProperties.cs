@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             SymbolId = Schema.Properties.AddNewProperty(
                 id: "SymbolId",
-                dataType: typeof(SymbolKey),
+                dataType: typeof(SymbolKey?),
                 callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
             ContextProjectId = Schema.Properties.AddNewProperty(

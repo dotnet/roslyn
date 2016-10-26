@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             If context.IsMultiLineStatementContext AndAlso
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("GoTo", VBFeaturesResources.GotoKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("GoTo", VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

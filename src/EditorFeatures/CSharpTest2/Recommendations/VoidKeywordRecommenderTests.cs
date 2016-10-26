@@ -553,7 +553,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   unsafe operator int ++(C c) {
+   unsafe int operator ++(C c) {
      $$");
         }
 

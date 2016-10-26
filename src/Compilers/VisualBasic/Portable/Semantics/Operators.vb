@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If containingType.SpecialType = SpecialType.System_Nullable_T Then
                 Return typeFromSignature Is containingType
             Else
-                Return typeFromSignature.GetNullableUnderlyingTypeOrSelf() Is containingType
+                Return typeFromSignature.GetNullableUnderlyingTypeOrSelf().GetTupleUnderlyingTypeOrSelf() = containingType.GetTupleUnderlyingTypeOrSelf()
             End If
         End Function
 
@@ -922,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If leftIsEnum AndAlso rightIsEnum AndAlso
                (opCode = BinaryOperatorKind.Xor OrElse opCode = BinaryOperatorKind.And OrElse opCode = BinaryOperatorKind.Or) AndAlso
-               leftNullableUnderlying.IsSameTypeIgnoringCustomModifiers(rightNullableUnderlying) Then
+               leftNullableUnderlying.IsSameTypeIgnoringAll(rightNullableUnderlying) Then
                 '§11.17 Logical Operators
                 'The enumerated type operators do the bitwise operation on the underlying 
                 'type of the enumerated type, but the return value is the enumerated type.
@@ -1040,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rightType.AllowsCompileTimeOperations() AndAlso
                 resultType.AllowsCompileTimeOperations() Then
 
-                Debug.Assert(leftType.IsSameTypeIgnoringCustomModifiers(rightType) OrElse
+                Debug.Assert(leftType.IsSameTypeIgnoringAll(rightType) OrElse
                              op = BinaryOperatorKind.LeftShift OrElse op = BinaryOperatorKind.RightShift)
 
                 Dim leftUnderlying = leftType.GetEnumUnderlyingTypeOrSelf()
@@ -2264,8 +2264,8 @@ Done:
 
                 Dim method As MethodSymbol = opSet(i)
 
-                If Not (mostSpecificSourceType.IsSameTypeIgnoringCustomModifiers(method.Parameters(0).Type) AndAlso
-                        mostSpecificTargetType.IsSameTypeIgnoringCustomModifiers(method.ReturnType)) Then
+                If Not (mostSpecificSourceType.IsSameTypeIgnoringAll(method.Parameters(0).Type) AndAlso
+                        mostSpecificTargetType.IsSameTypeIgnoringAll(method.ReturnType)) Then
                     Continue For
                 End If
 
@@ -2317,7 +2317,7 @@ Done:
                 Dim arrayLiteral = arrayLiteralType.ArrayLiteral
                 conversionIn = Conversions.ClassifyArrayLiteralConversion(arrayLiteral, inputType, arrayLiteral.Binder, useSiteDiagnostics)
                 If Conversions.IsWideningConversion(conversionIn) AndAlso
-                    IsSameTypeIgnoringCustomModifiers(arrayLiteralType, inputType) Then
+                    IsSameTypeIgnoringAll(arrayLiteralType, inputType) Then
                     conversionIn = ConversionKind.Identity
                 End If
             Else
@@ -2671,7 +2671,7 @@ Done:
             For i As Integer = 0 To typeSet.Count - 1
                 Dim type As TypeSymbol = typeSet(i)
 
-                If best IsNot Nothing AndAlso best.IsSameTypeIgnoringCustomModifiers(type) Then
+                If best IsNot Nothing AndAlso best.IsSameTypeIgnoringAll(type) Then
                     Continue For
                 End If
 
@@ -2693,7 +2693,7 @@ Done:
                 If best Is Nothing Then
                     best = type
                 Else
-                    Debug.Assert(Not best.IsSameTypeIgnoringCustomModifiers(type))
+                    Debug.Assert(Not best.IsSameTypeIgnoringAll(type))
                     best = Nothing ' More than one type 
                     Exit For
                 End If
@@ -2716,7 +2716,7 @@ Next_i:
             For i As Integer = 0 To typeSet.Count - 1
                 Dim type As TypeSymbol = typeSet(i)
 
-                If best IsNot Nothing AndAlso best.IsSameTypeIgnoringCustomModifiers(type) Then
+                If best IsNot Nothing AndAlso best.IsSameTypeIgnoringAll(type) Then
                     Continue For
                 End If
 
@@ -2738,7 +2738,7 @@ Next_i:
                 If best Is Nothing Then
                     best = type
                 Else
-                    Debug.Assert(Not best.IsSameTypeIgnoringCustomModifiers(type))
+                    Debug.Assert(Not best.IsSameTypeIgnoringAll(type))
                     best = Nothing ' More than one type 
                     Exit For
                 End If
@@ -2876,7 +2876,7 @@ Next_i:
                 Dim current = DirectCast(type2, NamedTypeSymbol)
 
                 Do
-                    If commonAncestor IsNot Nothing AndAlso commonAncestor.IsSameTypeIgnoringCustomModifiers(current) Then
+                    If commonAncestor IsNot Nothing AndAlso commonAncestor.IsSameTypeIgnoringAll(current) Then
                         Exit Do
                     End If
 

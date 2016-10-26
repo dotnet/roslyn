@@ -363,7 +363,7 @@ $$");
         public async Task TestInLambdaDeclaration2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = (a, $$"));
+@"var q = (ref int a, $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -6,19 +6,18 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#pragma warning disable RS0003 // Do not directly await a Task
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -2187,6 +2186,218 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
                         break;
                 }
             }
+        }
+
+        #endregion
+
+        #region Exceptions
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public async Task PreservingDeclarationsOnException1()
+        {
+            var s0 = CSharpScript.Create(@"
+int i = 10;
+throw new System.Exception(""Bang!"");
+int j = 2;
+");
+
+            var s1 = s0.ContinueWith(@"
+int F() => i + j;
+");
+
+            var state1 = await s1.RunAsync(catchException: e => true);
+
+            Assert.Equal("Bang!", state1.Exception.Message);
+
+            var state2 = await state1.ContinueWithAsync<int>("F()");
+
+            Assert.Equal(10, state2.ReturnValue);
+        }
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public async Task PreservingDeclarationsOnException2()
+        {
+            var s0 = CSharpScript.Create(@"
+int i = 100;
+");
+
+            var s1 = s0.ContinueWith(@"
+int j = 20;
+throw new System.Exception(""Bang!"");
+int k = 3;
+");
+
+            var s2 = s1.ContinueWith(@"
+int F() => i + j + k;
+");
+
+            var state2 = await s2.RunAsync(catchException: e => true);
+
+            Assert.Equal("Bang!", state2.Exception.Message);
+
+            var state3 = await state2.ContinueWithAsync<int>("F()");
+
+            Assert.Equal(120, state3.ReturnValue);
+        }
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public async Task PreservingDeclarationsOnException3()
+        {
+            var s0 = CSharpScript.Create(@"
+int i = 1000;
+");
+            var s1 = s0.ContinueWith(@"
+int j = 200;
+throw new System.Exception(""Bang!"");
+int k = 30;
+");
+            var s2 = s1.ContinueWith(@"
+int l = 4;
+");
+            var s3 = s2.ContinueWith(@"
+int F() => i + j + k + l;
+");
+
+            var state3 = await s3.RunAsync(catchException: e => true);
+
+            Assert.Equal("Bang!", state3.Exception.Message);
+
+            var state4 = await state3.ContinueWithAsync<int>("F()");
+
+            Assert.Equal(1200, state4.ReturnValue);
+        }
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public async Task PreservingDeclarationsOnException4()
+        {
+            var state0 = await CSharpScript.RunAsync(@"
+int i = 1000;
+");
+            var state1 = await state0.ContinueWithAsync(@"
+int j = 200;
+throw new System.Exception(""Bang 1!"");
+int k = 30;
+", catchException: e => true);
+
+            Assert.Equal("Bang 1!", state1.Exception.Message);
+
+            var state2 = await state1.ContinueWithAsync<int>(@"
+int l = 4;
+throw new System.Exception(""Bang 2!"");
+1
+", catchException: e => true);
+
+            Assert.Equal("Bang 2!", state2.Exception.Message);
+
+            var state4 = await state2.ContinueWithAsync(@"
+i + j + k + l
+");
+            Assert.Equal(1204, state4.ReturnValue);
+        }
+
+        [Fact]
+        public async Task PreservingDeclarationsOnCancellation1()
+        {
+            var cancellationSource = new CancellationTokenSource();
+
+            var globals = new StrongBox<CancellationTokenSource>();
+            globals.Value = cancellationSource;
+            
+            var s0 = CSharpScript.Create(@"
+int i = 1000;
+", globalsType: globals.GetType());
+
+            var s1 = s0.ContinueWith(@"
+int j = 200;
+Value.Cancel();
+int k = 30;
+");
+            // cancellation exception is thrown just before we start evaluating s2:
+            var s2 = s1.ContinueWith(@"
+int l = 4;
+");
+            var s3 = s2.ContinueWith(@"
+int F() => i + j + k + l;
+");
+
+            var state3 = await s3.RunAsync(globals, catchException: e => true, cancellationToken: cancellationSource.Token);
+
+            Assert.IsType<OperationCanceledException>(state3.Exception);
+
+            var state4 = await state3.ContinueWithAsync<int>("F()");
+
+            Assert.Equal(1230, state4.ReturnValue);
+        }
+
+        [Fact]
+        public async Task PreservingDeclarationsOnCancellation2()
+        {
+            var cancellationSource = new CancellationTokenSource();
+
+            var globals = new StrongBox<CancellationTokenSource>();
+            globals.Value = cancellationSource;
+
+            var s0 = CSharpScript.Create(@"
+int i = 1000;
+", globalsType: globals.GetType());
+
+            var s1 = s0.ContinueWith(@"
+int j = 200;
+int k = 30;
+");
+            var s2 = s1.ContinueWith(@"
+int l = 4;
+Value.Cancel();
+");
+            // cancellation exception is thrown just before we start evaluating s3:
+            var s3 = s2.ContinueWith(@"
+int F() => i + j + k + l;
+");
+
+            var state3 = await s3.RunAsync(globals, catchException: e => true, cancellationToken: cancellationSource.Token);
+
+            Assert.IsType<OperationCanceledException>(state3.Exception);
+
+            var state4 = await state3.ContinueWithAsync<int>("F()");
+
+            Assert.Equal(1234, state4.ReturnValue);
+        }
+
+        [Fact]
+        public async Task PreservingDeclarationsOnCancellation3()
+        {
+            var cancellationSource = new CancellationTokenSource();
+
+            var globals = new StrongBox<CancellationTokenSource>();
+            globals.Value = cancellationSource;
+
+            var s0 = CSharpScript.Create(@"
+int i = 1000;
+", globalsType: globals.GetType());
+
+            var s1 = s0.ContinueWith(@"
+int j = 200;
+Value.Cancel();
+int k = 30;
+");
+            // cancellation exception is thrown just before we start evaluating s2:
+            var s2 = s1.ContinueWith(@"
+int l = 4;
+");
+            var s3 = s2.ContinueWith(@"
+int F() => i + j + k + l;
+");
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => 
+                s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
         }
 
         #endregion

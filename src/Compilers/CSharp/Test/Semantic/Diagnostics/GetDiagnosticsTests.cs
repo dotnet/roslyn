@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -286,6 +287,17 @@ namespace N1
             }
 
             return true;
+        }
+
+        [Fact]
+        public void TestEventQueueCompletionForEmptyCompilation()
+        {
+            var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            
+            // Force complete compilation event queue
+            var unused = compilation.GetDiagnostics();
+
+            Assert.True(compilation.EventQueue.IsCompleted);
         }
     }
 }

@@ -1,24 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -277,8 +270,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
             return new SyntacticQuickInfoProvider(
-                workspace.GetService<ITextBufferFactoryService>(),
-                workspace.GetService<IContentTypeRegistryService>(),
                 workspace.GetService<IProjectionBufferFactoryService>(),
                 workspace.GetService<IEditorOptionsFactoryService>(),
                 workspace.GetService<ITextEditorFactoryService>(),

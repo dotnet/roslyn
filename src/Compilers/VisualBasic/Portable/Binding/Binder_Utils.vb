@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If the identifier has a type character, report an error on it.
         ''' </summary>
-        Public Sub DisallowTypeCharacter(identifier As SyntaxToken,
+        Public Shared Sub DisallowTypeCharacter(identifier As SyntaxToken,
                                          diagBag As DiagnosticBag,
                                          Optional errid As ERRID = ERRID.ERR_TypecharNotallowed)
             If (identifier.GetTypeCharacter() <> TypeCharacter.None) Then
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
+        Public Shared Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
             Select Case varianceKeywordOpt.Kind
                 Case SyntaxKind.None
                     Return VarianceKind.None
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier and an As clause, return true if the identifier does not have a type
         ''' declared for it (e.g., no type character and no as clause).
         ''' </summary>
-        Private Function HasDefaultType(identifierSyntax As SyntaxToken,
+        Private Shared Function HasDefaultType(identifierSyntax As SyntaxToken,
                                         asClauseOptSyntax As AsClauseSyntax) As Boolean
             Return (identifierSyntax.GetTypeCharacter() = TypeCharacter.None AndAlso asClauseOptSyntax Is Nothing)
         End Function
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier and an As clause, return true if the identifier does not have a type
         ''' declared for it (e.g., no type character and no as clause).
         ''' </summary>
-        Private Function HasDefaultType(identifierSyntax As ModifiedIdentifierSyntax,
+        Private Shared Function HasDefaultType(identifierSyntax As ModifiedIdentifierSyntax,
                                        asClauseOptSyntax As AsClauseSyntax) As Boolean
             Return HasDefaultType(identifierSyntax.Identifier, asClauseOptSyntax)
         End Function
@@ -379,12 +379,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Given an identifier, return true if the identifier declares an array.
         ''' (e.g., identifier  specifies ())
         ''' </summary>
-        Public Function IsArrayType(identifierSyntax As ModifiedIdentifierSyntax) As Boolean
-            If identifierSyntax.ArrayBounds IsNot Nothing OrElse identifierSyntax.ArrayRankSpecifiers.Count > 0 Then
-                Return True
-            End If
-
-            Return False
+        Public Shared Function IsArrayType(identifierSyntax As ModifiedIdentifierSyntax) As Boolean
+            Return identifierSyntax.ArrayBounds IsNot Nothing OrElse identifierSyntax.ArrayRankSpecifiers.Count > 0
         End Function
 
         ''' <summary>
@@ -722,7 +718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return specialType
         End Function
 
-        Public Shared Function ExtractTypeCharacter(node As VisualBasicSyntaxNode) As TypeCharacter
+        Public Shared Function ExtractTypeCharacter(node As SyntaxNode) As TypeCharacter
             Dim result As TypeCharacter = TypeCharacter.None
 
             If node IsNot Nothing Then
@@ -744,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Decode an option "On" or "Off" values into true or false. Not specified is considered true.
         ''' </summary>
-        Public Function DecodeOnOff(keywordSyntax As SyntaxToken) As Boolean
+        Public Shared Function DecodeOnOff(keywordSyntax As SyntaxToken) As Boolean
             If keywordSyntax.Node Is Nothing Then
                 Return True
             Else
@@ -762,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Decode an option "Text" or "Binary" value into true or false. The syntax is not optional.
         ''' </summary>
-        Public Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
+        Public Shared Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
 
             Select Case keywordSyntax.Kind
                 Case SyntaxKind.TextKeyword
@@ -971,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' TODO: Caller is O(n^2).
-        Friend Sub CheckParameterNameNotDuplicate(
+        Friend Shared Sub CheckParameterNameNotDuplicate(
                                                  params As ArrayBuilder(Of ParameterSymbol),
                                                  nParams As Integer,
                                                  syntax As ParameterSyntax,
@@ -1423,7 +1419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' In ParameterDefaultValue we also allow conversion of T --> S?
                 If context = ConstantContext.ParameterDefaultValue AndAlso conversionType.IsNullableType Then
-                    If IsSameTypeIgnoringCustomModifiers(conversionType.GetNullableUnderlyingType, operandType) Then
+                    If IsSameTypeIgnoringAll(conversionType.GetNullableUnderlyingType, operandType) Then
                         ' A trivial case: T --> T?
                         Return nestedConstValue
                     Else
@@ -1452,7 +1448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' type by nested conversion(s) and now has type of the argument
 
             ' No actual conversion is done
-            If IsSameTypeIgnoringCustomModifiers(operandType, conversionType) Then
+            If IsSameTypeIgnoringAll(operandType, conversionType) Then
                 Return nestedConstValue
             End If
 

@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -96,9 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             closeEventDelegate = (sender, e) =>
             {
                 window.TextView.Closed -= closeEventDelegate;
-                InteractiveWindow.InteractiveWindow intWindow = window as InteractiveWindow.InteractiveWindow;
-                LogCloseSession(intWindow.LanguageBufferCounter);
-
+                LogCloseSession(evaluator.SubmissionCount);
                 evaluator.Dispose();
             };
 

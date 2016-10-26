@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
-                        int absoluteOffset = writer.Position + blockOffset;
+                        int absoluteOffset = writer.Count + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             int curBlockEnd = block.Start + block.TotalSize;
                             int offset = target - curBlockEnd;
 
-                            if (block.BranchCode.BranchOperandSize() == 1)
+                            if (block.BranchCode.GetBranchOperandSize() == 1)
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void AddLocalToScope(LocalDefinition local)
         {
-            HasDynamicLocal |= local.IsDynamic;
+            HasDynamicLocal |= !local.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocal(local);
         }
 
@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void AddLocalConstantToScope(LocalConstantDefinition localConstant)
         {
-            HasDynamicLocal |= localConstant.IsDynamic;
+            HasDynamicLocal |= !localConstant.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocalConstant(localConstant);
         }
 

@@ -3,8 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,21 +13,14 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class DocumentId : IEquatable<DocumentId>
+    public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
     {
         public ProjectId ProjectId { get; }
         public Guid Id { get; }
 
         private readonly string _debugName;
 
-        private DocumentId(ProjectId projectId, string debugName)
-        {
-            this.ProjectId = projectId;
-            this.Id = Guid.NewGuid();
-            _debugName = debugName;
-        }
-
-        internal DocumentId(ProjectId projectId, Guid guid, string debugName)
+        private DocumentId(ProjectId projectId, Guid guid, string debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
@@ -47,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            return new DocumentId(projectId, debugName);
+            return new DocumentId(projectId, Guid.NewGuid(), debugName);
         }
 
         public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
@@ -65,12 +57,12 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, id, debugName);
         }
 
+        internal string DebugName => _debugName;
+
         internal string GetDebuggerDisplay()
         {
             return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
         }
-
-        internal string DebugName { get { return _debugName; } }
 
         public override string ToString()
         {
@@ -104,6 +96,24 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(DocumentId left, DocumentId right)
         {
             return !(left == right);
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            ProjectId.WriteTo(writer);
+
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static DocumentId ReadFrom(ObjectReader reader)
+        {
+            var projectId = ProjectId.ReadFrom(reader);
+
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(projectId, guid, debugName);
         }
     }
 }

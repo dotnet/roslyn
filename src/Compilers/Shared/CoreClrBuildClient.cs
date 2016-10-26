@@ -32,13 +32,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new CoreClrBuildClient(language, compileFunc);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
-            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: null);
+            var tempDir = GetTempPath(workingDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: null, tempDir: tempDir);
             return client.RunCompilation(arguments, buildPaths).ExitCode;
         }
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(arguments, buildPaths, textWriter, CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
+            return _compileFunc(arguments, buildPaths, textWriter, new CoreClrAnalyzerAssemblyLoader());
         }
 
         protected override string GetSessionKey(BuildPaths buildPaths)
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var port = int.Parse(pipeName);
             await client.ConnectAsync("127.0.0.1", port: port).ConfigureAwait(true);
 
-            var request = BuildRequest.Create(_language, buildPaths.WorkingDirectory, arguments, keepAlive, libDirectory);
+            var request = BuildRequest.Create(_language, buildPaths.WorkingDirectory, buildPaths.TempDirectory, arguments, keepAlive, libDirectory);
             await request.WriteAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
             var ret = await BuildResponse.ReadAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
             return ret;

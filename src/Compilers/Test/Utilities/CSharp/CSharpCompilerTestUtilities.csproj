@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,7 +11,6 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -79,10 +76,8 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   <ProjectExtensions>
     <VisualStudio>
       <UserProperties project_1json__JSONSchema="http://json.schemastore.org/launchsettings" />

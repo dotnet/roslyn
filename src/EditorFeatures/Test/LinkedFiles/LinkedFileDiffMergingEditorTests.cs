@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             return LanguageNames.CSharp;
         }
 
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
-            return new CodeRefactoringProvider();
+            return new TestCodeRefactoringProvider();
         }
 
         [WpfFact]
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             throw new NotSupportedException();
         }
 
-        private class CodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
+        private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {
             public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {

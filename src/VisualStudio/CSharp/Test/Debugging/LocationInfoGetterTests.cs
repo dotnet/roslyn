@@ -443,7 +443,7 @@ class C1
 {
     class C1
     {
-        static void (int x)
+        static void (ref int x)
         {
         $$}
     }

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -390,11 +389,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
             }
 
-            private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs args)
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs args)
             {
-                if (_workspace != null)
+                if (_workspace != null && _workspace == args.Solution.Workspace)
                 {
-                    ParseIfThisDocument(null, args.Document.Project.Solution, args.Document.Id);
+                    ParseIfThisDocument(null, args.Solution, args.NewActiveContextDocumentId);
                 }
             }
 

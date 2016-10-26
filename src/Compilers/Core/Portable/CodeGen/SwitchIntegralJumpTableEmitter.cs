@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
         {
-            Debug.Assert(branchCode.IsBranchToLabel());
+            Debug.Assert(branchCode.IsBranch());
             Debug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
             Debug.Assert(targetLabel != null);

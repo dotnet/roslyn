@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class PerformanceFunctionIdOptionsProvider : IOptionProvider
     {
-        public const string Name = "Performance/FunctionId";
-
         public IEnumerable<IOption> GetOptions()
         {
             foreach (var id in (FunctionId[])Enum.GetValues(typeof(FunctionId)))

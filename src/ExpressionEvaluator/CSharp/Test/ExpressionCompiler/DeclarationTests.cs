@@ -56,23 +56,350 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0017:  ldloc.3
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001e:  ldstr      ""z""
-  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0028:  ldc.i4.1
-  IL_0029:  stind.i4
-  IL_002a:  ldtoken    ""int""
-  IL_002f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0034:  ldstr      ""F""
-  IL_0039:  ldloca.s   V_3
-  IL_003b:  initobj    ""System.Guid""
-  IL_0041:  ldloc.3
-  IL_0042:  ldnull
-  IL_0043:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""int""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""F""
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.3
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldstr      ""z""
+  IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  stind.i4
   IL_0048:  ldstr      ""F""
   IL_004d:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
   IL_0052:  ldc.i4.2
   IL_0053:  stind.i4
   IL_0054:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void DeconstructionDeclaration()
+        {
+            var source = @"
+class C
+{
+    void Test()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+               {
+                   var context = CreateMethodContext(runtime, methodName: "C.Test");
+
+                   ResultProperties resultProperties;
+                   string error;
+                   var testData = new CompilationTestData();
+                   ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                   context.CompileExpression(
+                       "(int z1, string z2) = (1, null);",
+                       DkmEvaluationFlags.None,
+                       NoAliases,
+                       DebuggerDiagnosticFormatter.Instance,
+                       out resultProperties,
+                       out error,
+                       out missingAssemblyIdentities,
+                       EnsureEnglishUICulture.PreferredOrNull,
+                       testData);
+                   Assert.Null(error);
+                   Assert.Empty(missingAssemblyIdentities);
+
+                   Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                   Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                   Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                   Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                   Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+
+                   testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
+{
+  // Code size      103 (0x67)
+  .maxstack  4
+  .locals init (System.Guid V_0,
+                int V_1)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z1""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""string""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""z2""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.0
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldc.i4.1
+  IL_003d:  ldnull
+  IL_003e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0043:  dup
+  IL_0044:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0049:  stloc.1
+  IL_004a:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_004f:  ldstr      ""z1""
+  IL_0054:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0059:  ldloc.1
+  IL_005a:  stind.i4
+  IL_005b:  ldstr      ""z2""
+  IL_0060:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0065:  stind.ref
+  IL_0066:  ret
+}");
+               });
+        }
+
+        [Fact]
+        public void ExpressionLocals_ExpressionStatement_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static void Test(object x, out int y)
+    {
+        y = 1;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Test(x, out var z);", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldarg.0
+  IL_001f:  ldstr      ""z""
+  IL_0024:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0029:  call       ""void C.Test(object, out int)""
+  IL_002e:  ret
+}");
+            });
+        }
+
+        [Fact]
+        [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
+        public void ExpressionLocals_ExpressionStatement_02()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static void Test(bool x)
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Test(x is int z);", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3,
+                int? V_4)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldarg.0
+  IL_001f:  isinst     ""int?""
+  IL_0024:  unbox.any  ""int?""
+  IL_0029:  stloc.s    V_4
+  IL_002b:  ldstr      ""z""
+  IL_0030:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0035:  ldloca.s   V_4
+  IL_0037:  call       ""int int?.GetValueOrDefault()""
+  IL_003c:  stind.i4
+  IL_003d:  ldloca.s   V_4
+  IL_003f:  call       ""bool int?.HasValue.get""
+  IL_0044:  call       ""void C.Test(bool)""
+  IL_0049:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void ExpressionLocals_Assignment_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static object Test(out int x)
+    {
+        x = 1;
+        return x;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(out var z)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""z""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  call       ""object C.Test(out int)""
+  IL_002d:  starg.s    V_0
+  IL_002f:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void ExpressionLocals_LocalDeclarationStatement_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static int Test(object x, out int y)
+    {
+        y = 1;
+        return 0;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       88 (0x58)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""int""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""F""
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.3
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldstr      ""z""
+  IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0046:  ldarg.0
+  IL_0047:  ldstr      ""F""
+  IL_004c:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0051:  call       ""int C.Test(object, out int)""
+  IL_0056:  stind.i4
+  IL_0057:  ret
 }");
             });
         }
@@ -357,8 +684,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     static void M()
     {
     }
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -367,27 +698,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
                 Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-    @"{
-  // Code size       58 (0x3a)
+@"{
+  // Code size       62 (0x3e)
   .maxstack  7
   IL_0000:  ldtoken    ""object""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""d""
-  IL_000f:  ldstr      ""826d6ec1-dc4b-46af-be05-cd3f1a1fd4ac""
+  IL_000f:  ldstr      ""108766ce-df68-46ee-b761-0dcb7ac805f1""
   IL_0014:  newobj     ""System.Guid..ctor(string)""
-  IL_0019:  ldc.i4.1
+  IL_0019:  ldc.i4.2
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
   IL_0020:  ldc.i4.0
   IL_0021:  ldc.i4.1
   IL_0022:  stelem.i1
-  IL_0023:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_0028:  ldstr      ""d""
-  IL_002d:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
-  IL_0032:  ldc.i4.1
-  IL_0033:  box        ""int""
-  IL_0038:  stind.ref
-  IL_0039:  ret
+  IL_0023:  dup
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  stelem.i1
+  IL_0027:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_002c:  ldstr      ""d""
+  IL_0031:  call       ""dynamic Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<dynamic>(string)""
+  IL_0036:  ldc.i4.1
+  IL_0037:  box        ""int""
+  IL_003c:  stind.ref
+  IL_003d:  ret
 }");
             });
         }
@@ -527,20 +862,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0017:  ldloc.0
   IL_0018:  ldnull
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001e:  ldstr      ""x""
-  IL_0023:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
-  IL_0028:  ldloca.s   V_1
-  IL_002a:  initobj    ""T""
-  IL_0030:  ldloc.1
-  IL_0031:  stobj      ""T""
-  IL_0036:  ldtoken    ""T""
-  IL_003b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0040:  ldstr      ""y""
-  IL_0045:  ldloca.s   V_0
-  IL_0047:  initobj    ""System.Guid""
-  IL_004d:  ldloc.0
-  IL_004e:  ldnull
-  IL_004f:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""T""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""y""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.0
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldstr      ""x""
+  IL_0041:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  initobj    ""T""
+  IL_004e:  ldloc.1
+  IL_004f:  stobj      ""T""
   IL_0054:  ldstr      ""y""
   IL_0059:  call       ""T Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<T>(string)""
   IL_005e:  ldstr      ""x""
@@ -1339,6 +1674,399 @@ class C
             Assert.Empty(missingAssemblyIdentities);
 
             flags = resultProperties.Flags;
+        }
+
+        [Fact]
+        public void PatternLocals_Assignment_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static object Test(bool x)
+    {
+        return x;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3,
+                int? V_4)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""i""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldarg.0
+  IL_001f:  isinst     ""int?""
+  IL_0024:  unbox.any  ""int?""
+  IL_0029:  stloc.s    V_4
+  IL_002b:  ldstr      ""i""
+  IL_0030:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0035:  ldloca.s   V_4
+  IL_0037:  call       ""int int?.GetValueOrDefault()""
+  IL_003c:  stind.i4
+  IL_003d:  ldloca.s   V_4
+  IL_003f:  call       ""bool int?.HasValue.get""
+  IL_0044:  call       ""object C.Test(bool)""
+  IL_0049:  starg.s    V_0
+  IL_004b:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void PatternLocals_Assignment_02()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static object Test(bool x)
+    {
+        return x;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is string i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3,
+                string V_4)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""i""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""i""
+  IL_0023:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0028:  ldarg.0
+  IL_0029:  isinst     ""string""
+  IL_002e:  dup
+  IL_002f:  stloc.s    V_4
+  IL_0031:  stind.ref
+  IL_0032:  ldloc.s    V_4
+  IL_0034:  ldnull
+  IL_0035:  cgt.un
+  IL_0037:  call       ""object C.Test(bool)""
+  IL_003c:  starg.s    V_0
+  IL_003e:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void PatternLocals_Assignment_03()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static object Test(bool x)
+    {
+        return x;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is object i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       58 (0x3a)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3,
+                object V_4)
+  IL_0000:  ldtoken    ""object""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""i""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""i""
+  IL_0023:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<object>(string)""
+  IL_0028:  ldarg.0
+  IL_0029:  dup
+  IL_002a:  stloc.s    V_4
+  IL_002c:  stind.ref
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  ldnull
+  IL_0030:  cgt.un
+  IL_0032:  call       ""object C.Test(bool)""
+  IL_0037:  starg.s    V_0
+  IL_0039:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void PatternLocals_Assignment_04()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(int x)
+    {
+        object y;
+        if (x == 1)
+        {
+            object z;
+        }
+    }
+
+    static int Test(bool x)
+    {
+        return 1;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""i""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""i""
+  IL_0023:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0028:  ldarg.0
+  IL_0029:  stind.i4
+  IL_002a:  ldc.i4.1
+  IL_002b:  call       ""int C.Test(bool)""
+  IL_0030:  starg.s    V_0
+  IL_0032:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void PatternLocals_Assignment_05()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(int? x)
+    {
+        object y;
+        if (x == 1)
+        {
+            object z;
+        }
+    }
+
+    static int? Test(bool x)
+    {
+        return null;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       64 (0x40)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                int? V_2,
+                int V_3,
+                object V_4,
+                System.Guid V_5)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""i""
+  IL_000f:  ldloca.s   V_5
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.s    V_5
+  IL_0019:  ldnull
+  IL_001a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001f:  ldstr      ""i""
+  IL_0024:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0029:  ldarga.s   V_0
+  IL_002b:  call       ""int int?.GetValueOrDefault()""
+  IL_0030:  stind.i4
+  IL_0031:  ldarga.s   V_0
+  IL_0033:  call       ""bool int?.HasValue.get""
+  IL_0038:  call       ""int? C.Test(bool)""
+  IL_003d:  starg.s    V_0
+  IL_003f:  ret
+}");
+            });
+        }
+
+        [Fact]
+        public void PatternLocals_LocalDeclarationStatement_01()
+        {
+            var source =
+@"class C
+{
+    static object F;
+    static void M<T>(object x)
+    {
+        object y;
+        if (x == null)
+        {
+            object z;
+        }
+    }
+
+    static int Test(bool y)
+    {
+        return y ? 1 : 0;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = Test(x is int i);", out flags, out testData);
+                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size      115 (0x73)
+  .maxstack  4
+  .locals init (object V_0, //y
+                bool V_1,
+                object V_2,
+                System.Guid V_3,
+                int? V_4)
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldtoken    ""int""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  ldstr      ""i""
+  IL_002d:  ldloca.s   V_3
+  IL_002f:  initobj    ""System.Guid""
+  IL_0035:  ldloc.3
+  IL_0036:  ldnull
+  IL_0037:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_003c:  ldstr      ""z""
+  IL_0041:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_0046:  ldarg.0
+  IL_0047:  isinst     ""int?""
+  IL_004c:  unbox.any  ""int?""
+  IL_0051:  stloc.s    V_4
+  IL_0053:  ldstr      ""i""
+  IL_0058:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_005d:  ldloca.s   V_4
+  IL_005f:  call       ""int int?.GetValueOrDefault()""
+  IL_0064:  stind.i4
+  IL_0065:  ldloca.s   V_4
+  IL_0067:  call       ""bool int?.HasValue.get""
+  IL_006c:  call       ""int C.Test(bool)""
+  IL_0071:  stind.i4
+  IL_0072:  ret
+}");
+            });
         }
     }
 }

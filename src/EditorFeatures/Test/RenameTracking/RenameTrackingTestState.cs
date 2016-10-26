@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
@@ -59,6 +60,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
+        public static async Task<RenameTrackingTestState> CreateFromWorkspaceXmlAsync(
+            string workspaceXml,
+            string languageName,
+            bool onBeforeGlobalSymbolRenamedReturnValue = true,
+            bool onAfterGlobalSymbolRenamedReturnValue = true)
+        {
+            var workspace = await TestWorkspace.CreateAsync(
+                workspaceXml, 
+                exportProvider: TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+
+            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+        }
+
         public RenameTrackingTestState(
             TestWorkspace workspace,
             string languageName,
@@ -77,8 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 OnBeforeSymbolRenamedReturnValue = onBeforeGlobalSymbolRenamedReturnValue,
                 OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
             };
-
-            var optionService = this.Workspace.Services.GetService<IOptionService>();
 
             // Mock the action taken by the workspace INotificationService
             var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
@@ -111,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
             else
             {
-                throw new ArgumentException("Invalid language name: " + languageName, "languageName");
+                throw new ArgumentException("Invalid language name: " + languageName, nameof(languageName));
             }
         }
 
@@ -192,14 +204,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             // There should only be one code action
             Assert.Equal(1, actions.Count);
 
-            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), actions[0].Title);
 
             if (invokeAction)
             {
                 var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].Apply(this.Workspace, CancellationToken.None);
+                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

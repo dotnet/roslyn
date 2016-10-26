@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 using static System.Linq.ImmutableArrayExtensions;
 
@@ -124,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while ((object)containingMember != null && containingMember.Kind == SymbolKind.Method)
             {
                 MethodSymbol method = (MethodSymbol)containingMember;
-                if (method.MethodKind != MethodKind.AnonymousFunction) break;
+                if (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction) break;
                 containingMember = containingMember.ContainingSymbol;
             }
 
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MethodSymbol method = (MethodSymbol)symbol;
 
                         // skip lambdas:
-                        if (method.MethodKind == MethodKind.AnonymousFunction)
+                        if (method.MethodKind == MethodKind.AnonymousFunction || method.MethodKind == MethodKind.LocalFunction)
                         {
                             symbol = method.ContainingSymbol;
                             continue;
@@ -334,6 +330,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
             return typesWithModifiers.SelectAsArray(a => a.Type);
+        }
+
+        internal static TypeSymbol GetTypeOrReturnType(this Symbol symbol)
+        {
+            RefKind refKind;
+            TypeSymbol returnType;
+            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out returnTypeCustomModifiers);
+            return returnType;
+        }
+
+        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, out ImmutableArray<CustomModifier> returnTypeCustomModifiers)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    FieldSymbol field = (FieldSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = field.Type;
+                    returnTypeCustomModifiers = field.CustomModifiers;
+                    break;
+                case SymbolKind.Method:
+                    MethodSymbol method = (MethodSymbol)symbol;
+                    refKind = method.RefKind;
+                    returnType = method.ReturnType;
+                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
+                    break;
+                case SymbolKind.Property:
+                    PropertySymbol property = (PropertySymbol)symbol;
+                    refKind = property.RefKind;
+                    returnType = property.Type;
+                    returnTypeCustomModifiers = property.TypeCustomModifiers;
+                    break;
+                case SymbolKind.Event:
+                    EventSymbol @event = (EventSymbol)symbol;
+                    refKind = RefKind.None;
+                    returnType = @event.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Local:
+                    LocalSymbol local = (LocalSymbol)symbol;
+                    refKind = local.RefKind;
+                    returnType = local.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
         }
     }
 }

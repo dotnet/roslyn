@@ -1,24 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>4.0</OldToolsVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\Composition\Composition.csproj">
-      <Project>{02abb346-3cc8-4cc2-b6e4-72a60a3e1491}</Project>
-      <Name>Composition</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>Microsoft.CodeAnalysis.EditorFeatures</Name>
@@ -98,7 +84,5 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="ConvertToConditionalCS.UnitTests" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

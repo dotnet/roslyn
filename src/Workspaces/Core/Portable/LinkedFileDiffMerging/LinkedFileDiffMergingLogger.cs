@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Internal.Log;
+﻿using Microsoft.CodeAnalysis.Internal.Log;
 using static Microsoft.CodeAnalysis.LinkedFileDiffMergingSession;
 
 namespace Microsoft.CodeAnalysis

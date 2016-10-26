@@ -10,6 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddNamedArguments
 {
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddNamedArgumentsCodeRefactoringProvider)), Shared]
     internal class CSharpAddNamedArgumentsCodeRefactoringProvider : AbstractAddNamedArgumentsCodeRefactoringProvider<ArgumentSyntax>
     {
@@ -59,10 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddNamedArguments
                         }
 
                         // Preserve trivia when argument is ref or out
-                        if (argument.RefOrOutKeyword == null)
-                        {
-                            namedArgument = namedArgument.WithTriviaFrom(argument.Expression);
-                        }
+                        namedArgument = namedArgument.WithTriviaFrom(argument.Expression);
 
                         result.Add(namedArgument);
                     }

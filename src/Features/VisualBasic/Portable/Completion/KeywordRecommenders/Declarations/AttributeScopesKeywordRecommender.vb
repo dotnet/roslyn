@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If targetToken.IsKind(SyntaxKind.LessThanToken) AndAlso
                targetToken.IsChildToken(Of AttributeListSyntax)(Function(block) block.LessThanToken) Then
 
-                Dim keywords = {New RecommendedKeyword("Assembly", VBFeaturesResources.AssemblyKeywordToolTip),
-                                New RecommendedKeyword("Module", VBFeaturesResources.ModuleKeywordToolTip)}
+                Dim keywords = {New RecommendedKeyword("Assembly", VBFeaturesResources.Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_assembly_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property),
+                                New RecommendedKeyword("Module", VBFeaturesResources.Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_module_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property)}
 
                 Dim attributeList = targetToken.Parent
                 If attributeList.Parent.IsKind(SyntaxKind.AttributesStatement) Then

@@ -11,9 +11,24 @@ using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    [SuppressMessage("ApiDesign", "RS0011", Justification = "Matching TPL Signatures")]
+    [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskExtensions
     {
+        /// <summary>
+        /// Use to explicitly indicate that you are not waiting for a task to complete
+        /// Observes the exceptions from it.
+        /// </summary>
+        public static async void FireAndForget(this Task task)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
 #if DEBUG

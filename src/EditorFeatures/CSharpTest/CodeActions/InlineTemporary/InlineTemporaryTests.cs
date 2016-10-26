@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new InlineTemporaryCodeRefactoringProvider();
         }
@@ -60,6 +62,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         public async Task NotOnField()
         {
             await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12838"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WithRefInitializer1()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    ref int M()
+    {
+        int[] arr = new[] { 1, 2, 3 };
+        ref int [||]x = ref arr[2];
+        return ref x;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3927,6 +3944,174 @@ class C
 }";
 
             await TestAsync(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Tuples_Disabled()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int, string) [||]x = (1, ""hello"");
+        x.ToString();
+    }
+}";
+
+            await TestMissingAsync(code, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Tuples()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int, string) [||]x = (1, ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        ((1, ""hello"")).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TuplesWithNames()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int a, string b) [||]x = (a: 1, b: ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        ((a: 1, b: ""hello"")).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(11028, "https://github.com/dotnet/roslyn/issues/11028")]
+        public async Task TuplesWithDifferentNames()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        (int a, string b) [||]x = (c: 1, d: ""hello"");
+        x.a.ToString();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void M()
+    {
+        (((int a, string b))((c: 1, d: ""hello""))).a.ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Deconstruction()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]temp = new C();
+        var (x1, x2) = temp;
+        var x3 = temp;
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var (x1, x2) = new C();
+        var x3 = new C();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(12802, "https://github.com/dotnet/roslyn/issues/12802")]
+        public async Task Deconstruction2()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        var [||]kvp = KVP.Create(42, ""hello"");
+        var(x1, x2) = kvp;
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            var expected = @"
+class Program
+{
+    static void Main()
+    {
+        var(x1, x2) = KVP.Create(42, ""hello"");
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            await TestAsync(code, expected, index: 0);
         }
     }
 }

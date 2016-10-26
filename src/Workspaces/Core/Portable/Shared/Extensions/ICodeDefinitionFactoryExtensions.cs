@@ -198,9 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
                         var assignExpression = factory.AssignmentStatement(
-                            factory.MemberAccessExpression(
-                                factory.ThisExpression(),
-                                factory.IdentifierName(fieldName)),
+                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName)),
                             factory.IdentifierName(parameterName));
                         var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;

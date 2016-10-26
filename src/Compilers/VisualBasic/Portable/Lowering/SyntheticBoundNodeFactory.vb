@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </remarks>
     Friend Class SyntheticBoundNodeFactory
         Private _currentClass As NamedTypeSymbol
-        Private _syntax As VisualBasicSyntaxNode
+        Private _syntax As SyntaxNode
 
         Public ReadOnly Diagnostics As DiagnosticBag
         Public ReadOnly TopLevelMethod As MethodSymbol
@@ -46,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Property Syntax As VisualBasicSyntaxNode
+        Public Property Syntax As SyntaxNode
             Get
                 Return _syntax
             End Get
-            Set(value As VisualBasicSyntaxNode)
+            Set(value As SyntaxNode)
                 _syntax = value
             End Set
         End Property
@@ -61,11 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As VisualBasicSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Me.New(topLevelMethod, currentMethod, Nothing, node, compilationState, diagnostics)
         End Sub
 
-        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As VisualBasicSyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Public Sub New(topLevelMethod As MethodSymbol, currentMethod As MethodSymbol, currentClass As NamedTypeSymbol, node As SyntaxNode, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Me.CompilationState = compilationState
             Me.CurrentMethod = currentMethod
             Me.TopLevelMethod = topLevelMethod
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Assignment expressions in lowered form should always have suppressObjectClone = True
         ''' </summary>
         Public Function AssignmentExpression(left As BoundExpression, right As BoundExpression) As BoundAssignmentOperator
-            Debug.Assert(left.Type = right.Type OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
+            Debug.Assert(left.Type.IsSameTypeIgnoringAll(right.Type) OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
             Dim boundNode = New BoundAssignmentOperator(_syntax, left, right, True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -355,6 +355,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Block(locals As ImmutableArray(Of LocalSymbol), ParamArray statements As BoundStatement()) As BoundBlock
             Return Block(locals, ImmutableArray.Create(Of BoundStatement)(statements))
+        End Function
+
+        Public Function StatementList(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
+            Dim boundNode As New BoundStatementList(Syntax, statements)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function StatementList(first As BoundStatement, second As BoundStatement) As BoundStatementList
+            Dim boundNode As New BoundStatementList(Syntax, ImmutableArray.Create(first, second))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
         End Function
 
         Public Function [Return](Optional expression As BoundExpression = Nothing) As BoundReturnStatement
@@ -464,14 +476,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function [New](type As NamedTypeSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
+        Public Function [New](type As NamedTypeSymbol) As BoundObjectCreationExpression
             ' TODO: add diagnostics for when things fall apart
-            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = args.Length)
-            Return [New](ctor, args)
+            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = 0)
+            Return [New](ctor)
         End Function
 
         Public Function [New](ctor As MethodSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
-            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(Of BoundExpression)(args), Nothing, ctor.ContainingType)
+            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(args), Nothing, ctor.ContainingType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function [New](ctor As MethodSymbol) As BoundObjectCreationExpression
+            Dim boundNode = New BoundObjectCreationExpression(_syntax,
+                                                              ctor,
+                                                              ImmutableArray(Of BoundExpression).Empty,
+                                                              Nothing,
+                                                              ctor.ContainingType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -585,7 +607,15 @@ nextm:
 
         Public Function [Call](receiver As BoundExpression, method As MethodSymbol, args As ImmutableArray(Of BoundExpression)) As BoundCall
             Debug.Assert(method.ParameterCount = args.Length)
-            Dim boundNode = New BoundCall(Syntax, method, Nothing, receiver, args, Nothing, True, method.ReturnType)
+            Dim boundNode = New BoundCall(
+                Syntax,
+                method,
+                Nothing,
+                receiver,
+                args,
+                Nothing,
+                suppressObjectClone:=True,
+                type:=method.ReturnType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -795,8 +825,8 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function HiddenSequencePoint() As BoundStatement
-            Return New BoundSequencePoint(Nothing, Nothing).MakeCompilerGenerated
+        Public Shared Function HiddenSequencePoint(Optional statementOpt As BoundStatement = Nothing) As BoundStatement
+            Return New BoundSequencePoint(Nothing, statementOpt).MakeCompilerGenerated
         End Function
 
         Public Function Null() As BoundExpression
@@ -910,6 +940,62 @@ nextm:
             Return boundNode
         End Function
 
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index portion of a method's metadata token.
+        ''' </summary>
+        Public Function MethodDefIndex(method As MethodSymbol) As BoundExpression
+            Dim boundNode As New BoundMethodDefIndex(Syntax, method, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the maximum value of the index portions of all method definition metadata tokens in current module.
+        ''' </summary>
+        Public Function MaximumMethodDefIndex() As BoundExpression
+            Dim boundNode As New BoundMaximumMethodDefIndex(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the current module's MVID.
+        ''' </summary>
+        Public Function ModuleVersionId(isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundModuleVersionId(Syntax, isLValue, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to a text representation of the current module/s MVID.
+        ''' </summary>
+        Public Function ModuleVersionIdString() As BoundExpression
+            Dim boundNode As New BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the root of the dynamic analysis payloads for a particular kind of dynamic analysis.
+        ''' </summary>
+        ''' <param name="analysisKind">Uniquely identifies the kind of dynamic analysis.</param>
+        ''' <param name="payloadType">Type of an analysis payload cell for the particular analysis kind.</param>
+        Public Function InstrumentationPayloadRoot(analysisKind As Integer, payloadType As TypeSymbol, isLValue As Boolean) As BoundExpression
+            Dim boundNode As New BoundInstrumentationPayloadRoot(Syntax, analysisKind, isLValue, payloadType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
+        ''' </summary>
+        Public Function SourceDocumentIndex(document As Cci.DebugSourceDocument) As BoundExpression
+            Dim boundNode As New BoundSourceDocumentIndex(Syntax, document, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function Convert(type As TypeSymbol, arg As BoundExpression, Optional isChecked As Boolean = False) As BoundConversion
             If arg.IsNothingLiteral() Then
                 Return Convert(type, arg, ConversionKind.WideningNothingLiteral, isChecked)
@@ -936,6 +1022,15 @@ nextm:
             Dim boundArrayInit = New BoundArrayInitialization(_syntax, elements, arrayType)
             boundArrayInit.SetWasCompilerGenerated()
             Return New BoundArrayCreation(_syntax, ImmutableArray.Create(Of BoundExpression)(Literal(elements.Length)), boundArrayInit, arrayType)
+        End Function
+
+        Public Function Array(elementType As TypeSymbol, bounds As ImmutableArray(Of BoundExpression), elements As ImmutableArray(Of BoundExpression)) As BoundExpression
+            Dim arrayType = Me.Compilation.CreateArrayTypeSymbol(elementType)
+            Dim arrayInitialization As BoundArrayInitialization = If(Not elements.IsDefaultOrEmpty, New BoundArrayInitialization(_syntax, elements, arrayType), Nothing)
+            arrayInitialization?.SetWasCompilerGenerated()
+            Dim arrayCreation As New BoundArrayCreation(_syntax, bounds, arrayInitialization, arrayType)
+            arrayCreation.SetWasCompilerGenerated()
+            Return arrayCreation
         End Function
 
         Public Function Conditional(condition As BoundExpression, consequence As BoundExpression, alternative As BoundExpression, type As TypeSymbol) As BoundTernaryConditionalExpression
@@ -996,15 +1091,15 @@ nextm:
                                        isSynthesizedAsyncCatchAll:=isSynthesizedAsyncCatchAll)
         End Function
 
-        Public Function SequencePoint(syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
+        Public Function SequencePoint(syntax As SyntaxNode, statement As BoundStatement) As BoundStatement
             Return New BoundSequencePoint(syntax, statement)
         End Function
 
-        Public Function SequencePoint(syntax As VisualBasicSyntaxNode) As BoundStatement
+        Public Function SequencePoint(syntax As SyntaxNode) As BoundStatement
             Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
         End Function
 
-        Public Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+        Public Function SequencePointWithSpan(syntax As SyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
             Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 

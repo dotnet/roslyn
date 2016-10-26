@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool IsEmpty => _syntax.Items.IsEmpty && _semantic.Items.IsEmpty;
 
+            public void ResetVersion()
+            {
+                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
+                _syntax = new DocumentAnalysisData(VersionStamp.Default, _syntax.Items);
+                _semantic = new DocumentAnalysisData(VersionStamp.Default, _semantic.Items);
+            }
+
             public DocumentAnalysisData GetAnalysisData(AnalysisKind kind)
             {
                 switch (kind)

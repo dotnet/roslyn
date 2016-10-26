@@ -189,13 +189,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void Emit(
             Compilation mainCompilation,
             IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions emitOptions,
             bool usePdbForDebugging = false)
         {
             _testData.Methods.Clear();
 
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
-            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
+            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData, emitOptions);
 
             _emitData = new EmitData();
             _emitData.Diagnostics = diagnostics.ToReadOnlyAndFree();

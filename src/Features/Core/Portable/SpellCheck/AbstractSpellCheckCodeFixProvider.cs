@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             SemanticModel semanticModel = null;
-            foreach (var name in node.DescendantNodesAndSelf().OfType<TSimpleName>())
+            foreach (var name in node.DescendantNodesAndSelf(DescendIntoChildren).OfType<TSimpleName>())
             {
                 // Only bother with identifiers that are at least 3 characters long.
                 // We don't want to be too noisy as you're just starting to type something.
@@ -49,21 +50,30 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
+        protected abstract bool DescendIntoChildren(SyntaxNode arg);
+
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            var completionList = await CompletionService.GetCompletionListAsync(
-                document, nameNode.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var service = CompletionService.GetService(document);
+
+            // Disable snippets from ever appearing in the completion items. It's
+            // very unlikely the user would ever mispell a snippet, then use spell-
+            // checking to fix it, then try to invoke the snippet.
+            var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+
+            var completionList = await service.GetCompletionsAsync(
+                document, nameNode.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList == null)
             {
                 return;
             }
 
-            var completionRules = CompletionService.GetCompletionRules(document);
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            using (var similarityChecker = new WordSimilarityChecker(nameText))
+            using (var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true))
             {
                 foreach (var item in completionList.Items)
                 {
@@ -79,23 +89,43 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                         continue;
                     }
 
-                    var insertionText = completionRules.GetTextChange(item).NewText;
+                    var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                     results.Add(matchCost, insertionText);
                 }
             }
 
-            var matches = results.OrderBy(kvp => kvp.Key)
-                                 .SelectMany(kvp => kvp.Value.Order())
-                                 .Where(t => t != nameText)
-                                 .Take(3)
-                                 .Select(n => CreateCodeAction(nameNode, nameText, n, document));
-            context.RegisterFixes(matches, context.Diagnostics);
+            var codeActions = results.OrderBy(kvp => kvp.Key)
+                                     .SelectMany(kvp => kvp.Value.Order())
+                                     .Where(t => t != nameText)
+                                     .Take(3)
+                                     .Select(n => CreateCodeAction(nameNode, nameText, n, document))
+                                     .ToImmutableArrayOrEmpty<CodeAction>();
+
+            if (codeActions.Length > 1)
+            {
+                // Wrap the spell checking actions into a single top level suggestion
+                // so as to not clutter the list.
+                context.RegisterCodeFix(new MyCodeAction(
+                    String.Format(FeaturesResources.Spell_check_0, nameText), codeActions), context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterFixes(codeActions, context.Diagnostics);
+            }
+        }
+
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var service = CompletionService.GetService(document);
+            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+
+            return change.TextChange.NewText;
         }
 
         private SpellCheckCodeAction CreateCodeAction(TSimpleName nameNode, string oldName, string newName, Document document)
         {
             return new SpellCheckCodeAction(
-                string.Format(FeaturesResources.ChangeTo, oldName, newName),
+                string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
                 c => Update(document, nameNode, newName, c),
                 equivalenceKey: newName);
         }
@@ -112,6 +142,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
+
+        private class MyCodeAction : CodeAction.SimpleCodeAction
+        {
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }

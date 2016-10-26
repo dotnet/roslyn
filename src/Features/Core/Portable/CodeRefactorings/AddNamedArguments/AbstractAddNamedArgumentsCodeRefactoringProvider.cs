@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.AddNamedArguments
 {
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     internal abstract class AbstractAddNamedArgumentsCodeRefactoringProvider<TArgumentSyntax> : CodeRefactoringProvider where TArgumentSyntax : SyntaxNode
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -69,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddNamedArguments
 
             if (hasLiteral)
             {
-                context.RegisterRefactoring(new MyCodeAction(FeaturesResources.AddNamedArgumentsLiteralsOnly,
+                context.RegisterRefactoring(new MyCodeAction(FeaturesResources.Add_named_arguments_literals_only,
                     c => AddNamedArgumentsAsync(node, root, document, argumentList, namedArguments, literalsOnly: true)));
             }
 
-            context.RegisterRefactoring(new MyCodeAction(FeaturesResources.AddNamedArguments,
+            context.RegisterRefactoring(new MyCodeAction(FeaturesResources.Add_named_arguments,
                 c => AddNamedArgumentsAsync(node, root, document, argumentList, namedArguments, literalsOnly: false)));
         }
 

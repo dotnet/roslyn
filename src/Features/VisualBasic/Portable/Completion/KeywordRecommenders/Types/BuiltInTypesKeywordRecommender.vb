@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -97,16 +98,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
         Private Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
             Debug.Assert(s_intrinsicKeywordNames.Length = s_intrinsicSpecialTypes.Length)
 
+            Dim inferredSpecialTypes = context.InferredTypes.Select(Function(t) t.SpecialType).ToSet()
+
             Dim recommendedKeywords(s_intrinsicKeywordNames.Length - 1) As RecommendedKeyword
             For i = 0 To s_intrinsicKeywordNames.Length - 1
                 Dim keyword As String = s_intrinsicKeywordNames(i)
                 Dim specialType As SpecialType = DirectCast(s_intrinsicSpecialTypes(i), SpecialType)
 
+                Dim priority = If(inferredSpecialTypes.Contains(specialType), SymbolMatchPriority.Keyword, MatchPriority.Default)
+
                 recommendedKeywords(i) = New RecommendedKeyword(s_intrinsicKeywordNames(i), Glyph.Keyword,
                                                                 Function(cancellationToken)
                                                                     Dim tooltip = GetDocumentationCommentText(context, specialType, cancellationToken)
                                                                     Return RecommendedKeyword.CreateDisplayParts(keyword, tooltip)
-                                                                End Function, isIntrinsic:=True)
+                                                                End Function, isIntrinsic:=True, matchPriority:=priority)
             Next
 
             Return recommendedKeywords

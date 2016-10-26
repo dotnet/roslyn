@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return connectionHost;
         }
 
-        protected override TimeSpan? GetKeepAliveTimeout()
+        protected internal override TimeSpan? GetKeepAliveTimeout()
         {
             return null;
         }

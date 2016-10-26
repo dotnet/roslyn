@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -137,13 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private void BuildProject(ProjectListItem projectListItem)
         {
-            AddText(ServicesVSResources.Library_Project);
+            AddText(ServicesVSResources.Project);
             AddName(projectListItem.DisplayText);
         }
 
         private void BuildReference(ReferenceListItem referenceListItem)
         {
-            AddText(ServicesVSResources.Library_Assembly);
+            AddText(ServicesVSResources.Assembly);
             AddName(referenceListItem.DisplayText);
             AddEndDeclaration();
             AddIndent();
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 containingSymbol = containingSymbol.ContainingAssembly;
             }
 
-            var memberOfText = ServicesVSResources.Library_MemberOf;
+            var memberOfText = ServicesVSResources.Member_of_0;
             const string specifier = "{0}";
 
             var index = memberOfText.IndexOf(specifier, StringComparison.Ordinal);
@@ -315,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             if (documentationComment.SummaryText != null)
             {
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Summary);
+                AddName(ServicesVSResources.Summary_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.SummaryText, compilation));
@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_TypeParameters);
+                AddName(ServicesVSResources.Type_Parameters_colon);
 
                 foreach (var typeParameterName in documentationComment.TypeParameterNames)
                 {
@@ -356,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Parameters);
+                AddName(ServicesVSResources.Parameters_colon1);
 
                 foreach (var parameterName in documentationComment.ParameterNames)
                 {
@@ -382,7 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Returns);
+                AddName(ServicesVSResources.Returns_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Remarks);
+                AddName(ServicesVSResources.Remarks_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.RemarksText, compilation));
@@ -412,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Exceptions);
+                AddName(ServicesVSResources.Exceptions_colon);
 
                 foreach (var exceptionType in documentationComment.ExceptionTypes)
                 {

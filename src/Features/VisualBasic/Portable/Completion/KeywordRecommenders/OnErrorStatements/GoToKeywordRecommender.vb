@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             If targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda Then
                 Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("GoTo",
-                                                                                         VBFeaturesResources.GotoKeywordToolTip))
+                                                                                         VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

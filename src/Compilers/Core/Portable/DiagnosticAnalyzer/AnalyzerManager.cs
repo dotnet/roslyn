@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 });
 
                 // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
+                // REVIEW: find out better way to handle these exception handlers. right now, it can leak
+                //         so easily unless ClearAnalyzerState is called from host properly
                 foreach (var descriptor in supportedDiagnostics)
                 {
                     descriptor.Title.OnException += handler;
@@ -257,6 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
             lock (_descriptorMap)
             {
+                // REVIEW: how one knows exception handler is same as the one cached?
                 if (_descriptorMap.TryGetValue(analyzer, out value))
                 {
                     return value.Item1;

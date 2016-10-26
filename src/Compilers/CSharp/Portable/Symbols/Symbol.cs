@@ -438,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (method.MethodKind)
                         {
                             case MethodKind.Ordinary:
+                            case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
                                 break;
                             case MethodKind.Destructor:
@@ -496,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (method.MethodKind)
                     {
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
                             return true;

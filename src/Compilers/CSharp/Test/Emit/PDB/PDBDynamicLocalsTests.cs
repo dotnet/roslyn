@@ -313,9 +313,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
         </dynamicLocals>
         <encLocalSlotMap>
@@ -1760,9 +1758,6 @@ class F<T,V>
         <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""zzz"" />
-        </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
         </encLocalSlotMap>
@@ -1815,11 +1810,6 @@ class F<T,V>
         <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z1"" />
-          <bucket flagCount=""0"" flags="""" slotId=""2"" localName=""z2"" />
-          <bucket flagCount=""0"" flags="""" slotId=""3"" localName=""z3"" />
-        </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
           <slot kind=""0"" offset=""389"" />
@@ -1882,10 +1872,8 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z3"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""www"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
-          <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
@@ -1944,7 +1932,6 @@ class F<T>
         </using>
         <dynamicLocals>
           <bucket flagCount=""64"" flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
-          <bucket flagCount=""0"" flags="""" slotId=""1"" localName=""no"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""www"" />
         </dynamicLocals>
         <encLocalSlotMap>

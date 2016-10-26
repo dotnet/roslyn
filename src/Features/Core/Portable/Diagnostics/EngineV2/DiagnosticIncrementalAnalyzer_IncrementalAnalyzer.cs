@@ -9,19 +9,21 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    // TODO: make it to use cache
     internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
-        public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
         }
 
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
         }
@@ -64,21 +66,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             try
             {
-                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
 
-                // get analyzers that are not suppressed.
+                // PERF: get analyzers that are not suppressed.
+                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
-                var activeAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => !Owner.IsAnalyzerSuppressed(a, project)).ToImmutableArrayOrEmpty();
+                var activeAnalyzers = stateSets
+                                        .Select(s => s.Analyzer)
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project));
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
                 var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var ignoreFullAnalysisOptions = false;
+                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
@@ -100,15 +106,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
+                var stateSets = _stateManager.GetStateSets(document.Project);
+
                 // let other component knows about this event
                 _compilationManager.OnDocumentOpened();
-
-                // here we dont need to raise any event, it will be taken cared by analyze methods.
-                return SpecializedTasks.EmptyTask;
+                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
@@ -124,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -132,8 +138,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                await _stateManager.OnDocumentResetAsync(stateSets, document).ConfigureAwait(false);
+                _stateManager.OnDocumentReset(stateSets, document);
             }
+
+            return SpecializedTasks.EmptyTask;
         }
 
         public override void RemoveDocument(DocumentId documentId)
@@ -213,19 +221,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return document.IsOpen();
         }
 
-        private void RaiseProjectDiagnosticsIfNeeded(
-            Project project,
-            IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
         {
-            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty, result);
+            // Get stateSets that should be run for full analysis
+
+            // if full analysis is off, remove state that is from build.
+            // this will make sure diagnostics (converted from build to live) from build will never be cleared
+            // until next build.
+            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project))
+            {
+                stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
+            }
+
+            // include all analyzers if option is on
+            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
+            {
+                return stateSets;
+            }
+
+            // Include only one we want to run for full solution analysis.
+            // stateSet not included here will never be saved because result is unknown.
+            return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
+        }
+
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
+
+            return Owner.ShouldRunForFullProject(analyzer, project);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
             Project project,
             IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> oldResult,
-            ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> newResult)
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+        {
+            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, result);
+        }
+
+        private void RaiseProjectDiagnosticsIfNeeded(
+            Project project,
+            IEnumerable<StateSet> stateSets,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
         {
             if (oldResult.Count == 0 && newResult.Count == 0)
             {
@@ -290,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind,
-            AnalysisResult oldResult, AnalysisResult newResult,
+            DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             var oldItems = GetResult(oldResult, kind, document.Id);
@@ -313,12 +355,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, AnalysisResult oldAnalysisResult, AnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetDocument(documentId);
-                Contract.ThrowIfNull(document);
+                if (document == null)
+                {
+                    // it can happen with build synchronization since, in build case, 
+                    // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
+                    // so we might be out of sync.
+                    // example of such cases will be changing anything about solution while building is going on.
+                    // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                    // something project system or roslyn workspace does such as populating workspace right after
+                    // solution is loaded.
+                    continue;
+                }
 
                 RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult, raiseEvents);
 

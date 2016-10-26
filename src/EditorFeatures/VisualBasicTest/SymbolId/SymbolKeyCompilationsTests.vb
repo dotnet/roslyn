@@ -1,10 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
@@ -119,8 +115,8 @@ End Namespace
                 Dim sym1 = origlist(i)
                 Dim sym2 = newlist(i)
 
-                AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseSensitive, expectEqual:=False)
-                Dim resolvedSymbol = ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseSensitive) ' ignored
+                AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.None, expectEqual:=False)
+                Dim resolvedSymbol = ResolveSymbol(sym2, comp1, SymbolIdComparison.None) ' ignored
                 Assert.NotNull(resolvedSymbol)
                 Assert.Equal(sym1, resolvedSymbol)
             Next
@@ -228,10 +224,10 @@ End Class
             Dim sym1 = comp1.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
             Dim sym2 = comp2.SourceModule.GlobalNamespace.GetMembers("C").FirstOrDefault()
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, expectEqual:=False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, expectEqual:=False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
-            ResolveAndVerifySymbol(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive Or SymbolIdComparison.IgnoreAssemblyIds)
+            ResolveAndVerifySymbol(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds)
         End Sub
 
         <Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")>
@@ -263,22 +259,22 @@ End Class
             Dim sym1 As ISymbol = comp1.Assembly
             Dim sym2 As ISymbol = comp2.Assembly
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
             ' ignore asm id 
             ' Same ID
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
             ' but can NOT resolve
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive Or SymbolIdComparison.IgnoreAssemblyIds))
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase Or SymbolIdComparison.IgnoreAssemblyIds))
 
             sym1 = comp1.Assembly.Modules(0)
             sym2 = comp2.Assembly.Modules(0)
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.CaseInsensitive, False)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.CaseInsensitive))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreCase, False)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreCase))
 
-            AssertSymbolsIdsEqual(sym2, comp2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
-            Assert.Null(ResolveSymbol(sym2, comp2, comp1, SymbolIdComparison.IgnoreAssemblyIds))
+            AssertSymbolsIdsEqual(sym2, sym1, comp1, SymbolIdComparison.IgnoreAssemblyIds)
+            Assert.Null(ResolveSymbol(sym2, comp1, SymbolIdComparison.IgnoreAssemblyIds))
         End Sub
 
 #End Region

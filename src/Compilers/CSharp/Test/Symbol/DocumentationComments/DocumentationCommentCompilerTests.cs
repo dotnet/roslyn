@@ -2694,7 +2694,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
         public void WRN_XMLParseIncludeError_Source()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -3679,7 +3679,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
         public void IncludedName_DuplicateNameAttribute()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(@"<param name=""x"" name=""y""/>");
@@ -4513,7 +4513,7 @@ class C
         }
 
         // As in dev11, the pragma has no effect.
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
         public void PragmaDisableWarningInXmlFile()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");

@@ -14,9 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ForEachStatementSyntaxExtensions
     {
-        public static bool IsTypeInferred(this ForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
+        public static bool IsTypeInferred(this CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
         {
-            return forEachStatement.Type.IsTypeInferred(semanticModel);
+            switch (forEachStatement.Kind())
+            {
+                case SyntaxKind.ForEachStatement:
+                    return ((ForEachStatementSyntax)forEachStatement).Type.IsTypeInferred(semanticModel);
+                case SyntaxKind.ForEachComponentStatement:
+                    return (((ForEachComponentStatementSyntax)forEachStatement).VariableComponent as TypedVariableComponentSyntax)?.Type.IsTypeInferred(semanticModel) == true;
+                default:
+                    return false;
+            }
         }
     }
 }

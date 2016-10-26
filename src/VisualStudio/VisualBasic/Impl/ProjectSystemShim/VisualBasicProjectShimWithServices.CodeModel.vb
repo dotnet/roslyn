@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend Class VisualBasicProjectShimWithServices
@@ -10,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public ReadOnly Property ProjectCodeModel As AbstractProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
             Get
-                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New VisualBasicProjectCodeModel(Me, DirectCast(Me.Workspace, VisualStudioWorkspace), ServiceProvider))
+                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New VisualBasicProjectCodeModel(Me, DirectCast(Me.Workspace, VisualStudioWorkspaceImpl), ServiceProvider))
                 Return _projectCodeModel
             End Get
         End Property

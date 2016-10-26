@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  accessibility,
                  modifiers,
                  returnType: null,
+                 returnsByRef: false,
                  explicitInterfaceSymbolOpt: null,
                  name: string.Empty,
                  typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),

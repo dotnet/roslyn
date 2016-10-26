@@ -140,12 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
-            Get
-                Throw New InvalidOperationException()
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property Name As String
             Get
                 Return String.Empty
@@ -401,6 +395,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
 
 #Region "IErrorTypeSymbol members"
 

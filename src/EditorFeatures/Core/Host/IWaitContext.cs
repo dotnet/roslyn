@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
 {
@@ -18,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         bool AllowCancel { get; set; }
         string Message { get; set; }
 
-        void UpdateProgress();
+        IProgressTracker ProgressTracker { get; }
     }
 }

@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -705,7 +704,7 @@ Module M
         Dim x As Boolean = Await [|F|].ContinueWith(Function(a) True).ContinueWith(Function(a) False)
     End Sub
 End Module"
-            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Object)", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -719,7 +718,7 @@ Module M
         Dim x As Boolean = Await [|F|].ConfigureAwait(False)
     End Sub
 End Module"
-            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -735,6 +734,44 @@ End Module"
     End Sub
 End Class"
             Await TestAsync(text, "System.Object", testNode:=False, testPosition:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestWhereCall() As Task
+            Dim text =
+"imports System.Collections.Generic
+class C
+    sub Foo()
+        [|ints|].Where(function(i) i > 10)
+    end sub
+end class"
+            Await TestAsync(text, "Global.System.Collections.Generic.IEnumerable(Of System.Int32)", testPosition:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestWhereCall2() As Task
+            Dim text =
+"imports System.Collections.Generic
+class C
+    sub Foo()
+        [|ints|].Where(function(i)
+                return i > 10
+            end function)
+    end sub
+end class"
+            Await TestAsync(text, "Global.System.Collections.Generic.IEnumerable(Of System.Int32)", testPosition:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestMemberAccess1() As Task
+            Dim text =
+"imports System.Collections.Generic
+class C
+    sub Foo()
+        dim b as boolean = x.[||]
+    end sub
+end class"
+            Await TestAsync(text, "System.Boolean", testNode:=False)
         End Function
     End Class
 End Namespace

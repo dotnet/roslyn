@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,17 +27,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (string.IsNullOrEmpty(type))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "type"));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, "type"));
             }
 
             if (string.IsNullOrEmpty(parenthesizedName))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "parenthesizedName"));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, "parenthesizedName"));
             }
 
             if (string.IsNullOrEmpty(value))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "value"));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, "value"));
             }
 
             _type = type;

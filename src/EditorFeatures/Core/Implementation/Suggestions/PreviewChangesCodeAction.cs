@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                return EditorFeaturesResources.PreviewChangesSummaryText;
+                return EditorFeaturesResources.Preview_changes2;
             }
         }
 
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var changedSolution = previewDialogService.PreviewChanges(
-                EditorFeaturesResources.PreviewChanges,
+                EditorFeaturesResources.Preview_Changes,
                 "vs.codefix.previewchanges",
                 _originalCodeAction.Title,
-                EditorFeaturesResources.PreviewChangesRootNodeText,
+                EditorFeaturesResources.Changes,
                 CodeAnalysis.Glyph.OpenFolder,
                 _changeSummary.NewSolution,
                 _changeSummary.OldSolution,

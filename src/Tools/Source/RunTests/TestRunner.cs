@@ -40,7 +40,10 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var max = (int)(Environment.ProcessorCount * 1.5);
+            // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
+            // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
+            // tests to conflict with one-another.
+            var max = (_options.TestVsi) ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
@@ -92,7 +95,7 @@ namespace RunTests
                     running.Add(task);
                 }
 
-                Console.WriteLine("  {0} running, {1} queued, {2} completed", running.Count, waiting.Count, completed.Count);
+                Console.WriteLine($"  { running.Count} running, { waiting.Count} queued, { completed.Count} completed");
                 Task.WaitAny(running.ToArray());
             } while (running.Count > 0);
 
@@ -114,7 +117,7 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                var message = string.Format("{0,-75} {1} {2}{3}", testResult.DisplayName, testResult.Succeeded ? "PASSED" : "FAILED", testResult.Elapsed, testResult.IsResultFromCache ? "*" : "");
+                var message = $"{testResult.DisplayName,-75} {(testResult.Succeeded ? "PASSED" : "FAILED")} {testResult.Elapsed}{(testResult.IsResultFromCache ? "*" : "")}";
                 ConsoleUtil.WriteLine(color, message);
                 Logger.Log(message);
             }
@@ -131,7 +134,7 @@ namespace RunTests
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);
 
-            // TODO: Put this in the log and take it off the console output to keep it simple? 
+            // TODO: Put this in the log and take it off the console output to keep it simple?
             Console.WriteLine($"Command: {testResult.CommandLine}");
             Console.WriteLine($"xUnit output log: {outputLogPath}");
 

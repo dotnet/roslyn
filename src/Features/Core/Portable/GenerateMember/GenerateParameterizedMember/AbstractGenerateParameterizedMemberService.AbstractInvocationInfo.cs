@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
             }
 
-            public override IList<ITypeParameterSymbol> DetermineTypeParameters(
+            protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(
                 CancellationToken cancellationToken)
             {
-                var typeParameters = DetermineTypeParametersWorker(cancellationToken);
+                var typeParameters = ComputeTypeParameters(cancellationToken);
                 return typeParameters.Select(tp => MassageTypeParameter(tp, cancellationToken)).ToList();
             }
 
-            private IList<ITypeParameterSymbol> DetermineTypeParametersWorker(
+            private IList<ITypeParameterSymbol> ComputeTypeParameters(
                 CancellationToken cancellationToken)
             {
                 if (IsIdentifierName())

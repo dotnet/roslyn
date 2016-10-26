@@ -186,16 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    Interlocked.CompareExchange(ref _globalNamespace, MakeGlobalNamespace(), null);
+                    var globalNS = new SourceNamespaceSymbol(this, this, DeclaringCompilation.MergedRootDeclaration);
+                    Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 
                 return _globalNamespace;
             }
-        }
-
-        private SourceNamespaceSymbol MakeGlobalNamespace()
-        {
-            return new SourceNamespaceSymbol(this, this, _sources.MergedRoot);
         }
 
         internal sealed override bool RequiresCompletion
@@ -347,9 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_locations.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
-                        _sources.AllRootNamespacesUnordered().Select(n => n.Location).AsImmutable<Location>(),
-                        default(ImmutableArray<Location>));
+                    ImmutableInterlocked.InterlockedInitialize(
+                        ref _locations,
+                        DeclaringCompilation.MergedRootDeclaration.Declarations.SelectAsArray(d => (Location)d.Location));
                 }
 
                 return _locations;

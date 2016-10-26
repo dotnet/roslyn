@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     using (var reader = new ObjectReader(stream))
                     {
                         var format = reader.ReadString();
-                        if (!string.Equals(format, FormatVersion))
+                        if (!string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
                         {
                             return null;
                         }

@@ -12,23 +12,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Class SingleLineRewriter
         Inherits VisualBasicSyntaxRewriter
 
+        Private useElasticTrivia As Boolean
         Private _lastTokenEndedInWhitespace As Boolean
-        Private Shared ReadOnly s_space As SyntaxTriviaList = SyntaxTriviaList.Create(SyntaxFactory.WhitespaceTrivia(" "))
+
+        Public Sub New(Optional useElasticTrivia As Boolean = False)
+            Me.useElasticTrivia = useElasticTrivia
+        End Sub
 
         Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
             If _lastTokenEndedInWhitespace Then
                 token = token.WithLeadingTrivia(Enumerable.Empty(Of SyntaxTrivia)())
             ElseIf token.LeadingTrivia.Count > 0 Then
-                token = token.WithLeadingTrivia(s_space)
+                If useElasticTrivia Then
+                    token = token.WithLeadingTrivia(SyntaxFactory.ElasticSpace)
+                Else
+                    token = token.WithLeadingTrivia(SyntaxFactory.Space)
+                End If
             End If
-
-#If False Then
-            If token.Kind = SyntaxKind.StatementTerminatorToken Then
-                token = Syntax.Token(token.LeadingTrivia, SyntaxKind.StatementTerminatorToken, token.TrailingTrivia, ":")
-            End If
-#End If
             If token.TrailingTrivia.Count > 0 Then
-                token = token.WithTrailingTrivia(s_space)
+                If useElasticTrivia Then
+                    token = token.WithTrailingTrivia(SyntaxFactory.ElasticSpace)
+                Else
+                    token = token.WithTrailingTrivia(SyntaxFactory.Space)
+                End If
                 _lastTokenEndedInWhitespace = True
             Else
                 _lastTokenEndedInWhitespace = False

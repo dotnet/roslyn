@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var connectionPointContainer = obj as IConnectionPointContainer;
             if (connectionPointContainer == null)
             {
-                throw new ArgumentException("Not an IConnectionPointContainer", "obj");
+                throw new ArgumentException("Not an IConnectionPointContainer", nameof(obj));
             }
 
             IConnectionPoint connectionPoint;

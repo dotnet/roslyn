@@ -29,6 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         PartialModules
         PartialInterfaces
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+        DigitSeparators
+        BinaryLiterals
+        Tuples
         IOperation
     End Enum
 
@@ -36,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.IOperation
+                Case feature.IOperation
                     Return "IOperation"
 
                 Case Else
@@ -77,6 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.Tuples,
+                    Feature.BinaryLiterals,
+                    Feature.DigitSeparators
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -133,6 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_PartialInterfaces
                 Case Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+                Case Feature.DigitSeparators
+                    Return ERRID.FEATURE_DigitSeparators
+                Case Feature.BinaryLiterals
+                    Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.Tuples
+                    Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
                 Case Else

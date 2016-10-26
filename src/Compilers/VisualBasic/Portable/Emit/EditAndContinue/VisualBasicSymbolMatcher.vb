@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Return Nothing
                     End If
 
-                    Return Me.VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                    Return VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                 End If
 
                 Dim member = TryCast(def, Cci.ITypeDefinitionMember)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim field = TryCast(def, Cci.IFieldDefinition)
                     If field IsNot Nothing Then
-                        Return Me.VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                        Return VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                     End If
                 End If
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Me._lazyTopLevelTypes
             End Function
 
-            Private Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
+            Private Shared Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
                 otherContainer As Cci.ITypeDefinition,
                 member As T,
                 getMembers As Func(Of Cci.ITypeDefinition, IEnumerable(Of T)),
@@ -320,30 +320,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Nothing
             End Function
 
-            Public Overrides Function VisitAssembly(symbol As AssemblySymbol) As Symbol
-                If symbol.IsLinked Then
-                    Return symbol
+            Public Overrides Function VisitAssembly(assembly As AssemblySymbol) As Symbol
+                If assembly.IsLinked Then
+                    Return assembly
                 End If
 
-                ' the current source assembly:
-                If symbol.Identity.Equals(_sourceAssembly.Identity) Then
+                ' When we map synthesized symbols from previous generations to the latest compilation 
+                ' we might encounter a symbol that is defined in arbitrary preceding generation, 
+                ' not just the immediately preceding generation. If the source assembly uses time-based 
+                ' versioning assemblies of preceding generations might differ in their version number.
+                If IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly) Then
                     Return _otherAssembly
                 End If
 
                 ' find a referenced assembly with the exactly same source identity:
                 For Each otherReferencedAssembly In _otherAssembly.Modules(0).ReferencedAssemblySymbols
-                    Dim identity = symbol.Identity
-                    Dim otherIdentity = otherReferencedAssembly.Identity
-
-                    If AssemblyIdentityComparer.SimpleNameComparer.Equals(identity.Name, otherIdentity.Name) AndAlso
-                       If(symbol.AssemblyVersionPattern, symbol.Identity.Version).Equals(If(otherReferencedAssembly.AssemblyVersionPattern, symbol.Identity.Version)) AndAlso
-                       AssemblyIdentity.EqualIgnoringNameAndVersion(identity, otherIdentity) Then
+                    If IdentityEqualIgnoringVersionWildcard(assembly, otherReferencedAssembly) Then
                         Return otherReferencedAssembly
                     End If
                 Next
 
                 Return Nothing
             End Function
+
+            Private Shared Function IdentityEqualIgnoringVersionWildcard(left As AssemblySymbol, right As AssemblySymbol) As Boolean
+                Dim leftIdentity = left.Identity
+                Dim rightIdentity = right.Identity
+                Return AssemblyIdentityComparer.SimpleNameComparer.Equals(leftIdentity.Name, rightIdentity.Name) AndAlso
+                       If(left.AssemblyVersionPattern, leftIdentity.Version).Equals(If(right.AssemblyVersionPattern, rightIdentity.Version)) AndAlso
+                       AssemblyIdentity.EqualIgnoringNameAndVersion(leftIdentity, rightIdentity)
+            End Function
+
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Me.Visit([namespace].ContainingSymbol)
@@ -570,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     [property].Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual)
             End Function
 
-            Private Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
+            Private Shared Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
                 Debug.Assert(type.Ordinal = other.Ordinal)
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
                 ' Comparing constraints is unnecessary: two methods cannot differ by

@@ -8,8 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,15 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     internal partial class CSharpIntroduceVariableService
     {
-        protected override Task<Document> IntroduceLocalAsync(
+        protected override async Task<Document> IntroduceLocalAsync(
             SemanticDocument document,
             ExpressionSyntax expression,
             bool allOccurrences,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Workspace.Options;
-
             var newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant, cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
@@ -38,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
                 : default(SyntaxTokenList);
 
+            var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
             var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
-                    this.GetTypeSyntax(document, expression, isConstant, options, cancellationToken),
+                    this.GetTypeSyntax(document, options, expression, isConstant, cancellationToken),
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
@@ -56,18 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             if (parentLambda != null)
             {
-                return Task.FromResult(IntroduceLocalDeclarationIntoLambda(
-                    document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken));
+                return IntroduceLocalDeclarationIntoLambda(
+                    document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken);
             }
             else if (IsInExpressionBodiedMember(expression))
             {
-                return Task.FromResult(RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken));
+                return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
             }
             else
             {
-                return IntroduceLocalDeclarationIntoBlockAsync(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
+                return await IntroduceLocalDeclarationIntoBlockAsync(
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return null;
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, bool isConstant, OptionSet options, CancellationToken cancellationToken)
+        private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             if (typeSymbol.ContainsAnonymousType())
@@ -127,7 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            if (!isConstant && options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals) && CanUseVar(typeSymbol))
+            if (!isConstant && 
+                CanUseVar(typeSymbol) && 
+                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, options, cancellationToken))
             {
                 return SyntaxFactory.IdentifierName("var");
             }

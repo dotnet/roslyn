@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class LowPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class LowPriorityProcessor : AbstractPriorityProcessor
                 {
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly AsyncProjectWorkItemQueue _workItemQueue;
 
                     public LowPriorityProcessor(
@@ -31,20 +30,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _lazyAnalyzers = lazyAnalyzers;
                         _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
-                    }
-
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -63,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             WorkItem workItem;
                             CancellationTokenSource projectCancellation;
                             if (_workItemQueue.TryTakeAnyWork(
-                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService, 
+                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
                                 out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
@@ -93,6 +83,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
@@ -145,12 +137,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 var project = processingSolution.GetProject(projectId);
                                 if (project != null)
                                 {
-                                    var semanticsChanged = workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
-                                                           workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
+                                    var reasons = workItem.InvocationReasons;
+                                    var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
+                                                           reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, c), cancellationToken).ConfigureAwait(false);
+                                        await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else

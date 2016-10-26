@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _optionService = workspace.Services.GetService<IOptionService>();
             }
 
-            return new InternalOptionsControl(LoggerOptions.FeatureName, serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -35,17 +35,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             if (_optionService.GetOption(LoggerOptions.EtwLoggerKey))
             {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new EtwLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger || l is TraceLogger));
-                return;
+                Logger.SetLogger(AggregateLogger.AddOrReplace(new EtwLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger));
             }
 
             if (_optionService.GetOption(LoggerOptions.TraceLoggerKey))
             {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger || l is TraceLogger));
-                return;
+                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceLogger(_optionService), Logger.GetLogger(), l => l is TraceLogger));
             }
-
-            Logger.SetLogger(null);
         }
     }
 }

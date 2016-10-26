@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return new DkmClrType(module, _appDomain, (TypeImpl)type);
         }
 
-        internal DkmClrType GetType(string typeName)
+        internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
         {
             foreach (var module in this.Modules)
             {
@@ -78,7 +78,12 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 var type = assembly.GetType(typeName);
                 if (type != null)
                 {
-                    return new DkmClrType(module, _appDomain, (TypeImpl)type);
+                    var result = new DkmClrType(module, _appDomain, (TypeImpl)type);
+                    if (typeArguments.Length > 0)
+                    {
+                        result = result.MakeGenericType(typeArguments.Select(this.GetType).ToArray());
+                    }
+                    return result;
                 }
             }
             return null;

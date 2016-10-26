@@ -53,18 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         MemberAccessExpressionSyntax newMemberAccess = null;
                         var invocationExpressionNodeExpression = node.Expression;
+                        var expression = argumentList.Arguments[0].Expression;
 
                         if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
                         }
                         else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else if (node.Expression.Kind() == SyntaxKind.GenericName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else
                         {

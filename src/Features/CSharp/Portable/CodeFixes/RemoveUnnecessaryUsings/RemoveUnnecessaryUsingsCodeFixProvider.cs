@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    CSharpFeaturesResources.RemoveUnnecessaryUsings,
+                    CSharpFeaturesResources.Remove_Unnecessary_Usings,
                     c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
             return SpecializedTasks.EmptyTask;

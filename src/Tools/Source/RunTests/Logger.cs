@@ -12,6 +12,19 @@ namespace RunTests
     internal static class Logger
     {
         private static readonly List<string> s_lines = new List<string>();
+        private static bool s_hasErrors;
+
+        internal static bool HasErrors => s_hasErrors;
+
+        internal static void LogError(Exception ex, string line)
+        {
+            lock (s_lines)
+            {
+                s_hasErrors = true;
+                s_lines.Add($"Error {ex.Message}: {line}");
+                s_lines.Add(ex.StackTrace);
+            }
+        }
 
         internal static void Log(string line)
         {

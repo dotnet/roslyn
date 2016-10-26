@@ -2616,10 +2616,7 @@ End Module]]>,
                     End If
                 End Sub
             End Module
-        ]]>,
-        <errors>
-            <error id="30198"/>
-        </errors>)
+        ]]>)
     End Sub
 
     <WorkItem(884863, "DevDiv/Personal")>

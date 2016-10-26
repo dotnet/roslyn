@@ -2,9 +2,10 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -502,7 +503,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"D()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"D()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -538,7 +539,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"D()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"D()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -566,6 +567,86 @@ class C
 }";
 
             await TestAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss1()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C(($$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss2()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1,$$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss3()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1, ($$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss4()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1, (2,$$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
     }
 }

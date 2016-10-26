@@ -182,20 +182,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
             Debug.Assert((object)currentFrame != null);
-            var sourceAssembly = compilation.SourceAssembly;
-            var symbolProvider = new CSharpEESymbolProvider(sourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
+            var symbolProvider = new CSharpEESymbolProvider(compilation.SourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureHandle);
 
-            var typedSymReader = (ISymUnmanagedReader)symReader;
+            var typedSymReader = (ISymUnmanagedReader3)symReader;
             var inScopeHoistedLocals = InScopeHoistedLocals.Empty;
 
             var debugInfo = MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo(typedSymReader, symbolProvider, methodToken, methodVersion, ilOffset, isVisualBasicMethod: false);
 
             var reuseSpan = debugInfo.ReuseSpan;
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(localsBuilder, symbolProvider, debugInfo.LocalVariableNames, localInfo, debugInfo.DynamicLocalMap);
+            MethodDebugInfo<TypeSymbol, LocalSymbol>.GetLocals(
+                localsBuilder,
+                symbolProvider,
+                debugInfo.LocalVariableNames,
+                localInfo,
+                debugInfo.DynamicLocalMap,
+                debugInfo.TupleLocalMap);
             if (!debugInfo.HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
                 inScopeHoistedLocals = new CSharpInScopeHoistedLocals(debugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref reuseSpan));
@@ -251,14 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
-                    deterministic: false,
+                    isDeterministic: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -300,7 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     formatSpecifiers = null;
 
-                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement))
+                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                        statementSyntax.IsKind(SyntaxKind.DeconstructionDeclarationStatement))
                     {
                         return statementSyntax;
                     }
@@ -340,14 +346,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
-                    deterministic: false,
+                    isDeterministic: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -364,7 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
+        private static readonly ReadOnlyCollection<byte> s_emptyBytes =
+            new ReadOnlyCollection<byte>(Array.Empty<byte>());
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
@@ -383,14 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
                         allowMissingMethodBodies: false,
-                        deterministic: false,
+                        isDeterministic: false,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())

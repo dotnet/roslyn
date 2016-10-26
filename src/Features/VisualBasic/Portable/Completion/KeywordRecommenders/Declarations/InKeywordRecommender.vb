@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             ' TODO: figure out if this is the parse tree not acting correctly here. Why is this a SyntaxNonTerminal?
             If targetToken.IsFromIdentifierNode(Of ForEachStatementSyntax)(Function(forEachStatement) forEachStatement.ControlVariable) OrElse
                IsAfterCompleteAsClause(Of ForEachStatementSyntax)(context, getForEachLoopAsOpt, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("In", VBFeaturesResources.InForEachKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("In", VBFeaturesResources.Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse))
             End If
 
             ' From element |
             ' Group Join element |
             If targetToken.IsFromIdentifierNode(Of CollectionRangeVariableSyntax)(Function(rangeVariable) rangeVariable.Identifier) OrElse
                IsAfterCompleteAsClause(Of CollectionRangeVariableSyntax)(context, Function(rangeVariable) rangeVariable.AsClause, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("In", VBFeaturesResources.InQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("In", VBFeaturesResources.Specifies_the_group_that_the_range_variable_is_to_traverse_in_a_query))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

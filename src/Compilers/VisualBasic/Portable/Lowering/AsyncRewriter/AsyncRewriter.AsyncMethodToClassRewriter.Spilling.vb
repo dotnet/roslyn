@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function RewriteSpillSequenceIntoBlock(spill As BoundSpillSequence,
                                                            addValueAsExpression As Boolean) As BoundBlock
-                Return RewriteSpillSequenceIntoBlock(spill, addValueAsExpression, SpecializedCollections.EmptyArray(Of BoundStatement))
+                Return RewriteSpillSequenceIntoBlock(spill, addValueAsExpression, Array.Empty(Of BoundStatement))
             End Function
 
             Private Function RewriteSpillSequenceIntoBlock(spill As BoundSpillSequence,

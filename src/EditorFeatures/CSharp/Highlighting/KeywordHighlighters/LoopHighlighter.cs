@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     break;
 
                 case SyntaxKind.ForEachStatement:
-                    HighlightForEachStatement((ForEachStatementSyntax)loopNode, spans);
+                case SyntaxKind.ForEachComponentStatement:
+                    HighlightForEachStatement((CommonForEachStatementSyntax)loopNode, spans);
                     break;
 
                 case SyntaxKind.WhileStatement:
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             spans.Add(statement.ForKeyword.Span);
         }
 
-        private void HighlightForEachStatement(ForEachStatementSyntax statement, List<TextSpan> spans)
+        private void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
         {
             spans.Add(statement.ForEachKeyword.Span);
         }

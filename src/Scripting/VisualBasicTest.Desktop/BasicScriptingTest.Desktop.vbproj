@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -15,6 +13,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -28,10 +27,6 @@
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
@@ -75,8 +70,9 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

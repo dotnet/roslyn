@@ -7,13 +7,15 @@ using System.IO;
 using System.Linq;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -46,12 +48,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static int Run(IEnumerable<string> arguments, IEnumerable<string> extraArguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
-            var clientDir = AppDomain.CurrentDomain.BaseDirectory;
-            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
+            var clientDir = AppContext.BaseDirectory;
+            var sdkDir = GetRuntimeDirectoryOpt();
             var workingDir = Directory.GetCurrentDirectory();
-            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
+            var tempDir = GetTempPath(workingDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
+        }
+
+        internal static string GetRuntimeDirectoryOpt()
+        {
+            Type runtimeEnvironmentType = Roslyn.Utilities.ReflectionUtilities.TryGetType(
+                "System.Runtime.InteropServices.RuntimeEnvironment, " +
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+            return (string)runtimeEnvironmentType
+                ?.GetTypeInfo()
+                .GetDeclaredMethod("GetRuntimeDirectory")
+                ?.Invoke(obj: null, parameters: null);
         }
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
@@ -78,11 +93,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
+            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+
             return RunServerCompilationCore(
                 language,
                 arguments,
                 buildPaths,
-                GetPipeNameForPath(buildPaths.ClientDirectory),
+                pipeNameOpt,
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
@@ -101,6 +118,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
         {
+            if (pipeName == null)
+            {
+                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            }
+
+            if (buildPaths.TempDirectory == null)
+            {
+                return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
+            }
+
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -147,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         var request = BuildRequest.Create(language,
                                                           buildPaths.WorkingDirectory,
+                                                          buildPaths.TempDirectory,
                                                           arguments,
                                                           keepAlive,
                                                           libEnvVariable);
@@ -239,9 +267,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             // Ignore this warning because the desktop projects don't target 4.6 yet
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
             var buffer = new byte[0];
-#pragma warning restore RS0007 // Avoid zero-length array allocations.
+#pragma warning restore CA1825 // Avoid zero-length array allocations.
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
@@ -292,7 +320,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
-                pipeStream.Connect(timeoutMs);
+                if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                {
+                    Log($"Connecting to server timed out after {timeoutMs} ms");
+                    return null;
+                }
                 Log("Named pipe '{0}' connected", pipeName);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -311,6 +343,57 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 LogException(e, "Exception while connecting to process");
                 return null;
             }
+        }
+
+        // Protected for testing
+        protected static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
+                                                                int timeoutMs,
+                                                                CancellationToken cancellationToken)
+        {
+            Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
+
+            // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
+            // Work around is to spin wait.
+            const int maxWaitIntervalMs = 50;
+            int elapsedMs = 0;
+            var sw = new SpinWait();
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                int waitTime;
+                if (timeoutMs == Timeout.Infinite)
+                {
+                    waitTime = maxWaitIntervalMs;
+                }
+                else
+                {
+                    waitTime = Math.Min(timeoutMs - elapsedMs, maxWaitIntervalMs);
+                    if (waitTime <= 0)
+                    {
+                        return false;
+                    }
+                }
+
+                try
+                {
+                    pipeStream.Connect(waitTime);
+                    break;
+                }
+                catch (Exception e) when (e is IOException || e is TimeoutException)
+                {
+                    // Ignore timeout
+
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
+                }
+                unchecked { elapsedMs += waitTime; }
+                sw.SpinOnce();
+            }
+            return true;
         }
 
         /// <summary>
@@ -389,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var currentOwner = currentIdentity.Owner;
-                var remotePipeSecurity = pipeStream.GetAccessControl();
+                ObjectSecurity remotePipeSecurity = GetPipeSecurity(pipeStream);
                 var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                 return currentOwner.Equals(remoteOwner);
             }
@@ -400,6 +483,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream) =>
+            (ObjectSecurity)typeof(PipeStream)
+            .GetTypeInfo()
+            .GetDeclaredMethod("GetAccessControl")
+            ?.Invoke(pipeStream, parameters: null);
+
+        private static string GetUserName() =>
+            (string)typeof(Environment)
+            .GetTypeInfo()
+            .GetDeclaredProperty("UserName")
+            ?.GetMethod?.Invoke(null, parameters: null);
+
         /// <summary>
         /// Given the full path to the directory containing the compiler exes,
         /// retrieves the name of the pipe for client/server communication on
@@ -407,18 +502,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         protected override string GetSessionKey(BuildPaths buildPaths)
         {
-            return GetPipeNameForPath(buildPaths.ClientDirectory);
+            return GetPipeNameForPathOpt(buildPaths.ClientDirectory);
         }
 
-        internal static string GetPipeNameForPath(string compilerExeDirectory)
+        /// <returns>
+        /// Null if not enough information was found to create a valid pipe name.
+        /// </returns>
+        internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
         { 
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
             // Prefix with username and elevation
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
+            var currentIdentity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(currentIdentity);
             var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            var userName = Environment.UserName;
+            var userName = GetUserName();
+            if (userName == null)
+            {
+                return null;
+            }
+
             return $"{userName}.{isAdmin}.{basePipeName}";
         }
 

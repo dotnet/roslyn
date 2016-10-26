@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.I
     [Guid("9A37496A-F2CB-49A8-A684-7DEAAD2B0F07")]
     internal interface IAnalyzerHost
     {
-        void AddAnalyzerAssembly([MarshalAs(UnmanagedType.LPWStr)] string analyzerAssemblyFullPath);
-        void RemoveAnalyzerAssembly([MarshalAs(UnmanagedType.LPWStr)] string analyzerAssemblyFullPath);
+        void AddAnalyzerReference([MarshalAs(UnmanagedType.LPWStr)] string analyzerAssemblyFullPath);
+        void RemoveAnalyzerReference([MarshalAs(UnmanagedType.LPWStr)] string analyzerAssemblyFullPath);
         void SetRuleSetFile([MarshalAs(UnmanagedType.LPWStr)] string ruleSetFileFullPath);
         void AddAdditionalFile([MarshalAs(UnmanagedType.LPWStr)] string additionalFilePath);
         void RemoveAdditionalFile([MarshalAs(UnmanagedType.LPWStr)] string additionalFilePath);

@@ -92,5 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return true;
         }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
+            return context.InferredTypes.Any(t => t == outerType);
+        }
     }
 }

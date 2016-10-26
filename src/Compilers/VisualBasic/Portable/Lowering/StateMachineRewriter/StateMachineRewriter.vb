@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GenerateKickoffMethodBody() As BoundBlock
             Me.F.CurrentMethod = Me.Method
             Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
-            bodyBuilder.Add(Me.F.HiddenSequencePoint())
+            bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
 
             Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod, Me.StateMachineType.Construct(Method.TypeArguments), Me.StateMachineType)
             Dim stateMachineVariable As LocalSymbol = F.SynthesizedLocal(frameType)

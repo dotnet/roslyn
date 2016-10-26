@@ -1,0 +1,40 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>Code Refactoring (VSIX)</Name>
+    <Description>Create a Visual Basic refactoring, deployed as a VSIX extension</Description>
+    <ProjectType>VisualBasic</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>CodeRefactoring</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon></Icon>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="$projectname$.vbproj" File="CodeRefactoring.vbproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="CodeRefactoringProvider.vb" OpenInEditor="true">CodeRefactoringProvider.vb</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="My Project\AssemblyInfo.vb">AssemblyInfo.vb</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKAnalyzerTemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension"
+              repositoryId="3a012d4e-6057-4e7c-8123-6d4be1d4723c">
+      <package id="Microsoft.CodeAnalysis.Analyzers" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Common" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.VisualBasic" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="System.Collections.Immutable" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="System.Reflection.Metadata" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+    </packages>
+  </WizardData>
+</VSTemplate>

@@ -6702,23 +6702,11 @@ BC30643: Property 'A2.P(ByRef i As Object)' is of an unsupported type.
 BC30643: Property 'A2.P(ByRef i As Object)' is of an unsupported type.
         _2.P(y) = _2.P(x)
                      ~
-BC30643: Property 'P' is of an unsupported type.
-        _4.P(y) = _4.P(x)
-           ~
-BC30643: Property 'P' is of an unsupported type.
-        _4.P(y) = _4.P(x)
-                     ~
 BC30643: Property 'A5.P(ByRef i As Object)' is of an unsupported type.
         _5.P(y) = _5.P(x)
            ~
 BC30643: Property 'A5.P(ByRef i As Object)' is of an unsupported type.
         _5.P(y) = _5.P(x)
-                     ~
-BC30643: Property 'P' is of an unsupported type.
-        _6.P(y) = _6.P(x)
-           ~
-BC30643: Property 'P' is of an unsupported type.
-        _6.P(y) = _6.P(x)
                      ~
 BC30643: Property 'A7.P(ByRef i As Object)' is of an unsupported type.
         _7.P(y) = _7.P(x)
@@ -7682,15 +7670,7 @@ End Module
                     </file>
                 </compilation>
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource, additionalRefs:={reference})
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC30643: Property 'P' is of an unsupported type.
-        v = o.P
-              ~
-BC30643: Property 'P' is of an unsupported type.
-        o.P = v
-          ~    
-</expected>)
+            compilation.AssertTheseDiagnostics()
         End Sub
 
         <Fact()>

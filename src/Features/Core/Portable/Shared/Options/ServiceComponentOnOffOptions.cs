@@ -9,10 +9,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     /// </summary>
     internal static class ServiceComponentOnOffOptions
     {
-        public const string OptionName = "FeatureManager/Components";
-
-        public static readonly Option<bool> DiagnosticProvider = new Option<bool>(OptionName, "Diagnostic Provider", defaultValue: true);
-
-        public static readonly Option<bool> PackageSearch = new Option<bool>(OptionName, nameof(PackageSearch), defaultValue: false);
+        public static readonly Option<bool> DiagnosticProvider = new Option<bool>(nameof(ServiceComponentOnOffOptions), nameof(DiagnosticProvider), defaultValue: true);
     }
 }

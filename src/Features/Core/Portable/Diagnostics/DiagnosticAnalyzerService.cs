@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(async () => await analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
+                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, includeSuppressedDiagnostics, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(async () => await analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false), cancellationToken);
+                return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<DiagnosticData>();
@@ -235,6 +235,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
             return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
+        }
+
+        public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
+        {
+            // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
+            return _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null).Values;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)

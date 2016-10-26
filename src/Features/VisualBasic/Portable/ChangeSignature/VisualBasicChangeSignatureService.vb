@@ -1,14 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports System.Composition
 
@@ -17,8 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend Class VisualBasicChangeSignatureService
         Inherits AbstractChangeSignatureService
 
-        Public Overrides Function GetInvocationSymbol(document As Document, position As Integer, restrictToDeclarations As Boolean, cancellationToken As CancellationToken) As ISymbol
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+        Public Overrides Async Function GetInvocationSymbolAsync(
+                document As Document,
+                position As Integer,
+                restrictToDeclarations As Boolean,
+                cancellationToken As CancellationToken) As Task(Of ISymbol)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
             Dim matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(Function(n) _invokableAncestorKinds.Contains(n.Kind))
@@ -484,13 +486,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return separators
         End Function
 
-        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(symbol As IMethodSymbol, document As Document, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
+                methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
+                document As Document,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
+
+            Dim symbol = methodAndProjectId.Symbol
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim nodes = root.DescendantNodes()
 
-            Dim results = New List(Of ISymbol)
+            Dim results = ArrayBuilder(Of ISymbol).GetInstance()
 
             For Each n In nodes
                 If n.IsKind(SyntaxKind.AddressOfExpression) Then
@@ -530,7 +537,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
             Next
 
-            Return results
+            Return results.ToImmutableAndFree().
+                           SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)

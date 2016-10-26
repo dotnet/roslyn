@@ -64,6 +64,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         AddSynthesizedAttribute(attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue))
                 End Select
             End If
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
         Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort

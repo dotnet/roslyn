@@ -4,6 +4,11 @@ namespace Microsoft.CodeAnalysis.Symbols
 {
     internal interface IMethodSymbolInternal : IMethodSymbol
     {
+        /// <summary>
+        /// True if the method is a source method implemented as an iterator.
+        /// </summary>
+        bool IsIterator { get; }
+
         int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree);
     }
 }

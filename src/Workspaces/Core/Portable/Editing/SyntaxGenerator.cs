@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
@@ -121,6 +118,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 initializer);
         }
 
+        //internal abstract SyntaxNode ObjectMemberInitializer(IEnumerable<SyntaxNode> fieldInitializers);
+        //internal abstract SyntaxNode NamedFieldInitializer(SyntaxNode name, SyntaxNode value);
+        //internal abstract SyntaxNode WithObjectCreationInitializer(SyntaxNode objectCreationExpression, SyntaxNode initializer);
+
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
@@ -138,8 +139,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode MethodDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
         {
+            return MethodDeclaration(method, method.Name, statements);
+        }
+
+        internal SyntaxNode MethodDeclaration(IMethodSymbol method, string name, IEnumerable<SyntaxNode> statements = null)
+        {
             var decl = MethodDeclaration(
-                method.Name,
+                name,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
@@ -796,6 +802,14 @@ namespace Microsoft.CodeAnalysis.Editing
             return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
         }
 
+        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        {
+            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
+                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+        }
+
+        internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
         /// </summary>
@@ -1014,6 +1028,24 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Gets the list of switch sections for the statement.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement);
+
+        /// <summary>
+        /// Inserts the switch sections at the specified index into the statement.
+        /// </summary>
+        public abstract SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections);
+
+        /// <summary>
+        /// Adds the switch sections to the statement.
+        /// </summary>
+        public SyntaxNode AddSwitchSections(SyntaxNode switchStatement, IEnumerable<SyntaxNode> switchSections)
+        {
+            return this.InsertSwitchSections(switchStatement, this.GetSwitchSections(switchStatement).Count, switchSections);
+        }
+
+        /// <summary>
         /// Gets the expression associated with the declaration.
         /// </summary>
         public abstract SyntaxNode GetExpression(SyntaxNode declaration);
@@ -1094,6 +1126,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType);
 
+        internal abstract SyntaxNode AsInterfaceMember(SyntaxNode member);
+
         #endregion
 
         #region Remove, Replace, Insert
@@ -1164,6 +1198,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
+            if (node == null)
+            {
+                return node;
+            }
+
             var nodeWithoutTrivia = node.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
             var changedNode = nodeChanger(nodeWithoutTrivia);
@@ -1274,6 +1313,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
         public abstract SyntaxNode ThrowStatement(SyntaxNode expression = null);
+
+        /// <summary>
+        /// Creates an expression that can be used to throw an exception.
+        /// </summary>
+        public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1468,6 +1512,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="identifier"></param>
         /// <returns></returns>
         public abstract SyntaxNode IdentifierName(string identifier);
+
+        internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
+        internal abstract SyntaxToken Identifier(string identifier);
+        internal abstract SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression);
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
@@ -1688,7 +1736,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a member access expression.
         /// </summary>
-        public abstract SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName);
+        public virtual SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName)
+        {
+            return MemberAccessExpressionWorker(expression, memberName)
+                .WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
+        }
+
+        internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
         /// <summary>
         /// Creates a member access expression.

@@ -24,12 +24,12 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 1;
-		switch (true) {
-		default:
-			ret = 0;
-			break;
-		}
+        int ret = 1;
+        switch (true) {
+        default:
+            ret = 0;
+            break;
+        }
 
         Console.Write(ret);
         return(ret);
@@ -114,12 +114,12 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 1;
-		switch (true) {
-		case true:
-			ret = 0;
-			break;
-		}
+        int ret = 1;
+        switch (true) {
+        case true:
+            ret = 0;
+            break;
+        }
 
         Console.Write(ret);
         return(ret);
@@ -194,14 +194,14 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 0;
-		int value = 1;
-		
-		switch (value) {
-		case 2:
-			ret = 1;
-			break;		
-		}
+        int ret = 0;
+        int value = 1;
+        
+        switch (value) {
+        case 2:
+            ret = 1;
+            break;		
+        }
 
         Console.Write(ret);
         return(ret);
@@ -240,24 +240,24 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 1;
+        int ret = 1;
 
-		int value = 23;
+        int value = 23;
 
-		switch (value) {
-		case kValue:
-			ret = 0;
-			break;
-		default:
-			ret = 1;
-       	    break;
-		}
+        switch (value) {
+        case kValue:
+            ret = 0;
+            break;
+        default:
+            ret = 1;
+            break;
+        }
 
         Console.Write(ret);
         return(ret);
     }
 
-	const int kValue = 23;
+    const int kValue = 23;
 }";
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
@@ -378,39 +378,39 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 0;
-		ret = DoByte();
+        int ret = 0;
+        ret = DoByte();
         return(ret);
     }
 
-	private static int DoByte()
-	{
-		int ret = 2;
-		byte b = 2;
+    private static int DoByte()
+    {
+        int ret = 2;
+        byte b = 2;
 
-		switch (b) {
-		case 1:
-		case 2:
-			ret--;
-			break;
-		case 3:
-			break;
-		default:
-			break;
-		}
+        switch (b) {
+        case 1:
+        case 2:
+            ret--;
+            break;
+        case 3:
+            break;
+        default:
+            break;
+        }
 
-		switch (b) {
-		case 1:
-		case 3:
-			break;
-		default:
-			ret--;
-       	    break;
-		}
+        switch (b) {
+        case 1:
+        case 3:
+            break;
+        default:
+            ret--;
+            break;
+        }
 
-		Console.Write(ret);
-		return(ret);
-	}
+        Console.Write(ret);
+        return(ret);
+    }
 }";
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoByte",
@@ -465,38 +465,38 @@ public class Test
 {
     public static void Main(string [] args)
     {
-		int ret = 0;
-		ret = DoLong(2);
+        int ret = 0;
+        ret = DoLong(2);
         Console.Write(ret);
-		ret = DoLong(4);
+        ret = DoLong(4);
         Console.Write(ret);
-		ret = DoLong(42);
+        ret = DoLong(42);
         Console.Write(ret);
     }
 
-	private static int DoLong(long b)
-	{
-		int ret = 2;
+    private static int DoLong(long b)
+    {
+        int ret = 2;
 
-		switch (b) {
-		case 1:
+        switch (b) {
+        case 1:
             ret++;
             break;            
-		case 2:
-			ret--;
-			break;
-		case 3:
-			break;
-		case 4:
-			ret += 7;
+        case 2:
+            ret--;
             break;
-		default:
-			ret+=2;
+        case 3:
             break;
-		}
+        case 4:
+            ret += 7;
+            break;
+        default:
+            ret+=2;
+            break;
+        }
 
-		return ret;
-	}
+        return ret;
+    }
 }
 ";
             var compVerifier = CompileAndVerify(text, expectedOutput: "194");
@@ -717,46 +717,46 @@ public class Test
 
 public class Test
 {
-	enum eTypes {
-		kFirst,
-		kSecond,
-		kThird,
-	};
+    enum eTypes {
+        kFirst,
+        kSecond,
+        kThird,
+    };
     public static int Main(string [] args)
     {
-		int ret = 0;
-		ret = DoEnum();
+        int ret = 0;
+        ret = DoEnum();
         return(ret);
     }
-	
-	private static int DoEnum()
-	{
-	    int ret = 2;
+    
+    private static int DoEnum()
+    {
+        int ret = 2;
         eTypes e = eTypes.kSecond;
 
-	    switch (e) {
+        switch (e) {
         case eTypes.kThird:
-	    case eTypes.kSecond:
-        	ret--;
-	        break;
-	    case (eTypes) (-1):
-        	break;
-	    default:
-        	break;
-	    }
+        case eTypes.kSecond:
+            ret--;
+            break;
+        case (eTypes) (-1):
+            break;
+        default:
+            break;
+        }
 
-	    switch (e) {
+        switch (e) {
         case (eTypes)100:
-	    case (eTypes) (-1):
-        	break;
-	    default:
-	        ret--;
-        	break;
-	    }
+        case (eTypes) (-1):
+            break;
+        default:
+            ret--;
+            break;
+        }
 
-	    Console.Write(ret);
-	    return(ret);
-	}
+        Console.Write(ret);
+        return(ret);
+    }
 }";
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum",
@@ -809,59 +809,59 @@ public class Test
 
 public class Test
 {
-	enum eTypes {
-		kFirst,
-		kSecond,
-		kThird,
-	};
+    enum eTypes {
+        kFirst,
+        kSecond,
+        kThird,
+    };
     public static int Main(string [] args)
     {
-		int ret = 0;
-		ret = DoEnum();
+        int ret = 0;
+        ret = DoEnum();
         return(ret);
     }
-	
-	private static int DoEnum()
-	{
-	    int ret = 3;
+    
+    private static int DoEnum()
+    {
+        int ret = 3;
         eTypes? e = eTypes.kSecond;
 
-	    switch (e)
+        switch (e)
         {
             case eTypes.kThird:
-	        case eTypes.kSecond:
-        	    ret--;
-	            break;
-	        default:
-        	    break;
-	    }
+            case eTypes.kSecond:
+                ret--;
+                break;
+            default:
+                break;
+        }
 
-	    switch (e)
+        switch (e)
         {
             case null:
-	        case (eTypes) (-1):
-        	    break;
-	        default:
-	            ret--;
-        	    break;
-	    }
+            case (eTypes) (-1):
+                break;
+            default:
+                ret--;
+                break;
+        }
         
         e = null;
         switch (e)
         {
             case null:
-	    	    ret--;
-        	    break;
-	        case (eTypes) (-1):
+                ret--;
+                break;
+            case (eTypes) (-1):
             case eTypes.kThird:
-	        case eTypes.kSecond:
+            case eTypes.kSecond:
             default:
-	            break;
-	    }
+                break;
+        }
 
-	    Console.Write(ret);
-	    return(ret);
-	}
+        Console.Write(ret);
+        return(ret);
+    }
 }";
 
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
@@ -1036,20 +1036,20 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 3;
+        int ret = 3;
 
-		for (int i = 0; i < 3; i++) {
-			switch (i) {
-			case 1:
-			case 0:
-			case 2:
-				ret--;
-				break;
-			default:
+        for (int i = 0; i < 3; i++) {
+            switch (i) {
+            case 1:
+            case 0:
+            case 2:
+                ret--;
+                break;
+            default:
                 Console.Write(1);
-				return(1);
-			}
-		}
+                return(1);
+            }
+        }
 
         Console.Write(ret);
         return(ret);
@@ -1291,48 +1291,48 @@ public class Test
 
     public static int M()
     {
-		int ret = 6;
+        int ret = 6;
 
-		switch (ret) {
-		case 0:
-			ret--; // 2
-			Console.Write(""case 0: "");
-			Console.WriteLine(ret);
-			goto case 9999;
-		case 2:
-			ret--; // 4
-			Console.Write(""case 2: "");
-			Console.WriteLine(ret);
-			goto case 255;
-		case 6:			// start here
-			ret--; // 5
-			Console.Write(""case 5: "");
-			Console.WriteLine(ret);
-			goto case 2;
-		case 9999:
-			ret--; // 1
-			Console.Write(""case 9999: "");
-			Console.WriteLine(ret);
-			goto default;
-		case 0xff:
-			ret--; // 3
-			Console.Write(""case 0xff: "");
-			Console.WriteLine(ret);
-			goto case 0;
-		default:
-			ret--;
-			Console.Write(""Default: "");
-			Console.WriteLine(ret);
-			if (ret > 0) {
-				goto case -1;
-			}
-			break;
-		case -1:
-			ret = 999;
-			Console.WriteLine(""case -1: "");
-			Console.Write(ret);
-			break;
-		}
+        switch (ret) {
+        case 0:
+            ret--; // 2
+            Console.Write(""case 0: "");
+            Console.WriteLine(ret);
+            goto case 9999;
+        case 2:
+            ret--; // 4
+            Console.Write(""case 2: "");
+            Console.WriteLine(ret);
+            goto case 255;
+        case 6: // start here
+            ret--; // 5
+            Console.Write(""case 5: "");
+            Console.WriteLine(ret);
+            goto case 2;
+        case 9999:
+            ret--; // 1
+            Console.Write(""case 9999: "");
+            Console.WriteLine(ret);
+            goto default;
+        case 0xff:
+            ret--; // 3
+            Console.Write(""case 0xff: "");
+            Console.WriteLine(ret);
+            goto case 0;
+        default:
+            ret--;
+            Console.Write(""Default: "");
+            Console.WriteLine(ret);
+            if (ret > 0) {
+                goto case -1;
+            }
+            break;
+        case -1:
+            ret = 999;
+            Console.WriteLine(""case -1: "");
+            Console.Write(ret);
+            break;
+        }
 
         return(ret);
     }
@@ -1474,7 +1474,7 @@ public class Test
       case 1000:
       case 2010:
       case 2008:
-	    return 3;
+        return 3;
       case 2005:
       case 2009:
         return 2;
@@ -1563,7 +1563,7 @@ public class Test
       case 1000:
       case 2010:
       case 2008:
-	    return 3;
+        return 3;
       case 2009:
         return 2;
     }
@@ -2017,11 +2017,11 @@ class Program
     }
 }";
             var compilation = base.CreateCSharpCompilation(text);
-            // (8,13): error CS0150: A constant value is expected
-            //             case i:
-            var expected = Diagnostic(ErrorCode.ERR_ConstantExpected, "case i:");
-
-            compilation.VerifyDiagnostics(expected);
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case i:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "i").WithLocation(8, 18)
+                );
         }
 
         [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
@@ -2245,58 +2245,58 @@ public class Test
 
 class Test
 {
-	public static bool M(string test)
-	{
-		string	value = """";
+    public static bool M(string test)
+    {
+        string	value = """";
 
-		if (test != null && test.IndexOf(""C#"") != -1)
-			test = test.Remove(0, 2);
+        if (test != null && test.IndexOf(""C#"") != -1)
+            test = test.Remove(0, 2);
 
-		switch (test)
-		{
-			case null:
+        switch (test)
+        {
+            case null:
                 value = null;
                 break;
             case """":
                 break;
             case ""_"":
-				value = ""_"";
-				break;
-			case ""W"":
-				value = ""W"";
-				break;
-			case ""B"":
-				value = ""B"";
-				break;
-			case ""C"":
-				value = ""C"";
-				break;
-			case ""<"":
-				value = ""<"";
-				break;
-			case ""T"":
-				value = ""T"";
-				break;
-			case ""M"":
-				value = ""M"";
-				break;
-		}
+                value = ""_"";
+                break;
+            case ""W"":
+                value = ""W"";
+                break;
+            case ""B"":
+                value = ""B"";
+                break;
+            case ""C"":
+                value = ""C"";
+                break;
+            case ""<"":
+                value = ""<"";
+                break;
+            case ""T"":
+                value = ""T"";
+                break;
+            case ""M"":
+                value = ""M"";
+                break;
+        }
 
-		return (value == test);
-	}
-	public static void Main()
-	{
-		bool success = Test.M(""C#"");
-		success &= Test.M(""C#_"");
+        return (value == test);
+    }
+    public static void Main()
+    {
+        bool success = Test.M(""C#"");
+        success &= Test.M(""C#_"");
         success &= Test.M(""C#W"");
-		success &= Test.M(""C#B"");
-		success &= Test.M(""C#C"");
-		success &= Test.M(""C#<"");
-		success &= Test.M(""C#T"");
-		success &= Test.M(""C#M"");
+        success &= Test.M(""C#B"");
+        success &= Test.M(""C#C"");
+        success &= Test.M(""C#<"");
+        success &= Test.M(""C#T"");
+        success &= Test.M(""C#M"");
         success &= Test.M(null);
-		Console.WriteLine(success);
-	}
+        Console.WriteLine(success);
+    }
 }";
             var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "True");
 
@@ -2458,195 +2458,195 @@ using System.Text;
 
 class Test
 {
-	public static bool Switcheroo(string test)
-	{
-		string	value = """";
+    public static bool Switcheroo(string test)
+    {
+        string	value = """";
 
-		if (test.IndexOf(""C#"") != -1)
-			test = test.Remove(0, 2);
+        if (test.IndexOf(""C#"") != -1)
+            test = test.Remove(0, 2);
 
-		switch (test)
-		{
-			case ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"":
-				value = ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"";
-				break;
-			case ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"":
-				value = ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"";
-				break;
-			case ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"":
-				value = ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"";
-				break;
-			case ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"":
-				value = ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"";
-				break;
-			case ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"":
-				value = ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"";
-				break;
-			case ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"":
-				value = ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"";
-				break;
-			case ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"":
-				value = ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"";
-				break;
-			case ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"":
-				value = ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"";
-				break;
-			case ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"":
-				value = ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"";
-				break;
-			case ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"":
-				value = ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"";
-				break;
-			case "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"":
-				value = "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"";
-				break;
-			case ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"":
-				value = ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"";
-				break;
-			case ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"":
-				value = ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"";
-				break;
-			case ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"":
-				value = ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"";
-				break;
-			case ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"":
-				value = ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"";
-				break;
-			case ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"":
-				value = ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"";
-				break;
-			case ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"":
-				value = ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"";
-				break;
-			case ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"":
-				value = ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"";
-				break;
-			case ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"":
-				value = ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"";
-				break;
-			case ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"":
-				value = ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"";
-				break;
-			case ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"":
-				value = ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"";
-				break;
-			case ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"":
-				value = ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"";
-				break;
-			case ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"":
-				value = ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"";
-				break;
-			case ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"":
-				value = ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"";
-				break;
-		}
+        switch (test)
+        {
+            case ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"":
+                value = ""N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"";
+                break;
+            case ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"":
+                value = ""emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"";
+                break;
+            case ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"":
+                value = ""Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"";
+                break;
+            case ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"":
+                value = ""[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"";
+                break;
+            case ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"":
+                value = ""<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"";
+                break;
+            case ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"":
+                value = ""[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"";
+                break;
+            case ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"":
+                value = ""d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"";
+                break;
+            case ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"":
+                value = ""n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"";
+                break;
+            case ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"":
+                value = ""H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"";
+                break;
+            case ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"":
+                value = ""iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"";
+                break;
+            case "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"":
+                value = "">AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"";
+                break;
+            case ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"":
+                value = ""d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"";
+                break;
+            case ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"":
+                value = ""fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"";
+                break;
+            case ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"":
+                value = ""9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"";
+                break;
+            case ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"":
+                value = ""A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"";
+                break;
+            case ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"":
+                value = ""SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"";
+                break;
+            case ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"":
+                value = ""0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"";
+                break;
+            case ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"":
+                value = ""4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"";
+                break;
+            case ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"":
+                value = ""EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"";
+                break;
+            case ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"":
+                value = ""?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"";
+                break;
+            case ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"":
+                value = ""HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"";
+                break;
+            case ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"":
+                value = ""XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"";
+                break;
+            case ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"":
+                value = ""MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"";
+                break;
+            case ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"":
+                value = ""L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"";
+                break;
+        }
 
-		return (value == test);
-	}
-	public static void Main()
-	{
-		string status = ""PASS"";
-		bool retval;
-		retval = Test.Switcheroo(""C#N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#>AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"");
-		if (!retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#a@=FkgImdk5<Wn0DRYa?m0<F0JT4kha;H:HIZ;6C"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#Zbk^]59O<<GHe8MjRMOh4]c3@RQ?hU>^G81cOMW:"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#hP<l25H@W60UF4bYYDU]0AjIE6oCQ^k66F9gNJ`Q"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#XS9dCIb;9T`;JJ1Jmimba@@0[l[B=BgDhKZ05DO2"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#JbMbko?;e@1XLU>:=c_Vg>0YTJ7Qd]6KLh26miBV"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#IW3:>L<H<kf:AS2ZYDGaE`?^HZY_D]cRO[lNjd4;"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#NC>J^E3;VJ`nKSjVbJ_Il^^@0Xof9CFA2I1I^9c>"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#TfjQOCnAhM8[T3JUbLlQMS=`F=?:FPT3=X0Q]aj:"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#H_6fHA8OKO><TYDXiIg[Qed<=71KC>^6cTMOjT]d"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#jN>cSCF0?I<1RSQ^g^HnBABPhUc>5Y`ahlY9HS]5"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#V;`Q_kEGIX=Mh9=UVF[Q@Q=QTT@oC]IRF]<bA1R9"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#7DKT?2VIk2^XUJ>C]G_IDe?299DJTD>1RO18Ql>F"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#U`^]IeJC;o^90V=5<ToV<Gj26hnZLolffohc8iZX"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#9S?>A?E>gBl_dC[iCiiNnW7<BP;eGHf>8ceTGZ6C"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#ALLhjN7]XVBBA=VcYM8iWg^FGiG[QG03dlKYnIAe"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#6<]i]EllPZf6mnAM0D1;0eP6_G1HmRSi?`1o[a_a"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#]5Tb^6:NB]>ahEoWI5U9N5beS<?da]A]fL08AelQ"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#KhPBV8=H?G^Hmaaf^n<GcoI8eC1O_0]579;MY=81"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#A8iN_OFUPIcWac0^LU1;^HaEX[_E]<8h3N:Hm_XX"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#Y811aKWEJYcX6Y1aj_I]O7TXP5j_lo;71kAiB:;:"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#P@ok2DgbUDeLVA:POd`B_S@2Ocg99VQBZ<LI<gd1"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#9V84FSRoD9453VdERM86a6B12VeN]hNNU:]XE`W9"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#Tegah0mKcWmFhaH0K0oSjKGkmH8gDEF3SBVd2H1P"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#=II;VADkVKf7JV55ca5oUjkPaWSY7`LXTlgTV4^W"");
-		if (retval) status = ""FAIL"";
-		retval = Test.Switcheroo(""C#k7XPoXNhd8P0V7@Sd5ohO>h7io3Pl[J[8g:[_da^"");
-		if (retval) status = ""FAIL"";
-		Console.Write(status);
-	}
+        return (value == test);
+    }
+    public static void Main()
+    {
+        string status = ""PASS"";
+        bool retval;
+        retval = Test.Switcheroo(""C#N?_2hBEJa_klm0=BRoM]mBSY3l=Zm<Aj:mBNm9[9"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#emoYDC`E3JS]IU[X55VKF<e5CjkZb0S0VYQlcS]I"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#Ye]@FRVZi8Rbn0;43c8lo5`W]1CK;cfa2485N45m"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#[Q0V3M_N2;9jTP=79iBK6<edbYXh;`FcaEGD0RhD"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#<9Ria992H`W:DNX7lm]LV]9LUnJKDXcCo6Zd_FM]"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#[Z`j:cCFgh2cd3:>1Z@T0o<Q<0o_;11]nMd3bP9c"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#d2U5RWR:j0RS9MZZP3[f@NPgKFS9mQi:na@4Z_G0"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#n7AOl<DYj1]k>F7FaW^5b2Ki6UP0@=glIc@RE]3>"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#H==7DT_M5125HT:m@`7cgg>WbZ4HAFg`Am:Ba:fF"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#iEj07Ik=?G35AfEf?8@5[@4OGYeXIHYH]CZlHY7:"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#>AcFS3V9Y@g<55K`=QnYTS=B^CS@kg6:Hc_UaRTj"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#d1QZgJ_jT]UeL^UF2XWS@I?Hdi1MTm9Z3mdV7]0:"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#fVObMkcK:_AQae0VY4N]bDXXI_KkoeNZ9ohT?gfU"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#9o4i04]a4g2PRLBl@`]OaoY]1<h3on[5=I3U[9RR"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#A1>CNg1bZTYE64G<Adn;aE957eWjEcaXZUf<TlGj"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#SK`1T7]RZZR]lkZ`nFcm]k0RJlcF>eN5=jEi=A^k"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#0@U=MkSf3niYF;8aC0U]IX=X[Y]Kjmj<4CR5:4R4"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#4g1JY?VRdh5RYS[Z;ElS=5I`7?>OKlD3mF1;]M<O"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#EH=noQ6]]@Vj5PDW;KFeEE7j>I<Q>4243W`AGHAe"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#?k3Amd3aFf3_4S<bJ9;UdR7WYVmbZLh[2ekHKdTM"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#HR9nATB9C[FY7B]9iI6IbodSencFWSVlhL879C:W"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#XPTnWmDfL^AIH];Ek6l1AV9J020j<W:V6SU9VA@D"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#MXO]7S@eM`o>LUXfLTk^m3eP2NbAj8N^[]J7PCh9"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#L=FTZJ_V59eFjg_REMagg4n0Sng1]3mOgEAQ]EL4"");
+        if (!retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#a@=FkgImdk5<Wn0DRYa?m0<F0JT4kha;H:HIZ;6C"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#Zbk^]59O<<GHe8MjRMOh4]c3@RQ?hU>^G81cOMW:"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#hP<l25H@W60UF4bYYDU]0AjIE6oCQ^k66F9gNJ`Q"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#XS9dCIb;9T`;JJ1Jmimba@@0[l[B=BgDhKZ05DO2"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#JbMbko?;e@1XLU>:=c_Vg>0YTJ7Qd]6KLh26miBV"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#IW3:>L<H<kf:AS2ZYDGaE`?^HZY_D]cRO[lNjd4;"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#NC>J^E3;VJ`nKSjVbJ_Il^^@0Xof9CFA2I1I^9c>"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#TfjQOCnAhM8[T3JUbLlQMS=`F=?:FPT3=X0Q]aj:"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#H_6fHA8OKO><TYDXiIg[Qed<=71KC>^6cTMOjT]d"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#jN>cSCF0?I<1RSQ^g^HnBABPhUc>5Y`ahlY9HS]5"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#V;`Q_kEGIX=Mh9=UVF[Q@Q=QTT@oC]IRF]<bA1R9"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#7DKT?2VIk2^XUJ>C]G_IDe?299DJTD>1RO18Ql>F"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#U`^]IeJC;o^90V=5<ToV<Gj26hnZLolffohc8iZX"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#9S?>A?E>gBl_dC[iCiiNnW7<BP;eGHf>8ceTGZ6C"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#ALLhjN7]XVBBA=VcYM8iWg^FGiG[QG03dlKYnIAe"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#6<]i]EllPZf6mnAM0D1;0eP6_G1HmRSi?`1o[a_a"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#]5Tb^6:NB]>ahEoWI5U9N5beS<?da]A]fL08AelQ"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#KhPBV8=H?G^Hmaaf^n<GcoI8eC1O_0]579;MY=81"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#A8iN_OFUPIcWac0^LU1;^HaEX[_E]<8h3N:Hm_XX"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#Y811aKWEJYcX6Y1aj_I]O7TXP5j_lo;71kAiB:;:"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#P@ok2DgbUDeLVA:POd`B_S@2Ocg99VQBZ<LI<gd1"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#9V84FSRoD9453VdERM86a6B12VeN]hNNU:]XE`W9"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#Tegah0mKcWmFhaH0K0oSjKGkmH8gDEF3SBVd2H1P"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#=II;VADkVKf7JV55ca5oUjkPaWSY7`LXTlgTV4^W"");
+        if (retval) status = ""FAIL"";
+        retval = Test.Switcheroo(""C#k7XPoXNhd8P0V7@Sd5ohO>h7io3Pl[J[8g:[_da^"");
+        if (retval) status = ""FAIL"";
+        Console.Write(status);
+    }
 }";
             var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
 
@@ -3136,29 +3136,29 @@ public class Test
 class X {}
 class Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
-	public static implicit operator X (Conv C2)
-	{
-		return new X();
-	}
-	
-	public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    case 1:
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
+    public static implicit operator X (Conv C2)
+    {
+        return new X();
+    }
+    
+    public static int Main()
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            case 1:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CompileAndVerify(text, expectedOutput: "Pass");
@@ -3177,38 +3177,38 @@ class Conv
 enum X { F = 0 }
 class Conv
 {
-	// only valid operator
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    // only valid operator
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     // bool type is not valid
-	public static implicit operator bool (Conv C2)
-	{
-		return false;
-	}
+    public static implicit operator bool (Conv C2)
+    {
+        return false;
+    }
 
     // enum type is not valid
     public static implicit operator X (Conv C3)
-	{
-		return X.F;
-	}
-	
-	
-	public static int Main()
-	{
-		Conv C = new Conv();
-		switch(C)
-		{
-		    case 1:
+    {
+        return X.F;
+    }
+    
+    
+    public static int Main()
+    {
+        Conv C = new Conv();
+        switch(C)
+        {
+            case 1:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CompileAndVerify(text, expectedOutput: "Pass");
@@ -3225,32 +3225,32 @@ class Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C2)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv? D = new Conv();
-		switch(D)
-		{
-		    case 1:
+    {
+        Conv? D = new Conv();
+        switch(D)
+        {
+            case 1:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		    case null:
+            case null:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 1;
-		}
-	}		
+        }
+    }		
 }
 ";
             CompileAndVerify(text, expectedOutput: "Pass");
@@ -3267,32 +3267,32 @@ struct Conv
             var text = @"
 struct Conv
 {
-	public static implicit operator int (Conv C)
-	{
-		return 1;
-	}
-	
+    public static implicit operator int (Conv C)
+    {
+        return 1;
+    }
+    
     public static implicit operator int? (Conv? C)
-	{
-		return null;
-	}
-	
+    {
+        return null;
+    }
+    
     public static int Main()
-	{
-		Conv? C = new Conv();
-		switch(C)
-		{
-		    case null:
+    {
+        Conv? C = new Conv();
+        switch(C)
+        {
+            case null:
                 System.Console.WriteLine(""Pass"");
                 return 0;
-		    case 1:
+            case 1:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		    default:
+            default:
                 System.Console.WriteLine(""Fail"");
                 return 0;
-		}
-	}		
+        }
+    }		
 }
 ";
             CompileAndVerify(text, expectedOutput: "Pass");
@@ -5978,16 +5978,16 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 2;
-		switch (true)
+        int ret = 2;
+        switch (true)
         {
-		    case true:
-			    ret = 0;
-			    break;
-		    case false:        // unreachable case label
-			    ret = 1;
-			    break;
-		}
+            case true:
+                ret = 0;
+                break;
+            case false:        // unreachable case label
+                ret = 1;
+                break;
+        }
 
         Console.Write(ret);
         return(ret);
@@ -6026,16 +6026,16 @@ public class Test
 {
     public static int Main(string [] args)
     {
-		int ret = 1;
-		switch (true)
+        int ret = 1;
+        switch (true)
         {
-		    default:        // unreachable default label
-			    ret = 1;
-			    break;
-		    case true: 
-			    ret = 0;
+            default:        // unreachable default label
+                ret = 1;
                 break;
-		}
+            case true: 
+                ret = 0;
+                break;
+        }
 
         Console.Write(ret);
         return(ret);
@@ -6160,9 +6160,9 @@ public class Test
     public static int Main(string [] args)
     {
         int ret = 0;
-		switch (true) {
+        switch (true) {
 
-		}
+        }
 
         Console.Write(ret);
         return(0);

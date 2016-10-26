@@ -1,12 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
@@ -37,12 +37,12 @@ class $$C
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C() ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (11, 21) : var a = new C();")),
-                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C(int) ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (12, 21) : var b = new C(5);")),
-                    TestFindResult.CreateDefinition($"[CSharpAssembly1] class C ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C() ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.cs - (11, 21) : var a = new C();")),
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C(int) ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.cs - (12, 21) : var b = new C(5);")),
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] class C ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.cs - (13, 17) : var c = C.z;"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
@@ -70,12 +70,12 @@ End Class"]]></Text>
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Class C ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (14, 17) : Dim d = C.z")),
-                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New() ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (12, 21) : Dim a = New C()")),
-                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New(Integer) ({ServicesVSResources.ReferenceCountSingular})",
-                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Class C ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.vb - (14, 17) : Dim d = C.z")),
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New() ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.vb - (12, 21) : Dim a = New C()")),
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New(Integer) ({ServicesVSResources._1_reference})",
+                        TestFindResult.CreateReference("Test1.vb - (13, 21) : Dim b = New C(5)"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.VisualBasic, expectedResults)
@@ -95,9 +95,9 @@ namespace NS
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    TestFindResult.CreateUnnavigable($"namespace NS ({String.Format(ServicesVSResources.ReferenceCountPlural, 2)})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 11) : namespace NS"),
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (6, 11) : namespace NS"))
+                    TestFindResult.CreateUnnavigable($"namespace NS ({String.Format(ServicesVSResources._0_references, 2)})",
+                        TestFindResult.CreateReference("Test1.cs - (2, 11) : namespace NS"),
+                        TestFindResult.CreateReference("Test1.cs - (6, 11) : namespace NS"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
@@ -112,19 +112,19 @@ using System.Threading;
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    TestFindResult.CreateUnnavigable($"namespace System ({String.Format(ServicesVSResources.ReferenceCountPlural, 2)})",
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 7) : using System;"),
-                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (3, 7) : using System.Threading;"))
+                    TestFindResult.CreateUnnavigable($"namespace System ({String.Format(ServicesVSResources._0_references, 2)})",
+                        TestFindResult.CreateReference("Test1.cs - (2, 7) : using System;"),
+                        TestFindResult.CreateReference("Test1.cs - (3, 7) : using System.Threading;"))
                 }
 
             Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
         End Function
 
-
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceProvider),
-                GetType(MockSymbolNavigationServiceProvider)))
+                GetType(MockSymbolNavigationServiceProvider),
+                GetType(DefaultDefinitionsAndReferencesFactory)))
 
         Private Async Function VerifyAsync(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem)) As System.Threading.Tasks.Task
             Dim workspaceXml =
@@ -148,7 +148,10 @@ using System.Threading;
 
                 WpfTestCase.RequireWpfFact($"The {NameOf(Implementation.Library.FindResults.LibraryManager)} assumes it's on the VS UI thread and thus uses WaitAndGetResult")
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
-                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)
+
+                Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
+                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(workspace.CurrentSolution, result)
+                Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.
                 expectedResults = expectedResults.OrderBy(Function(n) n.DisplayText).ToList()

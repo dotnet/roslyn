@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -10,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -80,11 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             return GetUnnecessaryImports(model, root, cancellationToken) as IEnumerable<UsingDirectiveSyntax>;
         }
 
-        private Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
         {
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
-            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken: cancellationToken);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private void AddFormattingSpans(

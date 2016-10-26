@@ -279,5 +279,20 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return _modifiers.ToString();
         }
+
+        public static bool TryParse(string value, out DeclarationModifiers modifiers)
+        {
+            Modifiers mods;
+            if (Enum.TryParse(value, out mods))
+            {
+                modifiers = new DeclarationModifiers(mods);
+                return true;
+            }
+            else
+            {
+                modifiers = default(DeclarationModifiers);
+                return false;
+            }
+        }
     }
 }

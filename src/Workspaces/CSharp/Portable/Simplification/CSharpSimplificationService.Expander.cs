@@ -267,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&
-                    !IsPassedToDelegateCreationExpression(node, argumentType))
+                    !IsPassedToDelegateCreationExpression(node, argumentType) &&
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
                 {
                     ExpressionSyntax newArgumentExpressionWithCast;
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
@@ -763,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         foreach (var argument in invocationExpression.ArgumentList.Arguments)
                         {
-                            if (argument != null && argument.Expression != null)
+                            if (argument != null)
                             {
                                 var typeinfo = semanticModel.GetTypeInfo(argument.Expression);
                                 if (typeinfo.Type != null && typeinfo.Type.TypeKind == TypeKind.Dynamic)

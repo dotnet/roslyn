@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -460,7 +459,27 @@ End Class
             Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(201807, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=201807&triage=true&_a=edit")>
+        Public Async Function TestDoNotCrashAtPosition1AfterEquals() As Task
+            Dim markup = <Text><![CDATA[=$$     
+]]></Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12733, "https://github.com/dotnet/roslyn/issues/12733")>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text>Module Module1
+    Sub Main()
+            Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module</Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New EnumCompletionProvider()
         End Function
     End Class

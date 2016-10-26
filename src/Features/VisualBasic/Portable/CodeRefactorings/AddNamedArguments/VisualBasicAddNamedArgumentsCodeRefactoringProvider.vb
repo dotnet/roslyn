@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddNamedArguments
+    <ExtensionOrder(After := PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddNamedArgumentsCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicAddNamedArgumentsCodeRefactoringProvider
         Inherits AbstractAddNamedArgumentsCodeRefactoringProvider(Of ArgumentSyntax)

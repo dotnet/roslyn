@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         LambdaMethod = 'b',
         LambdaDisplayClass = 'c',
         StateMachineType = 'd',
+        LocalFunction = 'g',
 
         // Used by EnC:
         AwaiterField = 'u',
