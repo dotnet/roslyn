@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -16,6 +17,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
@@ -25,6 +27,7 @@ Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
+Imports VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
@@ -40,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Private _context As AbstractDebuggerIntelliSenseContext
 
         Friend Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
-        Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend Property CurrentCompletionPresenterSession As CompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
 
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
@@ -67,7 +70,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
                 GetService(Of IWaitIndicator)(),
-                New TestCompletionPresenter(Me),
+                New TestCompletionPresenter(Me, New VisualStudio14CompletionSetFactory(),
+                                            GetExportedValue(Of ICompletionBroker),
+                                            GetExportedValue(Of IGlyphService)),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
@@ -193,10 +198,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
-            AssertNoAsynchronousOperationsRunning()
-            CurrentCompletionPresenterSession.SetSelectedItem(item)
-        End Sub
+        'Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As VSCompletion)
+        '    AssertNoAsynchronousOperationsRunning()
+        '    CurrentCompletionPresenterSession.SetSelectedItem(item)
+        'End Sub
 
         Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
             If block Then
@@ -219,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If Not CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
+                If Not CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Didn't find '" & displayText & "' in completion.")
                 End If
             Next
@@ -233,7 +238,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
+                If CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Found '" & displayText & "' in completion.")
                 End If
             Next
@@ -248,15 +253,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
-                Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.Equal(isSoftSelected.Value, Not Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.Equal(isHardSelected.Value, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText)
             End If
 
 #If False Then
@@ -268,7 +273,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, Me.CurrentCompletionPresenterSession.SelectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.GetCompletionItem())
                 Assert.Equal(description, itemDescription.Text)
             End If
         End Function

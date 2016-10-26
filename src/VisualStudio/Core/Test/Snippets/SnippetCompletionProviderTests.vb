@@ -6,6 +6,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Roslyn.Test.Utilities
@@ -23,11 +24,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Assert.Equal(testState.GetDocumentText(), "a")
 
                 Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
+                Assert.Equal(testState.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText, "Shortcut")
 
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = document.Project.LanguageServices.GetService(Of CompletionService)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, testState.CurrentCompletionPresenterSession.SelectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(
+                    document, testState.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.GetCompletionItem())
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
@@ -43,11 +45,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Using testState
                 testState.SendTabToCompletion()
                 Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
+                Assert.Equal(testState.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText, "Shortcut")
 
                 testState.SendBackspace()
                 Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
+                Assert.Equal(testState.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText, "Shortcut")
 
                 testState.SendTabToCompletion()
 

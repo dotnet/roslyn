@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -16,6 +17,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
@@ -52,7 +54,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),
                     GetService(Of IWaitIndicator)(),
-                    New TestCompletionPresenter(Me),
+                    New TestCompletionPresenter(Me, New VisualStudio14CompletionSetFactory(),
+                                                GetExportedValue(Of ICompletionBroker), GetExportedValue(Of IGlyphService)),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                     GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
@@ -67,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As CompletionCommandHandler
-        Private _currentCompletionPresenterSession As TestCompletionPresenterSession
+        Private _currentCompletionPresenterSession As CompletionPresenterSession
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
@@ -75,12 +78,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Return MinimalTestExportProvider.CreateTypeCatalog(extraParts)
         End Function
 
-        Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Public Property CurrentCompletionPresenterSession As CompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
             Get
                 Return _currentCompletionPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
+            Set
+                _currentCompletionPresenterSession = Value
             End Set
         End Property
 

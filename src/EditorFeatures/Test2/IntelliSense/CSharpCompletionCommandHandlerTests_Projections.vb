@@ -141,7 +141,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="region")
 
             End Using
         End Function
