@@ -47,4 +47,7 @@
                  Location="|ExpressionEvaluatorPackage;VSIXContainerProjectOutputGroup|" 
                  Id="|ExpressionEvaluatorPackage;VSIXIdentifierProjectOutputGroup|" />
   </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>
