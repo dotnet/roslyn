@@ -40,9 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 else if (!PathUtilities.IsAbsolute(binOutputPath))
                 {
                     // Make it a rooted path.
-                    var basePath = !string.IsNullOrEmpty(projectFilePath) && Path.IsPathRooted(projectFilePath) ?
-                        PathUtilities.GetDirectoryName(projectFilePath) :
-                        Path.GetTempPath();
+                    var basePath = PathUtilities.IsAbsolute(projectFilePath) ? PathUtilities.GetDirectoryName(projectFilePath) : Path.GetTempPath();
                     binOutputPath = PathUtilities.CombineAbsoluteAndRelativePaths(basePath, binOutputPath);
                 }
             }
