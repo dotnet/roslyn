@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -36,13 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 {
                     binOutputPath = null;
                 }
-                else if (!Path.IsPathRooted(binOutputPath))
+                else if (!PathUtilities.IsAbsolute(binOutputPath))
                 {
                     // Make it a rooted path.
                     var basePath = !string.IsNullOrEmpty(projectFilePath) && Path.IsPathRooted(projectFilePath) ?
-                        Path.GetDirectoryName(projectFilePath) :
+                        PathUtilities.GetDirectoryName(projectFilePath) :
                         Path.GetTempPath();
-                    binOutputPath = Path.Combine(basePath, binOutputPath);
+                    binOutputPath = PathUtilities.CombineAbsoluteAndRelativePaths(basePath, binOutputPath);
                 }
             }
 
