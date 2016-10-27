@@ -1082,7 +1082,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     BoundStatementList lowered = (BoundStatementList) processedInitializers.LoweredInitializers;
                                     boundStatements = boundStatements.Concat(lowered.Statements);
-                                } else
+                                }
+                                else
                                 {
                                     boundStatements = boundStatements.Add(processedInitializers.LoweredInitializers);
                                 }
