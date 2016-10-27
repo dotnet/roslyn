@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -250,7 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var kvp in CapturedVariablesByLambda)
                 {
                     var lambda = kvp.Key;
-                    var allCapturedVars = new List<Symbol>(kvp.Value);
+                    var capturedVars = kvp.Value;
+
+                    var allCapturedVars = ArrayBuilder<Symbol>.GetInstance(capturedVars.Count);
+                    allCapturedVars.AddRange(capturedVars);
 
                     // If any of the captured variables are local functions we'll need
                     // to add the captured variables of that local function to the current
@@ -258,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // captures anything "above" the current scope then parent frame
                     // is itself captured (so that the current lambda can call that
                     // local function).
-                    foreach (var captured in kvp.Value)
+                    foreach (var captured in capturedVars)
                     {
                         var capturedLocalFunction = captured as LocalFunctionSymbol;
                         if (capturedLocalFunction != null)
@@ -303,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             outermostScope = curBlock;
                         }
                     }
+
+                    allCapturedVars.Free();
 
                     // 1) if there is innermost scope, lambda goes there as we cannot go any higher.
                     // 2) scopes in [innermostScope, outermostScope) chain need to have access to the parent scope.
