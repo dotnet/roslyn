@@ -114,14 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newBody = (BoundStatement)rewriter.Visit(loweredBody);
 
             // Visit all the rewritten methods as well
-            var synthesizedMethods = CompilationState.SynthesizedMethods;
+            var synthesizedMethods = _synthesizedMethods;
             if (synthesizedMethods != null)
             {
-                // Dump the existing methods for rewriting
-                var oldMethods = synthesizedMethods.ToImmutable();
-                synthesizedMethods.Clear();
+                var newMethods = ArrayBuilder<TypeCompilationState.MethodWithBody>.GetInstance(
+                    synthesizedMethods.Count);
 
-                foreach (var oldMethod in oldMethods)
+                foreach (var oldMethod in synthesizedMethods)
                 {
                     var synthesizedLambda = oldMethod.Method as SynthesizedLambdaMethod;
                     if (synthesizedLambda == null)
@@ -130,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // be lowered closures and frame constructors
                         Debug.Assert(oldMethod.Method.MethodKind == MethodKind.Constructor ||
                                      oldMethod.Method.MethodKind == MethodKind.StaticConstructor);
-                        CompilationState.AddSynthesizedMethod(oldMethod.Method, oldMethod.Body);
+                        newMethods.Add(oldMethod);
                         continue;
                     }
 
@@ -155,8 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var rewrittenBody = (BoundStatement)rewriter.Visit(oldMethod.Body);
 
-                    CompilationState.AddSynthesizedMethod(synthesizedLambda, rewrittenBody);
+                    var newMethod = new TypeCompilationState.MethodWithBody(
+                        synthesizedLambda, rewrittenBody, oldMethod.ImportChainOpt);
+                    newMethods.Add(newMethod);
                 }
+
+                _synthesizedMethods = newMethods;
+                synthesizedMethods.Free();
             }
 
             return newBody;

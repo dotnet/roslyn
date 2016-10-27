@@ -141,6 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // top-level block initializing those variables to null.
         private ArrayBuilder<BoundStatement> _addedStatements;
 
+        /// <summary>
+        /// Temporary bag for methods synthesized by the rewriting. Added to
+        /// <see cref="TypeCompilationState.SynthesizedMethods"/> at the end of rewriting.
+        /// </summary>
+        private ArrayBuilder<TypeCompilationState.MethodWithBody> _synthesizedMethods;
+
         private LambdaRewriter(
             Analysis analysis,
             NamedTypeSymbol thisType,
@@ -258,6 +264,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body = rewriter.RewriteLocalFunctionReferences(body);
             }
 
+            // Add the completed methods to the compilation state
+            if (rewriter._synthesizedMethods != null)
+            {
+                if (compilationState.SynthesizedMethods == null)
+                {
+                    compilationState.SynthesizedMethods = rewriter._synthesizedMethods;
+                }
+                else
+                {
+                    compilationState.SynthesizedMethods.AddRange(rewriter._synthesizedMethods);
+                    rewriter._synthesizedMethods.Free();
+                }
+            }
+
             CheckLocalsDefined(body);
 
             return body;
@@ -328,8 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
 
-                    if (captured.Kind != SymbolKind.Method && !
-                        proxies.ContainsKey(captured))
+                    if (captured.Kind != SymbolKind.Method && !proxies.ContainsKey(captured))
                     {
                         var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
                         proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
@@ -417,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 if (frame.Constructor != null)
                 {
-                    CompilationState.AddSynthesizedMethod(
+                    AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
                             MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
@@ -467,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
 
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
-                    CompilationState.AddSynthesizedMethod(
+                    AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
                             MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
@@ -488,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 F.New(frame.Constructor)),
                             new BoundReturnStatement(syntax, RefKind.None, null));
 
-                    CompilationState.AddSynthesizedMethod(frame.StaticConstructor, body);
+                    AddSynthesizedMethod(frame.StaticConstructor, body);
                 }
             }
 
@@ -1354,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
             CheckLocalsDefined(body);
-            CompilationState.AddSynthesizedMethod(synthesizedMethod, body);
+            AddSynthesizedMethod(synthesizedMethod, body);
 
             // return to the old method
 
@@ -1367,6 +1386,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             _addedStatements = oldAddedStatements;
 
             return synthesizedMethod;
+        }
+
+        private void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
+        {
+            if (_synthesizedMethods == null)
+            {
+                _synthesizedMethods = ArrayBuilder<TypeCompilationState.MethodWithBody>.GetInstance();
+            }
+
+            _synthesizedMethods.Add(
+                new TypeCompilationState.MethodWithBody(
+                    method,
+                    body,
+                    CompilationState.CurrentImportChain));
         }
 
         private BoundNode RewriteLambdaConversion(BoundLambda node)
