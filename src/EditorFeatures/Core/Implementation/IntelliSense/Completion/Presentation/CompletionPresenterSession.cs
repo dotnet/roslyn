@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public ITextBuffer SubjectBuffer { get; }
 
+        public CompletionSet CompletionSet => _completionSet.CompletionSet;
+
         public CompletionPresenterSession(
             ICompletionSetFactory completionSetFactory,
             ICompletionBroker completionBroker,

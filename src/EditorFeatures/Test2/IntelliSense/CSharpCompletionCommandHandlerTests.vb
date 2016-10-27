@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -648,7 +649,7 @@ class C
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -673,9 +674,9 @@ class Foo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "num:"))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "System"))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -698,7 +699,7 @@ class Foo
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(c) c.DisplayText = "Numeros").Count())
+                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionSet.Completions.Where(Function(c) c.DisplayText = "Numeros").Count())
             End Using
         End Function
 
@@ -721,7 +722,7 @@ class Foo
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(c) c.DisplayText = "Numeros").Count())
+                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionSet.Completions.Where(Function(c) c.DisplayText = "Numeros").Count())
             End Using
         End Function
 
@@ -791,13 +792,13 @@ class Program
 
                 state.SendTypeChars("i")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "@int:"))
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "@int:"))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "@int:"))
             End Using
         End Function
 
@@ -1145,7 +1146,7 @@ class A
             ]]></Document>)
                 state.SendTypeChars("X")
                 Await state.AssertCompletionSession()
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "X"))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionSet.Completions.Any(Function(i) i.DisplayText = "X"))
             End Using
         End Function
 
@@ -1503,7 +1504,7 @@ class AtAttribute : System.Attribute { }]]></Document>)
                 state.SendTypeChars("At")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("At")
-                Assert.Equal("At", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Assert.Equal("At", state.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText)
             End Using
         End Function
 
@@ -1579,7 +1580,7 @@ class C
                 state.SendTypeChars("Thing1")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Thing1")
-                Assert.True(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(CompletionTags.Warning))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.GetCompletionItem().Tags.Contains(CompletionTags.Warning))
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
@@ -1589,7 +1590,7 @@ class C
                 state.SendTypeChars("M")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("M")
-                Assert.False(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(CompletionTags.Warning))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.GetCompletionItem().Tags.Contains(CompletionTags.Warning))
             End Using
         End Function
 

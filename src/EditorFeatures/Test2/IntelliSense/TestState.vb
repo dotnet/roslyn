@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -18,6 +19,7 @@ Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
+Imports VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits AbstractCommandHandlerTestState
         Implements IIntelliSenseTestState
 
-        Private _currentCompletionPresenterSession As TestCompletionPresenterSession
+        Private _currentCompletionPresenterSession As CompletionPresenterSession
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
@@ -33,12 +35,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
 
         Friend Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
-        Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend Property CurrentCompletionPresenterSession As CompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
             Get
                 Return _currentCompletionPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
+            Set
+                _currentCompletionPresenterSession = Value
             End Set
         End Property
 
@@ -57,13 +59,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
             End If
 
+            Dim presenter As New TestCompletionPresenter(
+                Me, New VisualStudio14CompletionSetFactory(),
+                GetExportedValue(Of ICompletionBroker), GetExportedValue(Of IGlyphService))
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
                 GetService(Of IWaitIndicator)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
+                {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(
+                    Function() presenter, New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
@@ -153,6 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #End Region
 
 #Region "Completion Operations"
+
         Public Overloads Sub SendTab()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
             MyBase.SendTab(Sub(a, n) handler.ExecuteCommand(a, n), Sub() EditorOperations.InsertText(vbTab))
@@ -188,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
-            CurrentCompletionPresenterSession.SetSelectedItem(item)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As VSCompletion)
+            CurrentCompletionPresenterSession.CompletionSet.SelectionStatus = New CompletionSelectionStatus(item, isSelected:=True, isUnique:=True)
         End Sub
 
         Public Overloads Sub SendInsertSnippetCommand()
@@ -226,13 +233,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
+            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionSet.Completions.Any(
                                        Function(i) i.DisplayText = v))
         End Function
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
+            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionSet.Completions.Any(
                                        Function(i) i.DisplayText = v))
         End Function
 
@@ -240,23 +247,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
-                               Optional isHardSelected As Boolean? = Nothing,
-                               Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
+                               Optional isHardSelected As Boolean? = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
-                Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.Equal(isSoftSelected.Value, Not Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.Equal(isHardSelected.Value, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.IsSelected)
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
-            End If
-
-            If shouldFormatOnCommit.HasValue Then
-                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Rules.FormatOnCommit)
+                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.DisplayText)
             End If
 
 #If False Then
@@ -269,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = CompletionService.GetService(document)
                 Dim itemDescription = Await service.GetDescriptionAsync(
-                    document, Me.CurrentCompletionPresenterSession.SelectedItem)
+                    document, Me.CurrentCompletionPresenterSession.CompletionSet.SelectionStatus.Completion.GetCompletionItem())
                 Assert.Equal(description, itemDescription.Text)
             End If
         End Function
