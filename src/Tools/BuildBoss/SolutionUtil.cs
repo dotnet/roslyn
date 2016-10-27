@@ -9,11 +9,11 @@ namespace BuildBoss
 {
     internal static class SolutionUtil
     {
-        internal static List<ProjectData> ParseProjects(string solutionPath)
+        internal static List<ProjectEntry> ParseProjects(string solutionPath)
         {
             using (var reader = new StreamReader(solutionPath))
             {
-                var list = new List<ProjectData>();
+                var list = new List<ProjectEntry>();
                 while (true)
                 {
                     var line = reader.ReadLine();
@@ -34,14 +34,14 @@ namespace BuildBoss
             }
         }
 
-        private static ProjectData ParseProjectLine(string line)
+        private static ProjectEntry ParseProjectLine(string line)
         {
             var index = 0;
             var typeGuid = ParseStringLiteral(line, ref index);
             var name = ParseStringLiteral(line, ref index);
             var filePath = ParseStringLiteral(line, ref index);
             var guid = ParseStringLiteral(line, ref index);
-            return new ProjectData(
+            return new ProjectEntry(
                 relativeFilePath: filePath,
                 name: name,
                 guid: Guid.Parse(guid),

@@ -25,15 +25,19 @@
   <ItemGroup>
     <Compile Include="BuildBossConfig.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectKey.cs" />
     <Compile Include="ProjectType.cs" />
     <Compile Include="ProjectUtil.cs" />
+    <Compile Include="RoslynProjectData.cs" />
     <Compile Include="SharedUtil.cs" />
-    <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectEntry.cs" />
     <Compile Include="SolutionUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
