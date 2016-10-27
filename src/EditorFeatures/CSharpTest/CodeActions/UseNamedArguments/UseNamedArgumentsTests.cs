@@ -2,21 +2,20 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddNamedArguments;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddNamedArguments
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNamedArguments
 {
-    public class AddNamedArgumentsTests : AbstractCSharpCodeActionTest
+    public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
-            return new CSharpAddNamedArgumentsCodeRefactoringProvider();
+            return new CSharpUseNamedArgumentsCodeRefactoringProvider();
         }
-    
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestLiteralsOnly()
         {
             await TestAsync(
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddNam
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestDelegate()
         {
             await TestAsync(
@@ -34,7 +33,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMethod()
         {
             await TestAsync(
@@ -43,7 +42,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConditionalMethod()
         {
             await TestAsync(
@@ -52,7 +51,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConditionalIndexer()
         {
             await TestAsync(
@@ -61,7 +60,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestThisConstructorInitializer()
         {
             await TestAsync(
@@ -70,7 +69,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestBaseConstructorInitializer()
         {
             await TestAsync(
@@ -79,7 +78,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestConstructor()
         {
             await TestAsync(
@@ -88,7 +87,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestIndexer()
         {
             await TestAsync(
@@ -97,35 +96,35 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnArrayIndexer()
         {
             await TestMissingAsync(
 @"class C { int M(int[] arg1) => [|arg1|][0]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnConditionalArrayIndexer()
         {
             await TestMissingAsync(
 @"class C { int? M(int[] arg1) => arg1?[|[0]|]; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnEmptyArgumentList()
         {
             await TestMissingAsync(
 @"class C { void M() => [|M|](); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnAlreadyFixed()
         {
             await TestMissingAsync(
 @"class C { void M(int arg) => [|M|](arg: 1); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestSingleParams()
         {
             await TestAsync(
@@ -134,7 +133,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMultipleParams()
         {
             await TestAsync(
@@ -143,7 +142,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestExistingArgumentNames()
         {
             await TestAsync(
@@ -152,7 +151,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestExistingUnorderedArgumentNames()
         {
             await TestAsync(
@@ -161,7 +160,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestPreserveTrivia()
         {
             await TestAsync(
@@ -182,7 +181,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNamedArguments)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnNameOf()
         {
             await TestMissingAsync(

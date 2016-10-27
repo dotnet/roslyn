@@ -3,66 +3,59 @@
 Imports System.Composition
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.AddNamedArguments
+Imports Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddNamedArguments
-    <ExtensionOrder(After := PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddNamedArgumentsCodeRefactoringProvider)), [Shared]>
-    Friend Class VisualBasicAddNamedArgumentsCodeRefactoringProvider
-        Inherits AbstractAddNamedArgumentsCodeRefactoringProvider(Of ArgumentSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
+    <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseNamedArgumentsCodeRefactoringProvider)), [Shared]>
+    Friend Class VisualBasicUseNamedArgumentsCodeRefactoringProvider
+        Inherits AbstractUseNamedArgumentsCodeRefactoringProvider(Of ArgumentSyntax)
 
         Protected Overrides Function TryGetOrSynthesizeNamedArguments(arguments As SeparatedSyntaxList(Of ArgumentSyntax), parameters As ImmutableArray(Of IParameterSymbol), ByRef namedArguments As ArgumentSyntax(), ByRef hasLiteral As Boolean) As Boolean
-            ' An argument list with omitted arguments may or may not be already fixed
-            Dim alreadyFixed = True
             Dim result = ArrayBuilder(Of ArgumentSyntax).GetInstance(arguments.Count)
-            For index = 0 To arguments.Count - 1
-                Dim argument = arguments(index)
-                Dim parameter = parameters(index)
-                If argument.IsNamed Then
-                    result.Add(argument)
-                ElseIf argument.IsOmitted Then
-                    Continue For
-                ElseIf parameter.IsParams Then
-                    ' Named arguments cannot match a ParamArray parameter
-                    result.Free()
+            Try
+                ' An argument list with omitted arguments may or may not be already fixed
+                Dim alreadyFixed = True
+                For index = 0 To arguments.Count - 1
+                    Dim argument = arguments(index)
+                    Dim parameter = parameters(index)
+                    If argument.IsNamed Then
+                        result.Add(argument)
+                    ElseIf argument.IsOmitted Then
+                        Continue For
+                    ElseIf parameter.IsParams Then
+                        ' Named arguments cannot match a ParamArray parameter
+                        Return False
+                    Else
+                        alreadyFixed = False
+                        If Not hasLiteral AndAlso IsLiteral(argument) Then
+                            hasLiteral = True
+                        End If
+                        Dim simpleArgument = DirectCast(argument, SimpleArgumentSyntax)
+                        result.Add(simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(parameter.Name))).WithTriviaFrom(simpleArgument.Expression))
+                    End If
+                Next
+                If alreadyFixed Then
                     Return False
                 Else
-                    alreadyFixed = False
-                    If Not hasLiteral AndAlso IsLiteral(argument) Then
-                        hasLiteral = True
-                    End If
-                    Dim simpleArgument = DirectCast(argument, SimpleArgumentSyntax)
-                    result.Add(simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(parameter.Name))).WithTriviaFrom(simpleArgument.Expression))
+                    namedArguments = result.ToArray()
+                    Return True
                 End If
-            Next
-            If alreadyFixed Then
+            Finally
                 result.Free()
-                Return False
-            Else
-                namedArguments = result.ToArrayAndFree()
-                Return True
-            End If
-        End Function
-
-        Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode
-            If node.IsKind(SyntaxKind.ConditionalAccessExpression) Then
-                Return DirectCast(node, ConditionalAccessExpressionSyntax).WhenNotNull
-            End If
-            Return node
+            End Try
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode) As Boolean
             Select Case node.Kind()
                 Case SyntaxKind.InvocationExpression
-                    ' If this is an indexer which is inside a conditional access, go up the tree
                     Dim invocation = DirectCast(node, InvocationExpressionSyntax)
                     Return invocation.Expression IsNot Nothing
 
                 Case SyntaxKind.ConditionalAccessExpression
-                    ' If this is not an indexer inside a conditional access, go up the tree
                     Dim conditional = DirectCast(node, ConditionalAccessExpressionSyntax)
                     Dim invocation = TryCast(conditional.WhenNotNull, InvocationExpressionSyntax)
                     Return invocation IsNot Nothing AndAlso invocation.Expression Is Nothing
@@ -95,34 +88,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddNamedArguments
             End Select
         End Function
 
-        Protected Overrides Function TryGetArguments(node As SyntaxNode, semanticModel As SemanticModel, ByRef arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As Boolean
+        Protected Overrides Function GetArguments(node As SyntaxNode, ByRef targetNode As SyntaxNode) As SeparatedSyntaxList(Of ArgumentSyntax)
+            targetNode = node
             Select Case node.Kind()
                 Case SyntaxKind.ConditionalAccessExpression
                     Dim conditional = DirectCast(node, ConditionalAccessExpressionSyntax)
-                    If IsArray(semanticModel, conditional.Expression) Then
-                        Return False
-                    End If
-
                     Dim invocation = DirectCast(conditional.WhenNotNull, InvocationExpressionSyntax)
-                    arguments = invocation.ArgumentList.Arguments
-                    Return True
+                    targetNode = invocation
+                    Return invocation.ArgumentList.Arguments
 
                 Case SyntaxKind.InvocationExpression
                     Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-                    If IsArray(semanticModel, invocation.Expression) Then
-                        Return False
-                    End If
-
-                    arguments = invocation.ArgumentList.Arguments
-                    Return True
+                    Return invocation.ArgumentList.Arguments
 
                 Case SyntaxKind.ObjectCreationExpression
                     Dim objectCreation = DirectCast(node, ObjectCreationExpressionSyntax)
-                    arguments = objectCreation.ArgumentList.Arguments
-                    Return True
+                    Return objectCreation.ArgumentList.Arguments
 
                 Case Else
-                    Return False
+                    Return Nothing
+
             End Select
         End Function
 

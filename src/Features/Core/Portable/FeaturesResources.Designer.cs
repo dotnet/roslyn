@@ -144,24 +144,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add named arguments.
-        /// </summary>
-        internal static string Add_named_arguments {
-            get {
-                return ResourceManager.GetString("Add_named_arguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add named arguments (literals only).
-        /// </summary>
-        internal static string Add_named_arguments_literals_only {
-            get {
-                return ResourceManager.GetString("Add_named_arguments_literals_only", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0_1 {
@@ -3134,6 +3116,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use named arguments.
+        /// </summary>
+        internal static string Use_named_arguments {
+            get {
+                return ResourceManager.GetString("Use_named_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use named arguments for literals.
+        /// </summary>
+        internal static string Use_named_arguments_for_literals {
+            get {
+                return ResourceManager.GetString("Use_named_arguments_for_literals", resourceCulture);
             }
         }
         

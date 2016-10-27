@@ -124,7 +124,7 @@
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
-    <Compile Include="CodeRefactorings\AddNamedArguments\VisualBasicAddNamedArgumentsCodeRefactoringProvider.vb" />
+    <Compile Include="CodeRefactorings\UseNamedArguments\VisualBasicUseNamedArgumentsCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />

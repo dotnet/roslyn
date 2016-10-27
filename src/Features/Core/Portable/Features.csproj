@@ -92,7 +92,7 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
-    <Compile Include="CodeRefactorings\AddNamedArguments\AbstractAddNamedArgumentsCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
