@@ -201,13 +201,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!stream.CanRead)
             {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+            try
             {
-                var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
-                return root.CreateRed();
+                using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+                {
+                    var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
+                    return root.CreateRed();
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
