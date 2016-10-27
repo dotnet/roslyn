@@ -797,7 +797,7 @@ class P
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
-                object V_1)
+  object V_1)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""object C.<>c__DisplayClass1_0.y""
   IL_0006:  ret
@@ -807,7 +807,7 @@ class P
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
-                object V_1)
+  object V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.x""
   IL_0006:  ret
