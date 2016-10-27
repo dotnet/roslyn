@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (_lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects.IsDefault)
             {
                 using (_dataLock.DisposableWait(cancellationToken))
                 {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
 
         private IEnumerable<ProjectId> GetTopologicallySortedProjects_NoLock(CancellationToken cancellationToken)
         {
-            if (_lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects.IsDefault)
             {
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (_lazyDependencySets == null)
+            if (_lazyDependencySets.IsDefault)
             {
                 using (_dataLock.DisposableWait(cancellationToken))
                 {
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis
 
         private IEnumerable<IEnumerable<ProjectId>> GetDependencySets_NoLock(CancellationToken cancellationToken)
         {
-            if (_lazyDependencySets == null)
+            if (_lazyDependencySets.IsDefault)
             {
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject())

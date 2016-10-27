@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
-            if (aliasSymbols == null)
+            if (aliasSymbols.IsDefaultOrEmpty)
             {
                 return ImmutableArray<ReferenceLocation>.Empty;
             }
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
-            if (aliasSymbols == null)
+            if (aliasSymbols.IsDefaultOrEmpty)
             {
                 return ImmutableArray<ReferenceLocation>.Empty;
             }

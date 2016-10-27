@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
             {
                 var specifiedArguments = GetArguments(originalInvocation);
-                if (specifiedArguments != null)
+                if (!specifiedArguments.IsDefault)
                 {
                     var symbolParameters = originalSymbol.GetParameters();
                     var newSymbolParameters = newSymbol.GetParameters();

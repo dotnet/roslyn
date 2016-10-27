@@ -161,9 +161,7 @@ namespace Roslyn.Utilities
             }
 
             public bool HasHandlers
-            {
-                get { return _registries != null && _registries.Length > 0; }
-            }
+                => !_registries.IsDefault && _registries.Length > 0;
 
             public void RaiseEvent(Action<TEventHandler> invoker)
             {

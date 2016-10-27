@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var task in tasks)
                 {
                     var result = await task.ConfigureAwait(false);
-                    if (result != null)
+                    if (!result.IsDefaultOrEmpty)
                     {
                         foreach (var derivedType in result)
                         {
