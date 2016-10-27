@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 If typeInfo.Type IsNot Nothing AndAlso
                    typeInfo.Type.IsAnonymousDelegateType() AndAlso
                    conversion.IsUserDefined AndAlso
-                   conversion.IsImplicit AndAlso
+                   conversion.IsWidening AndAlso
                    conversion.MethodSymbol IsNot Nothing AndAlso
                    conversion.MethodSymbol.Parameters.Length > 0 Then
 
