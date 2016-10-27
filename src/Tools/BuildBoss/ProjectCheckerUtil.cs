@@ -125,7 +125,11 @@ namespace BuildBoss
 
             var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
-            allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
+
+            // Disabling this check until we have time to discuss the team implications.
+            // allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
+
+            allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
             return allGood;
         }
@@ -191,6 +195,65 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        /// <summary>
+        /// In order to ensure all dependencies are properly copied on deployment projects, the declared reference
+        /// set much match the transitive dependency set.  When there is a difference it represents dependencies that
+        /// MSBuild won't deploy on build.
+        /// </summary>
+        private bool CheckTransitiveReferences(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
+        {
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (!data.HasValue || !data.Value.IsDeploymentProject)
+            {
+                return true;
+            }
+
+            var list = GetProjectReferencesTransitive(declaredReferences);
+            var set = new HashSet<ProjectKey>(declaredReferences);
+            var allGood = true;
+            foreach (var key in list)
+            {
+                if (!set.Contains(key))
+                {
+                    textWriter.WriteLine($"Missing project reference {key.FileName}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private List<ProjectKey> GetProjectReferencesTransitive(IEnumerable<ProjectKey> declaredReferences)
+        {
+            var list = new List<ProjectKey>();
+            var toVisit = new Queue<ProjectKey>(declaredReferences);
+            var seen = new HashSet<ProjectKey>();
+
+            while (toVisit.Count > 0)
+            {
+                var current = toVisit.Dequeue();
+                if (!seen.Add(current))
+                {
+                    continue;
+                }
+
+                ProjectData data;
+                if (!_solutionMap.TryGetValue(current, out data))
+                {
+                    continue;
+                }
+
+                list.Add(current);
+                foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
+                {
+                    toVisit.Enqueue(dep);
+                }
+            }
+
+            list.Sort((x, y) => x.FileName.CompareTo(y.FileName));
+            return list;
         }
 
         private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)

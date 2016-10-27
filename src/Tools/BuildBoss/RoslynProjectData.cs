@@ -65,6 +65,11 @@ namespace BuildBoss
                 kind == RoslynProjectKind.UnitTest ||
                 kind == RoslynProjectKind.UnitTestNext;
         }
+
+        internal static bool IsDeploymentProject(RoslynProjectKind kind)
+        {
+            return kind == RoslynProjectKind.Exe;
+        }
     }
 
     internal struct RoslynProjectData
@@ -74,6 +79,7 @@ namespace BuildBoss
         internal string DeclaredValue { get; }
 
         internal bool IsAnyUnitTest => RoslynProjectKindUtil.IsAnyUnitTest(EffectiveKind);
+        internal bool IsDeploymentProject => RoslynProjectKindUtil.IsDeploymentProject(EffectiveKind);
 
         internal RoslynProjectData(RoslynProjectKind effectiveKind)
         {
