@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var capturedVars = _analysis.CapturedVariablesByLambda[closure];
 
                 if (closure.MethodKind == MethodKind.LocalFunction &&
-                    OnlyCapturesThis(capturedVars))
+                    OnlyCapturesThis((LocalFunctionSymbol)closure, capturedVars))
                 {
                     continue;
                 }
@@ -367,16 +368,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+
+        private SmallDictionary<LocalFunctionSymbol, bool> _onlyCapturesThisMemoTable;
         /// <summary>
         /// Helper for determining whether a local function transitively
         /// only captures this (only captures this or other local functions
         /// which only capture this).
         /// </summary>
         private bool OnlyCapturesThis<T>(
-            T capturedVars,
-            HashSet<LocalFunctionSymbol> localFuncsInProgress = null)
+            LocalFunctionSymbol closure,
+            T capturedVars, 
+            PooledHashSet<LocalFunctionSymbol> localFuncsInProgress = null)
             where T : IEnumerable<Symbol>
         {
+            bool result = false;
+            if (_onlyCapturesThisMemoTable?.TryGetValue(closure, out result) == true)
+            {
+                return result;
+            }
+
+            result = true;
             foreach (var captured in capturedVars)
             {
                 var param = captured as ParameterSymbol;
@@ -388,9 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localFunc = captured as LocalFunctionSymbol;
                 if (localFunc != null)
                 {
+                    bool freePool = false;
                     if (localFuncsInProgress == null)
                     {
-                        localFuncsInProgress = new HashSet<LocalFunctionSymbol>();
+                        localFuncsInProgress = PooledHashSet<LocalFunctionSymbol>.GetInstance();
+                        freePool = true;
                     }
                     else if (localFuncsInProgress.Contains(localFunc))
                     {
@@ -398,18 +411,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localFuncsInProgress.Add(localFunc);
-                    if (OnlyCapturesThis(
+                    bool transitivelyTrue = OnlyCapturesThis(
+                          localFunc,
                           _analysis.CapturedVariablesByLambda[localFunc],
-                          localFuncsInProgress))
+                          localFuncsInProgress);
+
+                    if (freePool)
+                    {
+                        localFuncsInProgress.Free();
+                        localFuncsInProgress = null;
+                    }
+
+                    if (transitivelyTrue)
                     {
                         continue;
                     }
                 }
 
-                return false;
+                result = false;
+                break;
             }
 
-            return true;
+            if (_onlyCapturesThisMemoTable == null)
+            {
+                _onlyCapturesThisMemoTable = new SmallDictionary<LocalFunctionSymbol, bool>();
+            }
+
+            _onlyCapturesThisMemoTable[closure] = result;
+            return result;
         }
 
         private LambdaFrame GetFrameForScope(BoundNode scope, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
