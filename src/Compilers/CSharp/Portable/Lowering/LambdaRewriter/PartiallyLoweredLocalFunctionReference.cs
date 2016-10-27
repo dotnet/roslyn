@@ -13,13 +13,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class PartiallyLoweredLocalFunctionReference : BoundExpression
     {
+        private const BoundKind s_privateKind = (BoundKind)byte.MaxValue;
+
         public BoundExpression UnderlyingNode { get; }
         public Dictionary<Symbol, CapturedSymbolReplacement> Proxies { get; }
 
         public PartiallyLoweredLocalFunctionReference(
             BoundExpression underlying,
             Dictionary<Symbol, CapturedSymbolReplacement> proxies)
-            : base(underlying.Kind, underlying.Syntax, underlying.Type)
+            : base(s_privateKind, underlying.Syntax, underlying.Type)
         {
             UnderlyingNode = underlying;
             Proxies = proxies;
