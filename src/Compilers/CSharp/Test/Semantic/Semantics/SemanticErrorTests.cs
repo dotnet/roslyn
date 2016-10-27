@@ -19951,11 +19951,6 @@ class MyClass
         table[p] = o;
     }
 }
-
-abstract class Foo
-{
-    public int x; // no diagnostic when in abstract class (for no apparent reason except that's the way Dev10 does it)
-}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(

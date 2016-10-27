@@ -1,6 +1,6 @@
 ﻿{
     "dependencies": {
-        "Dev15BinariesForRoslyn": "4.0.0.0",
+        "Dev15BinariesForRoslyn": "5.0.0.0",
         "Microsoft.VisualStudio.ImageCatalog": "15.0.25604-Preview4",
         "NuGet.VisualStudio": {
             "version": "3.3.0",

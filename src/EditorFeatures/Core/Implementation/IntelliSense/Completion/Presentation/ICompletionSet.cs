@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         CompletionSet CompletionSet { get; }
 
         void SetCompletionItems(
-            IList<PresentationItem> completionItems,
-            PresentationItem selectedItem,
-            PresentationItem presetBuilder,
+            IList<CompletionItem> completionItems,
+            CompletionItem selectedItem,
+            CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             string filterText);
-        PresentationItem GetPresentationItem(VSCompletion completion);
+        CompletionItem GetCompletionItem(VSCompletion completion);
     }
 }

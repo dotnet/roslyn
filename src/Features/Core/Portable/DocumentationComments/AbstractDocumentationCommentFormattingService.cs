@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentFormattingService : IDocumentationCommentFormattingService
     {
-        private int _position;
-        private SemanticModel _semanticModel;
-
         private class FormatterState
         {
             private bool _anyNonWhitespaceSinceLastPara;

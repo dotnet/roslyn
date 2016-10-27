@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
@@ -108,6 +107,7 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
@@ -198,13 +198,12 @@
     <Compile Include="Extensibility\Commands\ExportInteractiveCommandAttribute.cs" />
     <Compile Include="Extensibility\Commands\ICommandHandler.cs" />
     <Compile Include="Extensibility\Commands\PredefinedCommandHandlerNames.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItemEventArgs.cs" />
+    <Compile Include="Extensibility\Completion\CompletionItemEventArgs.cs" />
     <Compile Include="Extensibility\Completion\CompletionItemFilterStateChangedEventArgs.cs" />
     <Compile Include="Extensibility\Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItem.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionRulesFactoryNames.cs" />
@@ -267,13 +266,13 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\IVisualStudioCompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\Roslyn14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSet.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToOptionsService.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToHostVersionService.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
@@ -475,7 +474,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller_TabKey.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_ToggleCompletionMode.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_TypeChar.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\DescriptionModifyingPresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
@@ -541,8 +539,8 @@
     <Compile Include="Implementation\NavigateTo\INavigateToPreviewService.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToIconFactory.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.ItemDisplayFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.NavigateToItemDisplay.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.ItemDisplayFactory.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.NavigateToItemDisplay.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.Searcher.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProviderFactory.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController.cs" />

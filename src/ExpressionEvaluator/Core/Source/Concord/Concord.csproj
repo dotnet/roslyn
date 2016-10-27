@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.Concord.DoNotUse</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <ConcordDir>$(MSBuildThisFileDirectory)</ConcordDir>
     <NonShipping>true</NonShipping>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>

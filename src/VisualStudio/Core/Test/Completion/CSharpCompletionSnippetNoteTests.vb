@@ -121,7 +121,9 @@ class C
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "for"))
+                Await state.AssertSelectedCompletionItem(
+                    description:=String.Format(FeaturesResources._0_Keyword, "for") & vbCrLf &
+                                 String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "for"))
             End Using
         End Function
 

@@ -486,6 +486,47 @@ class Program : TestBase
         }
 
         [Fact]
+        public void ConversionAppliedInLambdaForNonMatchingTypes()
+        {
+            var program = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var invoices = new List<Invoice>().AsQueryable();
+            var oneTimeCharges = new List<OneTimeCharge>().AsQueryable();
+            var otcCharges = invoices.Join(oneTimeCharges, inv => inv.InvoiceId, otc => otc.Invoice, (inv, otc) => inv.InvoiceId);
+            Console.Write('k');
+        }        
+    }
+
+    public class OneTimeCharge
+    {
+        public int OneTimeChargeId { get; set; }
+        public int? Invoice { get; set; }
+    }
+
+    public class Invoice
+    {
+        public int InvoiceId { get; set; }
+    }    
+}
+";
+
+            CompileAndVerify(
+                sources: new string[] { program, ExpressionTestLibrary },
+                additionalRefs: new[] { ExpressionAssemblyRef },
+                expectedOutput: @"k")
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Addition()
         {
             var source =

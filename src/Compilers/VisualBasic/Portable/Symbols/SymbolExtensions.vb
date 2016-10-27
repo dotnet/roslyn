@@ -268,26 +268,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsDefaultValueTypeConstructor(method As MethodSymbol) As Boolean
-            If Not method.ContainingType.IsValueType Then
-                Return False
-            End If
-
-            If Not method.IsParameterlessConstructor() OrElse Not method.IsImplicitlyDeclared Then
-                Return False
-            End If
-
-            Dim container As SourceNamedTypeSymbol = TryCast(method.ContainingType, SourceNamedTypeSymbol)
-            If container Is Nothing Then
-                ' synthesized ctor Not from source -> must be default
-                Return True
-            End If
-
-            ' if we are here we have a struct in source for which a parameterless ctor was not provided by the user.
-            ' So, are we ok with default behavior?
-            ' Returning false will result in a production of synthesized parameterless ctor 
-
-            ' this ctor is not default if we have instance initializers
-            Return container.InstanceInitializers.IsDefaultOrEmpty
+            Return method.IsImplicitlyDeclared AndAlso
+                   method.ContainingType.IsValueType AndAlso
+                   method.IsParameterlessConstructor()
         End Function
 
         <Extension()>

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
-            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
+            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(
                 serviceProvider,
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
@@ -49,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             _navigableItemsPresenters = navigableItemsPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
             _externalDefinitionProviders = externalDefinitionProviders;
+
+            foreach (var providerFactory in documentOptionsProviderFactories)
+            {
+                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
+            }
         }
 
         public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)

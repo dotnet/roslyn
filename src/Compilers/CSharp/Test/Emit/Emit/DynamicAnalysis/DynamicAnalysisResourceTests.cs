@@ -392,6 +392,8 @@ public class C
         {
             case Student s when s.GPA > 3.5:
                 return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s when (s.GPA < 2.0):
+                return $""Failing Student {s.Name} ({s.GPA:N1})"";
             case Student s:
                 return $""Student {s.Name} ({s.GPA:N1})"";
             case Teacher t:
@@ -423,12 +425,14 @@ class Student : Person { public double GPA; }
                 new SpanResult(10, 8, 10, 19, "Operate(s)"));
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
-                new SpanResult(13, 4, 26, 5, "static string Operate(Person p)"),
-                new SpanResult(17, 32, 17, 43, "s.GPA > 3.5"),
+                new SpanResult(13, 4, 28, 5, "static string Operate(Person p)"),
+                new SpanResult(17, 27, 17, 43, "when s.GPA > 3.5"),
+                new SpanResult(19, 27, 19, 45, "when (s.GPA < 2.0)"),
                 new SpanResult(18, 16, 18, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
-                new SpanResult(20, 16, 20, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
-                new SpanResult(22, 16, 22, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
-                new SpanResult(24, 16, 24, 42, "return $\"Person {p.Name}\""),
+                new SpanResult(20, 16, 20, 64, "return $\"Failing Student {s.Name} ({s.GPA:N1})\""),
+                new SpanResult(22, 16, 22, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
+                new SpanResult(24, 16, 24, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
+                new SpanResult(26, 16, 26, 42, "return $\"Person {p.Name}\""),
                 new SpanResult(15, 16, 15, 17, "p"));
         }
 

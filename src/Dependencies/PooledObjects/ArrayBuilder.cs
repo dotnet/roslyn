@@ -158,6 +158,26 @@ namespace Microsoft.CodeAnalysis
             return _builder.IndexOf(item, startIndex, count);
         }
 
+        public int FindIndex(Predicate<T> match) 
+            => FindIndex(0, this.Count, match);
+
+        public int FindIndex(int startIndex, Predicate<T> match)
+            => FindIndex(startIndex, this.Count - startIndex, match);
+
+        public int FindIndex(int startIndex, int count, Predicate<T> match)
+        {
+            int endIndex = startIndex + count;
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                if (match(_builder[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);

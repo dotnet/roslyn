@@ -125,43 +125,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var usings = AddUsingDirectives(root, usingDirectives);
 
-            // If the user likes to have their Usings statements unsorted, allow them to
+            // Keep usings sorted if they were originally sorted.
             if (root.Usings.IsSorted(comparer))
             {
                 usings.Sort(comparer);
             }
 
-            // If any using we added was moved to the first location, then take the trivia from
-            // the start of the first token and add it to the using we added.  This way things
-            // like #define's and #r's will stay above the using.
-            var firstUsingChanged = root.Usings.Count == 0 || usings[0] != root.Usings[0];
-            if (firstUsingChanged && root.Externs.Count == 0)
+            if (root.Externs.Count == 0)
             {
-                var firstToken = root.GetFirstToken();
+                if (root.Usings.Count == 0)
+                {
+                    // We don't have any existing usings. Move any trivia on the first token 
+                    // of the file to the first using.
+                    // 
+                    // Don't do this for doc comments, as they belong to the first element
+                    // already in the file (like a class) and we don't want it to move to
+                    // the using.
+                    var firstToken = root.GetFirstToken();
 
-                // Move the leading directives from the first directive to the new using.
-                var firstUsing = usings[0].WithLeadingTrivia(firstToken.LeadingTrivia.Where(t => !t.IsDocComment() && !t.IsElastic()));
+                    // Remove the leading directives from the first token.
+                    var newFirstToken = firstToken.WithLeadingTrivia(
+                        firstToken.LeadingTrivia.Where(t => IsDocCommentOrElastic(t)));
 
-                // Remove the leading directives from the first token.
-                var newFirstToken = firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Where(t => t.IsDocComment() || t.IsElastic()));
+                    root = root.ReplaceToken(firstToken, newFirstToken);
 
-                // Remove the leading trivia from the first token from the tree.
-                root = root.ReplaceToken(firstToken, newFirstToken);
+                    // Move the leading trivia from the first token to the first using.
+                    var newFirstUsing = usings[0].WithLeadingTrivia(
+                        firstToken.LeadingTrivia.Where(t => !IsDocCommentOrElastic(t)));
+                    usings[0] = newFirstUsing;
+                }
+                else if (usings[0] != root.Usings[0])
+                {
+                    // We added a new first-using.  Take the trivia on the existing first using
+                    // And move it to the new using.
+                    var newFirstUsing = usings[0].WithLeadingTrivia(usings[1].GetLeadingTrivia())
+                                                 .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
-                // Create the new list of usings.  
-                var finalUsings = new List<UsingDirectiveSyntax>();
-                finalUsings.Add(firstUsing);
-                finalUsings.AddRange(root.Usings);
-                finalUsings.AddRange(usingDirectives.Except(new[] { usings[0] }));
-                finalUsings.Sort(comparer);
-                usings = finalUsings;
+                    usings[0] = newFirstUsing;
+                    usings[1] = usings[1].WithoutLeadingTrivia();
+                }
             }
 
-            usings = usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
-            return root.WithUsings(usings.ToSyntaxList());
+            return root.WithUsings(
+                usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
         }
 
-        private static List<UsingDirectiveSyntax> AddUsingDirectives(CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)
+        private static bool IsDocCommentOrElastic(SyntaxTrivia t)
+        {
+            return t.IsDocComment() || t.IsElastic();
+        }
+
+        private static List<UsingDirectiveSyntax> AddUsingDirectives(
+            CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)
         {
             // We need to try and not place the using inside of a directive if possible.
             var usings = new List<UsingDirectiveSyntax>();

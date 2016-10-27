@@ -38,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         private ICSharpProjectRoot _projectRoot;
 
         private OutputKind _outputKind = OutputKind.DynamicallyLinkedLibrary;
-        private Platform _platform = Platform.AnyCpu;
         private string _mainTypeName;
         private object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
 

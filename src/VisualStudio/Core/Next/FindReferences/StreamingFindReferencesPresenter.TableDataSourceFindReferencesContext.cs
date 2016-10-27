@@ -3,22 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Completion;
-using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -346,20 +346,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 var document = documentSpan.Document;
 
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from.  So we only support this for documents from a VSWorkspace.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return null;
-                }
-
-                var projectGuid = workspace.GetHostProject(document.Project.Id)?.Guid;
-                if (projectGuid == null)
-                {
-                    return null;
-                }
-
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
                 var referenceSpan = documentSpan.SourceSpan;
@@ -368,8 +354,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, workspace, definitionBucket, documentSpan, 
-                    isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
+                    this, definitionBucket, documentSpan, 
+                    isDefinitionLocation, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -409,28 +395,35 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // name), we'll do a later merging step to get the final correct list of 
                 // classifications.  For tagging, normally the editor handles this.  But as
                 // we're producing the list of Inlines ourselves, we have to handles this here.
-                var syntaxSpans = new List<ClassifiedSpan>();
-                var semanticSpans = new List<ClassifiedSpan>();
+                var syntaxSpans = ListPool<ClassifiedSpan>.Allocate();
+                var semanticSpans = ListPool<ClassifiedSpan>.Allocate();
+                try
+                {
+                    var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSyntacticClassificationsAsync(
+                        document, widenedSpan, syntaxSpans, CancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSemanticClassificationsAsync(
+                        document, widenedSpan, semanticSpans, CancellationToken).ConfigureAwait(false);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, widenedSpan, syntaxSpans, CancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, widenedSpan, semanticSpans, CancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = MergeClassifiedSpans(
+                        syntaxSpans, semanticSpans, widenedSpan, sourceText);
 
-                var classifiedSpans = MergeClassifiedSpans(
-                    syntaxSpans, semanticSpans, widenedSpan, sourceText);
+                    var highlightSpan = new TextSpan(
+                        start: referenceSpan.Start - widenedSpan.Start,
+                        length: referenceSpan.Length);
 
-                var highlightSpan = new TextSpan(
-                    start: referenceSpan.Start - widenedSpan.Start,
-                    length: referenceSpan.Length);
-
-                return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                    return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                }
+                finally
+                {
+                    ListPool<ClassifiedSpan>.Free(syntaxSpans);
+                    ListPool<ClassifiedSpan>.Free(semanticSpans);
+                }
             }
 
             private ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
+                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans,
                 TextSpan widenedSpan, SourceText sourceText)
             {
                 // The spans produced by the language services may not be ordered
@@ -440,25 +433,73 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 Order(syntaxSpans);
                 Order(semanticSpans);
 
+                // It's possible for us to get classified spans that occur *before*
+                // or after the span we want to present. This happens because the calls to
+                // AddSyntacticClassificationsAsync and AddSemanticClassificationsAsync 
+                // may return more spans than the range asked for.  While bad form,
+                // it's never been a requirement that implementation not do that.
+                // For example, the span may be the non-full-span of a node, but the
+                // classifiers may still return classifications for leading/trailing
+                // trivia even if it's out of the bounds of that span.
+                // 
+                // To deal with that, we adjust all spans so that they don't go outside
+                // of the range we care about.
+                AdjustSpans(syntaxSpans, widenedSpan);
+                AdjustSpans(semanticSpans, widenedSpan);
+
                 // The classification service will only produce classifications for
                 // things it knows about.  i.e. there will be gaps in what it produces.
                 // Fill in those gaps so we have *all* parts of the span 
                 // classified properly.
-                var syntaxParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans);
-                var semanticParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans);
+                var filledInSyntaxSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var filledInSemanticSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
 
-                // Now merge the lists together, taking all the results from syntaxParts
-                // unless they were overridden by results in semanticParts.
-                return MergeParts(syntaxParts, semanticParts);
+                try
+                {
+                    FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+                    FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+
+                    // Now merge the lists together, taking all the results from syntaxParts
+                    // unless they were overridden by results in semanticParts.
+                    return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
+                }
+                finally
+                {
+                    filledInSyntaxSpans.Free();
+                    filledInSemanticSpans.Free();
+                }
             }
 
-            private static List<ClassifiedSpan> FillInClassifiedSpanGaps(
-                SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
+            private void AdjustSpans(List<ClassifiedSpan> spans, TextSpan widenedSpan)
             {
-                var result = new List<ClassifiedSpan>();
+                for (var i = 0; i < spans.Count; i++)
+                {
+                    var span = spans[i];
 
+                    // Make sure the span actually intersects 'widenedSpan'.  If it 
+                    // does not, just put in an empty length span.  It will get ignored later
+                    // when we walk through this list.
+                    var intersection = span.TextSpan.Intersection(widenedSpan);
+
+                    var newSpan = new ClassifiedSpan(span.ClassificationType,
+                        intersection ?? new TextSpan());
+                    spans[i] = newSpan;
+                }
+            }
+
+            private static void FillInClassifiedSpanGaps(
+                SourceText sourceText, int startPosition,
+                List<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+            {
                 foreach (var span in classifiedSpans)
                 {
+                    // Ignore empty spans.  We can get those when the classification service
+                    // returns spans outside of the range of the span we asked to classify.
+                    if (span.TextSpan.Length == 0)
+                    {
+                        continue;
+                    }
+
                     // If there is space between this span and the last one, then add a space.
                     if (startPosition != span.TextSpan.Start)
                     {
@@ -470,8 +511,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     result.Add(span);
                     startPosition = span.TextSpan.End;
                 }
-
-                return result;
             }
 
             private void Order(List<ClassifiedSpan> syntaxSpans)
@@ -480,8 +519,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private ImmutableArray<ClassifiedSpan> MergeParts(
-                List<ClassifiedSpan> syntaxParts,
-                List<ClassifiedSpan> semanticParts)
+                ArrayBuilder<ClassifiedSpan> syntaxParts,
+                ArrayBuilder<ClassifiedSpan> semanticParts)
             {
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.

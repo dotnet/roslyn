@@ -24,8 +24,8 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.VisualStudio.LanguageServices.Next.dll" target="lib\net46" />
-    <file src="Microsoft.VisualStudio.LanguageServices.Next.xml" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio.Next\Microsoft.VisualStudio.LanguageServices.Next.dll" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio.Next\Microsoft.VisualStudio.LanguageServices.Next.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

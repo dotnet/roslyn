@@ -262,9 +262,15 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.AttributeLists.Count);
             Assert.Equal(0, file.Members.Count);
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(3, file.Errors().Length);
+            file.Errors().Verify(
+                // error CS1056: Unexpected character '$'
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
+                // error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                );
         }
 
         [Fact]

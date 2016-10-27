@@ -1153,5 +1153,91 @@ public class TestClass1 { }
 ///////////////";
             CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
+
+        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        public void UnusedFieldInAbstractClassShouldTriggerWarning()
+        {
+            var text = @"
+abstract class Class1
+{
+    private int _UnusedField;
+}";
+            CompileAndVerify(text).VerifyDiagnostics(
+                // (4,21): warning CS0169: The field 'Class1._UnusedField' is never used
+                //         private int _UnusedField;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "_UnusedField").WithArguments("Class1._UnusedField").WithLocation(4, 17));
+        }
+
+        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        public void AssignedButNotReadFieldInAbstractClassShouldTriggerWarning()
+        {
+            var text = @"
+abstract class Class1
+{
+    private int _AssignedButNotReadField;
+
+    public Class1()
+    {
+        _AssignedButNotReadField = 1;
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics(
+                // (4,21): warning CS0414: The field 'Class1._AssignedButNotReadField' is assigned but its value is never used
+                //         private int _AssignedButNotReadField;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_AssignedButNotReadField").WithArguments("Class1._AssignedButNotReadField").WithLocation(4, 17));
+        }
+
+        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        public void UsedButNotAssignedFieldInAbstractClassShouldTriggerWarning()
+        {
+            var text = @"
+internal abstract class Class1
+{
+    protected int _UnAssignedField1;
+
+    public Class1()
+    {
+        System.Console.WriteLine(_UnAssignedField1);
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics(
+                // (4,18): warning CS0649: Field 'Class1._UnAssignedField1' is never assigned to, and will always have its default value 0
+                //     internal int _UnAssignedField;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_UnAssignedField1").WithArguments("Class1._UnAssignedField1", "0").WithLocation(4, 19));
+        }
+
+        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        public void UsedButNotAssignedFieldInAbstractInternalClassWithIVTsShouldNotTriggerWarning()
+        {
+            var text = @"
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo(""Test2.dll"")]
+
+internal abstract class Class1
+{
+    protected int _UnAssignedField1;
+
+    public Class1()
+    {
+        System.Console.WriteLine(_UnAssignedField1);
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(13652, "https://github.com/dotnet/roslyn/issues/13652")]
+        public void UsedButNotAssignedFieldInAbstractPublicClassShouldNotTriggerWarning()
+        {
+            var text = @"
+public abstract class Class1
+{
+    protected int _UnAssignedField1;
+
+    public Class1()
+    {
+        System.Console.WriteLine(_UnAssignedField1);
+    }
+}";
+            CompileAndVerify(text).VerifyDiagnostics();
+        }
     }
 }

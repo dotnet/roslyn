@@ -8,8 +8,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>InteractiveHost</RootNamespace>
     <AssemblyName>InteractiveHost</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>

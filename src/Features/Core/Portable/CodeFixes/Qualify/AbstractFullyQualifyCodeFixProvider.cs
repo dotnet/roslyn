@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private IEnumerable<CodeAction> CreateActions(
-            CodeFixContext context, Document document, Diagnostic diagnostic, 
-            SyntaxNode node, SemanticModel semanticModel, 
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers, 
+            CodeFixContext context, Document document, Diagnostic diagnostic,
+            SyntaxNode node, SemanticModel semanticModel,
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
             ISymbolDisplayService displayService)
         {
             foreach (var container in proposedContainers)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             {
                 return false;
             }
-            
+
             return BindsWithoutErrors(ns, rightName + "Attribute", isAttributeName: false);
         }
 
