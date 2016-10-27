@@ -285,11 +285,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
-            if (aliasSymbols.IsDefaultOrEmpty)
-            {
-                return ImmutableArray<ReferenceLocation>.Empty;
-            }
-
             return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, findParentNode, cancellationToken).ConfigureAwait(false);
         }
 
@@ -301,11 +296,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
-            if (aliasSymbols.IsDefaultOrEmpty)
-            {
-                return ImmutableArray<ReferenceLocation>.Empty;
-            }
-
             return await FindReferencesThroughAliasSymbolsAsync(symbol, document, aliasSymbols, symbolsMatch, cancellationToken).ConfigureAwait(false);
         }
 

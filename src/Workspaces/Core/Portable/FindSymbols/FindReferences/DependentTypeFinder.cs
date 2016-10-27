@@ -566,16 +566,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var task in tasks)
                 {
                     var result = await task.ConfigureAwait(false);
-                    if (!result.IsDefaultOrEmpty)
+                    foreach (var derivedType in result)
                     {
-                        foreach (var derivedType in result)
+                        if (finalResult.Add(derivedType))
                         {
-                            if (finalResult.Add(derivedType))
+                            if (transitive && shouldContinueSearching(derivedType.Symbol))
                             {
-                                if (transitive && shouldContinueSearching(derivedType.Symbol))
-                                {
-                                    typesToSearchFor.Add(derivedType);
-                                }
+                                typesToSearchFor.Add(derivedType);
                             }
                         }
                     }

@@ -160,8 +160,7 @@ namespace Roslyn.Utilities
                 _registries = (ImmutableArray<Registry<TEventHandler>>)registries;
             }
 
-            public bool HasHandlers
-                => !_registries.IsDefault && _registries.Length > 0;
+            public bool HasHandlers => _registries.Length > 0;
 
             public void RaiseEvent(Action<TEventHandler> invoker)
             {
