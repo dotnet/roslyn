@@ -2739,23 +2739,83 @@ End Class
             End Using
         End Function
 
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericDoesNotInsertEllipsis() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Foo(Of T)
+End Interface
+
+Class Bar
+    Implements $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Foo")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Implements Foo(Of", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericDoesNotInsertEllipsisCommitOnParen() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Foo(Of T)
+End Interface
+
+Class Bar
+    Implements $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Foo(")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Implements Foo(", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericItemDoesNotInsertEllipsisCommitOnTab() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Foo(Of T)
+End Interface
+
+Class Bar
+    Dim x as $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Foo")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim x as Foo(Of", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
-        Friend Class MockSnippetInfoService
-            Implements ISnippetInfoService
+		Friend Class MockSnippetInfoService
+			Implements ISnippetInfoService
 
-            Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
-                Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
-            End Function
+			Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
+				Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
+			End Function
 
-            Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
-                Return False
-            End Function
+			Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
+				Return False
+			End Function
 
-            Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
-                Return shortcut = "Shortcut"
-            End Function
-        End Class
-
-    End Class
-
+			Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
+				Return shortcut = "Shortcut"
+			End Function
+		End Class
+	End Class
 End Namespace
