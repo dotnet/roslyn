@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
+        // The lambda rewriter also saves/restores the proxies across passes, since local function
+        // reference rewriting is done in a separate pass but still requires the frame proxies
+        // created in the first pass.
         protected Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
