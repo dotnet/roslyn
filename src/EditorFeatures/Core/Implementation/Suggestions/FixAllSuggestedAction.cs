@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// <summary>
         /// The original code-action that we are a fix-all for.  i.e. _originalCodeAction
         /// would be something like "use 'var' instead of 'int'", this suggestion action
-        /// and our <see cref="SuggestedAction.CodeAction"/> is the actual actual that 
+        /// and our <see cref="SuggestedAction.CodeAction"/> is the actual action that 
         /// will perform the fix in the appropriate document/project/solution scope.
         /// </summary>
         private readonly CodeAction _originalCodeAction;
