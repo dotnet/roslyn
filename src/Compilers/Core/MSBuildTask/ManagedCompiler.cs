@@ -580,10 +580,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             switch (response.Type)
             {
-                case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
-                    return -1;
-
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
                     LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
@@ -599,12 +595,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     return completedResponse.ReturnCode;
 
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    throw new InvalidOperationException("Encountered unknown response type");
+                    LogErrorOutput($"Recieved an unrecognized response from the server: {response.Type}");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
 
