@@ -38,6 +38,7 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "FileUpgradeFlags");
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
+                allGood &= CheckForProperty(textWriter, "SchemaVersion");
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
             }

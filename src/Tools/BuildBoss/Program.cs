@@ -65,6 +65,13 @@ namespace BuildBoss
             {
                 allGood &= ProcessProject(solutionPath, projectData, map);
                 count++;
+
+                var element = projectData.ProjectUtil.FindSingleProperty("SchemaVersion");
+                if (element != null)
+                {
+                    element.Remove();
+                    projectData.Document.Save(projectData.FilePath);
+                }
             }
 
             var result = allGood ? "passed" : "FAILED";

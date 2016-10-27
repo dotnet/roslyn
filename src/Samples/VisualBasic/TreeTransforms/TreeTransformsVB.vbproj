@@ -4,10 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>
-    </ProductVersion>
-    <SchemaVersion>
-    </SchemaVersion>
+    <ProductVersion></ProductVersion>
     <ProjectGuid>{D89124D4-FB1D-4D08-BD95-F60BD24D5965}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>TreeTransformsVB.Module1</StartupObject>
@@ -15,8 +12,7 @@
     <AssemblyName>TreeTransformsVB</AssemblyName>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
