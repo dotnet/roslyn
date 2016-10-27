@@ -14,6 +14,10 @@ There are a number of MSBulid properties which are controlled by our central bui
 - SolutionDir
 - Configuration
 
+### Transitive references
+
+Projects which represent full deployments must have a complete set of project references declared in the project file.  Or in other words the declared set of project references much match the tranistive closure of project references.  Any gap between the two sets won't be deployed on build which in turn will break F5, testing, etc ...
+
 ### Unnecessary properties
 
 There are a number of properties which are simple unnecessary for build.  They are instead artifacts of Visual Studio experiences that don't need to be persisted.  This includes:
