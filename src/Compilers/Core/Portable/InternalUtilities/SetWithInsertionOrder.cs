@@ -53,6 +53,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public SetWithInsertionOrder<T> InInsertionOrder => this;
 
+        private static SetWithInsertionOrder<T> s_empty;
+        public static SetWithInsertionOrder<T> Empty =>
+            s_empty ?? (s_empty = new SetWithInsertionOrder<T>());
+
+
         public ImmutableArray<T> AsImmutable()
         {
             return (_elements == null) ? ImmutableArray<T>.Empty : ImmutableArray.Create(_elements, 0, (int)_nextElementValue);

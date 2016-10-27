@@ -306,14 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void MakeFrames(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
         {
-            var capturedVariablesByLambda = _analysis.CapturedVariablesByLambda;
-            var closures = capturedVariablesByLambda.Keys
-                .OrderBy(m => m.Locations[0].SourceSpan).ToList();
+            var closures = _analysis.CapturedVariablesByLambda.Keys;
 
             foreach (var closure in closures)
             {
-                var capturedVars = capturedVariablesByLambda[closure]
-                    .OrderBy(s => s.MetadataName).ToList();
+                var capturedVars = _analysis.CapturedVariablesByLambda[closure];
 
                 if (closure.MethodKind == MethodKind.LocalFunction &&
                     OnlyCapturesThis(capturedVars))

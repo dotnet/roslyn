@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
-            public MultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new MultiDictionary<MethodSymbol, Symbol>();
+            public OrderedMultiDictionary<MethodSymbol, Symbol> CapturedVariablesByLambda = new OrderedMultiDictionary<MethodSymbol, Symbol>();
 
             /// <summary>
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var capturedVariablesByLambdaNew = new MultiDictionary<MethodSymbol, Symbol>();
+                var capturedVariablesByLambdaNew = new OrderedMultiDictionary<MethodSymbol, Symbol>();
                 foreach (var old in CapturedVariablesByLambda)
                 {
                     if (capturesVariable.Contains(old.Key))
