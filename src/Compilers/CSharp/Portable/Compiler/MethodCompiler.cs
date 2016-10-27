@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // initializers for global code have already been included in the body
                             if (includeInitializersInBody)
                             {
-                                if (processedInitializers.LoweredInitializers is BoundStatementList)
+                                if (processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList)
                                 {
                                     BoundStatementList lowered = (BoundStatementList) processedInitializers.LoweredInitializers;
                                     boundStatements = boundStatements.Concat(lowered.Statements);
