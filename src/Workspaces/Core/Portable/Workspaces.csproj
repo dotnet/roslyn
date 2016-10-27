@@ -289,8 +289,8 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
-      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
+      <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />

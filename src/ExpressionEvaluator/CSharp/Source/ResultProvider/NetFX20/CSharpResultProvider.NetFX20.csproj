@@ -14,7 +14,7 @@
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>Compiler\Parser\UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Parser\CharacterInfo.cs">

@@ -1060,5 +1060,12 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        internal static ImmutableDictionary<string, string> ParseFeatures(List<string> features)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            CompilerOptionParseUtilities.ParseFeatures(builder, features);
+            return builder.ToImmutable();
+        }
     }
 }

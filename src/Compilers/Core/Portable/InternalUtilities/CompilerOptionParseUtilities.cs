@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -22,10 +21,8 @@ namespace Roslyn.Utilities
             return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
+        public static void ParseFeatures(IDictionary<string, string> builder, List<string> values)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-
             foreach (var commaFeatures in values)
             {
                 foreach (var feature in commaFeatures.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -33,21 +30,9 @@ namespace Roslyn.Utilities
                     ParseFeatureCore(builder, feature);
                 }
             }
-
-            return builder.ToImmutable();
         }
 
-        public static ImmutableDictionary<string, string> ParseFeatures(string features)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var feature in ParseFeatureFromMSBuild(features))
-            {
-                ParseFeatureCore(builder, feature);
-            }
-            return builder.ToImmutable();
-        }
-
-        private static void ParseFeatureCore(ImmutableDictionary<string, string>.Builder builder, string feature)
+        private static void ParseFeatureCore(IDictionary<string, string> builder, string feature)
         {
             int equals = feature.IndexOf('=');
             if (equals > 0)
