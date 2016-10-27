@@ -118,6 +118,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 initializer);
         }
 
+        //internal abstract SyntaxNode ObjectMemberInitializer(IEnumerable<SyntaxNode> fieldInitializers);
+        //internal abstract SyntaxNode NamedFieldInitializer(SyntaxNode name, SyntaxNode value);
+        //internal abstract SyntaxNode WithObjectCreationInitializer(SyntaxNode objectCreationExpression, SyntaxNode initializer);
+
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
@@ -798,6 +802,14 @@ namespace Microsoft.CodeAnalysis.Editing
             return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
         }
 
+        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        {
+            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
+                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+        }
+
+        internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
         /// </summary>
@@ -1301,6 +1313,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
         public abstract SyntaxNode ThrowStatement(SyntaxNode expression = null);
+
+        /// <summary>
+        /// Creates an expression that can be used to throw an exception.
+        /// </summary>
+        public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.

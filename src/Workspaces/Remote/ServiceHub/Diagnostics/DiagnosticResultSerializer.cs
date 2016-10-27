@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
-using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             writer.WriteInt32(diagnostics.Count);
             foreach (var kv in diagnostics)
             {
-                Serializer.SerializeDocumentId(kv.Key, writer, cancellationToken);
+                kv.Key.WriteTo(writer);
                 serializer.WriteTo(writer, kv.Value, cancellationToken);
             }
         }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var map = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
             for (var i = 0; i < count; i++)
             {
-                var documentId = Serializer.DeserializeDocumentId(reader, cancellationToken);
+                var documentId = DocumentId.ReadFrom(reader);
                 var diagnostics = serializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
 
                 map.Add(documentId, GetOrDefault(diagnostics));

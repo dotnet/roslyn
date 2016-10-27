@@ -9,15 +9,21 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Test.Setup</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Test.Setup</AssemblyName>
+    <SchemaVersion>2.0</SchemaVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <UseCodebase>true</UseCodebase>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <Nonshipping>true</Nonshipping>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -35,6 +41,7 @@
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +83,10 @@
     <Reference Include="System" />
     <Reference Include="System.Design" />
     <Reference Include="System.Runtime.Remoting" />
+    <!-- The CodingConventions nuget package isn't correctly formed for real nuget to understand it -->
+    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll">
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

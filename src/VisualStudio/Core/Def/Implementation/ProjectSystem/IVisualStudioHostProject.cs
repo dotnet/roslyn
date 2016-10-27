@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         ProjectId Id { get; }
         string Language { get; }
 
+        /// <summary>
+        /// The <see cref="IVsHierarchy"/> for this project.  NOTE: May be null in Deferred Project Load cases.
+        /// </summary>
         IVsHierarchy Hierarchy { get; }
         Guid Guid { get; }
 

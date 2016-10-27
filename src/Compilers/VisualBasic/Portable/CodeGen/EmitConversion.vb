@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode
@@ -211,8 +212,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' But first Pop off the Null reference cause we don't need it anymore.
                         _builder.EmitOpCode(ILOpCode.Pop)
 
+                        Dim constructor = GetParameterlessValueTypeConstructor(DirectCast(typeTo, NamedTypeSymbol))
+
                         'TODO: used
-                        EmitLoadDefaultValueOfTypeFromConstructorCall(conversion.ConstructorOpt, used:=True, syntaxNode:=conversion.Syntax)
+                        If constructor Is Nothing OrElse constructor.IsDefaultValueTypeConstructor() Then
+                            EmitInitObj(typeTo, used:=True, syntaxNode:=conversion.Syntax)
+                        Else
+                            ' before we use constructor symbol we need to report use site error if any
+                            Binder.ReportUseSiteError(_diagnostics, conversion.Syntax, constructor)
+
+                            EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used:=True, syntaxNode:=conversion.Syntax)
+                        End If
+
                         _builder.EmitBranch(ILOpCode.Br_s, resultLabel)
 
                         _builder.MarkLabel(unboxLabel)
@@ -230,13 +241,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         End Sub
 
+        ''' <summary> 
+        ''' Returns parameterless value type constructor.
+        ''' </summary>
+        Private Function GetParameterlessValueTypeConstructor(typeTo As NamedTypeSymbol) As MethodSymbol
+            Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
+
+            '  find valuetype parameterless constructor and check the accessibility
+            For Each constr In typeTo.InstanceConstructors
+                ' NOTE: we intentionally skip constructors with all 
+                '       optional parameters; this matches Dev10 behavior
+                If constr.ParameterCount = 0 Then
+                    '  check 'constr' 
+                    If AccessCheck.IsSymbolAccessible(constr, _method.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
+                        Return constr
+                    End If
+
+                    '  exit for each in any case
+                    Return Nothing
+                End If
+            Next
+
+            ' This point should not be reachable, because if there is no constructor in the 
+            ' loaded value type, we should have generated a synthesized constructor.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Private Function IsUnboxingDirectCast(conversion As BoundDirectCast) As Boolean
             Dim typeTo As TypeSymbol = conversion.Type
             Dim typeFrom As TypeSymbol = conversion.Operand.Type
 
             Return Not conversion.Operand.IsNothingLiteral AndAlso
                    Not Conversions.IsIdentityConversion(conversion.ConversionKind) AndAlso
-                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
+                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
                    Not typeFrom.IsTypeParameter() AndAlso
                    Not typeFrom.IsValueType AndAlso
                    Not typeTo.IsReferenceType
@@ -275,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim typeTo = conversion.Type
                     Dim typeFrom = conversion.Operand.Type
 
-                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
+                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
                         ' Do nothing, it is the same as identity.
                     ElseIf typeFrom.IsTypeParameter() Then
                         ' For any conversion from a generic parameter to any other type,
@@ -358,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                     Dim [interface] = DirectCast(typeTo, NamedTypeSymbol)
 
                                     If [interface].Arity = 1 AndAlso
-                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringCustomModifiers(fromElementType) Then
+                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringAll(fromElementType) Then
                                         needExplicitCastClass = True
                                     End If
                                 End If

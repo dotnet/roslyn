@@ -16,21 +16,13 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return
-                    Hash.Combine(reader.ReadString(),
-                    Hash.Combine(reader.ReadSymbolKey(),
-                                 reader.ReadString()));
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
                 var targetResolution = reader.ReadSymbolKey();
                 var filePath = reader.ReadString();
 
-                var syntaxTree = reader.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+                var syntaxTree = reader.GetSyntaxTree(filePath);
                 if (syntaxTree != null)
                 {
                     var target = targetResolution.GetAnySymbol();

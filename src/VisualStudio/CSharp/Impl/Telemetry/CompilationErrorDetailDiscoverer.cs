@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                         }
                     }
 
-                    if (syntaxFacts.IsMemberAccessExpression(node.Parent))
+                    if (syntaxFacts.IsSimpleMemberAccessExpression(node.Parent))
                     {
                         var expression = node.Parent;
 

@@ -2597,7 +2597,11 @@ class C1
 {
     static void Test(int arg1, (byte, byte) arg2)
     {
-        (int, int) t1 = new(int, int)();
+        (int, int)? t1 = new(int, int)?();
+        (int, int)? t1a = new(int, int)?((1,1));
+        (int, int)? t1b = new(int, int)?[1];
+        (int, int)? t1c = new(int, int)?[] {(1,1)};
+
         (int, int)? t2 = default((int a, int b));
 
         (int, int) t3 = (a: (int)arg1, b: (int)arg1);
@@ -2621,6 +2625,40 @@ class C1
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(684860, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/266237")]
+        public void DevDiv266237()
+        {
+            var source = @"
+class Program
+{
+    static void Go()
+    {
+        using (var p = new P
+        {
+
+        }
+
+    protected override void M()
+    {
+
+    }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            tree.GetDiagnostics(tree.GetRoot()).Verify(
+                // (9,10): error CS1026: ) expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(9, 10),
+                // (9,10): error CS1002: ; expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 10),
+                // (9,10): error CS1513: } expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 10));
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

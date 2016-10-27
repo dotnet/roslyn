@@ -12,10 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectoryOpt, string clientDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+        internal CSharpInteractiveCompiler(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, null, analyzerLoader)
+            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, buildPaths, null, analyzerLoader)
         {
+        }
+
+        internal override Type Type => typeof(CSharpInteractiveCompiler);
+
+        internal override string GetAssemblyFileVersion()
+        {
+            return Type.GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         }
 
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
@@ -25,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         public override void PrintLogo(TextWriter consoleOutput)
         {
-            var version = typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, version);
+            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetAssemblyFileVersion());
             consoleOutput.WriteLine(CSharpScriptingResources.LogoLine2);
             consoleOutput.WriteLine();
         }

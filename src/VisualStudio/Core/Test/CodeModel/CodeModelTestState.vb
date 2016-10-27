@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Class CodeModelTestState
         Implements IDisposable
 
-        Private ReadOnly _workspace As TestWorkspace
+        Public ReadOnly Workspace As TestWorkspace
         Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
         Private ReadOnly _rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel)
         Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
@@ -30,18 +30,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Throw New ArgumentNullException(NameOf(codeModelService))
             End If
 
-            _workspace = workspace
+            Me.Workspace = workspace
             _visualStudioWorkspace = visualStudioWorkspace
             _rootCodeModel = rootCodeModel
             _fileCodeModel = fileCodeModel
             _codeModelService = codeModelService
         End Sub
-
-        Public ReadOnly Property Workspace As TestWorkspace
-            Get
-                Return _workspace
-            End Get
-        End Property
 
         Public ReadOnly Property VisualStudioWorkspace As VisualStudioWorkspace
             Get
@@ -89,7 +83,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
             If Not Me._disposedValue Then
                 If disposing Then
-                    _workspace.Dispose()
+                    Workspace.Dispose()
                 End If
             End If
 

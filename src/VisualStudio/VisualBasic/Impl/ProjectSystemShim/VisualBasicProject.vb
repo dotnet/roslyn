@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' We trust the project system to only tell us about files that we can use.
                 Dim canUseTextBuffer As Func(Of ITextBuffer, Boolean) = Function(t) True
 
-                MyBase.AddFile(wszFileName, SourceCodeKind.Regular, itemid)
+                MyBase.AddFile(wszFileName, SourceCodeKind.Regular)
             Catch e As Exception When FilterException(e)
                 Throw ExceptionUtilities.Unreachable
             End Try

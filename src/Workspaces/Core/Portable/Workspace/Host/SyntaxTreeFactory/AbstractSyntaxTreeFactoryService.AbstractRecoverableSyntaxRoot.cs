@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public SyntaxTreeInfo(string filePath, ParseOptions options, ValueSource<TextAndVersion> textSource, Encoding encoding, int length)
             {
-                FilePath = filePath;
+                FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;

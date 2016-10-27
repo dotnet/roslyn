@@ -341,6 +341,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
                         hasErrors = True
                     End If
+
+                    '  check type character
+                    Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
+                    If typeChar <> TypeCharacter.None Then
+                        ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_TupleLiteralDisallowsTypeChar)
+                    End If
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)
                 End If
@@ -450,15 +456,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As HashSet(Of String)) As Boolean
             Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
             If reserved = 0 Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberNameAnyPosition, name)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementNameAnyPosition, name)
                 Return False
 
             ElseIf reserved > 0 AndAlso reserved <> index + 1 Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedMemberName, name, reserved)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementName, name, reserved)
                 Return False
 
             ElseIf (Not uniqueFieldNames.Add(name)) Then
-                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateMemberName)
+                Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateElementName)
                 Return False
 
             End If

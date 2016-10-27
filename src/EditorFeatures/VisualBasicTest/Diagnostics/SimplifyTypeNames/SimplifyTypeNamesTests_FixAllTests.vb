@@ -3,6 +3,7 @@
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.SimplifyTypeNames
@@ -789,8 +790,8 @@ End Class]]>
 </Workspace>.ToString()
 
             Dim options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
+                Tuple.Create(DirectCast(CodeStyleOptions.QualifyPropertyAccess, IOption), False, NotificationOption.Suggestion),
+                Tuple.Create(DirectCast(CodeStyleOptions.QualifyFieldAccess, IOption), True, NotificationOption.Suggestion))
             Await TestAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,

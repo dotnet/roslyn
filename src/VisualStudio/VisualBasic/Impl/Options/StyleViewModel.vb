@@ -145,6 +145,26 @@ Class Program
 End Class
 ]]></a>.Value
 
+        Private Shared ReadOnly s_preferObjectInitializer As String = "
+Imports System
+
+Class Customer
+    Private Age As Integer
+
+    Sub New()
+//[
+        ' Prefer:
+        Dim c = New Customer() With {
+            .Age = 21
+        }
+
+        ' Over:
+        Dim c = New Customer()
+        c.Age = 21
+//]
+    End Sub
+End Class"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -167,6 +187,9 @@ End Class
                 New CodeStylePreference(ServicesVSResources.Prefer_framework_type, isChecked:=False)
             }
 
+            Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
+
+
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, BasicVSResources.Qualify_property_access_with_Me, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -176,6 +199,10 @@ End Class
             ' predefined or framework type group
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, ServicesVSResources.For_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
+
+            ' expression preferences
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
+
         End Sub
     End Class
 End Namespace

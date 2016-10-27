@@ -5,23 +5,23 @@
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Configuration)' == '' ">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <ProjectGuid>{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DeployCompilerGeneratorToolsRuntime</RootNamespace>
     <AssemblyName>DeployCompilerGeneratorToolsRuntime_DoNotUse</AssemblyName>
-    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <NonShipping>true</NonShipping>
+    <RoslynProjectType>DeploymentCompilerGeneratorTools</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>

@@ -128,10 +128,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceSymbol = TryCast(symbol, SourceEventSymbol)
             If sourceSymbol IsNot Nothing AndAlso sourceSymbol.IsTypeInferred Then
                 If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) Then
-                    Dim invoke = DirectCast(sourceSymbol.Type, SynthesizedEventDelegateSymbol).DelegateInvokeMethod
-
                     AddPunctuation(SyntaxKind.OpenParenToken)
-                    AddParametersIfRequired(isExtensionMethod:=False, parameters:=StaticCast(Of IParameterSymbol).From(invoke.Parameters))
+                    AddParametersIfRequired(isExtensionMethod:=False, parameters:=StaticCast(Of IParameterSymbol).From(sourceSymbol.DelegateParameters))
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 End If
             End If

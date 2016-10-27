@@ -229,14 +229,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return Matcher.Single<SyntaxTrivia>(t => t.Kind() == kind, description);
         }
 
+        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
+            this SyntaxNode node, SourceText sourceText = null, 
+            bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
+            => node.GetFirstToken().GetAllPrecedingTriviaToPreviousToken(
+                sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine);
+
         /// <summary>
         /// Returns all of the trivia to the left of this token up to the previous token (concatenates
         /// the previous token's trailing trivia and this token's leading trivia).
         /// </summary>
-        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(this SyntaxToken token)
+        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
+            this SyntaxToken token, SourceText sourceText = null, 
+            bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
         {
             var prevToken = token.GetPreviousToken(includeSkipped: true);
             if (prevToken.Kind() == SyntaxKind.None)
+            {
+                return token.LeadingTrivia;
+            }
+
+            if (includePreviousTokenTrailingTriviaOnlyIfOnSameLine && 
+                !sourceText.AreOnSameLine(prevToken, token))
             {
                 return token.LeadingTrivia;
             }

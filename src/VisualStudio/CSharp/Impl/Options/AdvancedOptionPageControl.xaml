@@ -41,6 +41,21 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnterOutliningMode}" />
                     <CheckBox x:Name="DisplayLineSeparators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />
+                    <CheckBox x:Name="Show_outlining_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_comments_and_preprocessor_regions}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="BlockStructureGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
+                <StackPanel>
+                    <CheckBox x:Name="Show_guides_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="EditorHelpGroupBox"

@@ -8,7 +8,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Friend Class MockVbi
     Inherits VisualBasicCompiler
 
-    Public Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing, New DesktopAnalyzerAssemblyLoader())
+    Public Sub New(responseFile As String, workingDirectory As String, args As String())
+        MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, CreateBuildPaths(workingDirectory), Nothing, New DesktopAnalyzerAssemblyLoader())
     End Sub
+
+    Private Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
+        Return New BuildPaths(
+            clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
+            workingDir:=workingDirectory,
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
+            tempDir:=Path.GetTempPath())
+    End Function
 End Class

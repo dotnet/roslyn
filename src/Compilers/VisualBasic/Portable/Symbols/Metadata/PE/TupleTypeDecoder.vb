@@ -54,14 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' </example>
     ''' </summary>
     Friend Structure TupleTypeDecoder
-        Private ReadOnly _containingAssembly As AssemblySymbol
         Private ReadOnly _elementNames As ImmutableArray(Of String)
         ' Keep track of how many names we've "used" during decoding. Starts at
         ' the back of the array and moves forward.
         Private _namesIndex As Integer
 
-        Private Sub New(elementNames As ImmutableArray(Of String), containingAssembly As AssemblySymbol)
-            _containingAssembly = containingAssembly
+        Private Sub New(elementNames As ImmutableArray(Of String))
             _elementNames = elementNames
             _namesIndex = If(elementNames.IsDefault, 0, elementNames.Length)
         End Sub
@@ -80,27 +78,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return New UnsupportedMetadataTypeSymbol()
             End If
 
-            Return DecodeTupleTypesInternal(metadataType, containingModule.ContainingAssembly, elementNames, hasTupleElementNamesAttribute)
+            Return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute)
         End Function
 
 
         Public Shared Function DecodeTupleTypesIfApplicable(
              metadataType As TypeSymbol,
-             containingAssembly As AssemblySymbol,
              elementNames As ImmutableArray(Of String)) As TypeSymbol
 
-            Return DecodeTupleTypesInternal(metadataType, containingAssembly, elementNames, hasTupleElementNamesAttribute:=Not elementNames.IsDefaultOrEmpty)
+            Return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute:=Not elementNames.IsDefaultOrEmpty)
         End Function
 
         Private Shared Function DecodeTupleTypesInternal(metadataType As TypeSymbol,
-                                                         containingAssembly As AssemblySymbol,
                                                          elementNames As ImmutableArray(Of String),
                                                          hasTupleElementNamesAttribute As Boolean) As TypeSymbol
 
             Debug.Assert(metadataType IsNot Nothing)
-            Debug.Assert(containingAssembly IsNot Nothing)
 
-            Dim decoder = New TupleTypeDecoder(elementNames, containingAssembly)
+            Dim decoder = New TupleTypeDecoder(elementNames)
 
             Try
                 Dim decoded = decoder.DecodeType(metadataType)
@@ -253,20 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function DecodeArrayType(type As ArrayTypeSymbol) As ArrayTypeSymbol
             Dim decodedElementType = DecodeType(type.ElementType)
-            Return If(decodedElementType Is type,
-                        type,
-                        If(type.IsSZArray,
-                            ArrayTypeSymbol.CreateSZArray(decodedElementType,
-                                                          type.CustomModifiers,
-                                                          _containingAssembly),
-                            ArrayTypeSymbol.CreateMDArray(decodedElementType,
-                                                          type.CustomModifiers,
-                                                          type.Rank,
-                                                          type.Sizes,
-                                                          type.LowerBounds,
-                                                          _containingAssembly)))
-
-
+            Return If(decodedElementType Is type.ElementType, type, type.WithElementType(decodedElementType))
         End Function
 
         Private Function EatElementNamesIfAvailable(numberOfElements As Integer) As ImmutableArray(Of String)

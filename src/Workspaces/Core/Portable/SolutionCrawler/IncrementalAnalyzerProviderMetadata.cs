@@ -17,5 +17,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             this.Name = (string)data.GetValueOrDefault("Name");
             this.WorkspaceKinds = (string[])data.GetValueOrDefault("WorkspaceKinds");
         }
+
+        public IncrementalAnalyzerProviderMetadata(string name, bool highPriorityForActiveFile, params string[] workspaceKinds)
+        {
+            this.HighPriorityForActiveFile = highPriorityForActiveFile;
+            this.Name = name;
+            this.WorkspaceKinds = workspaceKinds;
+        }
     }
 }

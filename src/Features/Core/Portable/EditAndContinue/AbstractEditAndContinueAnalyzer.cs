@@ -1297,7 +1297,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             bool _;
-            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out _, out _);
+            var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody,
+                newLambdaBody, activeNodesInLambda ?? Array.Empty<ActiveNode>(),
+                diagnostics, out _, out _);
 
             activeOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
 
@@ -3293,21 +3295,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
-            return local.Locations.First().SourceSpan;
-        }
-
-        private static ImmutableArray<IParameterSymbol> GetParametersWithSyntax(ISymbol member)
-        {
-            var method = (IMethodSymbol)member;
-
-            if (method.AssociatedSymbol != null)
-            {
-                return ((IPropertySymbol)method.AssociatedSymbol).Parameters;
-            }
-            else
-            {
-                return method.Parameters;
-            }
+            // Note that in VB implicit value parameter in property setter doesn't have a location.
+            // In C# its location is the location of the setter.
+            // See https://github.com/dotnet/roslyn/issues/14273
+            return local.Locations.FirstOrDefault()?.SourceSpan ?? local.ContainingSymbol.Locations.First().SourceSpan;
         }
 
         private ValueTuple<SyntaxNode, int> GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
@@ -3553,7 +3544,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (oldParameterCapturesByLambdaAndOrdinal.Count > 0)
             {
-                var newMemberParameters = GetParametersWithSyntax(newMember);
+                // syntax-less parameters are not included:
+                var newMemberParametersWithSyntax = newMember.GetParameters();
 
                 // uncaptured parameters:
                 foreach (var entry in oldParameterCapturesByLambdaAndOrdinal)
@@ -3574,10 +3566,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // lambda:
                         span = GetLambdaParameterDiagnosticSpan(oldContainingLambdaSyntax, ordinal);
                     }
+                    else if (oldCapture.IsImplicitValueParameter())
+                    {
+                        // value parameter of a property/indexer setter, event adder/remover:
+                        span = newMember.Locations.First().SourceSpan;
+                    }
                     else
                     {
                         // method or property:
-                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal]);
+                        span = GetVariableDiagnosticSpan(newMemberParametersWithSyntax[ordinal]);
                     }
 
                     diagnostics.Add(new RudeEditDiagnostic(

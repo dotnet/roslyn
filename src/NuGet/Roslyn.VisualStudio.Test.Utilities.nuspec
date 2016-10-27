@@ -17,6 +17,7 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Roslyn.VisualStudio.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\VisualStudioTestUtilities\Roslyn.VisualStudio.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\VisualStudioTestUtilities\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
   </files>
 </package>

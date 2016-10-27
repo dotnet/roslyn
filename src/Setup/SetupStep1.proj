@@ -30,7 +30,7 @@
 
     <!-- Roslyn SDK -->
     <!-- Because the SDK references 1.0 versions of roslyn, we want it to build into its own folder to avoid overwriting other components -->
-    <MSBuild Projects="Templates\Templates.sln" Properties="VersionType=Release;OutDir=$(OutDir)SDK\;BaseIntermediateOutputPath=$(OutDir)SDK\obj\$(MSBuildProjectName)\"/>
+    <MSBuild Projects="Templates\Templates.sln" Properties="VersionType=Release" />
   </Target>
 
   <Target Name="Clean">

@@ -20,6 +20,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -51,8 +53,6 @@
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeFixes\AddMissingNamespace\IXamlAddMissingNamespaceService.cs" />
-    <Compile Include="CodeFixes\AddMissingNamespace\XamlAddMissingNamespacePrefixCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryUsings\XamlRemoveUnnecessaryUsingsCodeFixProvider.cs" />
     <Compile Include="Diagnostics\Analyzers\IXamlDocumentAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\XamlDocumentDiagnosticAnalyzer.cs" />

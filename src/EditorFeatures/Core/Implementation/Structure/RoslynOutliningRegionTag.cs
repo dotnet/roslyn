@@ -52,13 +52,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             _hintSpan = snapshot.CreateTrackingSpan(BlockSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
         }
 
+        public override bool Equals(object obj) 
+            => Equals(obj as RoslynOutliningRegionTag);
+
+        // This is only called if the spans for the tags were the same. In that case, we 
+        // consider ourselves the same unless the CollapsedForm properties are different.
+        public bool Equals(RoslynOutliningRegionTag tag)
+            => tag != null && Equals(this.CollapsedForm, tag.CollapsedForm);
+
+        public override int GetHashCode() 
+            => EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm);
+
         public object CollapsedHintForm =>
             new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
 
         private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
         {
-            var roles = _textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
-            var view = _textEditorFactoryService.CreateTextView(finalBuffer, roles);
+            return CreateShrunkenTextView(_textEditorFactoryService, finalBuffer);
+        }
+
+        internal static IWpfTextView CreateShrunkenTextView(
+            ITextEditorFactoryService textEditorFactoryService,
+            ITextBuffer finalBuffer)
+        {
+            var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+            var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
 
             view.Background = Brushes.Transparent;
 

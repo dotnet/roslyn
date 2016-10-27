@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private sealed class HighPriorityProcessor : IdleProcessor
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
-                    private readonly ImmutableArray<IIncrementalAnalyzer> _analyzers;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
+
+                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
                     // whether this processor is running or not
                     private Task _running;
@@ -29,13 +30,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public HighPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        ImmutableArray<IIncrementalAnalyzer> analyzers,
+                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
                         base(listener, backOffTimeSpanInMs, shutdownToken)
                     {
                         _processor = processor;
-                        _analyzers = analyzers;
+                        _lazyAnalyzers = lazyAnalyzers;
 
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -57,6 +58,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             return _workItemQueue.HasAnyWork;
                         }
+                    }
+
+                    public void AddAnalyzer(IIncrementalAnalyzer analyzer)
+                    {
+                        var analyzers = _lazyAnalyzers.Value;
+
+                        _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
                     }
 
                     public void Enqueue(WorkItem item)
@@ -119,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
-                            await ProcessDocumentAsync(solution, _analyzers, workItem, documentCancellation).ConfigureAwait(false);
+                            await ProcessDocumentAsync(solution, _lazyAnalyzers.Value, workItem, documentCancellation).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

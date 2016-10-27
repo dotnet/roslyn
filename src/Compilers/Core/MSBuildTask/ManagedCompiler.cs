@@ -418,11 +418,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
+                    var workingDir = CurrentDirectoryToUse();
                     var buildPaths = new BuildPaths(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
-                        workingDir: CurrentDirectoryToUse());
+                        workingDir: workingDir,
+                        tempDir: BuildClient.GetTempPath(workingDir));
 
                     var responseTask = DesktopBuildClient.RunServerCompilation(
                         Language,
@@ -476,14 +478,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
             if (inGac != false)
+            {
                 return null;
+            }
 
             var codeBase = (string)typeof(Assembly)
                 .GetTypeInfo()
                 .GetDeclaredProperty("CodeBase")
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
-            if (codeBase == null) return null;
+            if (codeBase == null)
+            {
+                return null;
+            }
 
             var uri = new Uri(codeBase);
 
@@ -499,15 +506,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     .GetDeclaredMethod("GetCallingAssembly")
                     ?.Invoke(null, null);
 
-                var location = (string)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredProperty("Location")
-                    ?.GetMethod.Invoke(callingAssembly, parameters: null);
-
-                if (location == null) return null;
+                var location = Utilities.GetLocation(callingAssembly);
+                if (location == null)
+                {
+                    return null;
+                }
 
                 assemblyPath = location;
             }
+
             return Path.GetDirectoryName(assemblyPath);
         }
 
@@ -530,7 +537,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // if ToolTask didn't override. MSBuild uses the process directory.
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
+            {
                 workingDirectory = Directory.GetCurrentDirectory();
+            }
             return workingDirectory;
         }
 

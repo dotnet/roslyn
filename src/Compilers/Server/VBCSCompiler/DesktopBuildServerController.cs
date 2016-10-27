@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private readonly NameValueCollection _appSettings;
 
-        internal DesktopBuildServerController(NameValueCollection appSettings = null)
+        internal DesktopBuildServerController(NameValueCollection appSettings)
         {
-            _appSettings = appSettings ?? ConfigurationManager.AppSettings;
+            _appSettings = appSettings;
         }
 
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override string GetDefaultPipeName()
         {
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            return DesktopBuildClient.GetPipeNameForPath(clientDirectory);
+            return DesktopBuildClient.GetPipeNameForPathOpt(clientDirectory);
         }
 
         protected override bool? WasServerRunning(string pipeName)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            BuildServerController controller = new DesktopBuildServerController();
+            BuildServerController controller = new DesktopBuildServerController(new NameValueCollection());
             return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }

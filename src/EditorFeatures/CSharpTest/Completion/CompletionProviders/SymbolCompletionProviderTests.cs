@@ -3394,7 +3394,7 @@ public class XAttribute : Attribute
 class Class3 { }
 ";
             await VerifyItemExistsAsync(code, "X");
-            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(async () => await VerifyItemExistsAsync(code, "XAttribute"));
+            await Assert.ThrowsAsync<Xunit.Sdk.TrueException>(() => VerifyItemExistsAsync(code, "XAttribute"));
         }
 
         [WorkItem(544928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544928")]
@@ -6497,6 +6497,19 @@ class Program
             await VerifyItemExistsAsync(markup, "CommandLine");
         }
 
+        [WorkItem(12781, "https://github.com/dotnet/roslyn/issues/12781")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestFieldDeclarationAmbiguity()
+        {
+            var markup = @"
+using System;
+Environment.$$
+var v;
+}";
+
+            await VerifyItemExistsAsync(markup, "CommandLine", sourceCodeKind: SourceCodeKind.Script);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCursorOnClassCloseBrace()
         {
@@ -8853,6 +8866,178 @@ class C
     }
 }";
             await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElements()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        var t = (Alice: 1, Item2: 2, ITEM3: 3, 4, 5, 6, 7, 8, Bob: 9);
+        t.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            await VerifyItemExistsAsync(markup, "Alice");
+            await VerifyItemExistsAsync(markup, "Bob");
+            await VerifyItemExistsAsync(markup, "CompareTo");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Item2");
+            await VerifyItemExistsAsync(markup, "ITEM3");
+            for (int i = 4; i <= 8; i++)
+            {
+                await VerifyItemExistsAsync(markup, "Item" + i);
+            }
+            await VerifyItemExistsAsync(markup, "ToString");
+
+            await VerifyItemIsAbsentAsync(markup, "Item1");
+            await VerifyItemIsAbsentAsync(markup, "Item9");
+            await VerifyItemIsAbsentAsync(markup, "Rest");
+
+            // TODO fix once we have a good public API for tuple elements
+            // See https://github.com/dotnet/roslyn/issues/13229
+            await VerifyItemExistsAsync(markup, "Item3");
+        }
+
+        [WorkItem(14546, "https://github.com/dotnet/roslyn/issues/14546")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementsCompletionOffMethodGroup()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        new object().ToString.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            // should not crash
+            await VerifyItemExistsAsync(markup, "ToString");            
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task NoCompletionInLocalFuncGenericParamList()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        int Local<$$";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
+        public async Task CompletionForAwaitWithoutAsync()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        await Local<$$";
+
+            await VerifyAnyItemExistsAsync(markup);
+		}
+			
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel1()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel2()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$)
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel3()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel4()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$)
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInForeach()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        foreach ((C, $$
+    }
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInParameterList()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M((C, $$)
+    {
+    }
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInNameOf()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        var x = nameof((C, $$
+    }
+}", "C");
         }
     }
 }

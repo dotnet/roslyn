@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -48,8 +46,21 @@ public class C
     public event D E2 { add; remove; }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact]
+        [WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
+        public void TestVBParameterizedEvent()
+        {
+            var source = @"
+Module M
+    Event E(x As Object)
+End Module
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            TestRoundTrip(GetAllSymbols(compilation.GetSemanticModel(compilation.SyntaxTrees.Single())), compilation);
         }
 
         [Fact]
@@ -62,7 +73,7 @@ namespace A { namespace B.C { } }
 namespace A { namespace B { namespace C { } } }
 namespace A { namespace N { } }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
             Assert.Equal(5, symbols.Count);
             TestRoundTrip(symbols, compilation);
@@ -87,7 +98,7 @@ public class C
     public int** p2;
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IFieldSymbol>().Select(fs => fs.Type), compilation);
         }
 
@@ -105,7 +116,7 @@ public class C
     public T<A> E4;
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IFieldSymbol>().Select(fs => fs.Type), compilation, s => s.ToDisplayString());
         }
 
@@ -126,7 +137,7 @@ public class C
     public void M(ref int p)  { }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => ms.Parameters), compilation);
         }
 
@@ -188,7 +199,7 @@ public class C<S, T>
 }
 ";
 
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
         }
 
@@ -222,7 +233,7 @@ public class C
     }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<ILocalSymbol>()).ToList();
             Assert.Equal(7, symbols.Count);
             TestRoundTrip(symbols, compilation);
@@ -244,7 +255,7 @@ public class C
     }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<ILabelSymbol>()).ToList();
             Assert.Equal(3, symbols.Count);
             TestRoundTrip(symbols, compilation);
@@ -271,7 +282,7 @@ public class C
     }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<IRangeVariableSymbol>()).ToList();
             Assert.Equal(2, symbols.Count);
             TestRoundTrip(symbols, compilation);
@@ -298,10 +309,10 @@ public class C
     }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).Symbol).ToList();
+            var symbols = tree.GetRoot().DescendantNodes().OfType<CSharp.Syntax.InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).Symbol).ToList();
             Assert.True(symbols.Count > 0);
             TestRoundTrip(symbols, compilation);
         }
@@ -334,10 +345,10 @@ public class C
     }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var symbols = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).GetAnySymbol()).ToList();
+            var symbols = tree.GetRoot().DescendantNodes().OfType<CSharp.Syntax.InvocationExpressionSyntax>().Select(s => model.GetSymbolInfo(s).GetAnySymbol()).ToList();
             Assert.True(symbols.Count > 0);
             Assert.True(symbols.All(s => s.IsReducedExtension()));
             TestRoundTrip(symbols, compilation);
@@ -356,11 +367,11 @@ public class C
     public GL F2;
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
-            var symbols = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Select(s => model.GetDeclaredSymbol(s)).ToList();
+            var symbols = tree.GetRoot().DescendantNodes().OfType<CSharp.Syntax.UsingDirectiveSyntax>().Select(s => model.GetDeclaredSymbol(s)).ToList();
             Assert.Equal(2, symbols.Count);
             Assert.NotNull(symbols[0]);
             Assert.True(symbols[0] is IAliasSymbol);
@@ -381,7 +392,7 @@ public class C
     public dynamic[] F2;
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -399,7 +410,7 @@ public class C
     public void M<S, T>() { }
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -417,7 +428,7 @@ public class C<S, T>
 {
 }
 ";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -437,7 +448,7 @@ public class A<TOuter>
     {
     }
 }";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -460,7 +471,7 @@ public class A<T1>
         void M<T3>(T1 t1, T2, T3 t3, List<int> l1, List<T3> l2) { }
     }
 }";
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -503,7 +514,7 @@ public class A<T1>
         {
             var source = @"class C<T> { }";
 
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -517,7 +528,7 @@ public class A<T1>
         {
             var source = @"class C { void M<T>() { } }";
 
-            var compilation = GetCompilation(source);
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
             var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
@@ -551,7 +562,7 @@ class C
 
             var firstModel = await document.GetSemanticModelAsync();
             var tree1 = await document.GetSyntaxTreeAsync();
-            var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<BaseMethodDeclarationSyntax>();
+            var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
             // Modify the document so we can use the old semantic model as a base.
             var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
@@ -559,9 +570,9 @@ class C
 
             document = workspace.CurrentSolution.GetDocument(document.Id);
             var tree2 = await document.GetSyntaxTreeAsync();
-            var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<BaseMethodDeclarationSyntax>();
+            var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = new CSharpSemanticFactsService();
+            var service = new CSharp.CSharpSemanticFactsService();
             SemanticModel testModel;
             var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out testModel);
 
@@ -598,10 +609,50 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source)
+        private Compilation GetCompilation(string source, string language)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            return CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+            if (language == LanguageNames.CSharp)
+            {
+                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+            }
+            else if (language == LanguageNames.VisualBasic)
+            {
+                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private List<ISymbol> GetAllSymbols(SemanticModel model)
+        {
+            var list = new List<ISymbol>();
+            GetAllSymbols(model, model.SyntaxTree.GetRoot(), list);
+            return list;
+        }
+
+        private void GetAllSymbols(SemanticModel model, SyntaxNode node, List<ISymbol> list)
+        {
+            var symbol = model.GetDeclaredSymbol(node);
+            if (symbol != null)
+            {
+                list.Add(symbol);
+            }
+
+            symbol = model.GetSymbolInfo(node).GetAnySymbol();
+            if (symbol != null)
+            {
+                list.Add(symbol);
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    GetAllSymbols(model, child.AsNode(), list);
+                }
+            }
         }
 
         private List<ISymbol> GetDeclaredSymbols(Compilation compilation)

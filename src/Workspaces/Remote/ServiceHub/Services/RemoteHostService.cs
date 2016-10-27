@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Storage;
@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // this is the very first service which will be called from client (VS)
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(GetLoggingChecker()));
+
+            // Set this process's priority BelowNormal.
+            // this should let us to freely try to use all resources possible without worrying about affecting
+            // host's work such as responsiveness or build.
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
         }
 
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :

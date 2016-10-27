@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
-        internal static string Automatically_format_block_on {
+        internal static string Automatically_format_block_on_close_brace {
             get {
-                return ResourceManager.GetString("Automatically_format_block_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_block_on_close_brace", resourceCulture);
             }
         }
         
@@ -97,11 +97,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatically format on return.
+        /// </summary>
+        internal static string Automatically_format_on_return {
+            get {
+                return ResourceManager.GetString("Automatically_format_on_return", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
-        internal static string Automatically_format_statement_on {
+        internal static string Automatically_format_statement_on_semicolon {
             get {
-                return ResourceManager.GetString("Automatically_format_statement_on", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatically format when typing.
+        /// </summary>
+        internal static string Automatically_format_when_typing {
+            get {
+                return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
             }
         }
         
@@ -637,6 +655,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;null&apos; checking:.
+        /// </summary>
+        internal static string null_checking_colon {
+            get {
+                return ResourceManager.GetString("null_checking_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
         /// </summary>
         internal static string Only_add_new_line_on_enter_after_end_of_fully_typed_word {
@@ -651,15 +678,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Outlining.
-        /// </summary>
-        internal static string Outlining {
-            get {
-                return ResourceManager.GetString("Outlining", resourceCulture);
             }
         }
         
@@ -862,6 +880,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer block body.
+        /// </summary>
+        internal static string Prefer_block_body {
+            get {
+                return ResourceManager.GetString("Prefer_block_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional delegate call.
+        /// </summary>
+        internal static string Prefer_conditional_delegate_call {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_delegate_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicit type.
         /// </summary>
         internal static string Prefer_explicit_type {
@@ -871,11 +907,47 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer expression body.
+        /// </summary>
+        internal static string Prefer_expression_body {
+            get {
+                return ResourceManager.GetString("Prefer_expression_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;as&apos; with &apos;null&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_as_with_null_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_as_with_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;is&apos; with &apos;cast&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_is_with_cast_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_is_with_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {
             get {
                 return ResourceManager.GetString("Prefer_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer throw-expression.
+        /// </summary>
+        internal static string Prefer_throw_expression {
+            get {
+                return ResourceManager.GetString("Prefer_throw_expression", resourceCulture);
             }
         }
         

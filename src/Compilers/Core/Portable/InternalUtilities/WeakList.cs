@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
 
         public WeakList()
         {
-            _items = SpecializedCollections.EmptyArray<WeakReference<T>>();
+            _items = Array.Empty<WeakReference<T>>();
         }
 
         private void Resize()
@@ -186,7 +186,7 @@ namespace Roslyn.Utilities
 
             if (alive == 0)
             {
-                _items = SpecializedCollections.EmptyArray<WeakReference<T>>();
+                _items = Array.Empty<WeakReference<T>>();
                 _size = 0;
             }
             else if (alive < _items.Length / 4)

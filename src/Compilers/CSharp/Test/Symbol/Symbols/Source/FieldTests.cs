@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16),
+    // (3,16): warning CS0649: Field 'S.I' is never assigned to, and will always have its default value 0
+    //     public int I = 9;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "I").WithArguments("S.I", "0").WithLocation(3, 16)
 );
         }
 

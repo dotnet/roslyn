@@ -20,9 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -90,7 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IFormattingRule vbHelperFormattingRule)
         {
             Contract.ThrowIfNull(containedLanguage);
-            Contract.ThrowIfFalse(containedLanguage.Project is AbstractLegacyProject);
 
             _containedLanguage = containedLanguage;
             _sourceCodeKind = sourceCodeKind;
@@ -119,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             this.Key = new DocumentKey(Project, filePath);
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
-            this.Folders = ((AbstractLegacyProject)containedLanguage.Project).GetFolderNames(itemId);
+            this.Folders = containedLanguage.Project.GetFolderNamesFromHierarchy(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(_containedLanguage.SubjectBuffer);

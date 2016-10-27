@@ -26,8 +26,8 @@ Supported Platforms:
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Remote.ServiceHub.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Remote.ServiceHub.xml" target="lib\net46" />
+    <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" target="lib\net46" />
+    <file src="Dlls\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

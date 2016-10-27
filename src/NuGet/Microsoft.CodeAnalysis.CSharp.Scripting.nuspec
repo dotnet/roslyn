@@ -22,8 +22,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\dotnet" />
-    <file src="Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\dotnet" />
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" target="lib\dotnet" />
+    <file src="Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.xml" target="lib\dotnet" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

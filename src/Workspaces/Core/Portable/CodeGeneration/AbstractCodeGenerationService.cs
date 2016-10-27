@@ -15,11 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract partial class AbstractCodeGenerationService : ICodeGenerationService
     {
         private readonly ISymbolDeclarationService _symbolDeclarationService;
+        protected readonly Workspace Workspace;
 
         protected AbstractCodeGenerationService(
-            ISymbolDeclarationService symbolDeclarationService)
+            ISymbolDeclarationService symbolDeclarationService,
+            Workspace workspace)
         {
             _symbolDeclarationService = symbolDeclarationService;
+            Workspace = workspace;
         }
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
@@ -305,7 +308,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return options;
         }
 
-        public Task<Document> AddEventAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public virtual Task<Document> AddEventAsync(
+            Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
+            CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,

@@ -4,9 +4,6 @@
     <id>Microsoft.Net.Compilers.netcore</id>
     <description>
       CoreCLR-compatible versions of the C# and VB compilers.
-
-      Supported Platforms:
-      - .NET Core (NETCoreApp1.0)
     </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -17,53 +14,22 @@
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <dependencies>
-      <group targetFramework="NETCoreApp1.0">
+      <group targetFramework="netcoreapp1.0">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="[$version$]" />
-        <dependency id="System.AppContext"                             version="$SystemAppContextVersion$"/>
-        <dependency id="System.Collections"                            version="$SystemCollectionsVersion$"/>
-        <dependency id="System.Collections.Concurrent"                 version="$SystemCollectionsConcurrentVersion$"/>
-        <dependency id="System.Collections.Immutable"                  version="$SystemCollectionsImmutableVersion$"/>
-        <dependency id="System.Console"                                version="$SystemConsoleVersion$"/>
-        <dependency id="System.Diagnostics.Debug"                      version="$SystemDiagnosticsDebugVersion$"/>
-        <dependency id="System.Diagnostics.FileVersionInfo"            version="$SystemDiagnosticsFileVersionInfoVersion$"/>
-        <dependency id="System.Diagnostics.StackTrace"                 version="$SystemDiagnosticsStackTraceVersion$"/>
-        <dependency id="System.Diagnostics.Tools"                      version="$SystemDiagnosticsToolsVersion$"/>
-        <dependency id="System.Dynamic.Runtime"                        version="$SystemDynamicRuntimeVersion$"/>
-        <dependency id="System.Globalization"                          version="$SystemGlobalizationVersion$"/>
-        <dependency id="System.IO.FileSystem"                          version="$SystemIOFileSystemVersion$"/>
-        <dependency id="System.IO.FileSystem.Primitives"               version="$SystemIOFileSystemPrimitivesVersion$"/>
-        <dependency id="System.Linq"                                   version="$SystemLinqVersion$"/>
-        <dependency id="System.Linq.Expressions"                       version="$SystemLinqExpressionsVersion$"/>
-        <dependency id="System.Reflection"                             version="$SystemReflectionVersion$"/>
-        <dependency id="System.Reflection.Primitives"                  version="$SystemReflectionPrimitivesVersion$"/>
-        <dependency id="System.Resources.ResourceManager"              version="$SystemResourcesResourceManagerVersion$"/>
-        <dependency id="System.Runtime"                                version="$SystemRuntimeVersion$"/>
-        <dependency id="System.Runtime.Extensions"                     version="$SystemRuntimeExtensionsVersion$"/>
-        <dependency id="System.Runtime.Handles"                        version="$SystemRuntimeHandlesVersion$"/>
-        <dependency id="System.Runtime.InteropServices"                version="$SystemRuntimeInteropServicesVersion$"/>
-        <dependency id="System.Runtime.Loader"                         version="$SystemRuntimeLoaderVersion$" />
-        <dependency id="System.Runtime.Numerics"                       version="$SystemRuntimeNumericsVersion$"/>
-        <dependency id="System.Security.Cryptography.Algorithms"       version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
-        <dependency id="System.Security.Cryptography.Encoding"         version="$SystemSecurityCryptographyEncodingVersion$"/>
-        <dependency id="System.Security.Cryptography.X509Certificates" version="$SystemSecurityCryptographyX509CertificatesVersion$"/>
-        <dependency id="System.Text.Encoding"                          version="$SystemTextEncodingVersion$"/>
-        <dependency id="System.Text.Encoding.CodePages"                version="$SystemTextEncodingCodePagesVersion$"/>
-        <dependency id="System.Text.Encoding.Extensions"               version="$SystemTextEncodingExtensionsVersion$"/>
-        <dependency id="System.Threading"                              version="$SystemThreadingVersion$"/>
-        <dependency id="System.Threading.Tasks"                        version="$SystemThreadingTasksVersion$"/>
-        <dependency id="System.Threading.Tasks.Parallel"               version="$SystemThreadingTasksParallelVersion$"/>
-        <dependency id="System.Threading.Thread"                       version="$SystemThreadingThreadVersion$"/>
-        <dependency id="System.Xml.ReaderWriter"                       version="$SystemXmlReaderWriterVersion$"/>
-        <dependency id="System.Xml.XDocument"                          version="$SystemXmlXDocumentVersion$"/>
-        <dependency id="System.Xml.XmlDocument"                        version="$SystemXmlXmlDocumentVersion$"/>
-        <dependency id="System.Xml.XPath.XDocument"                    version="$SystemXmlXPathXDocumentVersion$"/>
+        <dependency id="System.AppContext" version="$SystemAppContextVersion$" />
+        <dependency id="System.Diagnostics.Process" version="$SystemDiagnosticsProcessVersion$" />
+        <dependency id="System.Console" version="$SystemConsoleVersion$" />
+        <dependency id="System.IO" version="$SystemIOVersion$" />
+        <dependency id="System.IO.FileSystem" version="$SystemIOFileSystemVersion$" />
+        <dependency id="System.Net.Sockets" version="$SystemNetSocketsVersion$" />
+        <dependency id="System.Runtime.Loader" version="$SystemRuntimeLoaderVersion$" />
+        <dependency id="System.Threading.Thread" version="$SystemThreadingThreadVersion$" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="$emptyDirPath$/_._" target="ref/dotnet" />
     <file src="$emptyDirPath$/_._" target="ref/netcoreapp1.0" />
-    <file src="csccore/csc.exe" target="runtimes/any/native" />
-    <file src="vbccore/vbc.exe" target="runtimes/any/native" />
+    <file src="Exes/csccore/csc.exe" target="runtimes/any/native" />
+    <file src="Exes/vbccore/vbc.exe" target="runtimes/any/native" />
   </files>
 </package>

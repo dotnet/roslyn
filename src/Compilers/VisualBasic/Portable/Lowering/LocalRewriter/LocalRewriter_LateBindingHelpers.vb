@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim targetType = assignmentTarget.Type
 
-            If Not targetType.IsSameTypeIgnoringCustomModifiers(objectType) Then
+            If Not targetType.IsSameTypeIgnoringAll(objectType) Then
                 ' // Call ChangeType to perform a latebound conversion
                 Dim changeTypeMethod As MethodSymbol = Nothing
                 If TryGetWellknownMember(changeTypeMethod,

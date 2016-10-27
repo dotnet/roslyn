@@ -68,18 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsReferenceType As Boolean
-            Get
-                Return Not Me._underlyingType.IsErrorType() AndAlso Me._underlyingType.IsReferenceType
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property IsValueType As Boolean
-            Get
-                Return Me._underlyingType.IsErrorType() OrElse Me._underlyingType.IsValueType
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
@@ -122,7 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return If(Me._underlyingType.TypeKind = TypeKind.Class, TypeKind.Class, TypeKind.Struct)
+                ' From the language perspective tuple is a value type
+                ' composed of its underlying elements
+                Return TypeKind.Struct
             End Get
         End Property
 
@@ -999,5 +989,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             Me._underlyingType.GenerateDeclarationErrors(cancellationToken)
         End Sub
+
+        Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            ' We might need to have a real implementation here, depending on the resolution
+            ' of https://github.com/dotnet/roslyn/issues/14104
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
+
+        Friend Shared Sub ReportNamesMismatchesIfAny(destination As TypeSymbol, literal As BoundTupleLiteral, diagnostics As DiagnosticBag)
+            Dim sourceNames = literal.ArgumentNamesOpt
+
+            If sourceNames.IsDefault Then
+                Return
+            End If
+
+            Dim destinationNames As ImmutableArray(Of String) = destination.TupleElementNames
+            Dim sourceLength As Integer = sourceNames.Length
+            Dim allMissing As Boolean = destinationNames.IsDefault
+            Debug.Assert(allMissing OrElse destinationNames.Length = sourceLength)
+
+            For i = 0 To sourceLength - 1
+                Dim sourceName = sourceNames(i)
+                If sourceName IsNot Nothing AndAlso (allMissing OrElse String.CompareOrdinal(destinationNames(i), sourceName) <> 0) Then
+                    diagnostics.Add(ERRID.WRN_TupleLiteralNameMismatch, literal.Arguments(i).Syntax.Parent.Location, sourceName, destination)
+                End If
+            Next
+        End Sub
+
     End Class
 End Namespace

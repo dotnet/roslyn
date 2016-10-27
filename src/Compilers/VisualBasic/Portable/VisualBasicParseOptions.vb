@@ -132,6 +132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 features:=other._features)
         End Sub
 
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
                 If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then

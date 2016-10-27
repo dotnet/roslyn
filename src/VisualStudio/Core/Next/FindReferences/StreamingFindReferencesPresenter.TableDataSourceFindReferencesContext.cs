@@ -3,22 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Completion;
-using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 {
@@ -150,8 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 {
                     // Create a fake definition/reference called "search found no results"
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
-                        (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, ServicesVisualStudioNextResources.Search_found_no_results)).ConfigureAwait(false);
+                        bucket => SimpleMessageEntry.CreateAsync(
+                            bucket, ServicesVisualStudioNextResources.Search_found_no_results)).ConfigureAwait(false);
                 }
             }
 
@@ -173,8 +173,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
                     await OnEntryFoundAsync(definition,
-                        (db, c) => SimpleMessageEntry.CreateAsync(
-                            db, GetMessage(db.DefinitionItem))).ConfigureAwait(false);
+                        bucket => SimpleMessageEntry.CreateAsync(
+                            bucket, GetMessage(bucket.DefinitionItem))).ConfigureAwait(false);
                 }
             }
 
@@ -230,27 +230,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     _definitions.Add(definition);
                 }
 
-                foreach (var location in definition.SourceSpans)
+                // If this is a definition we always want to show, then create entries
+                // for all the definition locations immediately.
+                if (definition.DisplayIfNoReferences)
                 {
-                    await OnEntryFoundAsync(definition,
-                        (db, c) => CreateDocumentLocationEntryAsync(
-                            db, location, isDefinitionLocation: true, cancellationToken: c)).ConfigureAwait(false);
+                    await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
                 }
             }
 
-            public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            private async Task AddDefinitionEntriesAsync(DefinitionItem definition)
             {
-                return OnEntryFoundAsync(reference.Definition,
-                    (db, c) => CreateDocumentLocationEntryAsync(
-                        db, reference.SourceSpan, isDefinitionLocation: false, cancellationToken: c));
-            }
+                CancellationToken.ThrowIfCancellationRequested();
 
-            private async Task OnEntryFoundAsync(
-                DefinitionItem definition, 
-                Func<RoslynDefinitionBucket, CancellationToken, Task<Entry>> createEntryAsync)
-            {
-                var cancellationToken = _cancellationTokenSource.Token;
-                cancellationToken.ThrowIfCancellationRequested();
+                // Don't do anything if we already have entries for this definition 
+                // (i.e. another thread beat us to this).
+                if (HasEntriesForDefinition(definition))
+                {
+                    return;
+                }
 
                 // First find the bucket corresponding to our definition. If we can't find/create 
                 // one, then don't do anything for this reference.
@@ -260,12 +257,68 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     return;
                 }
 
-                var entry = await createEntryAsync(
-                    definitionBucket, cancellationToken).ConfigureAwait(false);
+                // We could do this inside the lock.  but that would mean async activity in a 
+                // lock, and i'd like to avoid that.  That does mean that we might do extra
+                // work if multiple threads end up down htis path.  But only one of them will
+                // win when we access the lock below.
+                var builder = ImmutableArray.CreateBuilder<Entry>();
+                foreach (var definitionLocation in definition.SourceSpans)
+                {
+                    var definitionEntry = await CreateDocumentLocationEntryAsync(
+                        definitionBucket, definitionLocation, isDefinitionLocation: true).ConfigureAwait(false);
+                    if (definitionEntry != null)
+                    {
+                        builder.Add(definitionEntry);
+                    }
+                }
+
+                lock (_gate)
+                {
+                    // Do one final check to ensure that no other thread beat us here.
+                    if (!HasEntriesForDefinition(definition))
+                    {
+                        _entries = _entries.AddRange(builder);
+                        CurrentVersionNumber++;
+                    }
+                }
+
+                // Let all our subscriptions know that we've updated.
+                _tableDataSink.FactorySnapshotChanged(this);
+            }
+
+            public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            {
+                return OnEntryFoundAsync(reference.Definition,
+                    bucket => CreateDocumentLocationEntryAsync(
+                        bucket, reference.SourceSpan, isDefinitionLocation: false));
+            }
+
+            private async Task OnEntryFoundAsync(
+                DefinitionItem definition,
+                Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync)
+            {
+                CancellationToken.ThrowIfCancellationRequested();
+
+                // First find the bucket corresponding to our definition. If we can't find/create 
+                // one, then don't do anything for this reference.
+                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                if (definitionBucket == null)
+                {
+                    return;
+                }
+
+                var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
                 if (entry == null)
                 {
                     return;
                 }
+
+                // Ok, we got a *reference* to some definition item.  This may have been
+                // a reference for some definition that we haven't created any definition
+                // entries for (i.e. becuase it had DisplayIfNoReferences = false).  Because
+                // we've now found a reference, we want to make sure all tis definition
+                // entries are added.
+                await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
 
                 lock (_gate)
                 {
@@ -278,38 +331,31 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _tableDataSink.FactorySnapshotChanged(this);
             }
 
+            private bool HasEntriesForDefinition(DefinitionItem definition)
+            {
+                lock (_gate)
+                {
+                    return _entries.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                }
+            }
+
             private async Task<Entry> CreateDocumentLocationEntryAsync(
                 RoslynDefinitionBucket definitionBucket, 
                 DocumentSpan documentSpan,
-                bool isDefinitionLocation,
-                CancellationToken cancellationToken)
+                bool isDefinitionLocation)
             {
                 var document = documentSpan.Document;
 
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from.  So we only support this for documents from a VSWorkspace.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return null;
-                }
-
-                var projectGuid = workspace.GetHostProject(document.Project.Id)?.Guid;
-                if (projectGuid == null)
-                {
-                    return null;
-                }
-
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
                 var referenceSpan = documentSpan.SourceSpan;
                 var lineSpan = GetLineSpanForReference(sourceText, referenceSpan);
 
-                var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan, cancellationToken).ConfigureAwait(false);
+                var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, workspace, definitionBucket, documentSpan, 
-                    isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
+                    this, definitionBucket, documentSpan, 
+                    isDefinitionLocation, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
@@ -334,7 +380,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private async Task<ClassifiedSpansAndHighlightSpan> GetTaggedTextForReferenceAsync(
-                Document document, TextSpan referenceSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
+                Document document, TextSpan referenceSpan, TextSpan widenedSpan)
             {
                 var classificationService = document.GetLanguageService<IEditorClassificationService>();
                 if (classificationService == null)
@@ -349,28 +395,35 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 // name), we'll do a later merging step to get the final correct list of 
                 // classifications.  For tagging, normally the editor handles this.  But as
                 // we're producing the list of Inlines ourselves, we have to handles this here.
-                var syntaxSpans = new List<ClassifiedSpan>();
-                var semanticSpans = new List<ClassifiedSpan>();
+                var syntaxSpans = ListPool<ClassifiedSpan>.Allocate();
+                var semanticSpans = ListPool<ClassifiedSpan>.Allocate();
+                try
+                {
+                    var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSyntacticClassificationsAsync(
+                        document, widenedSpan, syntaxSpans, CancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSemanticClassificationsAsync(
+                        document, widenedSpan, semanticSpans, CancellationToken).ConfigureAwait(false);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = MergeClassifiedSpans(
+                        syntaxSpans, semanticSpans, widenedSpan, sourceText);
 
-                var classifiedSpans = MergeClassifiedSpans(
-                    syntaxSpans, semanticSpans, widenedSpan, sourceText);
+                    var highlightSpan = new TextSpan(
+                        start: referenceSpan.Start - widenedSpan.Start,
+                        length: referenceSpan.Length);
 
-                var highlightSpan = new TextSpan(
-                    start: referenceSpan.Start - widenedSpan.Start,
-                    length: referenceSpan.Length);
-
-                return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                    return new ClassifiedSpansAndHighlightSpan(classifiedSpans, highlightSpan);
+                }
+                finally
+                {
+                    ListPool<ClassifiedSpan>.Free(syntaxSpans);
+                    ListPool<ClassifiedSpan>.Free(semanticSpans);
+                }
             }
 
             private ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, 
+                List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans,
                 TextSpan widenedSpan, SourceText sourceText)
             {
                 // The spans produced by the language services may not be ordered
@@ -380,25 +433,73 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 Order(syntaxSpans);
                 Order(semanticSpans);
 
+                // It's possible for us to get classified spans that occur *before*
+                // or after the span we want to present. This happens because the calls to
+                // AddSyntacticClassificationsAsync and AddSemanticClassificationsAsync 
+                // may return more spans than the range asked for.  While bad form,
+                // it's never been a requirement that implementation not do that.
+                // For example, the span may be the non-full-span of a node, but the
+                // classifiers may still return classifications for leading/trailing
+                // trivia even if it's out of the bounds of that span.
+                // 
+                // To deal with that, we adjust all spans so that they don't go outside
+                // of the range we care about.
+                AdjustSpans(syntaxSpans, widenedSpan);
+                AdjustSpans(semanticSpans, widenedSpan);
+
                 // The classification service will only produce classifications for
                 // things it knows about.  i.e. there will be gaps in what it produces.
                 // Fill in those gaps so we have *all* parts of the span 
                 // classified properly.
-                var syntaxParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans);
-                var semanticParts = FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans);
+                var filledInSyntaxSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var filledInSemanticSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
 
-                // Now merge the lists together, taking all the results from syntaxParts
-                // unless they were overridden by results in semanticParts.
-                return MergeParts(syntaxParts, semanticParts);
+                try
+                {
+                    FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+                    FillInClassifiedSpanGaps(sourceText, widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+
+                    // Now merge the lists together, taking all the results from syntaxParts
+                    // unless they were overridden by results in semanticParts.
+                    return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
+                }
+                finally
+                {
+                    filledInSyntaxSpans.Free();
+                    filledInSemanticSpans.Free();
+                }
             }
 
-            private static List<ClassifiedSpan> FillInClassifiedSpanGaps(
-                SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
+            private void AdjustSpans(List<ClassifiedSpan> spans, TextSpan widenedSpan)
             {
-                var result = new List<ClassifiedSpan>();
+                for (var i = 0; i < spans.Count; i++)
+                {
+                    var span = spans[i];
 
+                    // Make sure the span actually intersects 'widenedSpan'.  If it 
+                    // does not, just put in an empty length span.  It will get ignored later
+                    // when we walk through this list.
+                    var intersection = span.TextSpan.Intersection(widenedSpan);
+
+                    var newSpan = new ClassifiedSpan(span.ClassificationType,
+                        intersection ?? new TextSpan());
+                    spans[i] = newSpan;
+                }
+            }
+
+            private static void FillInClassifiedSpanGaps(
+                SourceText sourceText, int startPosition,
+                List<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+            {
                 foreach (var span in classifiedSpans)
                 {
+                    // Ignore empty spans.  We can get those when the classification service
+                    // returns spans outside of the range of the span we asked to classify.
+                    if (span.TextSpan.Length == 0)
+                    {
+                        continue;
+                    }
+
                     // If there is space between this span and the last one, then add a space.
                     if (startPosition != span.TextSpan.Start)
                     {
@@ -410,8 +511,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     result.Add(span);
                     startPosition = span.TextSpan.End;
                 }
-
-                return result;
             }
 
             private void Order(List<ClassifiedSpan> syntaxSpans)
@@ -420,13 +519,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private ImmutableArray<ClassifiedSpan> MergeParts(
-                List<ClassifiedSpan> syntaxParts,
-                List<ClassifiedSpan> semanticParts)
+                ArrayBuilder<ClassifiedSpan> syntaxParts,
+                ArrayBuilder<ClassifiedSpan> semanticParts)
             {
                 // Take all the syntax parts.  However, if any have been overridden by a 
                 // semantic part, then choose that one.
 
-                var finalParts = ImmutableArray.CreateBuilder<ClassifiedSpan>();
+                var finalParts = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 var lastReplacementIndex = 0;
                 for (int i = 0, n = syntaxParts.Count; i < n; i++)
                 {
@@ -453,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                     }
                 }
 
-                return finalParts.ToImmutable();
+                return finalParts.ToImmutableAndFree();
             }
 
             private bool IsClassifiedAsText(ClassifiedSpan partAndSpan)

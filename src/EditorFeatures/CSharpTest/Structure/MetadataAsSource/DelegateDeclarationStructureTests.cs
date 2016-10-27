@@ -28,37 +28,37 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|collapse:[Foo]
+{|hint:{|textspan:[Foo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-{|hint:{|collapse:// Summary:
+{|hint:{|textspan:// Summary:
 //     This is a summary.
 [Foo]
 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
-{|hint:{|collapse:// Summary:
+{|hint:{|textspan:// Summary:
 //     This is a summary.
 [Foo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

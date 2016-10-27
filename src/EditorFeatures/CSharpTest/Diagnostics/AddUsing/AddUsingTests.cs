@@ -765,8 +765,8 @@ compareTokens: false);
 using System.Linq.Expressions;
 
 Expression",
-parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
+GetScriptOptions(),
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 
@@ -2354,6 +2354,91 @@ namespace NS
         public class N { }
     }
 }");
+        }
+
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+
+class C : [|IEnumerable|]<int>
+{
+}
+",
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+using System.Collections.Generic;
+
+class C : IEnumerable<int>
+{
+}
+",
+compareTokens: false);
+        }
+
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing2()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System.Collections;
+
+class C
+{
+    [|DateTime|] d;
+}
+",
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+using System.Collections;
+
+class C
+{
+    DateTime d;
+}
+",
+compareTokens: false);
+        }
+
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfClass1()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+class C
+{
+    [|DateTime|] d;
+}
+",
+@"
+using System;
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+class C
+{
+    DateTime d;
+}
+",
+compareTokens: false);
         }
 
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest

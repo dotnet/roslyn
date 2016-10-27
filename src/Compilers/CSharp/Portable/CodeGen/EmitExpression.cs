@@ -302,6 +302,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
                     break;
 
+                case BoundKind.ThrowExpression:
+                    EmitThrowExpression((BoundThrowExpression)expression, used);
+                    break;
+
                 case BoundKind.Void:
                     Debug.Assert(!used);
                     break;
@@ -313,6 +317,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitThrowExpression(BoundThrowExpression node, bool used)
+        {
+            this.EmitThrow(node.Expression);
+
+            // to satisfy invariants, we push a default value to pretend to adjust the stack height
+            EmitDefaultValue(node.Type, used, node.Syntax);
         }
 
         private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression, bool used)

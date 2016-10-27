@@ -424,6 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(syntaxTrees.All(Function(tree) syntaxTrees(syntaxTreeOrdinalMap(tree)) Is tree))
             Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer(Of SyntaxTree).Default))
+            Debug.Assert(embeddedTrees.All(Function(treeAndDeclaration) declarationTable.Contains(treeAndDeclaration.DeclarationEntry)))
 
             _options = options
             _syntaxTrees = syntaxTrees
@@ -926,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 removeSet.Add(tree)
             Next
 
-            Debug.Assert(Not removeSet.IsEmpty())
+            Debug.Assert(removeSet.Count > 0)
 
             ' We're going to have to revise the ordinals of all
             ' trees after the first one removed, so just build
@@ -971,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return UpdateSyntaxTrees(ImmutableArray(Of SyntaxTree).Empty,
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
-                                     DeclarationTable.Empty,
+                                     AddEmbeddedTrees(DeclarationTable.Empty, _embeddedTrees),
                                      referenceDirectivesChanged:=_declarationTable.ReferenceDirectives.Any())
         End Function
 
@@ -1829,6 +1830,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
+        Friend ReadOnly Property HasTupleNamesAttributes As Boolean
+            Get
+                Return GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) IsNot Nothing
+            End Get
+        End Property
+
+        Friend Function CanEmitSpecialType(type As SpecialType) As Boolean
+            Dim typeSymbol = GetSpecialType(type)
+            Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
+            Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
+        End Function
+
 #End Region
 
 #Region "Binding"
@@ -2564,52 +2577,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
-        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
-            If elementTypes.IsDefault Then
-                Throw New ArgumentNullException(NameOf(elementTypes))
-            End If
-
-            If elementTypes.Length <= 1 Then
-                Throw New ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, NameOf(elementNames))
-            End If
-
-            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames)
-
+        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol),
+                                                                 elementNames As ImmutableArray(Of String),
+                                                                 elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
             Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
             For i As Integer = 0 To elementTypes.Length - 1
-                If elementTypes(i) Is Nothing Then
-                    Throw New ArgumentNullException($"{NameOf(elementTypes)}[{i}]")
-                End If
-
                 typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
             Next
 
             'no location for the type declaration
-            Return TupleTypeSymbol.Create(locationOpt:=Nothing, elementTypes:=typesBuilder.ToImmutableAndFree(), elementLocations:=Nothing, elementNames:=elementNames, compilation:=Me)
+            Return TupleTypeSymbol.Create(locationOpt:=Nothing,
+                                          elementTypes:=typesBuilder.ToImmutableAndFree(),
+                                          elementLocations:=elementLocations,
+                                          elementNames:=elementNames, compilation:=Me)
         End Function
 
-        ''' <summary>
-        ''' Check that if any names are provided, their number matches the expected cardinality and they are not null.
-        ''' </summary>
-        Private Shared Function CheckTupleElementNames(cardinality As Integer, elementNames As ImmutableArray(Of String)) As ImmutableArray(Of String)
-            If Not elementNames.IsDefault Then
-                If elementNames.Length <> cardinality Then
-                    Throw New ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, NameOf(elementNames))
-                End If
-
-                If elementNames.All(Function(n As String) n Is Nothing) Then
-                    Return Nothing
-                End If
-            End If
-
-            Return elementNames
-        End Function
-
-        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
-            If underlyingType Is Nothing Then
-                Throw New ArgumentNullException(NameOf(underlyingType))
-            End If
-
+        Protected Overrides Function CommonCreateTupleTypeSymbol(
+                underlyingType As INamedTypeSymbol,
+                elementNames As ImmutableArray(Of String),
+                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
@@ -2618,11 +2604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
+            CheckTupleElementLocations(cardinality, elementLocations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,
                 tupleCompatibleType:=underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType)),
-                elementLocations:=Nothing,
+                elementLocations:=elementLocations,
                 elementNames:=elementNames)
         End Function
 
@@ -2632,7 +2619,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreateAnonymousTypeSymbol(
                 memberTypes As ImmutableArray(Of ITypeSymbol),
-                memberNames As ImmutableArray(Of String)) As INamedTypeSymbol
+                memberNames As ImmutableArray(Of String),
+                memberLocations As ImmutableArray(Of Location),
+                memberIsReadOnly As ImmutableArray(Of Boolean)) As INamedTypeSymbol
 
             Dim i = 0
             For Each t In memberTypes
@@ -2641,11 +2630,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 i = i + 1
             Next
 
-            Dim fields = memberTypes.ZipAsArray(
-                memberNames,
-                Function(type, name) New AnonymousTypeField(name, DirectCast(type, TypeSymbol), Location.None))
+            Dim fields = ArrayBuilder(Of AnonymousTypeField).GetInstance()
 
-            Dim descriptor = New AnonymousTypeDescriptor(fields, Location.None, isImplicitlyDeclared:=False)
+            For i = 0 To memberTypes.Length - 1
+                Dim type = memberTypes(i)
+                Dim name = memberNames(i)
+                Dim loc = If(memberLocations.IsDefault, Location.None, memberLocations(i))
+                Dim isReadOnly = memberIsReadOnly.IsDefault OrElse memberIsReadOnly(i)
+                fields.Add(New AnonymousTypeField(name, DirectCast(type, TypeSymbol), loc, isReadOnly))
+            Next
+
+            Dim descriptor = New AnonymousTypeDescriptor(
+                fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
         End Function
 

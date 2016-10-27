@@ -128,19 +128,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (asyncExpansionManager != null)
             {
                 // Call the asynchronous IExpansionManager API from a background thread
-                Task.Factory.StartNew(async () => await PopulateSnippetCacheAsync(asyncExpansionManager).ConfigureAwait(false),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                TaskScheduler.Default).CompletesAsyncOperation(token);
-
+                Task.Run(() => PopulateSnippetCacheAsync(asyncExpansionManager))
+                    .CompletesAsyncOperation(token);
             }
             else
             {
                 // Call the synchronous IVsExpansionManager API from the UI thread
                 Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                ForegroundTaskScheduler).CompletesAsyncOperation(token);                
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    ForegroundTaskScheduler).CompletesAsyncOperation(token);                
             }
         }
 

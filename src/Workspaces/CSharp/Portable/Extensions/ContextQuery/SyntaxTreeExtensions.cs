@@ -684,6 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsPossibleTupleContext(tokenOnLeftOfPosition, position) ||
                 syntaxTree.IsMemberDeclarationContext(
                     position,
                     contextOpt: null,
@@ -1133,16 +1134,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         // Tuple literals aren't recognized by the parser until there is a comma
         // So a parenthesized expression is a possible tuple context too
-        public static bool IsPossibleTupleElementNameContext(this SyntaxToken token, int position)
+        public static bool IsPossibleTupleContext(this SyntaxTree syntaxTree,
+            SyntaxToken tokenOnLeftOfPosition, int position)
         {
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken))
+            if (tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken))
             {
-                return token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) || token.Parent.IsKind(SyntaxKind.TupleExpression);
+                return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType);
             }
 
-            return token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression);
+            return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) &&
+                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType);
         }
 
         public static bool HasNames(this TupleExpressionSyntax tuple)

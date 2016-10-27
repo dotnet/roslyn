@@ -552,38 +552,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_flags.FieldDefinitionsNoted)
                 {
-                    if (!this.IsAbstract)
+                    var assembly = (SourceAssemblySymbol)ContainingAssembly;
+
+                    Accessibility containerEffectiveAccessibility = EffectiveAccessibility();
+
+                    foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
-                        var assembly = (SourceAssemblySymbol)ContainingAssembly;
-
-                        Accessibility containerEffectiveAccessibility = EffectiveAccessibility();
-
-                        foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
+                        FieldSymbol field;
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
                         {
-                            FieldSymbol field;
-                            if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
 
-                            Accessibility fieldDeclaredAccessibility = field.DeclaredAccessibility;
-                            if (fieldDeclaredAccessibility == Accessibility.Private)
-                            {
-                                // mark private fields as tentatively unassigned and unread unless we discover otherwise.
-                                assembly.NoteFieldDefinition(field, isInternal: false, isUnread: true);
-                            }
-                            else if (containerEffectiveAccessibility == Accessibility.Private)
-                            {
-                                // mark effectively private fields as tentatively unassigned unless we discover otherwise.
-                                assembly.NoteFieldDefinition(field, isInternal: false, isUnread: false);
-                            }
-                            else if (fieldDeclaredAccessibility == Accessibility.Internal || containerEffectiveAccessibility == Accessibility.Internal)
-                            {
-                                // mark effectively internal fields as tentatively unassigned unless we discover otherwise.
-                                // NOTE: These fields will be reported as unassigned only if internals are not visible from this assembly.
-                                // See property SourceAssemblySymbol.UnusedFieldWarnings.
-                                assembly.NoteFieldDefinition(field, isInternal: true, isUnread: false);
-                            }
+                        Accessibility fieldDeclaredAccessibility = field.DeclaredAccessibility;
+                        if (fieldDeclaredAccessibility == Accessibility.Private)
+                        {
+                            // mark private fields as tentatively unassigned and unread unless we discover otherwise.
+                            assembly.NoteFieldDefinition(field, isInternal: false, isUnread: true);
+                        }
+                        else if (containerEffectiveAccessibility == Accessibility.Private)
+                        {
+                            // mark effectively private fields as tentatively unassigned unless we discover otherwise.
+                            assembly.NoteFieldDefinition(field, isInternal: false, isUnread: false);
+                        }
+                        else if (fieldDeclaredAccessibility == Accessibility.Internal || containerEffectiveAccessibility == Accessibility.Internal)
+                        {
+                            // mark effectively internal fields as tentatively unassigned unless we discover otherwise.
+                            // NOTE: These fields will be reported as unassigned only if internals are not visible from this assembly.
+                            // See property SourceAssemblySymbol.UnusedFieldWarnings.
+                            assembly.NoteFieldDefinition(field, isInternal: true, isUnread: false);
                         }
                     }
                     _flags.SetFieldDefinitionsNoted();
@@ -2892,7 +2889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (IsScriptClass)
                                 {
                                     // also gather expression-declared variables from the bracketed argument lists and the initializers
-                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, variable, this, 
+                                    ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers, variable, this,
                                                             DeclarationModifiers.Private | (modifiers & DeclarationModifiers.Static),
                                                             fieldSymbol);
                                 }
@@ -2972,14 +2969,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.GetMethod, diagnostics);
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
+                            FieldSymbol backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in 
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)property.BackingField != null)
+                            if ((object)backingField != null)
                             {
-                                builder.NonTypeNonIndexerMembers.Add(property.BackingField);
+                                builder.NonTypeNonIndexerMembers.Add(backingField);
 
                                 var initializer = propertySyntax.Initializer;
                                 if (initializer != null)
@@ -2991,16 +2989,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                       initializer,
                                                                                       this,
                                                                                       DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
-                                                                                      property.BackingField);
+                                                                                      backingField);
                                     }
 
                                     if (property.IsStatic)
                                     {
-                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref staticInitializers, ref builder.StaticSyntaxLength, backingField, initializer);
                                     }
                                     else
                                     {
-                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, property.BackingField, initializer);
+                                        AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, backingField, initializer);
                                     }
                                 }
                             }
@@ -3148,12 +3146,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 switch (innerStatement.Kind())
                                 {
                                     case SyntaxKind.DeconstructionDeclarationStatement:
+                                        var assignment = ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment;
+
+                                        CollectFieldsFromGlobalDeconstruction(builder.NonTypeNonIndexerMembers,
+                                            assignment.VariableComponent,
+                                            assignment);
+
                                         ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
-                                                  ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment.Value,
-                                                  this,
-                                                  DeclarationModifiers.Private,
-                                                  containingFieldOpt: null);
-                                        break; 
+                                            assignment.Value,
+                                            this,
+                                            DeclarationModifiers.Private,
+                                            containingFieldOpt: null);
+                                        break;
 
                                     case SyntaxKind.LocalDeclarationStatement:
                                         // We shouldn't reach this place, but field declarations preceded with a label end up here.
@@ -3204,6 +3208,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
+                        VariableComponentAssignmentSyntax assignment)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    var typed = (TypedVariableComponentSyntax)variableComponent;
+                    CollectFieldsFromGlobalDeconstruction(
+                        builder,
+                        typed.Designation,
+                        typed.Type,
+                        assignment);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    foreach (VariableComponentSyntax variable in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
+                    {
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, assignment);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variableComponent.Kind());
+            }
+        }
+
+        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
+                        TypeSyntax type, VariableComponentAssignmentSyntax assignment)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    var single = (SingleVariableDesignationSyntax)designation;
+                    var field = GlobalExpressionVariable.Create(
+                        containingType: this,
+                        modifiers: DeclarationModifiers.Private,
+                        typeSyntax: type,
+                        name: single.Identifier.ValueText,
+                        syntax: designation,
+                        location: designation.Location,
+                        containingFieldOpt: null,
+                        nodeToBind: assignment);
+                    builder.Add(field);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    foreach (VariableDesignationSyntax variable in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
+                    {
+                        CollectFieldsFromGlobalDeconstruction(builder, variable, type, assignment);
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

@@ -427,10 +427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol cacheKey = GetCacheKey(delegateType);
 
             BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
+            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType && returnInferenceLambda.Symbol.ReturnType == returnType)
             {
                 lambdaSymbol = returnInferenceLambda.Symbol;
-                Debug.Assert(lambdaSymbol.ReturnType == returnType);
                 Debug.Assert(lambdaSymbol.RefKind == refKind);
 
                 lambdaBodyBinder = returnInferenceLambda.Binder;
@@ -451,6 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+
+            ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, parameters);
 
         haveLambdaBodyAndBinders:
@@ -485,6 +486,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(lambdaSymbol.IsAsync);
                 SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.Locations[0]);
+            }
+
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)returnType != null && returnType.SpecialType != SpecialType.System_Void &&
+                !block.HasErrors && !diagnostics.HasAnyResolvedErrors() && block.Statements.Length > 0)
+            {
+                BoundStatement first = block.Statements[0];
+                if (first.Kind == BoundKind.ReturnStatement)
+                {
+                    var returnStmt = (BoundReturnStatement)first;
+                    if (returnStmt.ExpressionOpt != null && (object)returnStmt.ExpressionOpt.Type == null)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }
             }
 
             var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: false)

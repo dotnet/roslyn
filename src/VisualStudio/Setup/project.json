@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "Microsoft.DiaSymReader.PortablePdb": "1.2.0-beta1-60831-01",
         "ManagedEsent": "1.9.4"
     },
     "frameworks": {

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Construct a list with no sequence points.
         private SequencePointList()
         {
-            _points = SpecializedCollections.EmptyArray<OffsetAndSpan>();
+            _points = Array.Empty<OffsetAndSpan>();
         }
 
         // Construct a list with sequence points from exactly one syntax tree.
@@ -118,15 +118,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string lastPath = null;
             Cci.DebugSourceDocument lastDebugDocument = null;
 
-            // First, count the number of sequence points.
-            int count = 0;
-            SequencePointList current = this;
-            while (current != null)
-            {
-                count += current._points.Length;
-                current = current._next;
-            }
-
             FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
@@ -136,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             lastPathIsMapped = firstReal.Value.HasMappedPath;
             lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
 
-            current = this;
+            SequencePointList current = this;
             while (current != null)
             {
                 SyntaxTree currentTree = current._tree;

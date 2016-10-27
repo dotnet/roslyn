@@ -106,17 +106,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             return null;
                         }
 
+                        var suggestionMode = _useSuggestionMode || completionList.SuggestionModeItem != null;
                         return Model.CreateModel(
                             _documentOpt,
                             _disconnectedBufferGraph,
                             completionList,
-                            selectedItem: completionList.Items.First(),
-                            isHardSelection: false,
-                            isUnique: false,
-                            useSuggestionMode: _useSuggestionMode,
-                            trigger: _trigger,
-                            completionService: _completionService,
-                            workspace: _documentOpt != null ? _documentOpt.Project.Solution.Workspace : null);
+                            useSuggestionMode: suggestionMode,
+                            trigger: _trigger);
                     }
                 }
 

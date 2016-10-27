@@ -100,6 +100,7 @@ namespace Microsoft.Cci
             if (!suppressNewCustomDebugInfo)
             {
                 SerializeDynamicLocalInfo(methodBody, customDebugInfo);
+                SerializeTupleElementNames(methodBody, customDebugInfo);
 
                 // delta doesn't need this information - we use information recorded by previous generation emit
                 if (!isEncDelta)
@@ -146,10 +147,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static PooledBlobBuilder SerializeRecord(
+        private static PooledBlobBuilder SerializeRecord<T>(
             CustomDebugInfoKind kind,
-            EditAndContinueMethodDebugInformation debugInfo,
-            Action<EditAndContinueMethodDebugInformation, BlobBuilder> recordSerializer)
+            T debugInfo,
+            Action<T, BlobBuilder> recordSerializer)
         {
             var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CustomDebugInfoConstants.Version);
@@ -188,8 +189,7 @@ namespace Microsoft.Cci
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
             cmw.WriteUInt32(length);
-            cmw.WriteUTF16(iteratorClassName);
-            cmw.WriteInt16(0);
+            WriteUtf16String(cmw, iteratorClassName);
             cmw.Align(4);
             Debug.Assert(cmw.Count == length);
             customDebugInfo.Add(cmw);
@@ -228,21 +228,23 @@ namespace Microsoft.Cci
             customDebugInfo.Add(cmw);
         }
 
-        private static void SerializeDynamicLocalInfo(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
+        private static ArrayBuilder<T> GetLocalInfoToSerialize<T>(
+            IMethodBody methodBody,
+            Func<ILocalDefinition, bool> filter,
+            Func<LocalScope, ILocalDefinition, T> getInfo)
         {
-            if (!methodBody.HasDynamicLocalVariables)
-            {
-                return; //There are no dynamic locals
-            }
+            ArrayBuilder<T> builder = null;
 
-            var dynamicLocals = ArrayBuilder<ILocalDefinition>.GetInstance();
-
-            foreach (ILocalDefinition local in methodBody.LocalVariables)
+            foreach (var local in methodBody.LocalVariables)
             {
                 Debug.Assert(local.SlotIndex >= 0);
-                if (local.IsDynamic)
+                if (filter(local))
                 {
-                    dynamicLocals.Add(local);
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<T>.GetInstance();
+                    }
+                    builder.Add(getInfo(default(LocalScope), local));
                 }
             }
 
@@ -251,17 +253,45 @@ namespace Microsoft.Cci
                 foreach (var localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);
-                    if (localConstant.IsDynamic)
+                    if (filter(localConstant))
                     {
-                        dynamicLocals.Add(localConstant);
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<T>.GetInstance();
+                        }
+                        builder.Add(getInfo(currentScope, localConstant));
                     }
                 }
             }
 
-            Debug.Assert(dynamicLocals.Any()); // There must be at least one dynamic local if this point is reached
+            return builder;
+        }
+
+        private static void SerializeDynamicLocalInfo(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
+        {
+            if (!methodBody.HasDynamicLocalVariables)
+            {
+                return; //There are no dynamic locals
+            }
 
             const int dynamicAttributeSize = 64;
             const int identifierSize = 64;
+
+            var dynamicLocals = GetLocalInfoToSerialize(
+                methodBody,
+                local =>
+                {
+                    var dynamicTransformFlags = local.DynamicTransformFlags;
+                    return !dynamicTransformFlags.IsEmpty &&
+                        dynamicTransformFlags.Length <= dynamicAttributeSize &&
+                        local.Name.Length < identifierSize;
+                },
+                (scope, local) => local);
+            if (dynamicLocals == null)
+            {
+                return;
+            }
+
             const int blobSize = dynamicAttributeSize + 4 + 4 + identifierSize * 2;//DynamicAttribute: 64, DynamicAttributeLength: 4, SlotIndex: 4, IdentifierName: 128
             var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CustomDebugInfoConstants.Version);
@@ -273,30 +303,17 @@ namespace Microsoft.Cci
 
             foreach (ILocalDefinition local in dynamicLocals)
             {
-                if (local.Name.Length >= identifierSize)//Ignore and push empty information
-                {
-                    cmw.WriteBytes(0, blobSize);
-                    continue;
-                }
-
                 var dynamicTransformFlags = local.DynamicTransformFlags;
-                if (!dynamicTransformFlags.IsDefault && dynamicTransformFlags.Length <= dynamicAttributeSize)
+                byte[] flag = new byte[dynamicAttributeSize];
+                for (int k = 0; k < dynamicTransformFlags.Length; k++)
                 {
-                    byte[] flag = new byte[dynamicAttributeSize];
-                    for (int k = 0; k < dynamicTransformFlags.Length; k++)
+                    if ((bool)dynamicTransformFlags[k].Value)
                     {
-                        if ((bool)dynamicTransformFlags[k].Value)
-                        {
-                            flag[k] = 1;
-                        }
+                        flag[k] = 1;
                     }
-                    cmw.WriteBytes(flag); //Written Flag
-                    cmw.WriteUInt32((uint)dynamicTransformFlags.Length); //Written Length
                 }
-                else
-                {
-                    cmw.WriteBytes(0, dynamicAttributeSize + 4); //Empty flag array and size.
-                }
+                cmw.WriteBytes(flag); //Written Flag
+                cmw.WriteUInt32((uint)dynamicTransformFlags.Length); //Written Length
 
                 var localIndex = local.SlotIndex;
                 cmw.WriteUInt32((localIndex < 0) ? 0u : (uint)localIndex);
@@ -308,6 +325,57 @@ namespace Microsoft.Cci
 
             dynamicLocals.Free();
             customDebugInfo.Add(cmw);
+        }
+
+        private struct LocalAndScope
+        {
+            internal readonly ILocalDefinition Local;
+            internal readonly LocalScope Scope;
+
+            internal LocalAndScope(ILocalDefinition local, LocalScope scope)
+            {
+                Local = local;
+                Scope = scope;
+            }
+        }
+
+        private static void SerializeTupleElementNames(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
+        {
+            var builder = GetLocalInfoToSerialize(
+                methodBody,
+                local => !local.TupleElementNames.IsEmpty,
+                (scope, local) => new LocalAndScope(local, scope));
+            if (builder == null)
+            {
+                return;
+            }
+
+            customDebugInfo.Add(
+                SerializeRecord(
+                    CustomDebugInfoKind.TupleElementNames,
+                    builder,
+                    SerializeTupleElementNames));
+            builder.Free();
+        }
+
+        private static void SerializeTupleElementNames(ArrayBuilder<LocalAndScope> locals, BlobBuilder cmw)
+        {
+            cmw.WriteInt32(locals.Count);
+            foreach (var localAndScope in locals)
+            {
+                var local = localAndScope.Local;
+                var scope = localAndScope.Scope;
+                var tupleElementNames = local.TupleElementNames;
+                cmw.WriteInt32(tupleElementNames.Length);
+                foreach (var tupleElementName in tupleElementNames)
+                {
+                    WriteUtf8String(cmw, (string)tupleElementName.Value ?? string.Empty);
+                }
+                cmw.WriteInt32(local.SlotIndex);
+                cmw.WriteInt32(scope.StartOffset);
+                cmw.WriteInt32(scope.EndOffset);
+                WriteUtf8String(cmw, local.Name);
+            }
         }
 
         // internal for testing
@@ -456,6 +524,24 @@ namespace Microsoft.Cci
             cmw.WriteUInt32(12);
             cmw.WriteUInt32((uint)_previousMethodTokenWithUsingInfo);
             customDebugInfo.Add(cmw);
+        }
+
+        /// <summary>
+        /// Write string as UTF8 with null terminator.
+        /// </summary>
+        private static void WriteUtf8String(BlobBuilder cmw, string str)
+        {
+            cmw.WriteUTF8(str);
+            cmw.WriteByte(0);
+        }
+
+        /// <summary>
+        /// Write string as UTF16 with null terminator.
+        /// </summary>
+        private static void WriteUtf16String(BlobBuilder cmw, string str)
+        {
+            cmw.WriteUTF16(str);
+            cmw.WriteUInt16(0);
         }
     }
 }

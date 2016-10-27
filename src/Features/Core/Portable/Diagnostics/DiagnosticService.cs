@@ -253,7 +253,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(
+            Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
             foreach (var source in _updateSources)
             {

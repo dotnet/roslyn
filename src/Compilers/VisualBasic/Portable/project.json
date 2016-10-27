@@ -1,6 +1,8 @@
 {
-    "dependencies": { },
-    "frameworks": {
-        ".NETPortable,Version=v4.5,Profile=Profile7": { }
-    }
+  "dependencies": {
+    "System.Threading.Tasks.Parallel": "4.0.1"
+  },
+  "frameworks": {
+    "netstandard1.3": {}
+  }
 }

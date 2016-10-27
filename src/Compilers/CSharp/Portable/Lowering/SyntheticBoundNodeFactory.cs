@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             set
             {
                 _currentMethod = value;
-                if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
+                if ((object)value != null &&
+                    value.MethodKind != MethodKind.AnonymousFunction &&
+                    value.MethodKind != MethodKind.LocalFunction)
                 {
                     _topLevelMethod = value;
                     _currentType = value.ContainingType;
@@ -941,6 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
         }
 
+        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        {
+            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Null(TypeSymbol type)
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
@@ -951,6 +958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)type == null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 

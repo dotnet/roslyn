@@ -279,10 +279,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2, x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2, x3))").WithLocation(11, 19)
                 );
 
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
@@ -320,10 +317,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (8,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1)").WithLocation(8, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -361,10 +355,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, x2: x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2: x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -402,10 +393,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (ref x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (ref x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -443,10 +431,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (x2)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (x2))").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -484,10 +469,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var ((x1), x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var ((x1), x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -570,9 +552,6 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -612,10 +591,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (9,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(ref var (x1, x2));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, x2)").WithLocation(9, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -694,9 +670,6 @@ public class Cls
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
                 );
 
             CompileAndVerify(compilation, expectedOutput: "123");
@@ -739,10 +712,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         Test1(out var (x1, (a: x2, b: x3)));
-                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19),
-                // (4,24): warning CS0649: Field 'Cls.F1' is never assigned to, and will always have its default value 0
-                //     private static int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("Cls.F1", "0").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x1, (a: x2, b: x3))").WithLocation(11, 19)
                 );
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
@@ -850,6 +820,7 @@ public class Cls
         {
             var variableDeclaratorSyntax = GetVariableDesignation(decl);
             var symbol = model.GetDeclaredSymbol(variableDeclaratorSyntax);
+            Assert.NotNull(symbol);
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -881,9 +852,7 @@ public class Cls
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            Assert.Equal(local.Type, model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
@@ -897,6 +866,32 @@ public class Cls
             {
                 VerifyDataFlow(model, decl, isDelegateCreation, isExecutableCode, references, symbol);
             }
+        }
+
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        {
+            var symbolInfo = model.GetSymbolInfo(decl);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
+
+            var typeInfo = model.GetTypeInfo(decl);
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
+
+            var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
+            Assert.False(conversion.Exists);
+            Assert.Equal(conversion, model.ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, model.ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, false));
+            Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
+
+            Assert.Null(model.GetDeclaredSymbol(decl));
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -983,6 +978,8 @@ public class Cls
             {
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
+
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>());
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -10651,7 +10648,7 @@ public class X
                   let x11 = TakeOutParam(11, out var y11) && y11 > 0
                   select TakeOutParam(12, out var y12) && y12 > 0
                   into s
-                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12;
+                  select y1 + y2 + y3 + y4 + y5 + y6 + y7 + y8 + y9 + y10 + y11 + y12 + (TakeOutParam(13, out var y13) ? y13 : 0);
 
         Dummy(y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12); 
     }
@@ -10729,8 +10726,6 @@ public class X
 
                 switch (i)
                 {
-                    case 1:
-                    case 3:
                     case 12:
                         // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
                         //VerifyNotAnOutLocal(model, yRef[1]);
@@ -10740,6 +10735,11 @@ public class X
                         break;
                 }
             }
+
+            var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
+            var y13Ref = GetReference(tree, "y13");
+            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
+            //VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -14330,9 +14330,15 @@ public class X
                 // (12,63): error CS0841: Cannot use local variable 'x1' before it is declared
                 //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(12, 63),
+                // (12,63): error CS0165: Use of unassigned local variable 'x1'
+                //         using (var x1 = Dummy(TakeOutParam(true, out var x1), x1))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(12, 63),
                 // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
                 //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73),
+                // (20,78): error CS0165: Use of unassigned local variable 'x2'
+                //         using (System.IDisposable x2 = Dummy(TakeOutParam(true, out var x2), x2))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(20, 78)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -17790,9 +17796,9 @@ public class Cls
                 // (8,23): error CS0103: The name 'x3' does not exist in the current context
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 23),
-                // (7,9): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
+                // (7,13): error CS0177: The out parameter 'x2' must be assigned to before control leaves the current method
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "int b(out var x2) ").WithArguments("x2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "b").WithArguments("x2").WithLocation(7, 13),
                 // (6,25): warning CS0219: The variable 'a' is assigned but its value is never used
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 25),
@@ -19721,9 +19727,8 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
 
-            Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            Assert.Null(model.GetTypeInfo(decl).Type);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
+
             VerifyModelNotSupported(model, references);
         }
 
@@ -20229,7 +20234,13 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
+        }
+
+        private static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         [Fact]
@@ -20348,6 +20359,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20535,6 +20547,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20674,6 +20687,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -20898,6 +20912,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21030,6 +21045,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21151,6 +21167,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21273,6 +21290,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21439,6 +21457,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21562,6 +21581,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21702,6 +21722,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -21863,6 +21884,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22049,6 +22071,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22188,6 +22211,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22423,6 +22447,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22563,6 +22588,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22797,6 +22823,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -22936,6 +22963,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23074,36 +23102,6 @@ class H
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (2,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool a, int b) = (H.TakeOutParam(1, out int x1), 1);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(2, 17),
-                // (2,17): error CS1525: Invalid expression term '='
-                // (bool a, int b) = (H.TakeOutParam(1, out int x1), 1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 17),
-                // (6,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(6, 17),
-                // (6,17): error CS1525: Invalid expression term '='
-                // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 17),
-                // (8,17): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool e, int f) = (H.TakeOutParam(3, out int x3), 3);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(8, 17),
-                // (8,17): error CS1525: Invalid expression term '='
-                // (bool e, int f) = (H.TakeOutParam(3, out int x3), 3);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 17),
-                // (11,18): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool g, bool h) = (H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(11, 18),
-                // (11,18): error CS1525: Invalid expression term '='
-                // (bool g, bool h) = (H.TakeOutParam(41, out int x4),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(11, 18),
-                // (14,20): error CS1519: Invalid token '=' in class, struct, or interface member declaration
-                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(14, 20),
-                // (14,20): error CS1525: Invalid expression term '='
-                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(14, 20),
                 // (6,46): error CS0102: The type 'Script' already contains a definition for 'x2'
                 // (bool c, int d) = (H.TakeOutParam(2, out int x2), 2);
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 46),
@@ -23113,6 +23111,12 @@ class H
                 // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                     H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out int x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
                 // (19,17): error CS0229: Ambiguity between 'x2' and 'x2'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(19, 17),
@@ -23121,7 +23125,13 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
                 // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -23148,13 +23158,13 @@ class H
 
                 var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
-                Assert.Equal(2, x5Ref.Length);
-                VerifyModelForOutField(model, x5Decl, x5Ref[1]);
+                Assert.Equal(1, x5Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref[0]);
 
                 var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
                 var x6Ref = GetReferences(tree, "x6").ToArray();
-                Assert.Equal(2, x6Ref.Length);
-                VerifyModelForOutField(model, x6Decl, x6Ref[1]);
+                Assert.Equal(1, x6Ref.Length);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref[0]);
             }
 
             {
@@ -23199,6 +23209,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23329,6 +23340,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23460,6 +23472,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -23984,6 +23997,12 @@ class H
                 // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                     H.TakeOutParam(42, out int x4));
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out int x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out int x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
                 // (1,1): warning CS0164: This label has not been referenced
                 // l1:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
@@ -24007,7 +24026,13 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
                 // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -24035,12 +24060,12 @@ class H
                 var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
-                VerifyModelForOutField(model, x5Decl, x5Ref);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
                 var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
                 var x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
-                VerifyModelForOutField(model, x6Decl, x6Ref);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
@@ -24085,6 +24110,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -24138,6 +24164,12 @@ class H
                 // (12,48): error CS0102: The type 'Script' already contains a definition for 'x4'
                 //                     H.TakeOutParam(42, out var x4));
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 48),
+                // (14,49): error CS0102: The type 'Script' already contains a definition for 'x5'
+                // (bool x5, bool x6) = (H.TakeOutParam(5, out var x5),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x5").WithArguments("Script", "x5").WithLocation(14, 49),
+                // (15,49): error CS0102: The type 'Script' already contains a definition for 'x6'
+                //                       H.TakeOutParam(6, out var x6));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x6").WithArguments("Script", "x6").WithLocation(15, 49),
                 // (1,1): warning CS0164: This label has not been referenced
                 // l1:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "l1").WithLocation(1, 1),
@@ -24161,7 +24193,13 @@ class H
                 Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(19, 21),
                 // (19,25): error CS0229: Ambiguity between 'x4' and 'x4'
                 //     H.Dummy(x1, x2, x3, x4, x5, x6);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(19, 25),
+                // (19,29): error CS0229: Ambiguity between 'x5' and 'x5'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x5").WithArguments("x5", "x5").WithLocation(19, 29),
+                // (19,33): error CS0229: Ambiguity between 'x6' and 'x6'
+                //     H.Dummy(x1, x2, x3, x4, x5, x6);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x6").WithArguments("x6", "x6").WithLocation(19, 33)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -24189,12 +24227,12 @@ class H
                 var x5Decl = GetOutVarDeclarations(tree, "x5").Single();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(1, x5Ref.Length);
-                VerifyModelForOutField(model, x5Decl, x5Ref);
+                VerifyModelForOutFieldDuplicate(model, x5Decl, x5Ref);
 
                 var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
                 var x6Ref = GetReferences(tree, "x6").ToArray();
                 Assert.Equal(1, x6Ref.Length);
-                VerifyModelForOutField(model, x6Decl, x6Ref);
+                VerifyModelForOutFieldDuplicate(model, x6Decl, x6Ref);
             }
 
             {
@@ -24240,6 +24278,7 @@ class H
 
                 var tree = compilation.SyntaxTrees.Single();
                 Assert.Empty(GetOutVarDeclarations(tree));
+                AssertNoGlobalStatements(tree);
             }
         }
 
@@ -26550,7 +26589,7 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            compilation.VerifyDiagnostics(
+            compilation.GetDeclarationDiagnostics().Verify(
                 // (3,24): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // H.TakeOutParam(out var x1, x1);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 24)
@@ -26588,14 +26627,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var b = H.TakeOutParam(out var x1, a);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26623,14 +26665,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
+            Assert.True(b.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var b = a;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "b").WithArguments("b").WithLocation(4, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26658,14 +26703,17 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
+            Assert.True(a.Type.IsErrorType());
+
             compilation.VerifyDiagnostics(
                 // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var a = x1;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(3, 5)
                 );
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
@@ -26708,12 +26756,6 @@ class H
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            compilation.VerifyDiagnostics(
-                // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
-                // var a = H.TakeOutParam(out var x1, b);
-                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
-                );
-
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -26722,6 +26764,12 @@ class H
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
             Assert.True(x1.Type.IsErrorType());
+
+            compilation.VerifyDiagnostics(
+                // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var a = H.TakeOutParam(out var x1, b);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
+                );
 
             compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             tree = compilation.SyntaxTrees.Single();
@@ -26961,18 +27009,8 @@ class H
             var declarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
-            if (inFieldDeclaratorArgumentlist)
-            {
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-                Assert.Null(model.GetSymbolInfo(decl).Symbol);
-            }
-            else
-            {
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-                Assert.Same(symbol, model.GetSymbolInfo(decl).Symbol);
-            }
 
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            AssertInfoForDeclarationExpressionSyntax(model, decl);
 
             foreach (var reference in references)
             {
@@ -27021,6 +27059,118 @@ class H
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out int a);
+        TakeOutParam(out long b);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int64");
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out var a);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out var a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        long a = 0;
+        TakeOutParam(out int b, a);
+        int c;
+        TakeOutParam(out c, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out int b, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(7, 9),
+                // (9,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out c, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        byte a = 0;
+        int b = 0;
+        TakeOutParam(out int c, a);
+        TakeOutParam(out b, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int32");
         }
     }
 }

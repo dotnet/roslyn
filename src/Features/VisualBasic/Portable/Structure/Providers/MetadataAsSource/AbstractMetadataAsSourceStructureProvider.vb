@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
         Inherits AbstractSyntaxNodeStructureProvider(Of TSyntaxNode)
 
         Protected Overrides Sub CollectBlockSpans(node As TSyntaxNode,
-                                                      spans As ImmutableArray(Of BlockSpan).Builder,
-                                                      cancellationToken As CancellationToken)
+                                                  spans As ArrayBuilder(Of BlockSpan),
+                                                  cancellationToken As CancellationToken)
             Dim startToken = node.GetFirstToken()
             Dim endToken = GetEndToken(node)
 
@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 
                 spans.Add(New BlockSpan(
                     isCollapsible:=True,
+                    type:=BlockTypes.Comment,
                     textSpan:=TextSpan.FromBounds(startPosition, endPosition),
                     hintSpan:=TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
                     bannerText:=Ellipsis,

@@ -383,11 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(text));
             }
 
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
             options = options ?? CSharpParseOptions.Default;
 
             using (var lexer = new InternalSyntax.Lexer(text, options))
