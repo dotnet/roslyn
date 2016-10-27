@@ -13,6 +13,7 @@ namespace BuildBoss
         internal ProjectKey Key { get; }
         internal string FilePath { get; }
         internal XDocument Document { get; }
+        internal ProjectUtil ProjectFileUtil { get; }
 
         internal string FileName => Path.GetFileName(FilePath);
         internal string Directory => Path.GetDirectoryName(FilePath);
@@ -23,6 +24,7 @@ namespace BuildBoss
             Key = new ProjectKey(filePath);
             FilePath = Key.FilePath;
             Document = XDocument.Load(FilePath);
+            ProjectFileUtil = new ProjectUtil(Key, Document);
         }
     }
 }
