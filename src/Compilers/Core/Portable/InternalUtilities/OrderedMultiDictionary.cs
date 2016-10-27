@@ -34,18 +34,6 @@ namespace Roslyn.Utilities
             _keys = new List<K>();
         }
 
-        public OrderedMultiDictionary(IEqualityComparer<K> comparer)
-        {
-            _dictionary = new Dictionary<K, SetWithInsertionOrder<V>>(comparer);
-            _keys = new List<K>();
-        }
-
-        public OrderedMultiDictionary(int capacity, IEqualityComparer<K> comparer)
-        {
-            _dictionary = new Dictionary<K, SetWithInsertionOrder<V>>(capacity, comparer);
-            _keys = new List<K>(capacity);
-        }
-
         public void Add(K k, V v)
         {
             SetWithInsertionOrder<V> set;
@@ -67,14 +55,6 @@ namespace Roslyn.Utilities
                 yield return new KeyValuePair<K, SetWithInsertionOrder<V>>(
                     key, _dictionary[key]);
             }
-        }
-
-        public bool ContainsKey(K k) => _dictionary.ContainsKey(k);
-
-        internal void Clear()
-        {
-            _dictionary.Clear();
-            _keys.Clear();
         }
     }
 }
