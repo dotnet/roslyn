@@ -15,13 +15,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
             var stream = new MemoryStream();
-            var writer = new StreamObjectWriter(stream);
+            var binder = new RecordingObjectBinder();
+            var writer = new StreamObjectWriter(stream, binder: binder);
 
             writeAction(writer);
             writer.Dispose();
 
             stream.Position = 0;
-            using (var reader = new StreamObjectReader(stream, binder: writer.Binder))
+            using (var reader = new StreamObjectReader(stream, binder: binder))
             {
                 readAction(reader);
             }
@@ -30,13 +31,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
             var stream = new MemoryStream();
-            var writer = new StreamObjectWriter(stream);
+            var binder = new RecordingObjectBinder();
+            var writer = new StreamObjectWriter(stream, binder: binder);
 
             writeAction(writer, value);
             writer.Dispose();
 
             stream.Position = 0;
-            using (var reader = new StreamObjectReader(stream, binder: writer.Binder))
+            using (var reader = new StreamObjectReader(stream, binder: binder))
             {
                 return (T)readAction(reader);
             }
@@ -932,7 +934,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
                 }
 
-                var writer = new StreamObjectWriter(stream);
+                var binder = new RecordingObjectBinder();
+                var writer = new StreamObjectWriter(stream, binder: binder);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -942,7 +945,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                 }
 
-                var binder = writer.Binder;
                 writer.Dispose();
 
                 stream.Position = 0;

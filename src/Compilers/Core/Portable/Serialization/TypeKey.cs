@@ -4,6 +4,9 @@ using System;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// The name parts of a type that can be used to uniquely identity that type.
+    /// </summary>
     internal struct TypeKey : IEquatable<TypeKey>
     {
         public readonly string AssemblyName;

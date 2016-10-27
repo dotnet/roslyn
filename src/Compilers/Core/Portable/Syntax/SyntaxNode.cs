@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis
             return IsEquivalentToCore(node, topLevel);
         }
 
-        internal static readonly ObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
+        internal static readonly ObjectBinder s_defaultBinder = new RecordingObjectBinder();
 
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {

@@ -405,14 +405,14 @@
   <data name="Diagnostic_must_have_span_0" xml:space="preserve">
     <value>Diagnostic must have span '{0}'</value>
   </data>
-  <data name="Cannot_deserialize_type_0_no_binder_supplied" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', no binder supplied.</value>
+  <data name="Cannot_deserialize_type_0" xml:space="preserve">
+    <value>Cannot deserialize type '{0}'.</value>
   </data>
-  <data name="Cannot_deserialize_type_0_it_has_no_deserialization_reader" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', it has no deserialization reader.</value>
+  <data name="Cannot_serialize_type_0" xml:space="preserve">
+    <value>Cannot serialize type '{0}'.</value>
   </data>
-  <data name="The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable" xml:space="preserve">
-    <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
+  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
+    <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
   <data name="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1" xml:space="preserve">
     <value>Label for node '{0}' is invalid, it must be within [0, {1}).</value>
@@ -488,5 +488,8 @@
   </data>
   <data name="Stream_is_too_long" xml:space="preserve">
     <value>Stream is too long.</value>
+  </data>
+  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
+    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
 </root>

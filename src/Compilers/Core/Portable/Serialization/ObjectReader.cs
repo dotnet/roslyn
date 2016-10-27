@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// An abstract of a stream of values that can be read from.
+    /// </summary>
     internal abstract class ObjectReader
     {
         public abstract bool ReadBoolean();

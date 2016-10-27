@@ -350,20 +350,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
         /// </summary>
-        internal static string Cannot_deserialize_type_0_it_has_no_deserialization_reader {
+        internal static string Cannot_deserialize_type_0 {
             get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0_it_has_no_deserialization_reader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
-        /// </summary>
-        internal static string Cannot_deserialize_type_0_no_binder_supplied {
-            get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0_no_binder_supplied", resourceCulture);
+                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
             }
         }
         
@@ -392,6 +383,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cannot_open_project_0_because_the_language_1_is_not_supported {
             get {
                 return ResourceManager.GetString("Cannot_open_project_0_because_the_language_1_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_serialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
             }
         }
         
@@ -464,6 +464,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cycle_detected_in_extensions {
             get {
                 return ResourceManager.GetString("Cycle_detected_in_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
+        /// </summary>
+        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
+            get {
+                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
             }
         }
         
@@ -1090,11 +1099,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
         /// </summary>
-        internal static string The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable {
+        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
             get {
-                return ResourceManager.GetString("The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable", resourceCulture);
+                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
             }
         }
         

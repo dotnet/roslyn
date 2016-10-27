@@ -14,8 +14,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+#if COMPILERCORE
+    using Resources = CodeAnalysisResources;
+#else
+    using Resources = WorkspacesResources;
+#endif
+
     /// <summary>
-    /// A class that serializes objects to a stream.
+    /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
     internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
@@ -69,19 +75,11 @@ namespace Roslyn.Utilities
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? new SimpleRecordingObjectBinder();
+            _binder = binder ?? FixedObjectBinder.Empty;
             _cancellationToken = cancellationToken;
             _valueStack = s_variantStackPool.Allocate();
             _memberList = s_variantListPool.Allocate();
             _memberWriter = new VariantListWriter(_memberList);
-        }
-
-        /// <summary>
-        /// The <see cref="ObjectBinder"/> used for writing object instances and types.
-        /// </summary>
-        public ObjectBinder Binder
-        {
-            get { return _binder; }
         }
 
         public void Dispose()
@@ -525,11 +523,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-#if COMPILERCORE
-                throw new ArgumentException(CodeAnalysisResources.ValueTooLargeToBeRepresented);
-#else
-                throw new ArgumentException(WorkspacesResources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
-#endif
+                throw new ArgumentException(Resources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
             }
         }
 
@@ -578,7 +572,6 @@ namespace Roslyn.Utilities
                         _writer.Write((byte)EncodingKind.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
-
                         byte[] bytes = new byte[(uint)value.Length * sizeof(char)];
                         fixed (char* valuePtr = value)
                         {
@@ -885,10 +878,14 @@ namespace Roslyn.Utilities
 
                 _writer.Write((byte)EncodingKind.Type);
 
-                var typeKey = _binder.GetTypeKey(type);
+                TypeKey key;
+                if (!_binder.TryGetTypeKey(type, out key))
+                {
+                    throw NoSerializationTypeException(type.FullName);
+                }
 
-                this.WriteStringValue(typeKey.AssemblyName);
-                this.WriteStringValue(typeKey.TypeName);
+                this.WriteStringValue(key.AssemblyName);
+                this.WriteStringValue(key.TypeName);
             }
         }
 
@@ -919,10 +916,10 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var typeWriter = _binder.GetWriter(instance);
-                if (typeWriter == null)
+                Action<ObjectWriter, object> typeWriter;
+                if (!_binder.TryGetWriter(instance, out typeWriter))
                 {
-                    throw NotWritableException(instance.GetType().FullName);
+                    throw NoSerializationWriterException(instance.GetType().FullName);
                 }
 
                 // gather instance members by writing them into a list of variants
@@ -933,8 +930,6 @@ namespace Roslyn.Utilities
                 this.WriteObjectHeader(instance, (uint)_memberList.Count);
 
                 // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
-                // TODO: consider optimizing for objects that only contain primitive members.
-
                 // push all members in reverse order so we later emit the first member written first
                 for (int i = _memberList.Count - 1; i >= 0; i--)
                 {
@@ -954,13 +949,14 @@ namespace Roslyn.Utilities
             this.WriteCompressedUInt(memberCount);
         }
 
-        private static Exception NotWritableException(string typeName)
+        private static Exception NoSerializationTypeException(string typeName)
         {
-#if COMPILERCORE
-            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NotWritableException, typeName));
-#else
-            throw new InvalidOperationException(string.Format(WorkspacesResources.The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable, typeName));
-#endif
+            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
+        }
+
+        private static Exception NoSerializationWriterException(string typeName)
+        {
+            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
@@ -983,7 +979,8 @@ namespace Roslyn.Utilities
                 KeyValuePair.Create(typeof(decimal), EncodingKind.Decimal),
             });
 
-        internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
+        internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap 
+            = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
 
         /// <summary>
         /// byte marker mask for encoding compressed uint 
@@ -1636,11 +1633,7 @@ namespace Roslyn.Utilities
 
                         if (instance.Rank > 1)
                         {
-#if COMPILERCORE
-                            throw new InvalidOperationException(CodeAnalysisResources.ArraysWithMoreThanOneDimensionCannotBeSerialized);
-#else
-                            throw new InvalidOperationException(WorkspacesResources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
-#endif
+                            throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
                         }
 
                         return Variant.FromArray(instance);

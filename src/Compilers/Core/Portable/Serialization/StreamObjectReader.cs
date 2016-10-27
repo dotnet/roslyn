@@ -11,13 +11,19 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+#if COMPILERCORE
+    using Resources = CodeAnalysisResources;
+#else
+    using Resources = WorkspacesResources;
+#endif
+
     using SOW = StreamObjectWriter;
     using EncodingKind = StreamObjectWriter.EncodingKind;
     using Variant = StreamObjectWriter.Variant;
     using VariantKind = StreamObjectWriter.VariantKind;
 
     /// <summary>
-    /// A class that deserializes objects from a stream.
+    /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
     /// </summary>
     internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
     {
@@ -31,17 +37,17 @@ namespace Roslyn.Utilities
         private readonly ReferenceMap _referenceMap;
 
         /// <summary>
-        /// Stack of values (object members and array elements) used to construct consumers (objects and arrays)
+        /// Stack of values used to construct objects and arrays
         /// </summary>
         private readonly Stack<Variant> _valueStack;
 
         /// <summary>
-        /// stack of consumers (objects and arrays needing values before they can be constructed)
+        /// Stack of pending object and array constructions
         /// </summary>
-        private readonly Stack<Consumer> _consumerStack;
+        private readonly Stack<Construction> _constructionStack;
 
         /// <summary>
-        /// List of members that object decoders/deserializers can read from.
+        /// List of member values that object deserializers read from.
         /// </summary>
         private readonly List<Variant> _memberList;
 
@@ -50,8 +56,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly VariantListReader _memberReader;
 
-        private static readonly ObjectPool<Stack<Consumer>> s_consumerStackPool
-            = new ObjectPool<Stack<Consumer>>(() => new Stack<Consumer>(20));
+        private static readonly ObjectPool<Stack<Construction>> s_constructionStackPool
+            = new ObjectPool<Stack<Construction>>(() => new Stack<Construction>(20));
 
         /// <summary>
         /// Creates a new instance of a <see cref="StreamObjectReader"/>.
@@ -72,10 +78,10 @@ namespace Roslyn.Utilities
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder;
+            _binder = binder ?? FixedObjectBinder.Empty;
             _cancellationToken = cancellationToken;
             _valueStack = SOW.s_variantStackPool.Allocate();
-            _consumerStack = s_consumerStackPool.Allocate();
+            _constructionStack = s_constructionStackPool.Allocate();
             _memberList = SOW.s_variantListPool.Allocate();
             _memberReader = new VariantListReader(_memberList);
         }
@@ -87,8 +93,8 @@ namespace Roslyn.Utilities
             _valueStack.Clear();
             SOW.s_variantStackPool.Free(_valueStack);
 
-            _consumerStack.Clear();
-            s_consumerStackPool.Free(_consumerStack);
+            _constructionStack.Clear();
+            s_constructionStackPool.Free(_constructionStack);
 
             _memberList.Clear();
             SOW.s_variantListPool.Free(_memberList);
@@ -172,26 +178,26 @@ namespace Roslyn.Utilities
             // if we didn't get anything, it must have been an object or array header
             if (v.Kind == VariantKind.None)
             {
-                v = ConsumeAndConstruct();
+                v = ConstructFromValues();
             }
 
             return v.ToBoxedObject();
         }
 
-        private Variant ConsumeAndConstruct()
+        private Variant ConstructFromValues()
         {
-            Debug.Assert(_consumerStack.Count > 0);
+            Debug.Assert(_constructionStack.Count > 0);
 
-            // keep reading until we've got all the elements to construct the consumer
-            while (_consumerStack.Count > 0)
+            // keep reading until we've got all the values needed to construct the object or array
+            while (_constructionStack.Count > 0)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                var consumer = _consumerStack.Peek();
-                if (consumer.CanConstruct(_valueStack.Count))
+                var construction = _constructionStack.Peek();
+                if (construction.CanConstruct(_valueStack.Count))
                 {
-                    consumer = _consumerStack.Pop();
-                    var constructed = consumer.Construct(this);
+                    construction = _constructionStack.Pop();
+                    var constructed = construction.Construct(this);
                     _valueStack.Push(constructed);
                 }
                 else
@@ -211,7 +217,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Represents either a pending object or array construction.
         /// </summary>
-        private struct Consumer
+        private struct Construction
         {
             /// <summary>
             /// The type of the object or the element type of the array.
@@ -225,12 +231,13 @@ namespace Roslyn.Utilities
             private readonly int _valueCount;
 
             /// <summary>
-            /// The count of the value stack at the time this consumer was constructed.
+            /// The size of the value stack before we started this construction.
+            /// Only new values pushed onto the stack are used for this construction.
             /// </summary>
             private readonly int _stackStart;
 
             /// <summary>
-            /// The reader that constructs the object. Null if the consumer is not for an object.
+            /// The reader that constructs the object. Null if the construction is for an array.
             /// </summary>
             private readonly Func<ObjectReader, object> _reader;
 
@@ -239,7 +246,7 @@ namespace Roslyn.Utilities
             /// </summary>
             private readonly int _id;
 
-            private Consumer(Type type, int valueCount, int stackStart, Func<ObjectReader, object> reader, int id)
+            private Construction(Type type, int valueCount, int stackStart, Func<ObjectReader, object> reader, int id)
             {
                 _type = type;
                 _valueCount = valueCount;
@@ -253,17 +260,17 @@ namespace Roslyn.Utilities
                 return stackCount == _stackStart + _valueCount;
             }
 
-            public static Consumer CreateObjectConsumer(Type type, int memberCount, int stackStart, Func<ObjectReader, object> reader, int id)
+            public static Construction CreateObjectConstruction(Type type, int memberCount, int stackStart, Func<ObjectReader, object> reader, int id)
             {
                 Debug.Assert(type != null);
                 Debug.Assert(reader != null);
-                return new Consumer(type, memberCount, stackStart, reader, id);
+                return new Construction(type, memberCount, stackStart, reader, id);
             }
 
-            public static Consumer CreateArrayConsumer(Type elementType, int elementCount, int stackStart)
+            public static Construction CreateArrayConstruction(Type elementType, int elementCount, int stackStart)
             {
                 Debug.Assert(elementType != null);
-                return new Consumer(elementType, elementCount, stackStart, reader: null, id: 0);
+                return new Construction(elementType, elementCount, stackStart, reader: null, id: 0);
             }
 
             public Variant Construct(StreamObjectReader reader)
@@ -641,9 +648,9 @@ namespace Roslyn.Utilities
                     break;
             }
 
+            // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
             var elementKind = (EncodingKind)_reader.ReadByte();
 
-            // optimization for primitive type array
             Type elementType;
             if (StreamObjectWriter.s_reverseTypeMap.TryGetValue(elementKind, out elementType))
             {
@@ -654,18 +661,13 @@ namespace Roslyn.Utilities
                 // custom type case
                 elementType = this.ReadType(elementKind);
 
-                _consumerStack.Push(Consumer.CreateArrayConsumer(elementType, length, _valueStack.Count));
+                _constructionStack.Push(Construction.CreateArrayConstruction(elementType, length, _valueStack.Count));
                 return Variant.None;
             }
         }
 
         private Variant ConstructArray(Type elementType, int length)
         {
-            if (_valueStack.Count < length)
-            {
-                throw new InvalidOperationException($"Deserialization for array expects to read {length} elements, but only {_valueStack.Count} elements are available.");
-            }
-
             Array array = Array.CreateInstance(elementType, length);
 
             // values are on stack in reverse order
@@ -903,12 +905,12 @@ namespace Roslyn.Utilities
                     var assemblyName = this.ReadStringValue();
                     var typeName = this.ReadStringValue();
 
-                    if (_binder == null)
+                    Type type;
+                    if (!_binder.TryGetType(new TypeKey(assemblyName, typeName), out type))
                     {
-                        throw NoBinderException(typeName);
+                        throw NoSerializationTypeException(typeName);
                     }
 
-                    var type = _binder.GetType(new TypeKey(assemblyName, typeName));
                     _referenceMap.SetValue(id, type);
                     return type;
 
@@ -982,24 +984,19 @@ namespace Roslyn.Utilities
                     Type type = this.ReadType();
                     uint memberCount = this.ReadCompressedUInt();
 
-                    if (_binder == null)
+                    Func<ObjectReader, object> typeReader;
+                    if (!_binder.TryGetReader(type, out typeReader))
                     {
-                        throw NoBinderException(type.FullName);
-                    }
-
-                    var reader = _binder.GetReader(type);
-                    if (reader == null)
-                    {
-                        throw NoReaderException(type.FullName);
+                        throw NoSerializationReaderException(type.FullName);
                     }
 
                     if (memberCount == 0)
                     {
-                        return ConstructObject(type, (int)memberCount, reader, id);
+                        return ConstructObject(type, (int)memberCount, typeReader, id);
                     }
                     else
                     {
-                        _consumerStack.Push(Consumer.CreateObjectConsumer(type, (int)memberCount, _valueStack.Count, reader, id));
+                        _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
                         return Variant.None;
                     }
 
@@ -1026,7 +1023,7 @@ namespace Roslyn.Utilities
 
             if (_memberReader.Position != memberCount)
             {
-                throw new InvalidOperationException($"Deserialization constructor for '{type.Name}' was expected to read {memberCount} values, but read {_memberReader.Position} values instead.");
+                throw DeserializationReadIncorrectNumberOfValuesException(type.Name);
             }
 
             _referenceMap.SetValue(id, instance);
@@ -1034,22 +1031,19 @@ namespace Roslyn.Utilities
             return Variant.FromObject(instance);
         }
 
-        private static Exception NoBinderException(string typeName)
+        private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
         {
-#if COMPILERCORE
-            return new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
-#else
-            return new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_no_binder_supplied, typeName));
-#endif
+            throw new InvalidOperationException(String.Format(Resources.Deserialization_reader_for_0_read_incorrect_number_of_values, typeName));
         }
 
-        private static Exception NoReaderException(string typeName)
+        private static Exception NoSerializationTypeException(string typeName)
         {
-#if COMPILERCORE
-            return new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
-#else
-            return new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_it_has_no_deserialization_reader, typeName));
-#endif
+            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
+        }
+
+        private static Exception NoSerializationReaderException(string typeName)
+        {
+            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
         }
     }
 }

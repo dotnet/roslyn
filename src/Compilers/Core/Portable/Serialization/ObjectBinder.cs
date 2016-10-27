@@ -12,34 +12,41 @@ namespace Roslyn.Utilities
     {
         /// <summary>
         /// Gets the <see cref="Type"/> corresponding to the specified <see cref="TypeKey"/>.
+        /// Returns false if no type corresponds to the key.
         /// </summary>
-        public abstract Type GetType(TypeKey key);
+        public abstract bool TryGetType(TypeKey key, out Type type);
 
         /// <summary>
         /// Gets the <see cref="TypeKey"/> for the specified <see cref="Type"/>.
+        /// Returns false if the type cannot be serialized. 
         /// </summary>
-        public virtual TypeKey GetTypeKey(Type type)
+        public virtual bool TryGetTypeKey(Type type, out TypeKey key)
         {
-            return new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
+            key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
+            return true;
         }
 
         /// <summary>
         /// Gets a function that reads an type's members from an <see cref="ObjectReader"/> and constructs an instance with those members.
+        /// Returns false if the type cannot be deserialized.
         /// </summary>
-        public abstract Func<ObjectReader, object> GetReader(Type type);
+        public abstract bool TryGetReader(Type type, out Func<ObjectReader, object> reader);
 
         /// <summary>
         /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
+        /// Returns false if the type cannot be serialized.
         /// </summary>
-        public virtual Action<ObjectWriter, object> GetWriter(object instance)
+        public virtual bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
         {          
             if (instance is IObjectWritable)
             {
-                return (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
+                writer = (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
+                return true;
             }
             else
             {
-                return null;
+                writer = null;
+                return false;
             }
         }
     }
