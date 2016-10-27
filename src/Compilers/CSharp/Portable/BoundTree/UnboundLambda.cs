@@ -427,10 +427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol cacheKey = GetCacheKey(delegateType);
 
             BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
+            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType && returnInferenceLambda.Symbol.ReturnType == returnType)
             {
                 lambdaSymbol = returnInferenceLambda.Symbol;
-                Debug.Assert(lambdaSymbol.ReturnType == returnType);
                 Debug.Assert(lambdaSymbol.RefKind == refKind);
 
                 lambdaBodyBinder = returnInferenceLambda.Binder;
