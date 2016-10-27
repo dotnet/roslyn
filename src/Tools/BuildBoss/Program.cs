@@ -66,7 +66,7 @@ namespace BuildBoss
                 allGood &= ProcessProject(solutionPath, projectData, map);
                 count++;
 
-                var element = projectData.ProjectUtil.FindSingleProperty("SchemaVersion");
+                var element = projectData.ProjectUtil.FindSingleProperty("Configuration");
                 if (element != null)
                 {
                     element.Remove();

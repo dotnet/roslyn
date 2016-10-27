@@ -12,6 +12,7 @@ There are a number of MSBulid properties which are controlled by our central bui
 
 - FileAlignment
 - SolutionDir
+- Configuration
 
 ### Unnecessary properties
 

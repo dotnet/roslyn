@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5002636A-FE8D-40BF-8818-AB513A2194FA}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -30,7 +29,7 @@
     </Content>
   </ItemGroup>
   <Target Name="SignConcord" BeforeTargets="PrepareForRun">
-    <Exec Command='"$(FakeSignToolPath)" -f "$(OutDir)%(Content.Filename)%(Extension)"' />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; -f &quot;$(OutDir)%(Content.Filename)%(Extension)&quot;" />
   </Target>
   <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
