@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected static bool IsCoClassImplicitConversion(TypeInfo info, IConversion conversion, ISymbol coclassSymbol)
         {
-            if (!conversion.IsImplicit ||
+            if (!conversion.IsWidening ||
                  info.ConvertedType == null ||
                  info.ConvertedType.TypeKind != TypeKind.Interface)
             {

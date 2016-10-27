@@ -423,13 +423,13 @@ Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.IfTrueValue.get ->
 Microsoft.CodeAnalysis.Semantics.IConversion
 Microsoft.CodeAnalysis.Semantics.IConversion.Exists.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsDefault.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsExplicit.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsIdentity.get -> bool
-Microsoft.CodeAnalysis.Semantics.IConversion.IsImplicit.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsNarrowing.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsNullable.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsNumeric.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsReference.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.IsUserDefined.get -> bool
+Microsoft.CodeAnalysis.Semantics.IConversion.IsWidening.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IConversionExpression
 Microsoft.CodeAnalysis.Semantics.IConversionExpression.Conversion.get -> Microsoft.CodeAnalysis.Semantics.IConversion
@@ -732,9 +732,9 @@ Microsoft.CodeAnalysis.Text.SourceText.GetChecksum() -> System.Collections.Immut
 abstract Microsoft.CodeAnalysis.CompilationOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.ParseOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.SemanticModel.ClassifyConversionCore(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.ITypeSymbol destination, bool isExplicitInSource) -> Microsoft.CodeAnalysis.Semantics.IConversion
 abstract Microsoft.CodeAnalysis.SemanticModel.GetConversionCore(Microsoft.CodeAnalysis.SyntaxNode expression, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Semantics.IConversion
-abstract Microsoft.CodeAnalysis.ParseOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
@@ -810,14 +810,14 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
-static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Semantics.IConversion
-static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.ITypeSymbol destination, bool isExplicitInSource = false) -> Microsoft.CodeAnalysis.Semantics.IConversion
-static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.GetConversion(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode expression, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Semantics.IConversion
 override Microsoft.CodeAnalysis.SyntaxNode.ToString() -> string
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.StartsWith(string value, string possibleStart) -> bool
 static Microsoft.CodeAnalysis.EmbeddedText.FromBytes(string filePath, System.ArraySegment<byte> bytes, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
 static Microsoft.CodeAnalysis.EmbeddedText.FromSource(string filePath, Microsoft.CodeAnalysis.Text.SourceText text) -> Microsoft.CodeAnalysis.EmbeddedText
 static Microsoft.CodeAnalysis.EmbeddedText.FromStream(string filePath, System.IO.Stream stream, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.EmbeddedText
+static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Semantics.IConversion
+static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.ITypeSymbol destination, bool isExplicitInSource = false) -> Microsoft.CodeAnalysis.Semantics.IConversion
+static Microsoft.CodeAnalysis.Semantics.ConversionExtensions.GetConversion(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode expression, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Semantics.IConversion
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation

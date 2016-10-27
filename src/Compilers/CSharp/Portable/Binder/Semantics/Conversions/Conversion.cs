@@ -365,13 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The existence of a conversion does not necessarily imply that the conversion is valid.
         /// For example, an ambiguous user-defined conversion may exist but may not be valid.
         /// </remarks>
-        public bool Exists
-        {
-            get
-            {
-                return Kind != ConversionKind.NoConversion;
-            }
-        }
+        public bool Exists => Kind != ConversionKind.NoConversion;
 
         /// <summary>
         /// Returns true if the conversion is implicit.
@@ -379,13 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Implicit conversions are described in section 6.1 of the C# language specification.
         /// </remarks>
-        public bool IsImplicit
-        {
-            get
-            {
-                return Kind.IsImplicitConversion();
-            }
-        }
+        public bool IsImplicit => Kind.IsImplicitConversion();
+
+        bool IConversion.IsWidening => IsImplicit;
 
         /// <summary>
         /// Returns true if the conversion is explicit.
@@ -393,14 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Explicit conversions are described in section 6.2 of the C# language specification.
         /// </remarks>
-        public bool IsExplicit
-        {
-            get
-            {
-                // All conversions are either implicit or explicit.
-                return Exists && !IsImplicit;
-            }
-        }
+        public bool IsExplicit => Exists && !IsImplicit; // All conversions are either implicit or explicit.
+
+        bool IConversion.IsNarrowing => IsExplicit;
 
         /// <summary>
         /// Returns true if the conversion is an identity conversion.
@@ -408,13 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Identity conversions are described in section 6.1.1 of the C# language specification.
         /// </remarks>
-        public bool IsIdentity
-        {
-            get
-            {
-                return Kind == ConversionKind.Identity;
-            }
-        }
+        public bool IsIdentity => Kind == ConversionKind.Identity;
 
         /// <summary>
         /// Returns true if the conversion is an implicit numeric conversion or explicit numeric conversion. 

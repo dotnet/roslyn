@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IConversion originalConversion, IConversion newConversion)
         {
             if (originalConversion.Exists != newConversion.Exists ||
-                (!originalConversion.IsExplicit && newConversion.IsExplicit))
+                (!originalConversion.IsNarrowing && newConversion.IsNarrowing))
             {
                 return false;
             }

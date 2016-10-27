@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns True if this conversion a narrowing conversion, and not a widening conversion. 
         ''' </summary>
-        Public ReadOnly Property IsNarrowing As Boolean Implements IConversion.IsExplicit
+        Public ReadOnly Property IsNarrowing As Boolean Implements IConversion.IsNarrowing
             Get
                 Return Conversions.IsNarrowingConversion(_convKind)
             End Get
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns True if this conversion is a widening conversion, and not a narrowing conversion.
         ''' </summary>
-        Public ReadOnly Property IsWidening As Boolean Implements IConversion.IsImplicit
+        Public ReadOnly Property IsWidening As Boolean Implements IConversion.IsWidening
             Get
                 Return Conversions.IsWideningConversion(_convKind)
             End Get

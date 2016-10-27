@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         var field = (IFieldSymbol)symbol;
                         return
                             !field.IsReadOnly &&
-                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsImplicit;
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsWidening;
                     }
                     else if (symbol is IPropertySymbol)
                     {
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
                             IsSymbolAccessible(property.SetMethod) &&
-                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsImplicit;
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsWidening;
                     }
                 }
 

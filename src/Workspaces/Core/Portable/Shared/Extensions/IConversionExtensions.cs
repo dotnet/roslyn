@@ -4,11 +4,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class IConversionExtensions
     {
-        public static bool IsIdentityOrImplicitReference<TConversion>(this TConversion conversion)
+        public static bool IsIdentityOrWideningReference<TConversion>(this TConversion conversion)
             where TConversion : IConversion
         {
             return conversion.IsIdentity ||
-                (conversion.IsImplicit && conversion.IsReference);
+                (conversion.IsWidening && conversion.IsReference);
         }
     }
 }

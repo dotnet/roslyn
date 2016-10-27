@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         var field = (IFieldSymbol)symbol;
                         return
                             !field.IsConst &&
-                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsImplicit;
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsWidening;
                     }
                     else if (symbol is IPropertySymbol)
                     {
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         return
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
-                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsImplicit;
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsWidening;
                     }
                 }
 

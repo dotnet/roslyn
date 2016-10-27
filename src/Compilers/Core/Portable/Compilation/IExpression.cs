@@ -919,7 +919,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IConversion
     {
         /// <summary>
-        /// Returns true if the conversion exists, either as an implicit or explicit conversion.
+        /// Returns true if the conversion exists, either as an <see cref="IsWidening"/> or 
+        /// an <see cref="IsNarrowing"/> conversion.
         /// </summary>
         bool Exists { get; }
 
@@ -929,14 +930,37 @@ namespace Microsoft.CodeAnalysis.Semantics
         bool IsIdentity { get; }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit ('widening' in VB) conversion.
+        /// Returns true if the conversion widens from some narrower type to some broader
+        /// type.  For example, a conversion from <see cref="System.String"/> to <see cref="System.Object"/>.
+        /// A widening conversion may generally appear with or without a
+        /// <see cref="IConversionExpression.ExplicitCastInSource"/>.  For example, a user in C# could
+        /// write both:
+        /// 
+        /// <code>
+        ///     object o1 = ""; // and
+        ///     object o2 = (object)"";
+        /// </code>
+        /// 
+        /// These would be both be <see cref="IsWidening"/> conversions, but only the second would
+        /// have an <see cref="IConversionExpression.ExplicitCastInSource"/>.
+        /// 
+        /// <see cref="IsWidening"/> conversions can appear with other
+        /// conversion types.  For example there are <see cref="IsWidening"/> <see cref="IsReference"/>
+        /// conversions, and <see cref="IsWidening"/> <see cref="IsNumeric"/> conversions.
         /// </summary>
-        bool IsImplicit { get; }
+        bool IsWidening { get; }
 
         /// <summary>
-        /// True if and only if the conversion is an explicit ('narrowing' in VB) conversion.
+        /// True if and only if the conversion narrows from some broader type to some 
+        /// narrower type.  For example, a conversion from <see cref="System.Object"/> to
+        /// <see cref="System.String"/> In general, narrowing conversions appear when there is an
+        /// <see cref="IConversionExpression.ExplicitCastInSource"/> present.
+        /// 
+        /// <see cref="IsNarrowing"/> conversions can appear with other
+        /// conversion types.  For example there are <see cref="IsNarrowing"/> <see cref="IsReference"/>
+        /// conversions, and <see cref="IsNarrowing"/> <see cref="IsNumeric"/> conversions.
         /// </summary>
-        bool IsExplicit { get; }
+        bool IsNarrowing { get; }
 
         /// <summary>
         /// Returns true if the conversion is an implicit numeric conversion or explicit numeric conversion. 

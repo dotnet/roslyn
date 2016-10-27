@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                             // For example 'FooAttribute'.
                             var type2 = classTypes[j];
                             var conversion = compilation.ClassifyConversion(type2, type1);
-                            if (conversion.IsImplicit && conversion.IsReference)
+                            if (conversion.IsWidening && conversion.IsReference)
                             {
                                 // If there's an implicit reference conversion (i.e. from
                                 // FooAttribute to Attribute), then we don't need Attribute as it's
