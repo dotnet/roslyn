@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Determine the type, converted type, and expression
             Dim type As TypeSymbol = Nothing
             Dim convertedType As TypeSymbol = Nothing
-            Dim conversion As conversion = Nothing
+            Dim conversion As Conversion = Nothing
             type = GetSemanticType(boundNodes, convertedType, conversion)
 
             Return New VisualBasicTypeInfo(type, convertedType, conversion)
@@ -3098,12 +3098,12 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return Me.GetTypeInfoWorker(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return Me.GetTypeInfoWorker(attributeSyntax, cancellationToken)
             End If
@@ -3116,12 +3116,12 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return Me.GetMemberGroup(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return Me.GetMemberGroup(attributeSyntax, cancellationToken)
             End If
@@ -3401,7 +3401,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
-            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol)))
+            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))
         End Function
 
         Protected NotOverridable Overrides Function IsEventUsableAsFieldCore(position As Integer, symbol As IEventSymbol) As Boolean
