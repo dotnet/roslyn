@@ -230,7 +230,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        AddByValue(decisionTree, constantPattern.Value, (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), _section, guard, label));
+                        DecisionMaker makeDecision = (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), _section, guard, label);
+                        if (constantPattern.ConstantValue == ConstantValue.Null)
+                        {
+                            AddByNull(decisionTree, makeDecision);
+                        }
+                        else
+                        {
+                            AddByValue(decisionTree, constantPattern.Value, makeDecision);
+                        }
+
                         break;
                     }
                 case BoundKind.DeclarationPattern:
@@ -569,11 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (value.ConstantValue == ConstantValue.Null)
-            {
-                return byType.Expression.ConstantValue?.IsNull == false
-                    ? null : AddByNull((DecisionTree)byType, makeDecision);
-            }
+            Debug.Assert(value.ConstantValue != ConstantValue.Null);
 
             foreach (var kvp in byType.TypeAndDecision)
             {

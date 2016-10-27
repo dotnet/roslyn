@@ -668,6 +668,37 @@ null";
         }
 
         [Fact]
+        public void Subsumption08()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (""foo"")
+        {
+            case null when true:
+                break;
+            case null:
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case null:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(9, 13),
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
         public void EqualConstant03()
         {
             var source =
@@ -1783,6 +1814,37 @@ class Rectangle
             CompileAndVerify(compilation, expectedOutput: @"other
 S 1
 R 1 2");
+        }
+
+        [Fact, WorkItem(14721, "https://github.com/dotnet/roslyn/issues/14721")]
+        public void NullTest_Crash()
+        {
+            var source =
+@"using System;
+
+static class Program {
+    static void Test(object o) {
+        switch (o) {
+            case var value when value != null:
+                Console.WriteLine(""not null"");
+                break;
+            case null:
+                Console.WriteLine(""null"");
+            break;
+        }
+    }
+
+    static void Main()
+    {
+        Test(1);
+        Test(null);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"not null
+null");
         }
     }
 }
