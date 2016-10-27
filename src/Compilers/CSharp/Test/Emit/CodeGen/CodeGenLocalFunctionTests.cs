@@ -30,6 +30,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void DeepNestedLocalFuncsWithDifferentCaptures()
+        {
+            var src = @"
+using System;
+class C
+{
+    int P = 100000;
+    void M()
+    {
+        C Local1() => this;
+        int capture1 = 1;
+        Func<int> f1 = () => capture1 + Local1().P;
+        Console.WriteLine(f1());
+        {
+            C Local2() => Local1();
+            int capture2 = 10;
+            Func<int> f2 = () => capture2 + Local2().P;
+            Console.WriteLine(f2());
+            {
+                C Local3() => Local2();
+
+                int capture3 = 100;
+                Func<int> f3 = () => capture1 + capture2 + capture3 + Local3().P;
+                Console.WriteLine(f3());
+
+                Console.WriteLine(Local3().P);
+            }
+        }
+    }
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, @"100001
+100010
+100111
+100000");
+        }
+
+        [Fact]
+        public void LotsOfMutuallyRecursiveLocalFunctions()
+        {
+            var src = @"
+class C
+{
+    public void M()
+    {
+        C Local1() => Local2();
+        C Local2() => Local3();
+        C Local3() => Local4();
+        C Local4() => Local5();
+        C Local5() => Local6();
+        C Local6() => Local5();
+        C Local7() => Local4();
+        C Local8() => Local3();
+        C Local9() => Local2();
+        C Local10() => Local1();
+
+        Local1();
+        Local2();
+        Local3();
+        Local4();
+        Local5();
+        Local6();
+        Local7();
+        Local8();
+        Local9();
+        Local10();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void LocalFuncAndLambdaWithDifferentThis()
         {
             var src = @"
