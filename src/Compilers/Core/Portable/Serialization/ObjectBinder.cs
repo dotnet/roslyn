@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A type that provides object and type encoding/decoding
+    /// A type that provides object and type encoding/decoding.
     /// </summary>
     internal abstract class ObjectBinder
     {

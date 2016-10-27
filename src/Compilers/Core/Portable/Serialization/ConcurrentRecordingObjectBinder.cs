@@ -8,7 +8,10 @@ using System.Reflection;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A binder that gathers type/reader mappings during object writing
+    /// A <see cref="ObjectBinder"/> that records type and reader information during object writing so that it 
+    /// can be used to read back the same object later.
+    /// 
+    /// This type is similar to<see cref="SimpleRecordingObjectBinder"/> except that it is thread safe/
     /// </summary>
     internal sealed class ConcurrentRecordingObjectBinder : ObjectBinder
     {
@@ -38,11 +41,6 @@ namespace Roslyn.Utilities
             }
 
             return reader;
-        }
-
-        private bool HasConstructor(Type type)
-        {
-            return _readerMap.ContainsKey(type);
         }
 
         public override TypeKey GetTypeKey(Type type)
@@ -76,13 +74,14 @@ namespace Roslyn.Utilities
                 var readable = instance as IObjectReadable;
                 if (readable != null)
                 {
-                    if (HasConstructor(type))
+                    if (_readerMap.ContainsKey(type))
                     {
                         Debug.Assert(_typeMap.ContainsKey(key));
-                        return;
                     }
-
-                    _readerMap.TryAdd(type, readable.GetReader());
+                    else
+                    {
+                        _readerMap.TryAdd(type, readable.GetReader());
+                    }
                 }
             }
         }

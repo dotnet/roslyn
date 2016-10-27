@@ -182,13 +182,19 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(_consumerStack.Count > 0);
 
-            // keep reading until we've got all the elements to construct the object or array
+            // keep reading until we've got all the elements to construct the consumer
             while (_consumerStack.Count > 0)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 var consumer = _consumerStack.Peek();
-                if (consumer.ElementCount > 0 && _valueStack.Count < consumer.StackStart + consumer.ElementCount)
+                if (consumer.CanConstruct(_valueStack.Count))
+                {
+                    consumer = _consumerStack.Pop();
+                    var constructed = consumer.Construct(this);
+                    _valueStack.Push(constructed);
+                }
+                else
                 {
                     var element = ReadVariant();
                     if (element.Kind != VariantKind.None)
@@ -196,50 +202,81 @@ namespace Roslyn.Utilities
                         _valueStack.Push(element);
                     }
                 }
-                else
-                {
-                    consumer = _consumerStack.Pop();
-
-                    var constructed = (consumer.IsObjectConsumer)
-                        ? ConstructObject(consumer.Type, consumer.ElementCount, consumer.Reader, consumer.Id)
-                        : ConstructArray(consumer.Type, consumer.ElementCount);
-
-                    _valueStack.Push(constructed);
-                }
             }
 
             Debug.Assert(_valueStack.Count == 1);
             return _valueStack.Pop();
         }
 
+        /// <summary>
+        /// Represents either a pending object or array construction.
+        /// </summary>
         private struct Consumer
         {
-            public readonly Type Type;
-            public readonly int ElementCount;
-            public readonly int StackStart;
-            public readonly Func<ObjectReader, object> Reader;
-            public readonly int Id;
+            /// <summary>
+            /// The type of the object or the element type of the array.
+            /// </summary>
+            private readonly Type _type;
 
-            private Consumer(Type type, int elementCount, int stackStart, Func<ObjectReader, object> reader, int id)
+            /// <summary>
+            /// The number of values that must appear on the value stack (beyond the stack start) in order to 
+            /// trigger construction of the object or array instance.
+            /// </summary>
+            private readonly int _valueCount;
+
+            /// <summary>
+            /// The count of the value stack at the time this consumer was constructed.
+            /// </summary>
+            private readonly int _stackStart;
+
+            /// <summary>
+            /// The reader that constructs the object. Null if the consumer is not for an object.
+            /// </summary>
+            private readonly Func<ObjectReader, object> _reader;
+
+            /// <summary>
+            /// The reference id of the object being constructed.
+            /// </summary>
+            private readonly int _id;
+
+            private Consumer(Type type, int valueCount, int stackStart, Func<ObjectReader, object> reader, int id)
             {
-                this.Type = type;
-                this.ElementCount = elementCount;
-                this.StackStart = stackStart;
-                this.Reader = reader;
-                this.Id = id;
+                _type = type;
+                _valueCount = valueCount;
+                _stackStart = stackStart;
+                _reader = reader;
+                _id = id;
+            }
+
+            public bool CanConstruct(int stackCount)
+            {
+                return stackCount == _stackStart + _valueCount;
             }
 
             public static Consumer CreateObjectConsumer(Type type, int memberCount, int stackStart, Func<ObjectReader, object> reader, int id)
             {
+                Debug.Assert(type != null);
+                Debug.Assert(reader != null);
                 return new Consumer(type, memberCount, stackStart, reader, id);
             }
 
             public static Consumer CreateArrayConsumer(Type elementType, int elementCount, int stackStart)
             {
+                Debug.Assert(elementType != null);
                 return new Consumer(elementType, elementCount, stackStart, reader: null, id: 0);
             }
 
-            public bool IsObjectConsumer => this.Reader != null;
+            public Variant Construct(StreamObjectReader reader)
+            {
+                if (_reader != null)
+                {
+                    return reader.ConstructObject(_type, _valueCount, _reader, _id);
+                }
+                else
+                {
+                    return reader.ConstructArray(_type, _valueCount);
+                }
+            }
         }
 
         private Variant ReadVariant()
@@ -263,9 +300,9 @@ namespace Roslyn.Utilities
                     return Variant.FromUInt16(_reader.ReadUInt16());
                 case EncodingKind.Int32:
                     return Variant.FromInt32(_reader.ReadInt32());
-                case EncodingKind.Int32_B:
+                case EncodingKind.Int32_1Byte:
                     return Variant.FromInt32((int)_reader.ReadByte());
-                case EncodingKind.Int32_S:
+                case EncodingKind.Int32_2Bytes:
                     return Variant.FromInt32((int)_reader.ReadUInt16());
                 case EncodingKind.Int32_0:
                 case EncodingKind.Int32_1:
@@ -281,9 +318,9 @@ namespace Roslyn.Utilities
                     return Variant.FromInt32((int)kind - (int)EncodingKind.Int32_0);
                 case EncodingKind.UInt32:
                     return Variant.FromUInt32(_reader.ReadUInt32());
-                case EncodingKind.UInt32_B:
+                case EncodingKind.UInt32_1Byte:
                     return Variant.FromUInt32((uint)_reader.ReadByte());
-                case EncodingKind.UInt32_S:
+                case EncodingKind.UInt32_2Bytes:
                     return Variant.FromUInt32((uint)_reader.ReadUInt16());
                 case EncodingKind.UInt32_0:
                 case EncodingKind.UInt32_1:
@@ -307,26 +344,24 @@ namespace Roslyn.Utilities
                     return Variant.FromDouble(_reader.ReadDouble());
                 case EncodingKind.Decimal:
                     return Variant.FromDecimal(_reader.ReadDecimal());
-                case EncodingKind.DateTime:
-                    return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
                 case EncodingKind.Char:
                     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
                     return Variant.FromChar((char)_reader.ReadUInt16());
                 case EncodingKind.StringUtf8:
                 case EncodingKind.StringUtf16:
-                case EncodingKind.StringRef:
-                case EncodingKind.StringRef_B:
-                case EncodingKind.StringRef_S:
+                case EncodingKind.StringRef_4Bytes:
+                case EncodingKind.StringRef_1Byte:
+                case EncodingKind.StringRef_2Bytes:
                     return Variant.FromString(ReadStringValue(kind));
                 case EncodingKind.Object:
-                case EncodingKind.ObjectRef:
-                case EncodingKind.ObjectRef_B:
-                case EncodingKind.ObjectRef_S:
+                case EncodingKind.ObjectRef_4Bytes:
+                case EncodingKind.ObjectRef_1Byte:
+                case EncodingKind.ObjectRef_2Bytes:
                     return ReadObject(kind);
                 case EncodingKind.Type:
-                case EncodingKind.TypeRef:
-                case EncodingKind.TypeRef_B:
-                case EncodingKind.TypeRef_S:
+                case EncodingKind.TypeRef_4Bytes:
+                case EncodingKind.TypeRef_1Byte:
+                case EncodingKind.TypeRef_2Bytes:
                     return Variant.FromType(ReadType(kind));
                 case EncodingKind.Enum:
                     return Variant.FromBoxedEnum(ReadBoxedEnum());
@@ -543,13 +578,13 @@ namespace Roslyn.Utilities
         {
             switch (kind)
             {
-                case EncodingKind.StringRef_B:
+                case EncodingKind.StringRef_1Byte:
                     return (string)_referenceMap.GetValue(_reader.ReadByte());
 
-                case EncodingKind.StringRef_S:
+                case EncodingKind.StringRef_2Bytes:
                     return (string)_referenceMap.GetValue(_reader.ReadUInt16());
 
-                case EncodingKind.StringRef:
+                case EncodingKind.StringRef_4Bytes:
                     return (string)_referenceMap.GetValue(_reader.ReadInt32());
 
                 case EncodingKind.StringUtf16:
@@ -854,13 +889,13 @@ namespace Roslyn.Utilities
         {
             switch (kind)
             {
-                case EncodingKind.TypeRef_B:
+                case EncodingKind.TypeRef_1Byte:
                     return (Type)_referenceMap.GetValue(_reader.ReadByte());
 
-                case EncodingKind.TypeRef_S:
+                case EncodingKind.TypeRef_2Bytes:
                     return (Type)_referenceMap.GetValue(_reader.ReadUInt16());
 
-                case EncodingKind.TypeRef:
+                case EncodingKind.TypeRef_4Bytes:
                     return (Type)_referenceMap.GetValue(_reader.ReadInt32());
 
                 case EncodingKind.Type:
@@ -934,11 +969,11 @@ namespace Roslyn.Utilities
         {
             switch (kind)
             {
-                case EncodingKind.ObjectRef:
+                case EncodingKind.ObjectRef_4Bytes:
                     return Variant.FromObject(_referenceMap.GetValue(_reader.ReadInt32()));
-                case EncodingKind.ObjectRef_B:
+                case EncodingKind.ObjectRef_1Byte:
                     return Variant.FromObject(_referenceMap.GetValue(_reader.ReadByte()));
-                case EncodingKind.ObjectRef_S:
+                case EncodingKind.ObjectRef_2Bytes:
                     return Variant.FromObject(_referenceMap.GetValue(_reader.ReadUInt16()));
 
                 case EncodingKind.Object:

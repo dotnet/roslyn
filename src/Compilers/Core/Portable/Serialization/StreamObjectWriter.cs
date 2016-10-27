@@ -224,12 +224,12 @@ namespace Roslyn.Utilities
                         }
                         else if (v >= 0 && v < byte.MaxValue)
                         {
-                            _writer.Write((byte)EncodingKind.Int32_B);
+                            _writer.Write((byte)EncodingKind.Int32_1Byte);
                             _writer.Write((byte)v);
                         }
                         else if (v >= 0 && v < ushort.MaxValue)
                         {
-                            _writer.Write((byte)EncodingKind.Int32_S);
+                            _writer.Write((byte)EncodingKind.Int32_2Bytes);
                             _writer.Write((ushort)v);
                         }
                         else
@@ -249,12 +249,12 @@ namespace Roslyn.Utilities
                         }
                         else if (v >= 0 && v < byte.MaxValue)
                         {
-                            _writer.Write((byte)EncodingKind.UInt32_B);
+                            _writer.Write((byte)EncodingKind.UInt32_1Byte);
                             _writer.Write((byte)v);
                         }
                         else if (v >= 0 && v < ushort.MaxValue)
                         {
-                            _writer.Write((byte)EncodingKind.UInt32_S);
+                            _writer.Write((byte)EncodingKind.UInt32_2Bytes);
                             _writer.Write((ushort)v);
                         }
                         else
@@ -288,11 +288,6 @@ namespace Roslyn.Utilities
                 case VariantKind.Float8:
                     _writer.Write((byte)EncodingKind.Float8);
                     _writer.Write(value.AsDouble());
-                    break;
-
-                case VariantKind.DateTime:
-                    _writer.Write((byte)EncodingKind.DateTime);
-                    _writer.Write(value.AsDateTime().ToBinary());
                     break;
 
                 case VariantKind.Char:
@@ -552,17 +547,17 @@ namespace Roslyn.Utilities
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        _writer.Write((byte)EncodingKind.StringRef_B);
+                        _writer.Write((byte)EncodingKind.StringRef_1Byte);
                         _writer.Write((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        _writer.Write((byte)EncodingKind.StringRef_S);
+                        _writer.Write((byte)EncodingKind.StringRef_2Bytes);
                         _writer.Write((ushort)id);
                     }
                     else
                     {
-                        _writer.Write((byte)EncodingKind.StringRef);
+                        _writer.Write((byte)EncodingKind.StringRef_4Bytes);
                         _writer.Write(id);
                     }
                 }
@@ -870,17 +865,17 @@ namespace Roslyn.Utilities
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.TypeRef_B);
+                    _writer.Write((byte)EncodingKind.TypeRef_1Byte);
                     _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.TypeRef_S);
+                    _writer.Write((byte)EncodingKind.TypeRef_2Bytes);
                     _writer.Write((ushort)id);
                 }
                 else
                 {
-                    _writer.Write((byte)EncodingKind.TypeRef);
+                    _writer.Write((byte)EncodingKind.TypeRef_4Bytes);
                     _writer.Write(id);
                 }
             }
@@ -908,17 +903,17 @@ namespace Roslyn.Utilities
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef_B);
+                    _writer.Write((byte)EncodingKind.ObjectRef_1Byte);
                     _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef_S);
+                    _writer.Write((byte)EncodingKind.ObjectRef_2Bytes);
                     _writer.Write((ushort)id);
                 }
                 else
                 {
-                    _writer.Write((byte)EncodingKind.ObjectRef);
+                    _writer.Write((byte)EncodingKind.ObjectRef_4Bytes);
                     _writer.Write(id);
                 }
             }
@@ -990,10 +985,24 @@ namespace Roslyn.Utilities
 
         internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
 
-        // byte marker for encoding compressed uint
+        /// <summary>
+        /// byte marker mask for encoding compressed uint 
+        /// </summary>
         internal static readonly byte ByteMarkerMask = 3 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 1 byte.
+        /// </summary>
         internal static readonly byte Byte1Marker = 0;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 2 bytes.
+        /// </summary>
         internal static readonly byte Byte2Marker = 1 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 4 bytes.
+        /// </summary>
         internal static readonly byte Byte4Marker = 2 << 6;
 
         /// <summary>
@@ -1001,69 +1010,315 @@ namespace Roslyn.Utilities
         /// </summary>
         internal enum EncodingKind : byte
         {
+            /// <summary>
+            /// The null value
+            /// </summary>
             Null,
+
+            /// <summary>
+            /// A type
+            /// </summary>
             Type,
-            TypeRef,      // type ref id as 4 bytes 
-            TypeRef_B,    // type ref id as 1 byte
-            TypeRef_S,    // type ref id as 2 bytes
-            Object,       
-            ObjectRef,    // object ref id as 4 bytes
-            ObjectRef_B,  // object ref id as 1 byte
-            ObjectRef_S,  // object ref id as 2 bytes
-            StringUtf8,   // string in UTF8 encoding
-            StringUtf16,  // string in UTF16 encoding
-            StringRef,    // string ref id as 4-bytes
-            StringRef_B,  // string ref id as 1-byte
-            StringRef_S,  // string ref id as 2-bytes
+
+            /// <summary>
+            /// A type reference with the id encoded as 1 byte. 
+            /// </summary>
+            TypeRef_1Byte,
+
+            /// <summary>
+            /// A Type reference with the id encoded as 2 bytes.
+            /// </summary>
+            TypeRef_2Bytes,
+
+            /// <summary>
+            /// A type reference with the id encoded as 4 bytes.
+            /// </summary>
+            TypeRef_4Bytes,
+
+            /// <summary>
+            /// An object with member values encoded as variants
+            /// </summary>
+            Object,
+
+            /// <summary>
+            /// An object reference with the id encoded as 1 byte.
+            /// </summary>
+            ObjectRef_1Byte,
+
+            /// <summary>
+            /// An object reference with the id encode as 2 bytes.
+            /// </summary>
+            ObjectRef_2Bytes,
+
+            /// <summary>
+            /// An object reference with the id encoded as 4 bytes.
+            /// </summary>
+            ObjectRef_4Bytes,
+
+            /// <summary>
+            /// A string encoded as UTF8 (using BinaryWriter.Write(string))
+            /// </summary>
+            StringUtf8,
+
+            /// <summary>
+            /// A string encoded as UTF16 (as array of UInt16 values)
+            /// </summary>
+            StringUtf16,
+
+            /// <summary>
+            /// A reference to a string with the id encoded as 1 byte.
+            /// </summary>
+            StringRef_1Byte,
+
+            /// <summary>
+            /// A reference to a string with the id encoded as 2 bytes.
+            /// </summary>
+            StringRef_2Bytes,
+
+            /// <summary>
+            /// A reference to a string with the id encoded as 4 bytes.
+            /// </summary>
+            StringRef_4Bytes,
+
+            /// <summary>
+            /// The boolean value true.
+            /// </summary>
             Boolean_True,
+
+            /// <summary>
+            /// The boolean value char.
+            /// </summary>
             Boolean_False,
+
+            /// <summary>
+            /// A character value encoded as 2 bytes.
+            /// </summary>
             Char,
+
+            /// <summary>
+            /// An Int8 value encoded as 1 byte.
+            /// </summary>
             Int8,
+
+            /// <summary>
+            /// An Int16 value encoded as 2 bytes.
+            /// </summary>
             Int16,
-            Int32,        // int encoded as 4 bytes
-            Int32_B,      // int encoded as 1 byte
-            Int32_S,      // int encoded as 2 bytes
-            Int32_0,      // int 0
-            Int32_1,      // int 1
-            Int32_2,      // int 2
-            Int32_3,      // int 3,
-            Int32_4,      // int 4,
-            Int32_5,      // int 5,
-            Int32_6,      // int 6,
-            Int32_7,      // int 7,
-            Int32_8,      // int 8,
-            Int32_9,      // int 9,
-            Int32_10,     // int 10,
+
+            /// <summary>
+            /// An Int32 value encoded as 4 bytes.
+            /// </summary>
+            Int32,
+
+            /// <summary>
+            /// An Int32 value encoded as 1 byte.
+            /// </summary>
+            Int32_1Byte,
+
+            /// <summary>
+            /// An Int32 value encoded as 2 bytes.
+            /// </summary>
+            Int32_2Bytes,
+
+            /// <summary>
+            /// The Int32 value 0
+            /// </summary>
+            Int32_0,
+
+            /// <summary>
+            /// The Int32 value 1
+            /// </summary>
+            Int32_1,
+
+            /// <summary>
+            /// The Int32 value 2
+            /// </summary>
+            Int32_2,
+
+            /// <summary>
+            /// The Int32 value 3
+            /// </summary>
+            Int32_3,
+
+            /// <summary>
+            /// The Int32 value 4
+            /// </summary>
+            Int32_4,
+
+            /// <summary>
+            /// The Int32 value 5
+            /// </summary>
+            Int32_5,
+
+            /// <summary>
+            /// The Int32 value 6
+            /// </summary>
+            Int32_6,
+
+            /// <summary>
+            /// The Int32 value 7
+            /// </summary>
+            Int32_7,
+
+            /// <summary>
+            /// The Int32 value 8
+            /// </summary>
+            Int32_8,
+
+            /// <summary>
+            /// The Int32 value 9
+            /// </summary>
+            Int32_9,
+
+            /// <summary>
+            /// The Int32 value 10
+            /// </summary>
+            Int32_10,
+
+            /// <summary>
+            /// An Int64 value encoded as 8 bytes
+            /// </summary>
             Int64,
+
+            /// <summary>
+            /// A UInt8 value encoded as 1 byte.
+            /// </summary>
             UInt8,
+
+            /// <summary>
+            /// A UIn16 value encoded as 2 bytes.
+            /// </summary>
             UInt16,
-            UInt32,       // uint encoded as 4 bytes
-            UInt32_B,     // uint encoded as 1 byte
-            UInt32_S,     // uint encoded as 2 bytes
-            UInt32_0,     // uint 0
-            UInt32_1,     // uint 1
-            UInt32_2,     // uint 2
-            UInt32_3,     // uint 3,
-            UInt32_4,     // uint 4,
-            UInt32_5,     // uint 5,
-            UInt32_6,     // uint 6,
-            UInt32_7,     // uint 7,
-            UInt32_8,     // uint 8,
-            UInt32_9,     // uint 9,
-            UInt32_10,    // uint 10,
+
+            /// <summary>
+            /// A UInt32 value encoded as 4 bytes.
+            /// </summary>
+            UInt32,
+
+            /// <summary>
+            /// A UInt32 value encoded as 1 byte.
+            /// </summary>
+            UInt32_1Byte,
+
+            /// <summary>
+            /// A UInt32 value encoded as 2 bytes.
+            /// </summary>
+            UInt32_2Bytes,
+
+            /// <summary>
+            /// The UInt32 value 0
+            /// </summary>
+            UInt32_0,
+
+            /// <summary>
+            /// The UInt32 value 1
+            /// </summary>
+            UInt32_1,
+
+            /// <summary>
+            /// The UInt32 value 2
+            /// </summary>
+            UInt32_2,
+
+            /// <summary>
+            /// The UInt32 value 3
+            /// </summary>
+            UInt32_3,
+
+            /// <summary>
+            /// The UInt32 value 4
+            /// </summary>
+            UInt32_4,
+
+            /// <summary>
+            /// The UInt32 value 5
+            /// </summary>
+            UInt32_5,
+
+            /// <summary>
+            /// The UInt32 value 6
+            /// </summary>
+            UInt32_6,
+
+            /// <summary>
+            /// The UInt32 value 7
+            /// </summary>
+            UInt32_7,
+
+            /// <summary>
+            /// The UInt32 value 8
+            /// </summary>
+            UInt32_8,
+
+            /// <summary>
+            /// The UInt32 value 9
+            /// </summary>
+            UInt32_9,
+
+            /// <summary>
+            /// The UInt32 value 10
+            /// </summary>
+            UInt32_10,
+
+            /// <summary>
+            /// A UInt64 value encoded as 8 bytes.
+            /// </summary>
             UInt64,
+
+            /// <summary>
+            /// A float value encoded as 4 bytes.
+            /// </summary>
             Float4,
+
+            /// <summary>
+            /// A double value encoded as 8 bytes.
+            /// </summary>
             Float8,
+
+            /// <summary>
+            /// A decimal value encoded as 12 bytes.
+            /// </summary>
             Decimal,
-            DateTime,
+
+            /// <summary>
+            /// An enum value
+            /// </summary>
             Enum,
-            Array,      // array with # elements encoded as compressed int
-            Array_0,    // array with zero elements
-            Array_1,    // array with one element
-            Array_2,    // array with two elements
-            Array_3,    // array with three elements
-            BooleanType,    // boolean type marker
-            StringType      // string type marker
+
+            /// <summary>
+            /// An array with length encoded as compressed uint
+            /// </summary>
+            Array,
+
+            /// <summary>
+            /// An array with zero elements
+            /// </summary>
+            Array_0,
+
+            /// <summary>
+            /// An array with one element
+            /// </summary>
+            Array_1,
+
+            /// <summary>
+            /// An array with 2 elements
+            /// </summary>
+            Array_2,
+
+            /// <summary>
+            /// An array with 3 elements
+            /// </summary>
+            Array_3,
+
+            /// <summary>
+            /// The boolean type
+            /// </summary>
+            BooleanType,
+
+            /// <summary>
+            /// The string type
+            /// </summary>
+            StringType
         }
 
         internal enum VariantKind
@@ -1084,7 +1339,6 @@ namespace Roslyn.Utilities
             Float8,
             Char,
             String,
-            DateTime,
             Object,
             BoxedEnum,
             Array,
@@ -1170,11 +1424,6 @@ namespace Roslyn.Utilities
             public static Variant FromString(string value)
             {
                 return new Variant(VariantKind.String, image: 0, instance: value);
-            }
-
-            public static Variant FromDateTime(DateTime value)
-            {
-                return new Variant(VariantKind.DateTime, value.ToBinary());
             }
 
             public static Variant FromDecimal(Decimal value)
@@ -1286,12 +1535,6 @@ namespace Roslyn.Utilities
                 return (string)_instance;
             }
 
-            public DateTime AsDateTime()
-            {
-                Debug.Assert(Kind == VariantKind.DateTime);
-                return DateTime.FromBinary((long)_image);
-            }
-
             public object AsObject()
             {
                 Debug.Assert(Kind == VariantKind.Object);
@@ -1387,10 +1630,6 @@ namespace Roslyn.Utilities
                     {
                         return FromDouble((double)value);
                     }
-                    else if (type == typeof(DateTime))
-                    {
-                        return FromDateTime((DateTime)value);
-                    }
                     else if (type.IsArray)
                     {
                         var instance = (Array)value;
@@ -1431,8 +1670,6 @@ namespace Roslyn.Utilities
                         return this.AsByte();
                     case VariantKind.Char:
                         return this.AsChar();
-                    case VariantKind.DateTime:
-                        return this.AsDateTime();
                     case VariantKind.Decimal:
                         return this.AsDecimal();
                     case VariantKind.Float4:
@@ -1466,6 +1703,5 @@ namespace Roslyn.Utilities
                 }
             }
         }
-
     }
 }

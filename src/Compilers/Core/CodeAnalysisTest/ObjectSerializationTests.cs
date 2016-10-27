@@ -669,8 +669,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new PrimitiveMemberTest(r);
         }
 
-        private static readonly DateTime _testNow = DateTime.Now;
-
         private static void TestWritingPrimitiveAPIs(ObjectWriter writer)
         {
             writer.WriteBoolean(true);
@@ -783,7 +781,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue(ELong.Value);
             writer.WriteValue(EULong.Value);
             writer.WriteValue(typeof(object));
-            writer.WriteValue(_testNow);
         }
 
         private static void TestReadingPrimitiveValues(ObjectReader reader)
@@ -819,7 +816,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ELong.Value, reader.ReadValue());
             Assert.Equal(EULong.Value, reader.ReadValue());
             Assert.Equal(typeof(object), (Type)reader.ReadValue());
-            Assert.Equal(_testNow, (DateTime)reader.ReadValue());
         }
 
         public enum EByte : byte
