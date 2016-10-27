@@ -16,17 +16,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     internal static class Utilities
     {
         /// <summary>
-        /// False if the compiler server is not supported on this platform.
-        /// </summary>
-        internal static bool IsCompilerServerSupported => true;
-        /* TODO: fix this
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            DesktopBuildClient.GetRuntimeDirectoryOpt() != null &&
-            // Test that we can retrieve a valid pipe name
-            DesktopBuildClient.GetPipeNameForPathOpt("") != null;
-            */
-
-        /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
         /// 

@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     {
         private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
+
+        internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
         {
@@ -391,12 +394,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!UseSharedCompilation ||
                 !string.IsNullOrEmpty(ToolPath) ||
-                !Utilities.IsCompilerServerSupported)
+                !BuildServerConnection.IsCompilerServerSupported)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
-            /* TODO: This needs to get fixed obviously
             using (_sharedCompileCts = new CancellationTokenSource())
             {
                 try
@@ -416,14 +418,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
                     var workingDir = CurrentDirectoryToUse();
-                    var buildPaths = new BuildPaths(
+                    var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: workingDir,
-                        tempDir: BuildClient.GetTempPath(workingDir));
+                        tempDir: BuildServerConnection.GetTempPath(workingDir));
 
-                    var responseTask = DesktopBuildClient.RunServerCompilation(
+                    var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
                         buildPaths,
@@ -456,11 +458,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ExitCode = -1;
                 }
             }
-            */
+
             return ExitCode;
         }
-
-
 
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
@@ -572,7 +572,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Output]
         public new int ExitCode { get; private set; }
 
-        /*
         /// <summary>
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
@@ -582,7 +581,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
+                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
                     return -1;
 
                 case BuildResponse.ResponseType.Completed:
@@ -608,7 +607,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     throw new InvalidOperationException("Encountered unknown response type");
             }
         }
-        */
 
         private void LogErrorOutput(string output)
         {

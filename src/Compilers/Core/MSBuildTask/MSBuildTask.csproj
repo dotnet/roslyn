@@ -31,6 +31,9 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs">
+      <Link>BuildServerConnection.cs</Link>
+    </Compile>
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs">
       <Link>CommandLineUtilities.cs</Link>
     </Compile>
@@ -69,5 +72,6 @@
       <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -8,6 +8,7 @@ using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -276,6 +277,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         #endregion
+
+        internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
 
         /// <summary>
         /// The C# compiler (starting with Whidbey) supports assembly aliasing for references.

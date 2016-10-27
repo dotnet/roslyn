@@ -207,46 +207,5 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // The first argument will be the executable name hence we skip it. 
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
-
-        /// <summary>
-        /// Gets the value of the temporary path for the current environment assuming the working directory
-        /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
-        /// closely as possible.
-        /// </summary>
-        public static string GetTempPath(string workingDir)
-        {
-            var tmp = Environment.GetEnvironmentVariable("TMP");
-            if (Path.IsPathRooted(tmp))
-            {
-                return tmp;
-            }
-
-            var temp = Environment.GetEnvironmentVariable("TEMP");
-            if (Path.IsPathRooted(temp))
-            {
-                return temp;
-            }
-
-            if (!string.IsNullOrEmpty(workingDir))
-            {
-                if (!string.IsNullOrEmpty(tmp))
-                {
-                    return Path.Combine(workingDir, tmp);
-                }
-
-                if (!string.IsNullOrEmpty(temp))
-                {
-                    return Path.Combine(workingDir, temp);
-                }
-            }
-
-            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-            if (Path.IsPathRooted(userProfile))
-            {
-                return userProfile;
-            }
-
-            return Environment.GetEnvironmentVariable("SYSTEMROOT");
-        }
     }
 }

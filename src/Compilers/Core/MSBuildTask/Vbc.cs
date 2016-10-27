@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Used when parsing vbc output to determine the column number of an error
         private bool _isDoneOutputtingErrorMessage;
         private int _numberOfLinesInErrorMessage;
+
+        internal override RequestLanguage Language => RequestLanguage.VisualBasicCompile;
 
         #region Properties
 
