@@ -14,7 +14,7 @@ namespace BuildBoss
     internal sealed class ProjectCheckerUtil
     {
         private readonly ProjectData _data;
-        private readonly ProjectUtil _fileUtil;
+        private readonly ProjectUtil _projectUtil;
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
@@ -23,6 +23,7 @@ namespace BuildBoss
         internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
         {
             _data = data;
+            _projectUtil = data.ProjectUtil;
             _solutionMap = solutionMap;
         }
 
