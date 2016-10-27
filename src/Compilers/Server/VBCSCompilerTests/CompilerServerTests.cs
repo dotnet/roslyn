@@ -889,7 +889,7 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir)
+        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir, TempDirectory tempDir)
         {
             TempFile sourceFile;
             string exeFileName;
@@ -936,7 +936,8 @@ End Module";
             var buildPaths = new BuildPaths(
                 clientDir: CompilerDirectory,
                 workingDir: compilationDir.Path,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: tempDir.Path);
             var result = await client.RunCompilationAsync(new[] { $"/shared:{pipeName}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
             Assert.Equal(0, result.ExitCode);
             Assert.True(result.RanOnServer);
@@ -964,7 +965,8 @@ End Module";
                 {
                     var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
                     var compilationDir = Temp.CreateDirectory();
-                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir);
+                    var tempDir = Temp.CreateDirectory();
+                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir, tempDir);
                 }
 
                 await Task.WhenAll(tasks);

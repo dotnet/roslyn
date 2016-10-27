@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyle : INamingStyle
+    internal class NamingStyle
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsLower(words.First()[0]))
                         {
-                            failureReason = FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character;
+                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsUpper(w[0]));
@@ -296,9 +296,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new XElement(nameof(NamingStyle), 
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
-                new XAttribute(nameof(Prefix), Prefix),
-                new XAttribute(nameof(Suffix), Suffix),
-                new XAttribute(nameof(WordSeparator), WordSeparator),
+                new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
+                new XAttribute(nameof(Suffix), Suffix ?? string.Empty),
+                new XAttribute(nameof(WordSeparator), WordSeparator ?? string.Empty),
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
         }
 

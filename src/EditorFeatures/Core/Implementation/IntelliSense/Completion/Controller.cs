@@ -124,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItem;
-                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Item.Span);
+                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Span);
                 var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetFeatureOnOffOption(EditorCompletionOptions.UseSuggestionMode),
+                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(PresentationItem item)
+        private void CommitItem(CompletionItem item)
         {
             AssertIsForeground();
 
@@ -245,8 +245,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(this.sessionOpt);
             Contract.ThrowIfNull(this.sessionOpt.Computation.InitialUnfilteredModel);
 
+            var model = sessionOpt.InitialUnfilteredModel;
+
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (item.IsSuggestionModeItem)
+            if (item == model.SuggestionModeItem)
             {
                 this.StopModelComputation();
                 return;

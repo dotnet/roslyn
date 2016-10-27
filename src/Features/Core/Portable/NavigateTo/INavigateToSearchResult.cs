@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         NavigateToMatchKind MatchKind { get; }
         bool IsCaseSensitive { get; }
         string Name { get; }
+        ImmutableArray<TextSpan> NameMatchSpans { get; }
         string SecondarySort { get; }
         string Summary { get; }
 

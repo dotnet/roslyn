@@ -138,6 +138,7 @@
     <Compile Include="Semantics\SyntaxTreeRootTests.cs" />
     <Compile Include="Semantics\SynthesizedStaticConstructorTests.cs" />
     <Compile Include="Semantics\TryCatchTests.cs" />
+    <Compile Include="Semantics\TypeOfTests.cs" />
     <Compile Include="Semantics\UnsafeTests.cs" />
     <Compile Include="Semantics\UserDefinedConversionTests.cs" />
     <Compile Include="Semantics\UseSiteErrorTests.cs" />

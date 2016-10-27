@@ -11,7 +11,6 @@
     <NonShipping>true</NonShipping>
     <MyType>Windows</MyType>
     <OptionStrict>Off</OptionStrict>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>

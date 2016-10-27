@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Rename
             var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
             if (symbolInfo.Symbol != null)
             {
+                if (symbolInfo.Symbol.IsTupleType())
+                {
+                    return TokenRenameInfo.NoSymbolsTokenInfo;
+                }
+
                 return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.Symbol);
             }
 

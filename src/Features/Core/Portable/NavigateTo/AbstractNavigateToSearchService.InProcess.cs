@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         var patternMatches = patternMatcher.GetMatches(
                             GetSearchName(declaredSymbolInfo),
                             declaredSymbolInfo.FullyQualifiedContainerName,
-                            includeMatchSpans: false);
+                            includeMatchSpans: true);
 
                         if (!patternMatches.IsEmpty)
                         {
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, Document document, 
-            PatternMatches matches)
+            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
+            Document document, PatternMatches matches)
         {
             var matchKind = GetNavigateToMatchKind(containsDots, matches);
 
@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
-            return new SearchResult(document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem);
+            return new SearchResult(
+                document, declaredSymbolInfo, kind, matchKind, 
+                isCaseSensitive, navigableItem, matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)

@@ -22,17 +22,17 @@
   <Target Name="Build">
     <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
 
-    <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" />
+    <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
     <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
-    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties)" />
+    <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
 
     <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 

@@ -12,14 +12,13 @@
     <RootNamespace>DeployCompilerGeneratorToolsRuntime</RootNamespace>
     <AssemblyName>DeployCompilerGeneratorToolsRuntime_DoNotUse</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <NonShipping>true</NonShipping>
-    <RoslynProjectType>DeploymentCompilergeneratorTools</RoslynProjectType>
+    <RoslynProjectType>DeploymentCompilerGeneratorTools</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />

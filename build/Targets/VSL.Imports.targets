@@ -43,7 +43,7 @@
         <OutDir>$(OutDir)Exes\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'DeploymentCompilergeneratorTools'">
+    <When Condition="'$(RoslynProjectType)' == 'DeploymentCompilerGeneratorTools'">
       <PropertyGroup>
         <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
       </PropertyGroup>
@@ -75,6 +75,23 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Custom'">
       <!-- Do nothing -->
+    </When>
+    <When Condition="'$(RoslynProjectType)' == '' and '$(OutputType)' == 'Library'">
+      <PropertyGroup>
+        <_CopyReferences>false</_CopyReferences>
+        <_CopyProjectReferences>false</_CopyProjectReferences>
+        <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(RoslynProjectType)' == '' and '$(OutputType)' == 'Exe'">
+      <PropertyGroup>
+        <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(RoslynProjectType)' == '' and '$(OutputType)' == 'WinExe'">
+      <PropertyGroup>
+        <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
+      </PropertyGroup>
     </When>
   </Choose>
 

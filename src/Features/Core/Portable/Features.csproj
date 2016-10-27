@@ -8,12 +8,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
-    <RoslynProjectType>Dll</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -307,10 +304,8 @@
     <Compile Include="Structure\Syntax\AbstractSyntaxStructureProvider.cs" />
     <Compile Include="Structure\Syntax\AbstractSyntaxTriviaStructureProvider.cs" />
     <Compile Include="Structure\Syntax\BlockSpanCollector.cs" />
-    <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
-    <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\INamingStyle.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\NamingStyle.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Serialization\SerializableNamingStylePreferencesInfo.cs" />
@@ -667,10 +662,6 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
     <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
-    <Compile Include="SymbolCategorization\ExportSymbolCategorizerAttribute.cs" />
-    <Compile Include="SymbolCategorization\ISymbolCategorizationService.cs" />
-    <Compile Include="SymbolCategorization\SymbolCategorizationService.cs" />
-    <Compile Include="SymbolCategorization\ThreadLocalSymbolCategorizer.cs" />
     <Compile Include="Common\SymbolDisplayPartKindTags.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />

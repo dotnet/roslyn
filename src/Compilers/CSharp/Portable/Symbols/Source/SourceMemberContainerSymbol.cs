@@ -552,38 +552,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_flags.FieldDefinitionsNoted)
                 {
-                    if (!this.IsAbstract)
+                    var assembly = (SourceAssemblySymbol)ContainingAssembly;
+
+                    Accessibility containerEffectiveAccessibility = EffectiveAccessibility();
+
+                    foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
-                        var assembly = (SourceAssemblySymbol)ContainingAssembly;
-
-                        Accessibility containerEffectiveAccessibility = EffectiveAccessibility();
-
-                        foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
+                        FieldSymbol field;
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
                         {
-                            FieldSymbol field;
-                            if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
 
-                            Accessibility fieldDeclaredAccessibility = field.DeclaredAccessibility;
-                            if (fieldDeclaredAccessibility == Accessibility.Private)
-                            {
-                                // mark private fields as tentatively unassigned and unread unless we discover otherwise.
-                                assembly.NoteFieldDefinition(field, isInternal: false, isUnread: true);
-                            }
-                            else if (containerEffectiveAccessibility == Accessibility.Private)
-                            {
-                                // mark effectively private fields as tentatively unassigned unless we discover otherwise.
-                                assembly.NoteFieldDefinition(field, isInternal: false, isUnread: false);
-                            }
-                            else if (fieldDeclaredAccessibility == Accessibility.Internal || containerEffectiveAccessibility == Accessibility.Internal)
-                            {
-                                // mark effectively internal fields as tentatively unassigned unless we discover otherwise.
-                                // NOTE: These fields will be reported as unassigned only if internals are not visible from this assembly.
-                                // See property SourceAssemblySymbol.UnusedFieldWarnings.
-                                assembly.NoteFieldDefinition(field, isInternal: true, isUnread: false);
-                            }
+                        Accessibility fieldDeclaredAccessibility = field.DeclaredAccessibility;
+                        if (fieldDeclaredAccessibility == Accessibility.Private)
+                        {
+                            // mark private fields as tentatively unassigned and unread unless we discover otherwise.
+                            assembly.NoteFieldDefinition(field, isInternal: false, isUnread: true);
+                        }
+                        else if (containerEffectiveAccessibility == Accessibility.Private)
+                        {
+                            // mark effectively private fields as tentatively unassigned unless we discover otherwise.
+                            assembly.NoteFieldDefinition(field, isInternal: false, isUnread: false);
+                        }
+                        else if (fieldDeclaredAccessibility == Accessibility.Internal || containerEffectiveAccessibility == Accessibility.Internal)
+                        {
+                            // mark effectively internal fields as tentatively unassigned unless we discover otherwise.
+                            // NOTE: These fields will be reported as unassigned only if internals are not visible from this assembly.
+                            // See property SourceAssemblySymbol.UnusedFieldWarnings.
+                            assembly.NoteFieldDefinition(field, isInternal: true, isUnread: false);
                         }
                     }
                     _flags.SetFieldDefinitionsNoted();

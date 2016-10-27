@@ -94,8 +94,8 @@ if defined TestPerfRun (
             set "EXTRA_PERF_RUNNER_ARGS=--report-benchview --branch "%GIT_BRANCH%""
 
             REM Check if we are in a PR or this is a rolling submission
-            if defined ghprbPullId (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%^" --benchview-submission-type private"
+            if defined ghprbPullTitle (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ""[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%"" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
@@ -112,14 +112,18 @@ if defined TestPerfRun (
 REM Temporarily forcing MSBuild 14.0 here to work around a bug in 15.0
 REM MSBuild bug: https://github.com/Microsoft/msbuild/issues/1183
 REM Roslyn tracking bug: https://github.com/dotnet/roslyn/issues/14451
-"c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+"c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
 REM Verify the state of our project.jsons
 echo Running RepoUtil
-.\Binaries\%BuildConfiguration%\Tools\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\Exes\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
+
+REM Verify the state of our project.jsons
+echo Running BuildBoss
+.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln src\Samples\Samples.sln || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

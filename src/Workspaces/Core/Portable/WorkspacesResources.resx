@@ -492,4 +492,91 @@
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
+  <data name="Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function" xml:space="preserve">
+    <value>Option '{0}' has an unsupported type to use with {1}. You should specify a parsing function.</value>
+  </data>
+  <data name="Pascal_Case" xml:space="preserve">
+    <value>Pascal Case</value>
+  </data>
+  <data name="Abstract_Method" xml:space="preserve">
+    <value>Abstract Method</value>
+    <comment>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Async_Method" xml:space="preserve">
+    <value>Async Method</value>
+    <comment>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Begins_with_I" xml:space="preserve">
+    <value>Begins with I</value>
+    <comment>{locked:I}</comment>
+  </data>
+  <data name="Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Ends_with_Async" xml:space="preserve">
+    <value>Ends with Async</value>
+    <comment>{locked:async}</comment>
+  </data>
+  <data name="Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Non_Field_Members" xml:space="preserve">
+    <value>Non-Field Members</value>
+    <comment>{locked:field}</comment>
+  </data>
+  <data name="Private_Method" xml:space="preserve">
+    <value>Private Method</value>
+    <comment>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Private_or_Internal_Field" xml:space="preserve">
+    <value>Private or Internal Field</value>
+    <comment>{locked: private}{locked: internal}{locked:field}</comment>
+  </data>
+  <data name="Private_or_Internal_Static_Field" xml:space="preserve">
+    <value>Private or Internal Static Field</value>
+    <comment>{locked: private}{locked: internal}{locked:static}{locked:field}</comment>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Public_or_Protected_Field" xml:space="preserve">
+    <value>Public or Protected Field</value>
+    <comment>{locked: public}{locked: protected}{locked:field}</comment>
+  </data>
+  <data name="Static_Field" xml:space="preserve">
+    <value>Static Field</value>
+    <comment>{locked:static}{locked:field} (unless the capitalization should be handled differently)</comment>
+  </data>
+  <data name="Static_Method" xml:space="preserve">
+    <value>Static Method</value>
+    <comment>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Struct" xml:space="preserve">
+    <value>Struct</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Types" xml:space="preserve">
+    <value>Types</value>
+    <comment>{locked:types} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>{locked:method} unless the capitalization should be handled differently</comment>
+  </data>
 </root>
+

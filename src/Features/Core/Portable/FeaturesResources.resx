@@ -897,8 +897,8 @@ Do you want to continue?</value>
   <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
     <value>Fix Name Violation: {0}</value>
   </data>
-  <data name="_0_naming_violation_1" xml:space="preserve">
-    <value>'{0}' naming violation - {1}</value>
+  <data name="Naming_rule_violation_0" xml:space="preserve">
+    <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
   </data>
   <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
@@ -1135,5 +1135,20 @@ This version used in: {2}</value>
   </data>
   <data name="Snippets" xml:space="preserve">
     <value>Snippets</value>
+  </data>
+  <data name="All_lowercase" xml:space="preserve">
+    <value>All lowercase</value>
+  </data>
+  <data name="All_uppercase" xml:space="preserve">
+    <value>All uppercase</value>
+  </data>
+  <data name="Camel_Case" xml:space="preserve">
+    <value>Camel Case</value>
+  </data>
+  <data name="First_word_capitalized" xml:space="preserve">
+    <value>First word capitalized</value>
+  </data>
+  <data name="Pascal_Case" xml:space="preserve">
+    <value>Pascal Case</value>
   </data>
 </root>

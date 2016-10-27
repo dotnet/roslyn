@@ -74,12 +74,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
         internal static string DefaultSdkDirectory { get; } = RuntimeEnvironment.GetRuntimeDirectory();
 
-        internal static BuildPaths CreateBuildPaths(string workingDir)
+        internal static BuildPaths CreateBuildPaths(string workingDir, string tempDir)
         {
             return new BuildPaths(
                 clientDir: DefaultClientDirectory,
                 workingDir: workingDir,
-                sdkDir: DefaultSdkDirectory);
+                sdkDir: DefaultSdkDirectory,
+                tempDir: tempDir);
         }
 
         internal static ServerData CreateServer(
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)
         {
-            Func<string[], string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
+            Func<string[], string, string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
             switch (language)
             {
                 case RequestLanguage.CSharpCompile:
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     throw new InvalidOperationException();
             }
 
-            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, textWriter, loader);
+            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, buildPaths.TempDirectory, textWriter, loader);
         }
 
         private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)
