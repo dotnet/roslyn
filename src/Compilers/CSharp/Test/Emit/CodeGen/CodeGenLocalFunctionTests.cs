@@ -73,18 +73,21 @@ class C
             var src = @"
 class C
 {
+    int P = 0;
     public void M()
     {
-        C Local1() => Local2();
-        C Local2() => Local3();
-        C Local3() => Local4();
-        C Local4() => Local5();
-        C Local5() => Local6();
-        C Local6() => Local5();
-        C Local7() => Local4();
-        C Local8() => Local3();
-        C Local9() => Local2();
-        C Local10() => Local1();
+        int Local1() => this.P;
+        int Local2() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local3() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local4() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local5() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local6() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local7() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local8() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local9() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local10() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local11() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local12() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
 
         Local1();
         Local2();
@@ -96,6 +99,8 @@ class C
         Local8();
         Local9();
         Local10();
+        Local11();
+        Local12();
     }
 }
 ";
