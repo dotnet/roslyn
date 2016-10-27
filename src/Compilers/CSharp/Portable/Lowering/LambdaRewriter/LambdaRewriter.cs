@@ -573,8 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="frame">The frame for the translated node</param>
         /// <param name="F">A function that computes the translation of the node.  It receives lists of added statements and added symbols</param>
         /// <returns>The translated statement, as returned from F</returns>
-        private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
-            where T : BoundNode
+        private BoundNode IntroduceFrame(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, BoundNode> F)
         {
             var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
@@ -851,9 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.ResultKind,
                     node.Type);
 
-                return new PartiallyLoweredLocalFunctionReference(
-                    withArguments, 
-                    new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
+                return PartiallyLowerLocalFunctionReference(withArguments);
             }
 
             var visited = base.VisitCall(node);
@@ -882,6 +879,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewritten;
+        }
+
+        private PartiallyLoweredLocalFunctionReference PartiallyLowerLocalFunctionReference(
+            BoundExpression underlyingNode)
+        {
+            Debug.Assert(underlyingNode.Kind == BoundKind.Call ||
+                         underlyingNode.Kind == BoundKind.DelegateCreationExpression ||
+                         underlyingNode.Kind == BoundKind.Conversion);
+            return new PartiallyLoweredLocalFunctionReference(
+                                underlyingNode,
+                                new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
         }
 
         private BoundSequence RewriteSequence(BoundSequence node, ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals)
@@ -1081,16 +1089,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return RewriteLambdaConversion((BoundLambda)node.Argument);
             }
-            else
+
+            if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
-                {
-                    return new PartiallyLoweredLocalFunctionReference(
-                        node,
-                        new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
-                }
-                return base.VisitDelegateCreationExpression(node);
+                return PartiallyLowerLocalFunctionReference(node);
             }
+            return base.VisitDelegateCreationExpression(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion conversion)
@@ -1114,17 +1118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
-            else
+
+            if (conversion.ConversionKind == ConversionKind.MethodGroup &&
+                conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                if (conversion.ConversionKind == ConversionKind.MethodGroup &&
-                    conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
-                {
-                    return new PartiallyLoweredLocalFunctionReference(
-                        conversion,
-                        new Dictionary<Symbol, CapturedSymbolReplacement>(proxies));
-                }
-                return base.VisitConversion(conversion);
+                return PartiallyLowerLocalFunctionReference(conversion);
             }
+            return base.VisitConversion(conversion);
         }
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
