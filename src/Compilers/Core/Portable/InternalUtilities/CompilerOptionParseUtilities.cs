@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
         {
             if (string.IsNullOrEmpty(features))
             {
-                return SpecializedCollections.EmptyList<string>();
+                return new List<string>(capacity: 0);
             }
 
             return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);

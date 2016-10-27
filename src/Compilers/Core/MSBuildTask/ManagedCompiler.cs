@@ -1,18 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.CodeAnalysis.CommandLine;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -378,8 +376,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        internal abstract RequestLanguage Language { get; }
-
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
@@ -400,6 +396,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
+            /* TODO: This needs to get fixed obviously
             using (_sharedCompileCts = new CancellationTokenSource())
             {
                 try
@@ -459,6 +456,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ExitCode = -1;
                 }
             }
+            */
             return ExitCode;
         }
 
@@ -574,6 +572,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Output]
         public new int ExitCode { get; private set; }
 
+        /*
         /// <summary>
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
@@ -609,6 +608,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     throw new InvalidOperationException("Encountered unknown response type");
             }
         }
+        */
 
         private void LogErrorOutput(string output)
         {
@@ -643,9 +643,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
             var commandLineArguments =
-                CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+                CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
             var responseFileArguments =
-                CommandLineParser.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+                CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
             return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
 

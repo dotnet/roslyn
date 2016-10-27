@@ -1,16 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Globalization;
-
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
-using Microsoft.CodeAnalysis.CommandLine;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -231,8 +229,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         #region Tool Members
-
-        internal override RequestLanguage Language => RequestLanguage.VisualBasicCompile;
 
         private static readonly string[] s_separator = { "\r\n" };
 
