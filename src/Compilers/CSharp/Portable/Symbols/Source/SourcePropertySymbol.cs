@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length, _refKind));
             }
 
             if (Type.ContainsTupleNames())
