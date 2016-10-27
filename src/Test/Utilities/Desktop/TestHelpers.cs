@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Win32;
+using System.IO;
 
 namespace Roslyn.Test.Utilities
 {
@@ -111,13 +113,15 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            var filesystem = dir.CreateFile("System.IO.FileSystem.dll").WriteAllBytes(
+                TestResources.NetFX.v4_6_1038_0.Facades.System_IO_FileSystem);
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,
                 new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestBase.SystemRuntimePP7Ref,
+                    TestBase.SystemRuntimeNetstandard13FacadeRef.Value,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
@@ -145,5 +149,24 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Debug.Assert(!result.Contains("--"));
             return result;
         }
+
+        public static string GetMSBuildDirectory()
+        {
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+            using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
+            {
+                if (key != null)
+                {
+                    var toolsPath = key.GetValue("MSBuildToolsPath");
+                    if (toolsPath != null)
+                    {
+                        return toolsPath.ToString();
+                    }
+                }
+            }
+
+            return null;
+        }
+
     }
 }

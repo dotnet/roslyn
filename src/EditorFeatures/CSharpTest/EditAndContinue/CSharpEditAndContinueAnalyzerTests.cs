@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -157,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [A]/*<span>*/public static explicit operator int(Z d)/*</span>*/ { return 1; }
     [A]/*<span>*/operator double(Z d)/*</span>*/ { return 1; }
 
-    [A]/*<span>*/public static operator int +(Z d, int x)/*</span>*/ { return 1; }
-    [A]/*<span>*/operator int +(Z d, int x)/*</span>*/ { return 1; }
+    [A]/*<span>*/public static operator +(Z d, int x)/*</span>*/ { return 1; }
+    [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
     
 }
 ";

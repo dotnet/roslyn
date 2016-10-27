@@ -29,11 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New MergedNamespaceDeclaration(declarations.AsImmutableOrNull)
         End Function
 
-        Public Shared Function Create(mergedDeclaration As MergedNamespaceDeclaration,
-                                      declaration As SingleNamespaceDeclaration) As MergedNamespaceDeclaration
-            Return New MergedNamespaceDeclaration(mergedDeclaration._declarations.Add(declaration))
-        End Function
-
         Public Overrides ReadOnly Property Kind As DeclarationKind
             Get
                 Return DeclarationKind.Namespace

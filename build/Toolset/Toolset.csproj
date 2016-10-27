@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{57557F32-0635-421A-BCF8-549AED50F764}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Toolset</RootNamespace>
+    <AssemblyName>Toolset_DoNetUse</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RoslynProjectType>Deployment</RoslynProjectType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Compilers\Core\MSBuildTask\MSBuildTask.csproj">
+      <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
+      <Name>MSBuildTask</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Compilers\CSharp\csc\csc.csproj">
+      <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
+      <Name>csc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Compilers\VisualBasic\vbc\vbc.csproj">
+      <Project>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</Project>
+      <Name>vbc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj">
+      <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
+      <Name>VBCSCompiler</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\Targets\VSL.Imports.targets" />
+</Project>

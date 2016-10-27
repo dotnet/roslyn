@@ -19,8 +19,7 @@ namespace Microsoft.Cci
         private readonly string _location;
         private readonly Guid _language;
         private readonly bool _isComputedChecksum;
-
-        private readonly Task<ValueTuple<ImmutableArray<byte>, Guid>> _checksumAndAlgorithm;
+        private readonly Task<DebugSourceInfo> _sourceInfo;
 
         public DebugSourceDocument(string location, Guid language)
         {
@@ -33,10 +32,10 @@ namespace Microsoft.Cci
         /// <summary>
         /// Use to create a document when checksum is computed based on actual source stream.
         /// </summary>
-        public DebugSourceDocument(string location, Guid language, Func<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm)
+        public DebugSourceDocument(string location, Guid language, Func<DebugSourceInfo> sourceInfo)
             : this(location, language)
         {
-            _checksumAndAlgorithm = Task.Run(checksumAndAlgorithm);
+            _sourceInfo = Task.Run(sourceInfo);
             _isComputedChecksum = true;
         }
 
@@ -46,17 +45,29 @@ namespace Microsoft.Cci
         public DebugSourceDocument(string location, Guid language, ImmutableArray<byte> checksum, Guid algorithm)
             : this(location, language)
         {
-            _checksumAndAlgorithm = Task.FromResult(ValueTuple.Create(checksum, algorithm));
+            _sourceInfo = Task.FromResult(new DebugSourceInfo(checksum, algorithm));
         }
 
         internal static bool IsSupportedAlgorithm(SourceHashAlgorithm algorithm)
         {
-            Guid guid;
-            return TryGetAlgorithmGuid(algorithm, out guid);
+            // Dev12 debugger supports MD5, SHA1.
+            // Dev14 debugger supports MD5, SHA1, SHA256.
+            // MD5 is obsolete.
+
+            switch (algorithm)
+            {
+                case SourceHashAlgorithm.Sha1:
+                case SourceHashAlgorithm.Sha256:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
-        internal static bool TryGetAlgorithmGuid(SourceHashAlgorithm algorithm, out Guid guid)
+        internal static Guid GetAlgorithmGuid(SourceHashAlgorithm algorithm)
         {
+            Debug.Assert(IsSupportedAlgorithm(algorithm));
+
             // Dev12 debugger supports MD5, SHA1.
             // Dev14 debugger supports MD5, SHA1, SHA256.
             // MD5 is obsolete.
@@ -66,16 +77,13 @@ namespace Microsoft.Cci
                 switch (algorithm)
                 {
                     case SourceHashAlgorithm.Sha1:
-                        guid = new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60);
-                        return true;
-
+                        return new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60);
+ 
                     case SourceHashAlgorithm.Sha256:
-                        guid = new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16);
-                        return true;
+                        return new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16);
 
                     default:
-                        guid = default(Guid);
-                        return false;
+                        throw ExceptionUtilities.UnexpectedValue(algorithm);
                 }
             }
         }
@@ -100,12 +108,9 @@ namespace Microsoft.Cci
             get { return _location; }
         }
 
-        public ValueTuple<ImmutableArray<byte>, Guid> ChecksumAndAlgorithm
+        public DebugSourceInfo GetSourceInfo()
         {
-            get
-            {
-                return _checksumAndAlgorithm?.Result ?? default(ValueTuple<ImmutableArray<byte>, Guid>);
-            }
+            return _sourceInfo?.Result ?? default(DebugSourceInfo);
         }
 
         /// <summary>

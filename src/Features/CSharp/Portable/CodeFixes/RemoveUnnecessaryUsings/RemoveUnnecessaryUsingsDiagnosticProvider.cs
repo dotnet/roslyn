@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
         internal const string DiagnosticFixableId = "RemoveUnnecessaryUsingsFixable";
         internal static readonly DiagnosticDescriptor DiagnosticClassificationMD = new DiagnosticDescriptor(DiagnosticClassificationId,
                                                                                                             DiagnosticKind.Unnecessary,
-                                                                                                            CSharpFeaturesResources.RemoveUnnecessaryUsings,
-                                                                                                            CSharpFeaturesResources.RemoveUnnecessaryUsings,
+                                                                                                            CSharpFeaturesResources.Remove_Unnecessary_Usings,
+                                                                                                            CSharpFeaturesResources.Remove_Unnecessary_Usings,
                                                                                                             "Internal",
                                                                                                             DiagnosticSeverity.None);
         internal static readonly DiagnosticDescriptor DiagnosticFixableMD = new DiagnosticDescriptor(DiagnosticFixableId,
                                                                                                      DiagnosticKind.Hidden,
-                                                                                                     CSharpFeaturesResources.RemoveUnnecessaryUsings,
-                                                                                                     CSharpFeaturesResources.RemoveUnnecessaryUsings,
+                                                                                                     CSharpFeaturesResources.Remove_Unnecessary_Usings,
+                                                                                                     CSharpFeaturesResources.Remove_Unnecessary_Usings,
                                                                                                      "Internal",
                                                                                                      DiagnosticSeverity.None);
 

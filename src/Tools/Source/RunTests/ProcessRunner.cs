@@ -129,8 +129,15 @@ namespace RunTests
 
             process.Exited += (s, e) =>
                 {
-                    var processOutput = new ProcessOutput(process.ExitCode, outputLines, errorLines);
-                    taskCompletionSource.TrySetResult(processOutput);
+                    // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
+                    // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
+                    // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
+                    Task.Run(() =>
+                    {
+                        process.WaitForExit();
+                        var processOutput = new ProcessOutput(process.ExitCode, outputLines, errorLines);
+                        taskCompletionSource.TrySetResult(processOutput);
+                    });
                 };
 
             var registration = cancellationToken.Register(() =>

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -64,9 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // We act as a source of events ourselves.  When the diagnostics service tells
                 // us about new diagnostics, we'll use that to kick of the asynchronous tagging
                 // work.
-                return TaggerEventSources.Compose(
+                
+                var eventSource = TaggerEventSources.Compose(
                     TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
                     this);
+
+                // See if our owner has any additional events for us to listen to.
+                var ownerEventSource = _owner.GetTaggerEventSource();
+                return ownerEventSource == null
+                    ? eventSource
+                    : TaggerEventSources.Compose(ownerEventSource, eventSource);
             }
 
             protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
@@ -164,6 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // taken cared by the external service (diagnostic service).
                 this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.NearImmediate));
             }
+        }
+
+        protected virtual ITaggerEventSource GetTaggerEventSource()
+        {
+            return null;
         }
     }
 }

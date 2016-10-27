@@ -28,13 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = (ArrowExpressionClauseSyntax)node;
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.OperatorDeclaration:
-                    arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    arrowExpr = ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    arrowExpr = ((BaseMethodDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.PropertyDeclaration:
                     arrowExpr = ((PropertyDeclarationSyntax)node).ExpressionBody;
@@ -42,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return null;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -63,6 +65,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation, bool elasticTrivia)
         {
             return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+        }
+
+        /// <summary>
+        /// Return the type syntax of an out declaration argument expression.
+        /// </summary>
+        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
+        {
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            return component.Type;
+        }
+
+        /// <summary>
+        /// Return the variable designation of an out declaration argument expression.
+        /// </summary>
+        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
+        {
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            return (SingleVariableDesignationSyntax)component.Designation;
+        }
+
+        /// <summary>
+        /// Return the identifier of an out declaration argument expression.
+        /// </summary>
+        internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
+        {
+            var component = (TypedVariableComponentSyntax)self.VariableComponent;
+            var designation = (SingleVariableDesignationSyntax)component.Designation;
+            return designation.Identifier;
         }
 
         /// <summary>
@@ -186,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)
+        internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {

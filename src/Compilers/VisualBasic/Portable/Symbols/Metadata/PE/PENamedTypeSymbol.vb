@@ -246,7 +246,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Try
                     Dim token As EntityHandle = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(Me._handle)
                     If Not token.IsNil Then
-                        Return DirectCast(New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token), NamedTypeSymbol)
+                        Dim decodedType = New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token)
+                        Return DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol), NamedTypeSymbol)
+
                     End If
                 Catch mrEx As BadImageFormatException
                     Return New UnsupportedMetadataTypeSymbol(mrEx)
@@ -269,8 +271,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
                     Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
-                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle)
+
+                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceHandle, moduleSymbol), NamedTypeSymbol)
+
                     'TODO: how to pass reason to unsupported
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"
                     i = i + 1
                 Next
@@ -1115,17 +1121,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
-            Dim isOrdinaryStruct As Boolean = Me.TypeKind = TypeKind.Structure AndAlso
-                                                    (Me.SpecialType = SpecialType.None OrElse Me.SpecialType = SpecialType.System_Nullable_T)
 
             Try
                 For Each fieldDef In [module].GetFieldsOfTypeOrThrow(_handle)
-                    Dim import As Boolean = True
+                    Dim import As Boolean
 
                     Try
-                        If Not ([module].ShouldImportField(fieldDef, moduleSymbol.ImportOptions) OrElse
-                                isOrdinaryStruct AndAlso ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0) Then
-                            import = False
+                        import = [module].ShouldImportField(fieldDef, moduleSymbol.ImportOptions)
+
+                        If Not import Then
+                            Select Case Me.TypeKind
+                                Case TypeKind.Structure
+                                    Dim specialType = Me.SpecialType
+                                    If specialType = SpecialType.None OrElse specialType = SpecialType.System_Nullable_T Then
+                                        ' This is an ordinary struct
+                                        If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                            import = True
+                                        End If
+                                    End If
+
+                                Case TypeKind.Enum
+                                    If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                        import = True
+                                    End If
+                            End Select
                         End If
                     Catch mrEx As BadImageFormatException
                     End Try
@@ -1408,7 +1427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' Is interface marked with 'InterfaceTypeAttribute( flags with ComInterfaceType.InterfaceIsIDispatch )' attribute
             Dim interfaceType As ComInterfaceType = Nothing
             If metadataModule.HasInterfaceTypeAttribute(Me._handle, interfaceType) AndAlso
-                (interfaceType And ComInterfaceType.InterfaceIsIDispatch) <> 0 Then
+                (interfaceType And Cci.Constants.ComInterfaceType_InterfaceIsIDispatch) <> 0 Then
                 Return True
             End If
 
@@ -1456,6 +1475,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
         End Function
 
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
     End Class
 
 End Namespace

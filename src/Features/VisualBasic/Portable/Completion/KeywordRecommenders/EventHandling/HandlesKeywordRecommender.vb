@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
                     Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Handles", VBFeaturesResources.HandlesKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Handles", VBFeaturesResources.Declares_that_a_procedure_handles_a_specified_event))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

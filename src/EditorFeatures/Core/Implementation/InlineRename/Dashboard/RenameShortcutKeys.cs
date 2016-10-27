@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 
@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         static RenameShortcutKey()
         {
-            RenameOverloads = ExtractAccessKey(EditorFeaturesResources.RenameOverloads, "O");
-            SearchInStrings = ExtractAccessKey(EditorFeaturesResources.SearchInStrings, "S");
-            SearchInComments = ExtractAccessKey(EditorFeaturesResources.SearchInComments, "C");
-            PreviewChanges = ExtractAccessKey(EditorFeaturesResources.RenamePreviewChanges, "P");
-            Apply = ExtractAccessKey(EditorFeaturesResources.ApplyRename, "A");
+            RenameOverloads = ExtractAccessKey(EditorFeaturesResources.Include_overload_s, "O");
+            SearchInStrings = ExtractAccessKey(EditorFeaturesResources.Include_strings, "S");
+            SearchInComments = ExtractAccessKey(EditorFeaturesResources.Include_comments, "C");
+            PreviewChanges = ExtractAccessKey(EditorFeaturesResources.Preview_changes1, "P");
+            Apply = ExtractAccessKey(EditorFeaturesResources.Apply1, "A");
         }
 
         /// <summary>

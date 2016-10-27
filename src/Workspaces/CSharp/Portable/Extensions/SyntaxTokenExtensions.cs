@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsWord(SyntaxToken token)
         {
-            return new CSharpSyntaxFactsService().IsWord(token);
+            return CSharpSyntaxFactsService.Instance.IsWord(token);
         }
 
         public static SyntaxToken GetNextNonZeroWidthTokenOrEndOfFile(this SyntaxToken token)
@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static SyntaxToken WithoutTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
+            this SyntaxToken token)
         {
             if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
             {

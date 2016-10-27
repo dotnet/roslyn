@@ -195,6 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
+                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
+                                                                               constraint,
+                                                                               moduleSymbol);
+
                     symbolsBuilder.Add(typeSymbol);
                 }
 

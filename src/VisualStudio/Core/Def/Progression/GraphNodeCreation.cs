@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Progression
                     return await GraphNodeIdCreation.GetIdForLocalVariableAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                 default:
-                    throw new ArgumentException(string.Format(ServicesVSResources.CreateNodeIdFailed, symbol));
+                    throw new ArgumentException(string.Format(ServicesVSResources.Can_t_create_a_node_id_for_this_symbol_kind_colon_0, symbol));
             }
         }
 

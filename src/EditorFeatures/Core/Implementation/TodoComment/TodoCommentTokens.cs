@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
@@ -71,10 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TokenInfo _lastTokenInfo;
 
-        public ImmutableArray<TodoCommentDescriptor> GetTokens(Workspace workspace)
+        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document, CancellationToken cancellationToken)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            var optionText = optionService.GetOption(TodoCommentOptions.TokenList);
+            var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
             if (lastInfo != null && lastInfo.OptionText == optionText)

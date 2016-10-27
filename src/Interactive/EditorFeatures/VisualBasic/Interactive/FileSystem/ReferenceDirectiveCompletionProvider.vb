@@ -8,7 +8,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 
-    <ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.VisualBasic)>
+    <ExportCompletionProviderMef1("ReferenceDirectiveCompletionProvider", LanguageNames.VisualBasic)>
     <TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)>
     Friend Class ReferenceDirectiveCompletionProvider : Inherits AbstractReferenceDirectiveCompletionProvider
         Protected Overrides Function TryGetStringLiteralToken(tree As SyntaxTree, position As Integer, ByRef stringLiteral As SyntaxToken, cancellationToken As CancellationToken) As Boolean

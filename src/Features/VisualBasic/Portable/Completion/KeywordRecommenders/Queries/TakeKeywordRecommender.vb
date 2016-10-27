@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Take", VBFeaturesResources.TakeQueryKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Take", VBFeaturesResources.Includes_elements_up_to_a_specified_position_in_the_collection))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
@@ -564,7 +565,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool TryFindMatchingField(
-                string parameterName,
+                ParameterName parameterName,
                 ITypeSymbol parameterType,
                 Dictionary<string, ISymbol> parameterToFieldMap,
                 bool caseSensitive)
@@ -578,12 +579,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         _state.BaseTypeOrInterfaceOpt
                             .GetBaseTypesAndThis()
                             .SelectMany(t => t.GetMembers())
-                            .Where(s => s.Name.Equals(parameterName, comparison));
+                            .Where(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
                     var symbol = query.FirstOrDefault(IsSymbolAccessible);
 
                     if (IsViableFieldOrProperty(parameterType, symbol))
                     {
-                        parameterToFieldMap[parameterName] = symbol;
+                        parameterToFieldMap[parameterName.BestNameForParameter] = symbol;
                         return true;
                     }
                 }

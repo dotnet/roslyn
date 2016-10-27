@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
     [Shared]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host)]
+    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host })]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
+
+            /// <summary>
+            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
+            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
             /// <summary>
@@ -133,9 +138,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
                 Solution solution,
-                IAssemblySymbol assembly,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
             {
@@ -156,12 +160,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
-                    solution, assembly, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                    solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
                 ProjectInfo projectInfo;
@@ -191,7 +195,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
@@ -209,7 +213,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
             }
 
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
@@ -274,11 +278,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 MetadataInfo metadataInfo;
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    var info = assembly == null
-                        ? null
-                        : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                        project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
+                    // We still want to cache that result so that don't try to continuously produce
+                    // this info over and over again.
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }

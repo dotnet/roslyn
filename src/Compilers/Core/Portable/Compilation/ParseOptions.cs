@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
+
+        /// <summary>
         /// Creates a new options instance with the specified source code kind.
         /// </summary>
         public ParseOptions WithKind(SourceCodeKind kind)
@@ -37,6 +43,10 @@ namespace Microsoft.CodeAnalysis
             return CommonWithKind(kind);
         }
 
+        // It was supposed to be a protected implementation detail. 
+        // The "pattern" we have for these is the public With* method is the only public callable one, 
+        // and that forwards to the protected Common* like all the other methods in the class. 
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public abstract ParseOptions CommonWithKind(SourceCodeKind kind);
 
         /// <summary>

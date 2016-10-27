@@ -53,6 +53,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        {
+            base.VisitPattern(expression, pattern);
+            NoteDeclaredPatternVariables(pattern);
+        }
+
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        {
+            foreach (var label in node.SwitchLabels)
+            {
+                NoteDeclaredPatternVariables(label.Pattern);
+            }
+
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        /// <summary>
+        /// Record declared variables in the pattern.
+        /// </summary>
+        private void NoteDeclaredPatternVariables(BoundPattern pattern)
+        {
+            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            {
+                var decl = (BoundDeclarationPattern)pattern;
+                if (decl.Variable.Kind == SymbolKind.Local)
+                {
+                    // Because this API only returns local symbols and parameters,
+                    // we exclude pattern variables that have become fields in scripts.
+                    _variablesDeclared.Add(decl.Variable);
+                }
+            }
+        }
+
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             if (IsInside)
@@ -76,11 +109,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            if (IsInside && !node.WasCompilerGenerated)
+            {
+                foreach (var parameter in node.Symbol.Parameters)
+                {
+                    _variablesDeclared.Add(parameter);
+                }
+            }
+
+            return base.VisitLocalFunctionStatement(node);
+        }
+
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariable);
+                _variablesDeclared.Add(node.IterationVariableOpt);
             }
 
             return base.VisitForEachStatement(node);
@@ -91,11 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var local = catchBlock.LocalOpt;
+                var local = catchBlock.Locals.FirstOrDefault();
 
-                if ((object)local != null)
+                if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
                     _variablesDeclared.Add(local);
                 }
             }
@@ -114,6 +159,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitQueryClause(node);
+        }
+
+        protected override void VisitLvalue(BoundLocal node)
+        {
+            CheckOutVarDeclaration(node);
+            base.VisitLvalue(node);
+        }
+
+        private void CheckOutVarDeclaration(BoundLocal node)
+        {
+            if (IsInside &&
+                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
+                ((DeclarationExpressionSyntax)node.Syntax).Identifier() == node.LocalSymbol.IdentifierToken)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+        }
+
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            CheckOutVarDeclaration(node);
+            return base.VisitLocal(node);
         }
     }
 }

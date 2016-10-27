@@ -609,38 +609,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var blockSyntax = sourceMethod.BlockSyntax;
                 if (blockSyntax != null)
                 {
-                var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
-                var inMethodBinder = factory.GetBinder(blockSyntax);
-                var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
-                body = binder.BindBlock(blockSyntax, diagnostics);
-                if (generateDebugInfo)
-                {
-                    debugImports = binder.ImportsList;
-                }
-                if (inMethodBinder.IsDirectlyInIterator)
-                {
-                    foreach (var parameter in method.Parameters)
+                    var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
+                    var inMethodBinder = factory.GetBinder(blockSyntax);
+                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
+                    body = binder.BindBlock(blockSyntax, diagnostics);
+                    if (generateDebugInfo)
                     {
-                        if (parameter.RefKind != RefKind.None)
+                        debugImports = binder.ImportsList;
+                    }
+                    if (inMethodBinder.IsDirectlyInIterator)
+                    {
+                        foreach (var parameter in method.Parameters)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                            if (parameter.RefKind != RefKind.None)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
+                            }
+                            else if (parameter.Type.IsUnsafe())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                            }
                         }
-                        else if (parameter.Type.IsUnsafe())
+
+                        if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
                         {
-                            diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
                         }
-                    }
 
-                    if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
-                    {
-                        diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
-                    }
-
-                    if (sourceMethod.IsVararg)
-                    {
-                        // error CS1636: __arglist is not allowed in the parameter list of iterators
-                        diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
-                    }
+                        if (sourceMethod.IsVararg)
+                        {
+                            // error CS1636: __arglist is not allowed in the parameter list of iterators
+                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
+                        }
                     }
                 }
                 else // for [if (blockSyntax != null)]
@@ -649,14 +649,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
-                }
+                    }
 
                     if (sourceMethod.IsPrimaryCtor)
                     {
                         body = null;
-            }
-            else
-            {
+                    }
+                    else
+                    {
                         return null;
                     }
                 }

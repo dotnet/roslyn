@@ -192,19 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (expression.Kind == BoundKind.UnboundLambda)
-                    {
-                        errorArg = ((UnboundLambda)expression).MessageID.Localize();
-                    }
-                    else if (expression.Kind == BoundKind.MethodGroup)
-                    {
-                        errorArg = MessageID.IDS_MethodGroup.Localize();
-                    }
-                    else
-                    {
-                        Debug.Assert(expression.IsLiteralNull(), "How did we successfully bind an expression without a type?");
-                        errorArg = MessageID.IDS_NULL.Localize();
-                    }
+                    errorArg = expression.Display;
                 }
             }
 

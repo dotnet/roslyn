@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 get
                 {
-                    return string.Format(ServicesVSResources.AddAReference, _assemblyIdentity.GetDisplayName());
+                    return string.Format(ServicesVSResources.Add_a_reference_to_0, _assemblyIdentity.GetDisplayName());
                 }
             }
         }

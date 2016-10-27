@@ -364,6 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!oldLoadDirectives.IsEmpty);
                 GetRemoveSetForLoadedTrees(oldLoadDirectives, loadDirectiveMap, loadedSyntaxTreeMap, removeSet);
             }
+            else
+            {
+                oldLoadDirectives = ImmutableArray<LoadDirective>.Empty;
+            }
 
             removeSet.Add(oldTree);
             totalReferencedTreeCount = removeSet.Count;

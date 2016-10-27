@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -170,10 +171,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
                             DeclaredSymbolInfo declaredSymbolInfo;
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo) &&
-                                root.FullSpan.Contains(declaredSymbolInfo.Span))
+                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo))
                             {
-                                declaredSymbolInfos.Add(declaredSymbolInfo);
+                                if (root.FullSpan.Contains(declaredSymbolInfo.Span))
+                                {
+                                    declaredSymbolInfos.Add(declaredSymbolInfo);
+                                }
+                                else
+                                {
+                                    var message =
+$@"Invalid span in {nameof(declaredSymbolInfo)}.
+{nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
+{nameof(root.FullSpan)} = {root.FullSpan}";
+                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+                                }
                             }
                         }
                         else

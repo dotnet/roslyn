@@ -6,11 +6,14 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -26,14 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
-        private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
+        private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
+        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters)
+            [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(
                 serviceProvider,
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
@@ -44,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _navigableItemsPresenters = navigableItemsPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
+            _externalDefinitionProviders = externalDefinitionProviders;
+
+            foreach (var providerFactory in documentOptionsProviderFactories)
+            {
+                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
+            }
         }
 
         public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
@@ -56,13 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             var project = ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
             var document = project.GetDocumentOrAdditionalDocument(documentId);
             if (document == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
             var provider = project as IProjectCodeModelProvider;
@@ -156,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolId = SymbolKey.Create(symbol, originalCompilation, cancellationToken);
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
 
@@ -186,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, _externalDefinitionProviders, _navigableItemsPresenters, cancellationToken: cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -218,11 +230,16 @@ namespace Microsoft.VisualStudio.LanguageServices
             return false;
         }
 
-        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        public override void DisplayReferencedSymbols(
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
+            var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+
             foreach (var presenter in _referencedSymbolsPresenters)
             {
-                presenter.Value.DisplayResult(solution, referencedSymbols);
+                presenter.Value.DisplayResult(definitionsAndReferences);
+                return;
             }
         }
 

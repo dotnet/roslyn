@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Root As SyntaxNode
             Get
                 Return DirectCast(_syntaxTree.GetRoot(), VisualBasicSyntaxNode)
             End Get
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return model
         End Function
 
-        Friend Function GetMemberSemanticModel(node As VisualBasicSyntaxNode) As MemberSemanticModel
+        Friend Function GetMemberSemanticModel(node As SyntaxNode) As MemberSemanticModel
             Return GetMemberSemanticModel(node.SpanStart)
         End Function
 
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol
             For Each location In symbol.Locations
-                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
+                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan) Then
                     Return symbol
                 End If
             Next
@@ -1063,13 +1063,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.Method
                                 Return GetParameterSymbol(DirectCast(symbol, MethodSymbol).Parameters, parameter)
                             Case SymbolKind.Event
-                                Return GetParameterSymbol(DirectCast(symbol, EventSymbol).DelegateParameters, parameter)
+                                Dim eventSymbol As EventSymbol = DirectCast(symbol, EventSymbol)
+                                Dim type = TryCast(eventSymbol.Type, NamedTypeSymbol)
+
+                                If type?.AssociatedSymbol Is eventSymbol Then
+                                    Return GetParameterSymbol(type.DelegateInvokeMethod.Parameters, parameter)
+                                End If
+
+                                Return Nothing
+
                             Case SymbolKind.Property
                                 Return GetParameterSymbol(DirectCast(symbol, PropertySymbol).Parameters, parameter)
                             Case SymbolKind.NamedType
                                 '  check for being delegate 
                                 Dim typeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                                Debug.Assert(typeSymbol.TypeKind = TypeKind.Delegate)
+                                Debug.Assert(typeSymbol.TypeKind = TYPEKIND.Delegate)
                                 If typeSymbol.DelegateInvokeMethod IsNot Nothing Then
                                     Return GetParameterSymbol(typeSymbol.DelegateInvokeMethod.Parameters, parameter)
                                 End If

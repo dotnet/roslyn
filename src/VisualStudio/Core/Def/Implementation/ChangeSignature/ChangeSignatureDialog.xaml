@@ -108,6 +108,7 @@
                 </DataGrid.InputBindings>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding ParameterAutomationText}" />
                         <Setter Property="BorderThickness" Value="0" />
                         <Setter Property="Padding" Value="2" />
                         <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
@@ -129,6 +130,7 @@
                 </DataGrid.CellStyle>
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding ParameterAutomationText}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type DataGridRow}">
@@ -210,12 +212,13 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <TextBlock Grid.Column="0" 
+            <Label x:Name="PreviewMethodSignatureLabel"
+                       Grid.Column="0" 
                        Margin="0, 9, 0, 0" 
                        Grid.Row="1" 
                        Height="Auto" 
                        Width="Auto" 
-                       Text="{Binding ElementName=dialog, Path=PreviewMethodSignature}"/>
+                       Content="{Binding ElementName=dialog, Path=PreviewMethodSignature}"/>
             <Border Grid.Column="0" 
                     Margin="0, 3, 0, 0" 
                     Grid.Row="2" 
@@ -224,6 +227,9 @@
                     BorderThickness="1" 
                     BorderBrush="LightGray">
                 <ScrollViewer Name="Scroller"
+                              AutomationProperties.Name="{Binding SignaturePreviewAutomationText}"
+                              AutomationProperties.LabeledBy="{Binding ElementName=PreviewMethodSignatureLabel}"
+                              IsTabStop="True"
                               Padding="8, 4, 4, 4" 
                               VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" 
                               Content="{Binding SignatureDisplay}" 
@@ -232,6 +238,7 @@
             </Border>
             <StackPanel Name="ControlButtonsPanel" Grid.Column="1" Grid.Row="0" Height="Auto" Width="Auto" Margin="0, 3, 0, 0" >
                 <vs:DialogButton Name="UpButton" 
+                                 AutomationProperties.Name="{Binding MoveUpAutomationText}"
                                  Margin="9 0 0 0"
                                  IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
                                  AutomationProperties.AutomationId="Up"
@@ -244,6 +251,7 @@
                                         Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
                 </vs:DialogButton>
                 <vs:DialogButton Name="DownButton" 
+                                 AutomationProperties.Name="{Binding MoveDownAutomationText}"
                                  Margin="9 9 0 0"
                                  IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
                                  AutomationProperties.AutomationId="Down"
@@ -259,6 +267,7 @@
                 <vs:DialogButton
                         Margin="9 29 0 0"
                         IsEnabled="{Binding CanRemove, Mode=OneWay}" 
+                        AutomationProperties.Name="{Binding RemoveAutomationText}"
                         Click="Remove_Click" 
                         AutomationProperties.AutomationId="Remove" 
                         Content="{Binding ElementName=dialog, Path=Remove}" 
@@ -270,6 +279,7 @@
                         IsEnabled="{Binding CanRestore, Mode=OneWay}" 
                         Click="Restore_Click" 
                         AutomationProperties.AutomationId="Restore" 
+                        AutomationProperties.Name="{Binding RestoreAutomationText}"
                         Content="{Binding ElementName=dialog, Path=Restore}" 
                         Height="Auto" Width="Auto"/>
             </StackPanel>

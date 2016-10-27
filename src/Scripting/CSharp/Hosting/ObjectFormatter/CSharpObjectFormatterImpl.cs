@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             Filter = new CSharpMemberFilter();
         }
 
-        protected override string FormatRefKind(ParameterInfo parameter)
-        {
-            return parameter.IsOut
-                ? parameter.IsIn
-                    ? "ref"
-                    : "out"
-                : "";
-        }
+        protected override string FormatRefKind(ParameterInfo parameter) => parameter.IsOut ? "out" : "ref";
     }
 }

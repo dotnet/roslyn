@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         protected abstract string DefaultFileExtension { get; }
         protected abstract IList<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract Accessibility GetAccessibility(State state, SemanticModel semanticModel, bool intoNamespace, CancellationToken cancellationToken);
-        protected abstract IList<string> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments);
+        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments);
 
         protected abstract INamedTypeSymbol DetermineTypeToGenerateIn(SemanticModel semanticModel, TSimpleNameSyntax simpleName, CancellationToken cancellationToken);
         protected abstract ITypeSymbol DetermineArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         public abstract Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
 
-        public async Task<IEnumerable<CodeAction>> GenerateTypeAsync(
+        public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -73,13 +73,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var actions = GetActions(semanticDocument, node, state, cancellationToken).ToList();
-                    if (actions.Count > 1)
+                    var actions = GetActions(semanticDocument, node, state, cancellationToken);
+                    if (actions.Length > 1)
                     {
                         // Wrap the generate type actions into a single top level suggestion
                         // so as to not clutter the list.
-                        return SpecializedCollections.SingletonEnumerable(
-                            new MyCodeAction(FeaturesResources.Generate_type, actions.AsImmutable()));
+                        return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_type_0, state.Name), actions.AsImmutable()));
                     }
                     else
                     {
@@ -87,16 +87,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<CodeAction>();
+                return ImmutableArray<CodeAction>.Empty;
             }
         }
 
-        private IEnumerable<CodeAction> GetActions(
+        private ImmutableArray<CodeAction> GetActions(
             SemanticDocument document,
             SyntaxNode node,
             State state,
             CancellationToken cancellationToken)
         {
+            var result = ArrayBuilder<CodeAction>.GetInstance();
+
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
             {
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
-                    yield return new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true);
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
                 }
 
                 // If they just are generating "Foo" then we want to offer to generate it into the
@@ -117,19 +119,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if ((isSimpleName || generateIntoContaining) &&
                     CanGenerateIntoContainingNamespace(document, node, state, cancellationToken))
                 {
-                    yield return new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false);
+                    result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
                 }
             }
 
             if (state.TypeToGenerateInOpt != null)
             {
-                yield return new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false);
+                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
             }
 
             if (generateNewTypeInDialog)
             {
-                yield return new GenerateTypeCodeActionWithOption((TService)this, document.Document, state);
+                result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private bool CanGenerateIntoContainingNamespace(SemanticDocument document, SyntaxNode node, State state, CancellationToken cancellationToken)

@@ -13,9 +13,6 @@ namespace Microsoft.CodeAnalysis
     /// <seealso cref="SymbolDisplayPartKind"/>
     public struct SymbolDisplayPart
     {
-        private const string KindKey = "Kind";
-        private const string TextKey = "Text";
-
         private readonly SymbolDisplayPartKind _kind;
         private readonly string _text;
         private readonly ISymbol _symbol;

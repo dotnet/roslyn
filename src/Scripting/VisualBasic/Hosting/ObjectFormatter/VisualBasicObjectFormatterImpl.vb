@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Sub
 
         Protected Overrides Function FormatRefKind(parameter As ParameterInfo) As String
-            Return If(parameter.IsOut, "ByRef", "")
+            Return If(parameter.IsOut, "<Out> ByRef", "ByRef")
         End Function
     End Class
 

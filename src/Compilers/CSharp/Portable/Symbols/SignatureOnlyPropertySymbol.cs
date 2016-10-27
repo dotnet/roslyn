@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly TypeSymbol _containingType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly RefKind _refKind;
         private readonly TypeSymbol _type;
         private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
         private readonly bool _isStatic;
@@ -28,11 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             TypeSymbol containingType,
             ImmutableArray<ParameterSymbol> parameters,
+            RefKind refKind,
             TypeSymbol type,
             ImmutableArray<CustomModifier> typeCustomModifiers,
             bool isStatic,
             ImmutableArray<PropertySymbol> explicitInterfaceImplementations)
         {
+            _refKind = refKind;
             _type = type;
             _typeCustomModifiers = typeCustomModifiers;
             _isStatic = isStatic;
@@ -41,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
             _name = name;
         }
+
+        internal override RefKind RefKind { get { return _refKind; } }
 
         public override TypeSymbol Type { get { return _type; } }
 

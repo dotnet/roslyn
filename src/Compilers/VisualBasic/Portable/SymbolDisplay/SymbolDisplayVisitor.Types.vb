@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Me.IsMinimizing Then
+            If Me.IsMinimizing OrElse symbol.IsTupleType Then
                 MinimallyQualify(symbol)
                 Return
             End If
@@ -197,6 +197,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol.IsAnonymousType Then
                 AddAnonymousTypeName(symbol)
                 Return
+
+            ElseIf (symbol.IsTupleType) Then
+                ' If top level tuple uses non-default names, there is no way to preserve them
+                ' unless we use tuple syntax for the type. So, we give them priority.
+                If HasNonDefaultTupleElementNames(symbol) OrElse CanUseTupleTypeName(symbol) Then
+                    AddTupleTypeName(symbol)
+                    Return
+                End If
+
+                ' Fall back to displaying the underlying type.
+                symbol = symbol.TupleUnderlyingType
             End If
 
             If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
@@ -287,6 +298,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Sub
 
+        ''' <summary>
+        ''' Returns true if tuple type syntax can be used to refer to the tuple type without loss of information.
+        ''' For example, it cannot be used when extension tuple is using non-default friendly names. 
+        ''' </summary>
+        ''' <param name="tupleSymbol"></param>
+        ''' <returns></returns>
+        Private Shared Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
+            Dim currentUnderlying As INamedTypeSymbol = tupleSymbol.TupleUnderlyingType
+
+            While currentUnderlying.Arity = TupleTypeSymbol.RestPosition
+                tupleSymbol = DirectCast(currentUnderlying.TypeArguments(TupleTypeSymbol.RestPosition - 1), INamedTypeSymbol)
+                Debug.Assert(tupleSymbol.IsTupleType)
+
+                If HasNonDefaultTupleElementNames(tupleSymbol) Then
+                    Return False
+                End If
+
+                currentUnderlying = tupleSymbol.TupleUnderlyingType
+            End While
+
+            Return True
+        End Function
+
+        Private Shared Function HasNonDefaultTupleElementNames(tupleSymbol As INamedTypeSymbol) As Boolean
+            Dim elementNames = tupleSymbol.TupleElementNames
+
+            If Not elementNames.IsDefault Then
+                For i As Integer = 0 To elementNames.Length - 1
+                    If (elementNames(i) <> TupleTypeSymbol.TupleMemberName(i + 1)) Then
+                        Return True
+                    End If
+                Next
+            End If
+
+            Return False
+        End Function
+
+        Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
+            Debug.Assert(symbol.IsTupleType)
+
+            Dim elementTypes As ImmutableArray(Of ITypeSymbol) = symbol.TupleElementTypes
+            Dim elementNames As ImmutableArray(Of String) = symbol.TupleElementNames
+            Dim hasNames As Boolean = Not elementNames.IsDefault
+
+            AddPunctuation(SyntaxKind.OpenParenToken)
+
+            For i As Integer = 0 To elementTypes.Length - 1
+                If i <> 0 Then
+                    AddPunctuation(SyntaxKind.CommaToken)
+                    AddSpace()
+                End If
+
+                If hasNames Then
+                    Dim name = elementNames(i)
+                    If name IsNot Nothing Then
+                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
+                        AddSpace()
+                        AddPunctuation(SyntaxKind.AsKeyword)
+                        AddSpace()
+                    End If
+                End If
+
+                elementTypes(i).Accept(Me.NotFirstVisitor)
+            Next
+
+            AddPunctuation(SyntaxKind.CloseParenToken)
+        End Sub
+
         Private Function CreateAnonymousTypeMember(prop As IPropertySymbol) As String
             Dim result = CreateAnonymousTypeMemberWorker(prop)
             Return If(prop.IsReadOnly, "Key " & result, result)
@@ -311,7 +390,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isFirstSymbolVisited AndAlso format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword) Then
                 If symbol.IsAnonymousType Then
                     ' NOTE: Not actually a keyword, but it's not worth introducing a new kind just for this.
-                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "AnonymousType"))
+                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "AnonymousType"))
+                    AddSpace()
+                ElseIf symbol.IsTupleType Then
+                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "Tuple"))
                     AddSpace()
                 Else
                     Dim keyword = GetTypeKindKeyword(symbol.TypeKind)

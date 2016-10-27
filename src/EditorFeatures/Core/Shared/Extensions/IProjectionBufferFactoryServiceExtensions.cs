@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IProjectionBufferFactoryServiceExtensions
     {
-        private const string RoslynPreviewContentType = nameof(RoslynPreviewContentType);
+        public const string RoslynPreviewContentType = nameof(RoslynPreviewContentType);
 
         /// <summary>
         /// Hack to get view taggers working on our preview surfaces.  We need to define
@@ -33,16 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static IElisionBuffer CreateElisionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
+            IContentType contentType = null,
             params SnapshotSpan[] exposedSpans)
         {
             return factoryService.CreateElisionBufferWithoutIndentation(
                 editorOptions,
+                contentType,
                 (IEnumerable<SnapshotSpan>)exposedSpans);
         }
 
         public static IElisionBuffer CreateElisionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
+            IContentType contentType,
             IEnumerable<SnapshotSpan> exposedSpans)
         {
             var spans = new NormalizedSnapshotSpanCollection(exposedSpans);
@@ -57,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     spans.Select(s => s.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive)));
             }
 
-            var elisionBuffer = factoryService.CreateElisionBuffer(null, spans, ElisionBufferOptions.None);
+            contentType = contentType ?? factoryService.ProjectionContentType;
+            var elisionBuffer = factoryService.CreateElisionBuffer(
+                null, spans, ElisionBufferOptions.None, contentType);
 
             if (spans.Count > 0)
             {

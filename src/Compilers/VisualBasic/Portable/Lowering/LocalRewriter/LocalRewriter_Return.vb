@@ -21,7 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, rewritten, canThrow:=node.ExpressionOpt IsNot Nothing)
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            ' Instrument synthesized returns when expressions are not compiler generated.
+            If Instrument(node, rewritten) OrElse (node.ExpressionOpt IsNot Nothing AndAlso Instrument(node.ExpressionOpt)) Then
+                rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         ''' <summary>
@@ -59,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         Dim boundFunctionLocal = New BoundLocal(node.Syntax, functionLocal, functionLocal.Type)
 
-                        Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
+                        Dim syntaxNode As SyntaxNode = node.Syntax
 
                         Dim assignment As BoundStatement = New BoundExpressionStatement(
                                                                 syntaxNode,

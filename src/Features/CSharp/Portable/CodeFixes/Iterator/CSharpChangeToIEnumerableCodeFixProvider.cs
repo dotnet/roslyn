@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             return new MyCodeAction(
-                string.Format(CSharpFeaturesResources.ChangeReturnType,
+                string.Format(CSharpFeaturesResources.Change_return_type_from_0_to_1,
                     type.ToMinimalDisplayString(model, node.SpanStart),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
         }

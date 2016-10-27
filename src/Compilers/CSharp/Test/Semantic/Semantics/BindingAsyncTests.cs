@@ -842,12 +842,13 @@ class Test
 }";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                /// (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
+                // (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int"),
-                // (10,26): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int[]'
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32),
+                // (10,26): error CS1750: A value of type 'void' cannot be used as a default parameter because there are no standard conversions to type 'int[]'
                 //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "arr").WithArguments("?", "int[]"));
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "arr").WithArguments("void", "int[]").WithLocation(10, 26)
+                );
         }
 
         [Fact]
@@ -3819,6 +3820,42 @@ public class Program
                 //         Action y2 = async () => YAsync(); // warn
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => YAsync()").WithLocation(15, 21)
                 );
+        }
+
+        [Fact()]
+        public void DelegateTypeWithNoInvokeMethod()
+        {
+            // Delegate type with no Invoke method.
+            var ilSource =
+@".class public auto ansi sealed D`1<T>
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(object 'object',
+                               native int 'method') runtime managed
+  {
+  }
+}";
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F(D<Task> d) { }
+    static void F<T>(D<Task<T>> d) { }
+    static void F(Func<Task> f) { }
+    static void F<T>(Func<Task<T>> f) { }
+    static void M()
+    {
+#pragma warning disable CS1998
+        F(async () => { });
+        F(async () => { return 3; });
+#pragma warning restore CS1998
+    }
+}";
+            var reference = CompileIL(ilSource);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            compilation.VerifyEmitDiagnostics();
         }
     }
 }

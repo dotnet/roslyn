@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             CancellationToken cancellationToken)
         {
             var documentWithTypeNode = solutionWithFormattedInterfaceDocument.GetDocument(documentIdWithTypeNode);
-            var root = documentWithTypeNode.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken);
             var typeDeclaration = root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
 
             var docId = solutionWithFormattedInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id;

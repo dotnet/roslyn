@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             AssertIsForeground();
 
             // check whether this feature is on.
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.QuickInfo))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {
                 controller = null;
                 return false;

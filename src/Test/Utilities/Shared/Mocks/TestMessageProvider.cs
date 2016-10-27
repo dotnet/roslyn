@@ -19,6 +19,11 @@ namespace Roslyn.Test.Utilities
             throw new NotImplementedException();
         }
 
+        public override Diagnostic CreateDiagnostic(DiagnosticInfo info)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture)
         {
             throw new NotImplementedException();
@@ -27,6 +32,11 @@ namespace Roslyn.Test.Utilities
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             throw new NotImplementedException();
+        }
+
+        public override int ERR_EncodinglessSyntaxTree
+        {
+            get { throw new NotImplementedException(); }
         }
 
         public override int ERR_InvalidPathMap
@@ -130,6 +140,11 @@ namespace Roslyn.Test.Utilities
         }
 
         public override int ERR_PublicKeyContainerFailure
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override int ERR_OptionMustBeAbsolutePath
         {
             get { throw new NotImplementedException(); }
         }
@@ -331,6 +346,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public override int ERR_InvalidInstrumentationKind
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override int ERR_InvalidOutputName
         {
             get
@@ -380,6 +403,14 @@ namespace Roslyn.Test.Utilities
         }
         
         public override int ERR_ModuleEmitFailure
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override int ERR_EncUpdateFailedMissingAttribute
         {
             get
             {

@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.Cci
 {

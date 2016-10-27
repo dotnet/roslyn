@@ -107,21 +107,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             switch (prgCmds[0].cmdID)
             {
-                case ID.CSharpCommands.OrganizeSortUsings:
-                case ID.CSharpCommands.ContextOrganizeSortUsings:
-                    return QuerySortUsingsStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case ID.CSharpCommands.OrganizeRemoveUnusedUsings:
-                case ID.CSharpCommands.ContextOrganizeRemoveUnusedUsings:
-                    return QueryRemoveUnusedUsingsStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     return QuerySortAndRemoveUnusedUsingsStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-
-                case ID.Menu.Organize:
-                case ID.Menu.ContextOrganize:
-                    return QueryOrganizeMenu(ref pguidCmdGroup, commandCount, prgCmds, commandText);
 
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -328,28 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private int QuerySortUsingsStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new SortImportsCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryRemoveUnusedUsingsStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new RemoveUnnecessaryImportsCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
         private int QuerySortAndRemoveUnusedUsingsStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            return GetCommandState(
-                (v, b) => new SortAndRemoveUnnecessaryImportsCommandArgs(v, b),
-                ref pguidCmdGroup, commandCount, prgCmds, commandText);
-        }
-
-        private int QueryOrganizeMenu(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
         {
             var textBuffer = GetSubjectBufferContainingCaret();
 
@@ -361,12 +328,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var organizeImportsService = workspace.Services.GetLanguageServices(textBuffer).GetService<IOrganizeImportsService>();
                     if (organizeImportsService != null)
                     {
-                        SetText(commandText, organizeImportsService.OrganizeImportsDisplayStringWithAccelerator);
+                        SetText(commandText, organizeImportsService.SortAndRemoveUnusedImportsDisplayStringWithAccelerator);
                     }
                 }
             }
 
-            return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+            return GetCommandState(
+                (v, b) => new SortAndRemoveUnnecessaryImportsCommandArgs(v, b),
+                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryRenameStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)

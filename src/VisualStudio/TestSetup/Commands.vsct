@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidIntegrationPackage">
+    <Groups>
+      <Group guid="guidIntegrationPackageCmdSet" id="grpidIntegrationTestServiceCommands" priority="0x0000">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidIntegrationPackageCmdSet" id="cmdidStartIntegrationTestService" priority="0x0100" type="Button">
+        <Parent guid="guidIntegrationPackageCmdSet" id="grpidIntegrationTestServiceCommands" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Start Integration Test Service</ButtonText>
+          <CanonicalName>StartIntegrationTestService</CanonicalName>
+          <CommandName>StartIntegrationTestService</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidIntegrationPackageCmdSet" id="cmdidStopIntegrationTestService" priority="0x0100" type="Button">
+        <Parent guid="guidIntegrationPackageCmdSet" id="grpidIntegrationTestServiceCommands" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Stop Integration Test Service</ButtonText>
+          <CanonicalName>StopIntegrationTestService</CanonicalName>
+          <CommandName>StopIntegrationTestService</CommandName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidIntegrationPackage" value="{D02DAC01-DDD0-4ECC-8687-79A554852B14}" />
+
+    <GuidSymbol name="guidIntegrationPackageCmdSet" value="{82A24540-AEBC-4883-A717-5317F0C0DAE9}">
+      <IDSymbol name="grpidIntegrationTestServiceCommands" value="0x1020" />
+      <IDSymbol name="cmdidStartIntegrationTestService" value="0x0100" />
+      <IDSymbol name="cmdidStopIntegrationTestService" value="0x0101" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

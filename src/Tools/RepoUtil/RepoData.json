@@ -1,0 +1,45 @@
+﻿{
+    "fixedPackages": {
+        "Microsoft.VisualStudio.Language.Intellisense": "14.3.25407",
+        "Microsoft.VSSDK.BuildTools": [ "14.3.25420", "15.0.25604-Preview4" ],
+        "System.Reflection.Metadata": "1.0.21",
+        "System.Collections.Immutable": "1.1.36",
+        "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.Imaging": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.Text.UI.Wpf": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.Text.Logic": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.Text.Data": [ "14.3.25407", "15.0.25604-Preview4" ],
+        "Microsoft.VisualStudio.Text.UI": "14.3.25407"
+    },
+
+    "toolsetPackages": [
+        "Microsoft.VSSDK.BuildTools"
+    ],
+
+    "generate": {
+        "msbuild": {
+            "path": "build\\Targets\\Dependencies.props",
+            "values": [
+                "Microsoft.Dia.*",
+                "System.*",
+                "Microsoft.CodeAnalysis.Analyzers",
+                "Microsoft.VisualBasic",
+                "Microsoft.Composition",
+                "ManagedEsent",
+                "xunit",
+                "RoslynTools.*",
+                "^Microsoft.Build.*"
+            ]
+        }
+    },
+
+    "nuspecExcludes": [
+        "^packages.*",
+        "^Binaries.*",
+        "^src\\\\Samples.*",
+        "^src\\\\Dependencies.*",
+        ".*NuSpec.loc.*",
+        ".*Templates.*"
+    ]
+}

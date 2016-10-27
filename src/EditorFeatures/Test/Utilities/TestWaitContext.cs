@@ -2,6 +2,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -11,12 +12,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly int _maxUpdates;
         private int _updates;
+        private readonly IProgressTracker _progressTracker;
 
         public TestWaitContext(int maxUpdates)
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _maxUpdates = maxUpdates;
+            _progressTracker = new ProgressTracker((_1, _2) => UpdateProgress());
         }
+
+        IProgressTracker IWaitContext.ProgressTracker => _progressTracker;
 
         public int Updates
         {
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             get { return _cancellationTokenSource.Token; }
         }
 
-        public void UpdateProgress()
+        private void UpdateProgress()
         {
             var result = Interlocked.Increment(ref _updates);
             if (result > _maxUpdates)

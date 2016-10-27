@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
             else
             {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbolKey = SymbolKey.Create(symbol, compilation, cancellationToken);
+                var symbolKey = SymbolKey.Create(symbol, cancellationToken);
 
                 var firstLocation = symbol.Locations.FirstOrDefault();
                 if (firstLocation != null)

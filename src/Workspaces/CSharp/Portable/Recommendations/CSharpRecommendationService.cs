@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
     [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
     internal class CSharpRecommendationService : AbstractRecommendationService
     {
-        protected override Task<Tuple<IEnumerable<ISymbol>, AbstractSyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
+        protected override Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
@@ -34,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
             symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
-            return Task.FromResult(Tuple.Create<IEnumerable<ISymbol>, AbstractSyntaxContext>(symbols, context));
+            return Task.FromResult(Tuple.Create<ImmutableArray<ISymbol>, SyntaxContext>(symbols, context));
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsWorker(
+        private static ImmutableArray<ISymbol> GetSymbolsWorker(
             CSharpSyntaxContext context,
             bool filterOutOfScopeLocals,
             CancellationToken cancellationToken)
@@ -45,27 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (context.IsInNonUserCode ||
                 context.IsPreProcessorDirectiveContext)
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            // TODO: don't show completion set at namespace name part to match Dev10 behavior
-            // if we want to provide new feature that shows all existing namespaces later, remove this
-            if (context.IsNamespaceDeclarationNameContext)
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
-
-            if (context.IsRightOfNameSeparator)
-            {
-                return GetSymbolsOffOfContainer(context, cancellationToken);
-            }
-            else
-            {
-                return GetSymbolsForCurrentContext(context, filterOutOfScopeLocals, cancellationToken);
-            }
+            return context.IsRightOfNameSeparator
+                ? GetSymbolsOffOfContainer(context, cancellationToken)
+                : GetSymbolsForCurrentContext(context, filterOutOfScopeLocals, cancellationToken);
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForCurrentContext(
+        private static ImmutableArray<ISymbol> GetSymbolsForCurrentContext(
             CSharpSyntaxContext context,
             bool filterOutOfScopeLocals,
             CancellationToken cancellationToken)
@@ -86,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsTypeContext || context.IsNamespaceContext)
             {
-                return GetSymbolsForTypeOrNamespaceContext(context, cancellationToken);
+                return GetSymbolsForTypeOrNamespaceContext(context);
             }
             else if (context.IsLabelContext)
             {
@@ -98,13 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsDestructorTypeContext)
             {
-                return SpecializedCollections.SingletonEnumerable(context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration, cancellationToken));
+                return ImmutableArray.Create<ISymbol>(
+                    context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration, cancellationToken));
+            }
+            else if (context.IsNamespaceDeclarationNameContext)
+            {
+                return GetSymbolsForNamespaceDeclarationNameContext(context, cancellationToken);
             }
 
-            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            return ImmutableArray<ISymbol>.Empty;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfContainer(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfContainer(
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
@@ -134,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForGlobalStatementContext(
+        private static ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext(
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
@@ -172,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return symbols;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForTypeArgumentOfConstraintClause(
+        private static ImmutableArray<ISymbol> GetSymbolsForTypeArgumentOfConstraintClause(
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
@@ -184,12 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var symbols = enclosingSymbol != null
                 ? enclosingSymbol.GetTypeArguments()
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
+                : ImmutableArray<ITypeSymbol>.Empty;
 
-            return symbols;
+            return ImmutableArray<ISymbol>.CastUp(symbols);
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOffAlias(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOffAlias(
             CSharpSyntaxContext context,
             IdentifierNameSyntax alias,
             CancellationToken cancellationToken)
@@ -197,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var aliasSymbol = context.SemanticModel.GetAliasInfo(alias, cancellationToken);
             if (aliasSymbol == null)
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             return context.SemanticModel.LookupNamespacesAndTypes(
@@ -205,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 aliasSymbol.Target);
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForLabelContext(
+        private static ImmutableArray<ISymbol> GetSymbolsForLabelContext(
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
@@ -214,31 +208,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Exclude labels (other than 'default') that come from case switch statements
 
             return allLabels
-                .Where(label => label.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken)
-                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel))
-                .AsImmutableOrEmpty();
+                .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken)
+                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel));
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(
-            CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+        private static ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext(CSharpSyntaxContext context)
         {
             var symbols = context.SemanticModel.LookupNamespacesAndTypes(context.LeftToken.SpanStart);
 
             if (context.TargetToken.IsUsingKeywordInUsingDirective())
             {
-                return symbols.Where(s => s.IsNamespace());
+                return symbols.WhereAsArray(s => s.IsNamespace());
             }
 
             if (context.TargetToken.IsStaticKeywordInUsingDirective())
             {
-                return symbols.Where(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
             }
 
             return symbols;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForExpressionOrStatementContext(
+        private static ImmutableArray<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            var declarationSyntax = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
+
+            if (declarationSyntax == null)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken);
+        }
+
+        private static ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext(
             CSharpSyntaxContext context,
             bool filterOutOfScopeLocals,
             CancellationToken cancellationToken)
@@ -259,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 }
             }
 
-            IEnumerable<ISymbol> symbols = !context.IsNameOfContext && context.LeftToken.Parent.IsInStaticContext()
+            var symbols = !context.IsNameOfContext && context.LeftToken.Parent.IsInStaticContext()
                 ? context.SemanticModel.LookupStaticMembers(context.LeftToken.SpanStart)
                 : context.SemanticModel.LookupSymbols(context.LeftToken.SpanStart);
 
@@ -267,22 +270,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // But include extension methods declared in the context's type or it's parents
             var contextEnclosingNamedType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
             var contextOuterTypes = context.GetOuterTypes(cancellationToken);
-            symbols = symbols.Where(symbol => !symbol.IsExtensionMethod() ||
-                                              contextEnclosingNamedType.Equals(symbol.ContainingType) ||
-                                              contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
+            symbols = symbols.WhereAsArray(symbol =>
+                !symbol.IsExtensionMethod() ||
+                contextEnclosingNamedType.Equals(symbol.ContainingType) ||
+                contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
 
             // The symbols may include local variables that are declared later in the method and
             // should not be included in the completion list, so remove those. Filter them away,
             // unless we're in the debugger, where we show all locals in scope.
             if (filterOutOfScopeLocals)
             {
-                symbols = symbols.Where(symbol => !symbol.IsInaccessibleLocal(context.Position));
+                symbols = symbols.WhereAsArray(symbol => !symbol.IsInaccessibleLocal(context.Position));
             }
 
             return symbols;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfName(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfName(
             CSharpSyntaxContext context,
             NameSyntax name,
             CancellationToken cancellationToken)
@@ -298,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
             // type.
 
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type))
+            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+                name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
                 var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
                 var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
@@ -317,9 +322,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     return context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol);
                 }
 
-                IEnumerable<ISymbol> symbols = context.SemanticModel.LookupNamespacesAndTypes(
+                var symbols = context.SemanticModel.LookupNamespacesAndTypes(
                     position: name.SpanStart,
                     container: symbol);
+
+                if (context.IsNamespaceDeclarationNameContext)
+                {
+                    var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+                    return symbols.WhereAsArray(s => IsNonIntersectingNamespace(s, declarationSyntax));
+                }
 
                 // Filter the types when in a using directive, but not an alias.
                 // 
@@ -333,11 +344,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 {
                     if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                     {
-                        return symbols.Where(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                        return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
                     }
                     else
                     {
-                        symbols = symbols.Where(s => s.IsNamespace()).ToList();
+                        symbols = symbols.WhereAsArray(s => s.IsNamespace());
                     }
                 }
 
@@ -347,10 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            return ImmutableArray<ISymbol>.Empty;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfExpression(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfExpression(
             CSharpSyntaxContext context,
             ExpressionSyntax originalExpression,
             CancellationToken cancellationToken)
@@ -374,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return normalSymbols;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfDereferencedExpression(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfDereferencedExpression(
             CSharpSyntaxContext context,
             ExpressionSyntax originalExpression,
             CancellationToken cancellationToken)
@@ -391,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfConditionalReceiver(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfConditionalReceiver(
             CSharpSyntaxContext context,
             ExpressionSyntax originalExpression,
             CancellationToken cancellationToken)
@@ -408,13 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // IntelliSense.
             if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsOffOfBoundExpression(
+        private static ImmutableArray<ISymbol> GetSymbolsOffOfBoundExpression(
             CSharpSyntaxContext context,
             ExpressionSyntax originalExpression,
             ExpressionSyntax expression,
@@ -436,21 +447,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                                        SymbolKind.Namespace,
                                        SymbolKind.Alias))
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
                 if (symbol.Kind == SymbolKind.Method &&
                     ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is an event that can't be used as a field, we shouldn't show anything
                 if (symbol.Kind == SymbolKind.Event &&
                     !context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, (IEventSymbol)symbol))
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is a this parameter (e.g. this or base) and we're in a static context,
@@ -458,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 if (symbol.IsThisParameter() &&
                     expression.IsInStaticContext())
                 {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // What is the thing on the left?
@@ -500,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             Debug.Assert(!excludeInstance || !excludeStatic);
@@ -516,15 +527,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var position = originalExpression.SpanStart;
 
-            IEnumerable<ISymbol> symbols = useBaseReferenceAccessibility
+            var symbols = useBaseReferenceAccessibility
                 ? context.SemanticModel.LookupBaseMembers(position)
                 : excludeInstance
                     ? context.SemanticModel.LookupStaticMembers(position, container)
-                    : context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true);
+                    : SuppressDefaultTupleElements(container,
+                        context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
 
             // If we're showing instance members, don't include nested types
             return excludeStatic
-                ? symbols.Where(s => !s.IsStatic && !(s is ITypeSymbol))
+                ? symbols.WhereAsArray(s => !s.IsStatic && !(s is ITypeSymbol))
                 : symbols;
         }
     }

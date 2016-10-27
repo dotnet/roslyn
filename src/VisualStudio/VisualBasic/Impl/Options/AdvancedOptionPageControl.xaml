@@ -11,6 +11,21 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
+
+            <GroupBox x:Uid="ImportDirectivesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
+                <StackPanel>
+                    <CheckBox x:Name="PlaceSystemNamespaceFirst"
+                              x:Uid="SortImports_PlaceSystemFirst"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="SuggestForTypesInReferenceAssemblies"
+                              x:Uid="AddImport_SuggestForTypesInReferenceAssemblies"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_reference_assemblies}" />
+                    <CheckBox x:Name="SuggestForTypesInNuGetPackages"
+                              x:Uid="AddImport_SuggestForTypesInNuGetPackages"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_NuGet_packages}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -27,6 +42,21 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableOutlining}" />
                     <CheckBox x:Name="DisplayLineSeparators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />
+                    <CheckBox x:Name="Show_outlining_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_outlining_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_comments_and_preprocessor_regions}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="BlockStructureGuidesGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
+                <StackPanel>
+                    <CheckBox x:Name="Show_guides_for_declaration_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_code_level_constructs"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="EditorHelpGroupBox"

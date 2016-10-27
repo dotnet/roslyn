@@ -61,20 +61,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// </summary>
         public static int? GetLastNonWhitespacePosition(this ITextSnapshotLine line)
         {
-            Contract.ThrowIfNull(line);
-
-            int startPosition = line.Start;
-            var text = line.GetText();
-
-            for (int i = text.Length - 1; i >= 0; i--)
-            {
-                if (!char.IsWhiteSpace(text[i]))
-                {
-                    return startPosition + i;
-                }
-            }
-
-            return null;
+            return line.AsTextLine().GetLastNonWhitespacePosition();
         }
 
         /// <summary>

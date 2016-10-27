@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CheckConstraints(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
-            CSharpSyntaxNode typeSyntax,
+            SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
             ConsList<Symbol> basesBeingResolved,
@@ -516,13 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
         }
 
         public static bool CheckConstraints(
             this MethodSymbol method,
             ConversionsBase conversions,
-            CSharpSyntaxNode syntaxNode,
+            SyntaxNode syntaxNode,
             Compilation currentCompilation,
             DiagnosticBag diagnostics,
             BitVector skipParameters = default(BitVector))
@@ -631,6 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="diagnosticsBuilder">Diagnostics.</param>
         /// <param name="skipParameters">Parameters to skip.</param>
         /// <param name="useSiteDiagnosticsBuilder"/>
+        /// <param name="ignoreTypeConstraintsDependentOnTypeParametersOpt">If an original form of a type constraint 
+        /// depends on a type parameter from this set, do not verify this type constraint.</param>
         /// <returns>True if the constraints were satisfied, false otherwise.</returns>
         public static bool CheckConstraints(
             this Symbol containingSymbol,
@@ -641,7 +643,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            BitVector skipParameters = default(BitVector))
+            BitVector skipParameters = default(BitVector),
+            HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt = null)
         {
             Debug.Assert(typeParameters.Length == typeArguments.Length);
             Debug.Assert(typeParameters.Length > 0);
@@ -659,7 +662,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder))
+                if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder,
+                                      ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
                     succeeded = false;
                 }
@@ -677,7 +681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol typeArgument,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
             Debug.Assert(substitution != null);
             // The type parameters must be original definitions of type parameters from the containing symbol.
@@ -723,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            substitution.SubstituteTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes);
+            substitution.SubstituteTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes, 
+                                                                 ignoreTypeConstraintsDependentOnTypeParametersOpt);
 
             bool hasError = false;
 

@@ -1,0 +1,34 @@
+﻿<VSTemplate Version="2.0.0" Type="ProjectGroup"
+    xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Analyzer with Code Fix (NuGet + VSIX)</Name>
+    <Description>Create a C# analyzer that comes with a code fix and generates diagnostics. The analyzer can be deployed as either a NuGet package or a VSIX extension.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <DefaultName>Analyzer</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <Icon>CodeInformation.ico</Icon>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+  </TemplateData>
+  <TemplateContent>
+    <!-- These projects are created in the order they are listed. 
+         Our wizard depends on this order.  
+         Modifying it requires changes to the wizard code.-->
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="$safeprojectname$">
+        CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Test">
+        CSharp\Diagnostic\Test\Test.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Vsix">
+        CSharp\Diagnostic\Vsix\Deployment.vstemplate
+      </ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

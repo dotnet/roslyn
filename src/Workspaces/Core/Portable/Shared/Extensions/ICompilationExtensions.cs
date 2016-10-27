@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
         }
 
+        public static INamedTypeSymbol IEnumerableOfTType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+        }
+
         public static INamedTypeSymbol SerializableAttributeType(this Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.SerializableAttribute");
@@ -133,5 +138,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
         }
-    }
+
+        public static INamedTypeSymbol TupleElementNamesAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.TupleElementNamesAttribute");
+        }
+
+        public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+        }
+     }
 }

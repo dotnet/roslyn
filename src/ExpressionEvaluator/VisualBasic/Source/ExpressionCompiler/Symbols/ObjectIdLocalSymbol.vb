@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Overloads Shared Function RewriteLocalInternal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -83,7 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' so the return type of GetVariableAddress(Of T)(name As String)
                 ' is an error type. Since the method is only used for emit, an
                 ' updated placeholder method is used instead.
-                Debug.Assert(method.ReturnType.TypeKind = TypeKind.Error) ' If byref return types are supported in the future, use method as is.
+
+                ' TODO: refs are available
+                'Debug.Assert(method.ReturnType.TypeKind = TypeKind.Error) ' If byref return types are supported in the future, use method as is.
                 method = New PlaceholderMethodSymbol(
                     method.ContainingType,
                     method.Name,
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name)
             End Function
 
-            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression
+            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As SyntaxNode, name As String) As BoundExpression
                 Dim argument As New BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

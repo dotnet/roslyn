@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeLiteral(node.Syntax, node.ConstantValue, node.Type, oldNodeOpt: node);
         }
 
-        private BoundExpression MakeLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
+        private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, BoundLiteral oldNodeOpt = null)
         {
             Debug.Assert(constantValue != null);
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeDecimalLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue)
+        private BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDecimal);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValue, null, ctor.ContainingType);
         }
 
-        private BoundExpression MakeDateTimeLiteral(CSharpSyntaxNode syntax, ConstantValue constantValue)
+        private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
         {
             Debug.Assert(constantValue != null);
             Debug.Assert(constantValue.IsDateTime);

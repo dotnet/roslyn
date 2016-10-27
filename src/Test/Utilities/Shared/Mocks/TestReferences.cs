@@ -170,6 +170,37 @@ public static class TestReferences
                     return s_minasync;
                 }
             }
+
+            private static PortableExecutableReference s_minasynccorlib;
+            public static PortableExecutableReference minasynccorlib
+            {
+                get
+                {
+                    if (s_minasynccorlib == null)
+                    {
+                        s_minasynccorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasynccorlib).GetReference(display: "minasynccorlib.dll");
+                    }
+
+                    return s_minasynccorlib;
+                }
+            }
+        }
+
+        public static class ValueTuple
+        {
+            private static PortableExecutableReference s_tuplelib;
+            public static PortableExecutableReference tuplelib
+            {
+                get
+                {
+                    if (s_tuplelib == null)
+                    {
+                        s_tuplelib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll");
+                    }
+
+                    return s_tuplelib;
+                }
+            }
         }
 
         public static class silverlight_v5_0_5_0

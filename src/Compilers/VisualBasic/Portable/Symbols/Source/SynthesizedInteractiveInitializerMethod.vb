@@ -124,14 +124,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return DirectCast(_syntaxReference.GetSyntax(), VisualBasicSyntaxNode)
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim syntax As VisualBasicSyntaxNode = Me.Syntax
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Dim syntax As SyntaxNode = Me.Syntax
             Return New BoundBlock(
                 syntax,
                 Nothing,
@@ -149,13 +149,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ByRef resultType As TypeSymbol,
             ByRef returnType As TypeSymbol)
 
-            Dim submissionReturnType = If(compilation.SubmissionReturnType, GetType(Object))
+            Dim submissionReturnType As Type = Nothing
+            If compilation.ScriptCompilationInfo IsNot Nothing Then
+                submissionReturnType = compilation.ScriptCompilationInfo.ReturnTypeOpt
+            End If
+
             Dim taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
             Dim useSiteDiagnostic = taskT.GetUseSiteErrorInfo()
             If useSiteDiagnostic IsNot Nothing Then
                 diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
             End If
-            resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics)
+            ' If no explicit return type is set on ScriptCompilationInfo, default to
+            ' System.Object from the target corlib. This allows cross compiling scripts
+            ' to run on a target corlib that may differ from the host compiler's corlib.
+            ' cf. https://github.com/dotnet/roslyn/issues/8506
+            If submissionReturnType Is Nothing Then
+                resultType = compilation.GetSpecialType(SpecialType.System_Object)
+            Else
+                resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics)
+            End If
             returnType = taskT.Construct(resultType)
         End Sub
 

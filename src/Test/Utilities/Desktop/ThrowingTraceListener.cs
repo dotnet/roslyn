@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,12 +24,68 @@ namespace Microsoft.CodeAnalysis
             throw new DebugAssertFailureException(message + Environment.NewLine + detailMessage);
         }
 
+        public override void Write(object o)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, null, o?.ToString());
+            }
+        }
+
+        public override void Write(object o, string category)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, category, o?.ToString());
+            }
+        }
+
         public override void Write(string message)
         {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, null, message);
+            }
+        }
+
+        public override void Write(string message, string category)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, category, message);
+            }
+        }
+
+        public override void WriteLine(object o)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, null, o?.ToString() + Environment.NewLine);
+            }
+        }
+
+        public override void WriteLine(object o, string category)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, category, o?.ToString() + Environment.NewLine);
+            }
         }
 
         public override void WriteLine(string message)
         {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, null, message + Environment.NewLine);
+            }
+        }
+
+        public override void WriteLine(string message, string category)
+        {
+            if (Debugger.IsLogging())
+            {
+                Debugger.Log(0, category, message + Environment.NewLine);
+            }
         }
 
         [Serializable]

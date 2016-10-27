@@ -22,7 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, rewritten, canThrow:=True)
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentExpressionStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Private Function IsOmittedBoundCall(expression As BoundExpression) As Boolean

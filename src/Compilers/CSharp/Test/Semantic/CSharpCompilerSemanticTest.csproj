@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -13,7 +11,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Semantic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
@@ -69,9 +68,15 @@
     <Compile Include="FlowAnalysis\FlowTestBase.cs" />
     <Compile Include="FlowAnalysis\FlowTests.cs" />
     <Compile Include="FlowAnalysis\IterationJumpYieldStatementTests.cs" />
+    <Compile Include="FlowAnalysis\LocalFunctions.cs" />
+    <Compile Include="FlowAnalysis\PatternsVsRegions.cs" />
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTests_Global.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
+    <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
+    <Compile Include="Semantics\DeconstructionTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />
     <Compile Include="Semantics\AccessCheckTests.cs" />
     <Compile Include="Semantics\AccessibilityTests.cs" />
@@ -95,8 +100,14 @@
     <Compile Include="Semantics\InheritanceBindingTests.cs" />
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTests_Scope.cs" />
+    <Compile Include="Semantics\OutVarTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTestBase.cs" />
+    <Compile Include="Semantics\PatternSwitchTests.cs" />
+    <Compile Include="Semantics\RefLocalsAndReturnsTests.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
+    <Compile Include="Semantics\LocalFunctionTests.cs" />
     <Compile Include="Semantics\LockTests.cs" />
     <Compile Include="Semantics\LookupPositionTests.cs" />
     <Compile Include="Semantics\LookupTests.cs" />
@@ -114,6 +125,7 @@
     <Compile Include="Semantics\OperatorTests.cs" />
     <Compile Include="Semantics\OverloadResolutionTestBase.cs" />
     <Compile Include="Semantics\OverloadResolutionTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTests.cs" />
     <Compile Include="Semantics\PropertyAccessTests.cs" />
     <Compile Include="Semantics\QueryTests.cs" />
     <Compile Include="Semantics\InteractiveUsingTests.cs" />
@@ -126,10 +138,12 @@
     <Compile Include="Semantics\SyntaxTreeRootTests.cs" />
     <Compile Include="Semantics\SynthesizedStaticConstructorTests.cs" />
     <Compile Include="Semantics\TryCatchTests.cs" />
+    <Compile Include="Semantics\TypeOfTests.cs" />
     <Compile Include="Semantics\UnsafeTests.cs" />
     <Compile Include="Semantics\UserDefinedConversionTests.cs" />
     <Compile Include="Semantics\UseSiteErrorTests.cs" />
     <Compile Include="Semantics\UsingStatementTests.cs" />
+    <Compile Include="Semantics\ValueTupleTests.cs" />
     <Compile Include="Semantics\VarianceTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -144,8 +158,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

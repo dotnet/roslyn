@@ -3,6 +3,7 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -34,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         ' "probably not crash" as an improvement over "will crash when the finalizer throws."
 
         <HandleProcessCorruptedStateExceptions()>
-        Public Async Function CreateCodeModelTestStateAsync(definition As XElement) As Threading.Tasks.Task(Of CodeModelTestState)
+        Public Async Function CreateCodeModelTestStateAsync(definition As XElement) As Task(Of CodeModelTestState)
             Dim workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
             Dim result As CodeModelTestState = Nothing

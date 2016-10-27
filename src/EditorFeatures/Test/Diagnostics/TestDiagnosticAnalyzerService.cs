@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -11,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class TestDiagnosticAnalyzerService : DiagnosticAnalyzerService
     {
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly ImmutableDictionary<object, AnalyzerReference> _hostAnalyzerReferenceMap;
 
         internal TestDiagnosticAnalyzerService(
             string language,
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IDiagnosticUpdateSourceRegistrationService registrationService = null)
             : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService())
         {
+            _hostAnalyzerReferenceMap = hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null);
             _onAnalyzerException = onAnalyzerException;
         }
 
@@ -92,5 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return _onAnalyzerException ?? base.GetOnAnalyzerException(projectId, diagnosticLogAggregator);
         }
+
+        internal IEnumerable<AnalyzerReference> HostAnalyzerReferences => _hostAnalyzerReferenceMap.Values;
     }
 }

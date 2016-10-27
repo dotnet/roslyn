@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.Type is ByRefReturnErrorTypeSymbol;
+                return UnderlyingProperty.RefKind == RefKind.Ref;
             }
         }
 
-        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             return moduleBuilder.Translate(UnderlyingProperty.Type, syntaxNodeOpt, diagnostics);
         }

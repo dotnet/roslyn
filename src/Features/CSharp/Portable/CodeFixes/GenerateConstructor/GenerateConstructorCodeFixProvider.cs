@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -32,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor
             get { return ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS7036); }
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateConstructorService>();
             return service.GenerateConstructorAsync(document, node, cancellationToken);

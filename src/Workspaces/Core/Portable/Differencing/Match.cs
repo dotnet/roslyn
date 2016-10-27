@@ -1,12 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -52,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Differencing
                 {
                     if (comparer.GetLabel(knownMatch.Key) != comparer.GetLabel(knownMatch.Value))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.MatchingNodesMustHaveTheSameLabel, knownMatch.Key, knownMatch.Value), nameof(knownMatches));
+                        throw new ArgumentException(string.Format(WorkspacesResources.Matching_nodes_0_and_1_must_have_the_same_label, knownMatch.Key, knownMatch.Value), nameof(knownMatches));
                     }
 
                     if (!comparer.TreesEqual(knownMatch.Key, root1))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheOldTree, knownMatch.Key), nameof(knownMatches));
+                        throw new ArgumentException(string.Format(WorkspacesResources.Node_0_must_be_contained_in_the_old_tree, knownMatch.Key), nameof(knownMatches));
                     }
 
                     if (!comparer.TreesEqual(knownMatch.Value, root2))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), nameof(knownMatches));
+                        throw new ArgumentException(string.Format(WorkspacesResources.Node_0_must_be_contained_in_the_new_tree, knownMatch.Value), nameof(knownMatches));
                     }
 
                     // skip pairs whose key or value is already mapped:
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 int label = comparer.GetLabel(node);
                 if (label < 0 || label >= labelCount)
                 {
-                    throw new InvalidOperationException(string.Format(WorkspacesResources.LabelForNodeIsInvalid, node, labelCount));
+                    throw new InvalidOperationException(string.Format(WorkspacesResources.Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1, node, labelCount));
                 }
 
                 var list = nodes[label];

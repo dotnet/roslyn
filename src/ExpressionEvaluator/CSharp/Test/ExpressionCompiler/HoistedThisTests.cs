@@ -972,10 +972,11 @@ class C
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
             Assert.NotNull(assembly);
             Assert.NotEqual(assembly.Count, 0);
+            var methods = testData.GetMethodsByName();
             var localAndMethod = locals.Single(l => l.LocalName == "this");
             if (expectedIL != null)
             {
-                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
+                VerifyMethodData(methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
             }
             locals.Free();
 
@@ -985,7 +986,7 @@ class C
             Assert.Null(error);
             if (expectedIL != null)
             {
-                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
+                VerifyMethodData(methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
             }
         }
 

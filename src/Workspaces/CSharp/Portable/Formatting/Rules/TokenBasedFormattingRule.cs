@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.CasePatternSwitchLabel,
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
@@ -323,6 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // nullable
+            if (currentToken.Kind() == SyntaxKind.QuestionToken &&
+                currentToken.Parent.Kind() == SyntaxKind.NullableType)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
             {
@@ -353,13 +361,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // ! *
             if (previousToken.Kind() == SyntaxKind.ExclamationToken)
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // nullable
-            if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.Kind() == SyntaxKind.NullableType)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

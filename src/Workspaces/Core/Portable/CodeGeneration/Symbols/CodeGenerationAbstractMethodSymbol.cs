@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -33,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract int Arity { get; }
         public abstract bool ReturnsVoid { get; }
+        public abstract bool ReturnsByRef { get; }
         public abstract ITypeSymbol ReturnType { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }

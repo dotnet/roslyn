@@ -1424,5 +1424,25 @@ public class C
     Diagnostic(ErrorCode.ERR_NoEntryPoint)
                 );
         }
+
+        [Fact, WorkItem(12113, "https://github.com/dotnet/roslyn/issues/12113")]
+        public void LazyEntryPoint()
+        {
+            string source = @"
+class Program
+{
+    public static void Main() {}
+    public static void Main(string[] args) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            Assert.Empty(model.GetDiagnostics());
+            compilation.VerifyDiagnostics(
+                // (4,24): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                //     public static void Main() {}
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(4, 24)
+                );
+        }
     }
 }

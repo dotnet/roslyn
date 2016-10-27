@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
         End Sub
 
         Protected Overrides Function GetContainingClassName(document As Document, subjectBufferFieldSpan As SnapshotSpan, cancellationToken As CancellationToken, ByRef value As String, ByRef hasDefaultValue As Integer) As Integer
-            Dim syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
             Dim typeBlock = syntaxTree.FindTokenOnLeftOfPosition(subjectBufferFieldSpan.Start.Position, cancellationToken).GetAncestor(Of TypeBlockSyntax)
 
             If typeBlock IsNot Nothing AndAlso

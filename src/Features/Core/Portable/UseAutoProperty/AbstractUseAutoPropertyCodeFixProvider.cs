@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Rename;
@@ -48,13 +49,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
-                        FeaturesResources.UseAutoProperty,
+                        FeaturesResources.Use_auto_property,
                         c => ProcessResult(context, diagnostic, c),
                         equivalenceKey),
                     diagnostic);
             }
 
-            return Task.FromResult(false);
+            return SpecializedTasks.EmptyTask;
         }
 
         private async Task<Solution> ProcessResult(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var solution = context.Document.Project.Solution;
-            var fieldLocations = await Renamer.GetRenameLocationsAsync(solution, fieldSymbol, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+            var fieldLocations = await Renamer.GetRenameLocationsAsync(
+                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id), 
+                solution.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);

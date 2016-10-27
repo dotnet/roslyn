@@ -324,6 +324,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
+        internal static DkmClrValue GetNullableValue(this DkmClrValue value, Type nullableTypeArg, DkmInspectionContext inspectionContext)
+        {
+            var valueType = value.Type.GetLmrType();
+            if (valueType.Equals(nullableTypeArg))
+            {
+                return value;
+            }
+            return value.GetNullableValue(inspectionContext);
+        }
+
         internal static DkmClrValue GetNullableValue(this DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value.Type.GetLmrType().IsNullable());
@@ -335,6 +345,99 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
+        }
+
+        internal const int TupleFieldRestPosition = 8;
+        private const string TupleTypeNamePrefix = "ValueTuple`";
+        private const string TupleFieldItemNamePrefix = "Item";
+        internal const string TupleFieldRestName = "Rest";
+
+        // See NamedTypeSymbol.IsTupleCompatible.
+        internal static bool IsTupleCompatible(this Type type, out int cardinality)
+        {
+            if (type.IsGenericType &&
+                AreNamesEqual(type.Namespace, "System") &&
+                type.Name.StartsWith(TupleTypeNamePrefix, StringComparison.Ordinal))
+            {
+                var typeArguments = type.GetGenericArguments();
+                int n = typeArguments.Length;
+                if ((n > 0) && (n <= TupleFieldRestPosition))
+                {
+                    if (!AreNamesEqual(type.Name, TupleTypeNamePrefix + n))
+                    {
+                        cardinality = 0;
+                        return false;
+                    }
+
+                    if (n < TupleFieldRestPosition)
+                    {
+                        cardinality = n;
+                        return true;
+                    }
+
+                    var restType = typeArguments[n - 1];
+                    int restCardinality;
+                    if (restType.IsTupleCompatible(out restCardinality))
+                    {
+                        cardinality = n - 1 + restCardinality;
+                        return true;
+                    }
+                }
+            }
+
+            cardinality = 0;
+            return false;
+        }
+
+        // Returns cardinality if tuple type, otherwise 0.
+        internal static int GetTupleCardinalityIfAny(this Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
+        }
+
+        internal static FieldInfo GetTupleField(this Type type, string name)
+        {
+            return type.GetField(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        }
+
+        internal static string GetTupleFieldName(int index)
+        {
+            Debug.Assert(index >= 0);
+            return TupleFieldItemNamePrefix + (index + 1);
+        }
+
+        internal static bool TryGetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
+        {
+            while (true)
+            {
+                var type = tuple.Type.GetLmrType();
+                int n = Math.Min(cardinality, TupleFieldRestPosition - 1);
+                for (int index = 0; index < n; index++)
+                {
+                    var fieldName = GetTupleFieldName(index);
+                    var fieldInfo = type.GetTupleField(fieldName);
+                    if (fieldInfo == null)
+                    {
+                        return false;
+                    }
+                    var value = tuple.GetFieldValue(fieldName, inspectionContext);
+                    var str = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
+                    values.Add(str);
+                }
+                cardinality -= n;
+                if (cardinality == 0)
+                {
+                    return true;
+                }
+                var restInfo = type.GetTupleField(TypeHelpers.TupleFieldRestName);
+                if (restInfo == null)
+                {
+                    return false;
+                }
+                tuple = tuple.GetFieldValue(TupleFieldRestName, inspectionContext);
+            }
         }
 
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
@@ -638,8 +741,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
-                string.Equals(type.Name, name, StringComparison.Ordinal);
+            return AreNamesEqual(type.Namespace, @namespace) &&
+                AreNamesEqual(type.Name, name);
+        }
+
+        private static bool AreNamesEqual(string nameA, string nameB)
+        {
+            return string.Equals(nameA, nameB, StringComparison.Ordinal);
         }
 
         internal static MemberInfo GetOriginalDefinition(this MemberInfo member)

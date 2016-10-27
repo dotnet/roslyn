@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 
 namespace Microsoft.CodeAnalysis.Utilities
@@ -13,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     internal enum ForegroundThreadDataKind
     {
         Wpf,
+        WinForms,
         StaUnitTest,
         JoinableTask,
         ForcedByPackageInitialize,
@@ -42,6 +38,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "Microsoft.VisualStudio.Threading.JoinableTask+JoinableTaskSynchronizationContext":
 
                     return JoinableTask;
+
+                case "System.Windows.Forms.WindowsFormsSynchronizationContext":
+
+                    return WinForms;
 
                 default:
 

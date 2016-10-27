@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     containingScopes.Add(scope);
                 }
 
-                foreach (var nested in scope.GetScopes())
+                foreach (var nested in scope.GetChildren())
                 {
                     stack.Push(nested);
                 }

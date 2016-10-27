@@ -495,5 +495,129 @@ class C
         {
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
+
+        [Fact]
+        [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
+        public void CurrentComplationVersionWildcards()
+        {
+            var source0 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+    }
+
+    static void F()
+    {
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+    }
+
+    static void F()
+    {
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+    }
+
+    static void F()
+    {
+        Console.WriteLine(1);
+    }
+}");
+            var source3 = MarkedSource(@"
+using System;
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.*"")]
+
+class C
+{
+    static void M()
+    {
+        new Action(<N:0>() => { Console.WriteLine(1); }</N:0>).Invoke();
+        new Action(<N:1>() => { Console.WriteLine(2); }</N:1>).Invoke();
+        new Action(<N:2>() => { Console.WriteLine(3); }</N:2>).Invoke();
+        new Action(<N:3>() => { Console.WriteLine(4); }</N:3>).Invoke();
+    }
+
+    static void F()
+    {
+        Console.WriteLine(1);
+    }
+}");
+
+            var options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
+            var compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
+            var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
+            var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
+
+            var v0 = CompileAndVerify(compilation0, verify: false);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+            var m3 = compilation3.GetMember<MethodSymbol>("C.M");
+
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // First update adds some new synthesized members (lambda related)
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
+
+            // Second update is to a method that doesn't produce any synthesized members 
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
+
+            // Last update again adds some new synthesized members (lambdas).
+            // Synthesized members added in the first update need to be mapped to the current compilation.
+            // Their containing assembly version is different than the version of the previous assembly and 
+            // hence we need to account for wildcards when comparing the versions.
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+
+            diff3.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#3, <>9__0_3#3, <M>b__0_0, <M>b__0_1#1, <M>b__0_2#3, <M>b__0_3#3}");
+        }
     }
 }

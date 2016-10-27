@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             {
                 Assert.Equal(typeof(TLanguageService), typeof(ISyntaxFactsService));
 
-                return (TLanguageService)((object)new CSharpSyntaxFactsService());
+                return (TLanguageService)((object)CSharpSyntaxFactsService.Instance);
             }
         }
     }

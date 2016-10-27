@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Public Sub ExecuteCommand_TypeCharCommandHandler(args As TypeCharCommandArgs, nextHandler As Action) Implements ICommandHandler(Of TypeCharCommandArgs).ExecuteCommand
             nextHandler()
 
-            If Not args.SubjectBuffer.GetOption(FeatureOnOffOptions.EndConstruct) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
                 Return
             End If
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Sub
 
         Private Sub ExecuteEndConstructOnReturn(textView As ITextView, subjectBuffer As ITextBuffer, nextHandler As Action)
-            If Not subjectBuffer.GetOption(FeatureOnOffOptions.EndConstruct) OrElse
+            If Not subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) OrElse
                Not subjectBuffer.CanApplyChangeDocumentToWorkspace() Then
                 nextHandler()
                 Return
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return
             End If
 
-            Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim statement = root.FindToken(position.Value).GetAncestor(Of StatementSyntax)()
             If statement Is Nothing OrElse TypeOf statement Is EmptyStatementSyntax OrElse
                Not statement.ContainsDiagnostics Then
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
 
-            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.EndConstruct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
+            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
                 cleanDocument.Project.Solution.Workspace.ApplyDocumentChanges(cleanDocument, cancellationToken)

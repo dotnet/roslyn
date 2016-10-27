@@ -383,6 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
                 return false;
             }
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsUnboxing)
+            {
+                // Unboxing conversions can cause a null ref exception, hence can never be removed.
+                return false;
+            }
             else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
             {
                 // Don't remove any explicit numeric casts.

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
             var textBuffer = TryGetTextBuffer(textContainer);
             if (textBuffer == null)
             {
-                throw new ArgumentException(TextEditorResources.TextContainerNotFromTextBuffer, nameof(textContainer));
+                throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
             }
 
             return textBuffer;
@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Text
         {
             var t = text as SnapshotSourceText;
             return t == null ? null : t.EditorSnapshot;
+        }
+
+        internal static TextLine AsTextLine(this ITextSnapshotLine line)
+        {
+            return line.Snapshot.AsText().Lines[line.LineNumber];
         }
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)

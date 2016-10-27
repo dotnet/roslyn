@@ -3684,5 +3684,35 @@ End Namespace
             comp3.WithOptions(TestOptions.ReleaseModule.WithConcurrentBuild(True)).AssertNoDiagnostics()
         End Sub
 
+        <Fact, WorkItem(9719, "https://github.com/dotnet/roslyn/issues/9719")>
+        Public Sub Bug9719()
+            ' repro was simpler than what's on the github issue - before any fixes, the below snippit triggered the crash
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+
+<Assembly: CLSCompliant(True)>
+
+Public Class C
+    Public Sub Problem(item As DummyModule)
+    End Sub
+End Class
+
+Public Module DummyModule
+
+End Module
+                        ]]>
+                    </file>
+                </compilation>
+
+            CreateCompilationWithMscorlib45AndVBRuntime(source).AssertTheseDiagnostics(<errors><![CDATA[
+BC30371: Module 'DummyModule' cannot be used as a type.
+    Public Sub Problem(item As DummyModule)
+                               ~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
     End Class
 End Namespace

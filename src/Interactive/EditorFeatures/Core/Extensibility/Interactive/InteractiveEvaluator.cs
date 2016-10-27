@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _contentType = contentType;
             _responseFilePath = responseFilePath;
-            _workspace = new InteractiveWorkspace(this, hostServices);
+            _workspace = new InteractiveWorkspace(hostServices);
             _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost = new InteractiveHost(replType, interactiveHostPath, initialWorkingDirectory);
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
+
+        public int SubmissionCount => _submissionCount;
 
         public IContentType ContentType
         {
@@ -130,10 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 if (_currentWindow != null)
                 {
-                    throw new NotSupportedException(InteractiveEditorFeaturesResources.WindowSetAgainException);
+                    throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
                 _currentWindow = value;
+                _workspace.Window = value;
 
                 _interactiveHost.Output = _currentWindow.OutputWriter;
                 _interactiveHost.ErrorOutput = _currentWindow.ErrorOutputWriter;
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = _currentWindow;
             if (window == null)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.EngineMustBeAttachedToAnInteractiveWindow);
+                throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
             }
 
             return window;
@@ -445,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetCurrentWindowOrThrow();
             Debug.Assert(_interactiveCommands.CommandPrefix == CommandPrefix);
             window.AddInput(CommandPrefix + ResetCommand.CommandName);
-            window.WriteLine(InteractiveEditorFeaturesResources.ResettingExecutionEngine);
+            window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
             return ResetAsyncWorker(initialize);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        return FeaturesResources.ImplementInterfaceExplicitlyWithDisposePattern;
+                        return FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern;
                     }
                     else
                     {
-                        return FeaturesResources.ImplementInterfaceWithDisposePattern;
+                        return FeaturesResources.Implement_interface_with_Dispose_pattern;
                     }
                 }
             }

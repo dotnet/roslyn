@@ -562,5 +562,115 @@ class C
             Await VerifyHighlightsAsync(input)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingType1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is C $${|Definition:c|})
+        {
+            var d = {|Reference:c|};
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingType2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is C {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingTypeScoping1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Class1 { } 
+class Class2 { } 
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is Class1 {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+        else if (o is Class2 c)
+        {
+            var d = c;
+        }
+            el
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingTypeScoping2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Class1 { } 
+class Class2 { } 
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is Class1 c)
+        {
+            var d = c;
+        }
+        else if (o is Class2 {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+            el
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Roslyn.Test.Utilities
@@ -7,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class AnalyzerItemsSourceTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Async Function Ordering() As Threading.Tasks.Task
+        Public Async Function Ordering() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">

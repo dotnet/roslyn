@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
@@ -166,7 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveInterface(element)
         End Sub
 
-        Protected Async Function TestGetBaseName(code As XElement, expectedBaseName As String) As Threading.Tasks.Task
+        Protected Async Function TestGetBaseName(code As XElement, expectedBaseName As String) As Task
             Await TestElement(code,
                 Sub(codeClass)
                     Dim codeClassBase = TryCast(codeClass, ICodeClassBase)

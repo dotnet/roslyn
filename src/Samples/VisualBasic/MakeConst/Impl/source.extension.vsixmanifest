@@ -36,5 +36,6 @@ governing permissions and limitations under the License.
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="MakeConstVB.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="MakeConstVB.dll" />
   </Assets>
 </PackageManifest>

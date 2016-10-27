@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public const string UseAutoPropertyFadedToken = nameof(UseAutoPropertyFadedToken);
 
         private readonly static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            UseAutoProperty, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
+            UseAutoProperty, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
             "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
         private readonly static DiagnosticDescriptor s_fadedTokenDescriptor = new DiagnosticDescriptor(
-            UseAutoPropertyFadedToken, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
+            UseAutoPropertyFadedToken, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
             "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true,
             customTags: new[] { WellKnownDiagnosticTags.Unnecessary });
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class LocalSlotMappingTests : EditAndContinueTestBase
     {
         /// <summary>
-        /// If no changes were made we don't product a syntax map.
+        /// If no changes were made we don't produce a syntax map.
         /// If we don't have syntax map and preserve variables is true we should still successfully map the locals to their previous slots.
         /// </summary>
         [Fact]
@@ -1474,6 +1474,96 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+        }
+
+        [Fact]
+        public void ForEachWithDynamicAndTuple()
+        {
+            var source =
+@"class C
+{
+    static void M((dynamic, int) t)
+    {
+        foreach (var o in t.Item1)
+        {
+        }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(
+                source,
+                options: TestOptions.DebugDll,
+                references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef });
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.M");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                ModuleMetadata.CreateFromImage(bytes0),
+                methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.M",
+@"{
+  // Code size      119 (0x77)
+  .maxstack  3
+  .locals init (System.Collections.IEnumerator V_0,
+                object V_1, //o
+                [unchanged] V_2,
+                System.IDisposable V_3)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>> C.<>o__0#1.<>p__0""
+  IL_0007:  brfalse.s  IL_000b
+  IL_0009:  br.s       IL_002f
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldtoken    ""System.Collections.IEnumerable""
+  IL_0011:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0016:  ldtoken    ""C""
+  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0020:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0025:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_002a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>> C.<>o__0#1.<>p__0""
+  IL_002f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>> C.<>o__0#1.<>p__0""
+  IL_0034:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>>.Target""
+  IL_0039:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>> C.<>o__0#1.<>p__0""
+  IL_003e:  ldarg.0
+  IL_003f:  ldfld      ""dynamic System.ValueTuple<dynamic, int>.Item1""
+  IL_0044:  callvirt   ""System.Collections.IEnumerable System.Func<System.Runtime.CompilerServices.CallSite, dynamic, System.Collections.IEnumerable>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0049:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+  IL_004e:  stloc.0
+  .try
+  {
+    IL_004f:  br.s       IL_005a
+    IL_0051:  ldloc.0
+    IL_0052:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0057:  stloc.1
+    IL_0058:  nop
+    IL_0059:  nop
+    IL_005a:  ldloc.0
+    IL_005b:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0060:  brtrue.s   IL_0051
+    IL_0062:  leave.s    IL_0076
+  }
+  finally
+  {
+    IL_0064:  ldloc.0
+    IL_0065:  isinst     ""System.IDisposable""
+    IL_006a:  stloc.3
+    IL_006b:  ldloc.3
+    IL_006c:  brfalse.s  IL_0075
+    IL_006e:  ldloc.3
+    IL_006f:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0074:  nop
+    IL_0075:  endfinally
+  }
+  IL_0076:  ret
+}");
         }
 
         [Fact]

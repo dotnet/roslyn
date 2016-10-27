@@ -299,8 +299,10 @@ Public Class TransformVisitor
         node = DirectCast(MyBase.VisitSingleLineIfStatement(node), SingleLineIfStatementSyntax)
         Dim elseClause = node.ElseClause
 
-        If transformKind = transformKind.SingleLineIfToMultiLineIf Then
-            Dim leadingTriviaList = SyntaxFactory.TriviaList(node.GetLeadingTrivia().LastOrDefault(), SyntaxFactory.WhitespaceTrivia("    "))
+        If transformKind = TransformKind.SingleLineIfToMultiLineIf Then
+            Dim triviaList = node.GetLeadingTrivia()
+            Dim lastTrivia = If(triviaList.Count = 0, Nothing, triviaList(triviaList.Count - 1))
+            Dim leadingTriviaList = SyntaxFactory.TriviaList(lastTrivia, SyntaxFactory.WhitespaceTrivia("    "))
             Dim newIfStatement = SyntaxFactory.IfStatement(node.IfKeyword, node.Condition, node.ThenKeyword)
             Dim newIfStatements = GetSequentialListOfStatements(node.Statements, leadingTriviaList)
 

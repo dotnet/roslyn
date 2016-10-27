@@ -44,6 +44,16 @@ namespace RunTests
 
     internal sealed class AssemblyScheduler
     {
+        /// <summary>
+        /// This is a test class inserted into assemblies to guard against a .NET desktop bug.  The tests
+        /// inside of it counteract the underlying issue.  If this test is included in any assembly it 
+        /// must be added to every partition to ensure the work around is present
+        /// 
+        /// https://github.com/dotnet/corefx/issues/3793
+        /// https://github.com/dotnet/roslyn/issues/8936
+        /// </summary>
+        private const string EventListenerGuardFullName = "Microsoft.CodeAnalysis.UnitTests.EventListenerGuard";
+
         private struct TypeInfo
         {
             internal readonly string FullName;
@@ -56,13 +66,13 @@ namespace RunTests
             }
         }
 
-        private struct Chunk
+        private struct Partition
         {
             internal readonly string AssemblyPath;
             internal readonly int Id;
             internal List<TypeInfo> TypeInfoList;
 
-            internal Chunk(string assemblyPath, int id, List<TypeInfo> typeInfoList)
+            internal Partition(string assemblyPath, int id, List<TypeInfo> typeInfoList)
             {
                 AssemblyPath = assemblyPath;
                 Id = id;
@@ -72,62 +82,86 @@ namespace RunTests
 
         private sealed class AssemblyInfoBuilder
         {
-            private readonly List<Chunk> _chunkList = new List<Chunk>();
+            private readonly List<Partition> _partitionList = new List<Partition>();
             private readonly List<AssemblyInfo> _assemblyInfoList = new List<AssemblyInfo>();
             private readonly StringBuilder _builder = new StringBuilder();
             private readonly string _assemblyPath;
             private readonly int _methodLimit;
             private readonly bool _useHtml;
+            private readonly bool _hasEventListenerGuard;
             private int _currentId;
             private List<TypeInfo> _currentTypeInfoList = new List<TypeInfo>();
 
-            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml)
+            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml, bool hasEventListenerGuard)
             {
                 _assemblyPath = assemblyPath;
                 _useHtml = useHtml;
                 _methodLimit = methodLimit;
+                _hasEventListenerGuard = hasEventListenerGuard;
             }
 
-            internal static void Build(string assemblyPath, int methodLimit, bool useHtml, List<TypeInfo> typeInfoList, out List<Chunk> chunkList, out List<AssemblyInfo> assemblyInfoList)
+            internal static void Build(string assemblyPath, int methodLimit, bool useHtml, List<TypeInfo> typeInfoList, out List<Partition> partitionList, out List<AssemblyInfo> assemblyInfoList)
             {
-                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml);
+                var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
+                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml, hasEventListenerGuard);
                 builder.Build(typeInfoList);
-                chunkList = builder._chunkList;
+                partitionList = builder._partitionList;
                 assemblyInfoList = builder._assemblyInfoList;
             }
 
             private void Build(List<TypeInfo> typeInfoList)
             {
+                BeginPartition();
+
                 foreach (var typeInfo in typeInfoList)
                 {
                     _currentTypeInfoList.Add(typeInfo);
                     _builder.Append($@"-class ""{typeInfo.FullName}"" ");
-                    CheckForChunkLimit(done: false);
+                    CheckForPartitionLimit(done: false);
                 }
 
-                CheckForChunkLimit(done: true);
+                CheckForPartitionLimit(done: true);
             }
 
-            private void CheckForChunkLimit(bool done)
+            private void BeginPartition()
             {
-                if (done && _currentTypeInfoList.Count > 0)
+                _currentId++;
+                _currentTypeInfoList = new List<TypeInfo>();
+                _builder.Length = 0;
+
+                // Ensure the EventListenerGuard is in every partition.
+                if (_hasEventListenerGuard)
                 {
-                    CreateChunk();
+                    _builder.Append($@"-class ""{EventListenerGuardFullName}"" ");
+                }
+            }
+
+            private void CheckForPartitionLimit(bool done)
+            {
+                if (done)
+                {
+                    // The builder is done looking at types.  If there are any TypeInfo that have not
+                    // been added to a partition then do it now.
+                    if (_currentTypeInfoList.Count > 0)
+                    {
+                        FinishPartition();
+                    }
+
                     return;
                 }
 
                 // One item we have to consider here is the maximum command line length in 
                 // Windows which is 32767 characters (XP is smaller but don't care).  Once
-                // we get close then create a chunk and move on. 
+                // we get close then create a partition and move on. 
                 if (_currentTypeInfoList.Sum(x => x.MethodCount) >= _methodLimit ||
                     _builder.Length > 25000)
                 {
-                    CreateChunk();
-                    return;
+                    FinishPartition();
+                    BeginPartition();
                 }
             }
 
-            private void CreateChunk()
+            private void FinishPartition()
             {
                 var assemblyName = Path.GetFileName(_assemblyPath);
                 var displayName = $"{assemblyName}.{_currentId}";
@@ -139,18 +173,13 @@ namespace RunTests
                     resultsFileName,
                     _builder.ToString());
 
-                _chunkList.Add(new Chunk(_assemblyPath, _currentId, _currentTypeInfoList));
+                _partitionList.Add(new Partition(_assemblyPath, _currentId, _currentTypeInfoList));
                 _assemblyInfoList.Add(assemblyInfo);
-
-                _currentId++;
-                _currentTypeInfoList = new List<TypeInfo>();
-                _builder.Length = 0;
             }
         }
 
-
         /// <summary>
-        /// Default number of methods to include per chunk.
+        /// Default number of methods to include per partition.
         /// </summary>
         internal const int DefaultMethodLimit = 2000;
 
@@ -178,24 +207,24 @@ namespace RunTests
         {
             var typeInfoList = GetTypeInfoList(assemblyPath);
             var assemblyInfoList = new List<AssemblyInfo>();
-            var chunkList = new List<Chunk>();
-            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.UseHtml, typeInfoList, out chunkList, out assemblyInfoList);
+            var partitionList = new List<Partition>();
+            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.UseHtml, typeInfoList, out partitionList, out assemblyInfoList);
 
-            // If the scheduling didn't actually produce multiple chunks then send back an unchunked
+            // If the scheduling didn't actually produce multiple partition then send back an unpartitioned
             // representation.
             if (assemblyInfoList.Count == 1 && !force)
             {
-                Logger.Log($"Assembly schedule produced a single chunk {assemblyPath}");
+                Logger.Log($"Assembly schedule produced a single partition {assemblyPath}");
                 return new[] { CreateAssemblyInfo(assemblyPath) };
             }
 
             Logger.Log($"Assembly Schedule: {Path.GetFileName(assemblyPath)}");
-            foreach (var chunk in chunkList)
+            foreach (var partition in partitionList)
             {
-                var methodCount = chunk.TypeInfoList.Sum(x => x.MethodCount);
+                var methodCount = partition.TypeInfoList.Sum(x => x.MethodCount);
                 var delta = methodCount - _methodLimit;
-                Logger.Log($"  Chunk: {chunk.Id} method count {methodCount} delta {delta}");
-                foreach (var typeInfo in chunk.TypeInfoList)
+                Logger.Log($"  Partition: {partition.Id} method count {methodCount} delta {delta}");
+                foreach (var typeInfo in partition.TypeInfoList)
                 {
                     Logger.Log($"    {typeInfo.FullName} {typeInfo.MethodCount}");
                 }

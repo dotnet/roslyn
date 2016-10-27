@@ -10,5 +10,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return (flags & desired) == desired;
         }
+
+        internal static DkmInspectionContext With(this DkmInspectionContext inspectionContext, DkmEvaluationFlags flags)
+        {
+            return DkmInspectionContext.Create(
+                inspectionContext.InspectionSession,
+                inspectionContext.RuntimeInstance,
+                inspectionContext.Thread,
+                inspectionContext.Timeout,
+                inspectionContext.EvaluationFlags | flags,
+                inspectionContext.FuncEvalFlags,
+                inspectionContext.Radix,
+                inspectionContext.Language,
+                inspectionContext.ReturnValue,
+                inspectionContext.AdditionalVisualizationData,
+                inspectionContext.AdditionalVisualizationDataPriority,
+                inspectionContext.ReturnValues);
+        }
     }
 }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -88,18 +87,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogActiveFileAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
+        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
-                correlationId, workspace, reordered);
-        }
-
-        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
-        {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
-                correlationId, workspace, reordered);
+            if (onlyHighPriorityAnalyzer)
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
+                    correlationId, workspace, reordered);
+            }
+            else
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
+                    correlationId, workspace, reordered);
+            }
         }
 
         private static void LogAnalyzersWorker(
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             foreach (var analyzer in analyzers)
             {
-                var diagIncrementalAnalyzer = analyzer as BaseDiagnosticIncrementalAnalyzer;
+                var diagIncrementalAnalyzer = analyzer as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
                 if (diagIncrementalAnalyzer != null)
                 {
                     diagIncrementalAnalyzer.LogAnalyzerCountSummary();

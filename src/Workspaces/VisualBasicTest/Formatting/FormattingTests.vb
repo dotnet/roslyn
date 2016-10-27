@@ -1775,6 +1775,33 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(10742, "https://github.com/dotnet/roslyn/issues/10742")>
+        Public Async Function ReFormatWithTabsEnabled6() As Task
+            Dim code =
+                "Class SomeClass" + vbCrLf +
+                "    Sub Foo() ' Comment" + vbCrLf +
+                "        Foo()" + vbCrLf +
+                "    End Sub" + vbCrLf +
+                "End Class"
+
+            Dim expected =
+                "Class SomeClass" + vbCrLf +
+                vbTab + "Sub Foo() ' Comment" + vbCrLf +
+                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "End Sub" + vbCrLf +
+                "End Class"
+
+            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            {
+                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
+                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
+                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+            }
+
+            Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function ReFormatWithTabsDisabled() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
@@ -4356,5 +4383,66 @@ End Class</Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(8258, "https://github.com/dotnet/roslyn/issues/8258")>
+        Public Async Function FormatDictionaryOperatorProperly() As Task
+            Dim code = "
+Class C
+    Public Shared Sub AutoFormatSample()
+
+        ' Automatic Code Formatting in VB.NET
+        ' Problem with ! dictionary access operator
+
+        Dim dict As New Dictionary(Of String, String)
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
+
+        Dim x As String = (New Dictionary(Of String, String)(dict)) !Banana 'added space in front of ""!""
+
+        With dict
+
+            !Apple = ""Red""
+            Dim multiColors = !Apple &!Orange &!Banana 'missing space between ""&"" and ""!""
+            If!Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
+            End If
+
+        End With
+
+    End Sub
+End Class"
+
+            Dim expected = "
+Class C
+    Public Shared Sub AutoFormatSample()
+
+        ' Automatic Code Formatting in VB.NET
+        ' Problem with ! dictionary access operator
+
+        Dim dict As New Dictionary(Of String, String)
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
+
+        Dim x As String = (New Dictionary(Of String, String)(dict))!Banana 'added space in front of ""!""
+
+        With dict
+
+            !Apple = ""Red""
+            Dim multiColors = !Apple & !Orange & !Banana 'missing space between ""&"" and ""!""
+            If !Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
+            End If
+
+        End With
+
+    End Sub
+End Class"
+
+            Await AssertFormatAsync(code, expected)
+        End Function
+
     End Class
 End Namespace

@@ -1,14 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -17,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         Protected ReadOnly m_AssemblyOrModuleSymbolToModuleRefMap As New ConcurrentDictionary(Of Symbol, Microsoft.Cci.IModuleReference)()
         Private ReadOnly _genericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
-        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of ErrorTypeSymbol)()
+        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of TypeSymbol)()
 
         Private ReadOnly _embeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
         Public Overrides ReadOnly Property EmbeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
@@ -108,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             namedTypeSymbol As NamedTypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional fromImplements As Boolean = False,
             Optional needDeclaration As Boolean = False
@@ -120,6 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Anonymous type being translated
             If namedTypeSymbol.IsAnonymousType Then
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol)
+            ElseIf namedTypeSymbol.IsTupleType Then
+                Debug.Assert(Not needDeclaration)
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
+
+                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             ' Substitute error types with a special singleton object.
@@ -202,6 +203,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return namedTypeSymbol
         End Function
 
+        Private Sub CheckTupleUnderlying(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
+            ' check that underlying type of a ValueTuple is indeed a value type (or error)
+            ' this should never happen, in theory,
+            ' but if it does happen we should make it a failure.
+            ' NOTE: declaredBase could be null for interfaces
+            Dim declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics
+            If declaredBase Is Nothing OrElse
+                    (declaredBase.SpecialType <> SpecialType.System_ValueType AndAlso Not declaredBase.IsErrorType()) Then
+                ' Try to decrease noise by not complaining about the same type over and over again.
+                If (_reportedErrorTypesMap.Add(namedTypeSymbol)) Then
+                    diagnostics.Add(New VBDiagnostic(
+                                    ErrorFactory.ErrorInfo(ERRID.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                                    If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
+
+                End If
+            End If
+        End Sub
+
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
             Return [param]
@@ -209,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend NotOverridable Overrides Function Translate(
             typeSymbol As TypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
@@ -228,12 +247,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             fieldSymbol As FieldSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IFieldReference
             Debug.Assert(fieldSymbol Is fieldSymbol.OriginalDefinition OrElse
-                                            Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+                         Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+            Debug.Assert(Not fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now")
 
             Me.ProcessReferencedSymbol(fieldSymbol)
 
@@ -325,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             methodSymbol As MethodSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IMethodReference
@@ -337,7 +357,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Method of anonymous type being translated
             If container.IsAnonymousType Then
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol)
+
+            ElseIf methodSymbol.IsTupleMethod Then
+                Debug.Assert(Not needDeclaration)
+                Debug.Assert(container.IsTupleType)
+                container = container.TupleUnderlyingType
+                methodSymbol = methodSymbol.TupleUnderlyingMethod
             End If
+
+            Debug.Assert(Not container.IsTupleType)
 
             Me.ProcessReferencedSymbol(methodSymbol)
 
@@ -473,6 +501,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
             Return symbol
         End Function
-
     End Class
 End Namespace

@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _dependencies = dependencies;
             }
 
-            public CompilationVerifier Clone()
-            {
-                return new CompilationVerifier(_test, _compilation, _dependencies);
-            }
-
             internal CompilationTestData TestData
             {
                 get { return _testData; }
@@ -92,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return modules;
             }
 
-            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, bool peVerify, SignatureDescription[] expectedSignatures)
+            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
-                    string mainModuleName = Emit(testEnvironment, manifestResources);
+                    string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                     _allModuleData = testEnvironment.GetAllModuleData();
 
                     if (peVerify)
@@ -120,22 +115,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
             public void EmitAndVerify(params string[] expectedPeVerifyOutput)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
-                    string mainModuleName = Emit(testEnvironment, null);
+                    string mainModuleName = Emit(testEnvironment, null, null);
                     string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
                     Assert.Equal(expectedPeVerifyOutput, actualOutput);
                 }
             }
 
-            private string Emit(HostedRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources)
+            private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
             {
-                testEnvironment.Emit(_compilation, manifestResources);
+                testEnvironment.Emit(_compilation, manifestResources, emitOptions);
 
                 _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = testEnvironment.GetCompilationTestData();
+                _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
 
                 return _compilation.Assembly.Identity.GetDisplayName();
             }
@@ -248,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
-            public ISymUnmanagedReader CreateSymReader()
+            public ISymUnmanagedReader3 CreateSymReader()
             {
                 var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
                 return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
@@ -259,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
             }
 
-            private string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints, bool useRefEmitter)
+            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, bool useRefEmitter = false)
             {
                 Dictionary<int, string> markers = null;
 
@@ -293,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
             {
-                Assert.Equal(expected, _testData.Methods.ContainsKey(methodName));
+                Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
                 return this;
             }
 
@@ -337,6 +332,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
                 }
+            }
+
+            public void VerifyOperationTree(string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(expectedOperationTree, skipImplicitlyDeclaredSymbols);
+            }
+
+            public void VerifyOperationTree(string symbolToVerify, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
             }
         }
     }

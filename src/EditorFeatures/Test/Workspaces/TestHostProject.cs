@@ -149,7 +149,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions,
             string assemblyName,
             params MetadataReference[] references)
-            : this(languageServices, compilationOptions, parseOptions, assemblyName: assemblyName, projectName: assemblyName, references: references, documents: SpecializedCollections.EmptyArray<TestHostDocument>())
+            : this(languageServices,
+                   compilationOptions,
+                   parseOptions,
+                   assemblyName: assemblyName,
+                   projectName: assemblyName,
+                   references: references,
+                   documents: Array.Empty<TestHostDocument>())
         {
         }
 

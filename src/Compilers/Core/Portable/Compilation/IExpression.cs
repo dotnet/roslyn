@@ -5,6 +5,10 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IHasArgumentsExpression : IOperation
     {
         /// <summary>
@@ -24,6 +28,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IInvocationExpression : IHasArgumentsExpression
     {
         /// <summary>
@@ -49,6 +57,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument in a method invocation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IArgument : IOperation
     {
         /// <summary>
@@ -101,6 +113,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IArrayElementReferenceExpression : IOperation
     {
         /// <summary>
@@ -116,6 +132,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference through a pointer.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPointerIndirectionReferenceExpression : IOperation
     {
         /// <summary>
@@ -127,6 +147,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a declared local variable.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ILocalReferenceExpression : IOperation
     {
         /// <summary>
@@ -138,6 +162,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a parameter.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IParameterReferenceExpression : IOperation
     {
         /// <summary>
@@ -149,6 +177,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a local variable synthesized by language analysis.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ISyntheticLocalReferenceExpression : IOperation
     {
         /// <summary>
@@ -181,6 +213,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# this or base expression, or a VB Me, MyClass, or MyBase expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IInstanceReferenceExpression : IOperation
     {
         ///
@@ -202,10 +238,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>Indicates an explicit MyClass expression.</summary>
         ThisClass = 0x4
     }
-    
+
     /// <summary>
     /// Represents a reference to a member of a class, struct, or interface.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IMemberReferenceExpression : IOperation
     {
         /// <summary>
@@ -214,14 +254,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation Instance { get; }
 
         /// <summary>
-        /// Referenced member.  
-        /// </summary>  
+        /// Referenced member.
+        /// </summary>
         ISymbol Member { get; }
     }
 
     /// <summary>
     /// Represents a reference to a field.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IFieldReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
@@ -233,6 +277,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IMethodBindingExpression : IMemberReferenceExpression
     {
         /// <summary>
@@ -249,6 +297,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPropertyReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
@@ -260,6 +312,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an indexed property.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IIndexedPropertyReferenceExpression : IPropertyReferenceExpression, IHasArgumentsExpression
     {
     }
@@ -267,6 +323,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an event.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IEventReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
@@ -278,6 +338,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a binding of an event.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IEventAssignmentExpression : IOperation
     {
         /// <summary>
@@ -304,6 +368,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
@@ -319,6 +387,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IConditionalAccessInstanceExpression : IOperation
     {
     }
@@ -327,6 +399,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// Represents a general placeholder when no more specific kind of placeholder is available.
     /// A placeholder is an expression whose meaning is inferred from context.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPlaceholderExpression : IOperation
     {
     }
@@ -334,6 +410,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a unary, binary, relational, or conversion operation that can use an operator method.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IHasOperatorMethodExpression : IOperation
     {
         /// <summary>
@@ -349,6 +429,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an operation with one operand.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IUnaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
@@ -474,10 +558,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         Invalid = UnaryOperandKind.Invalid | SimpleUnaryOperationKind.Invalid
     }
 
-    
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IBinaryOperatorExpression : IHasOperatorMethodExpression
     {
         /// <summary>
@@ -906,6 +993,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IConversionExpression : IHasOperatorMethodExpression
     {
         /// <summary>
@@ -967,6 +1058,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IConditionalChoiceExpression : IOperation
     {
         /// <summary>
@@ -986,6 +1081,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface INullCoalescingExpression : IOperation
     {
         /// <summary>
@@ -1001,6 +1100,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IIsTypeExpression : IOperation
     {
         /// <summary>
@@ -1016,6 +1119,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression operating on a type.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ITypeOperationExpression : IOperation
     {
         /// <summary>
@@ -1027,6 +1134,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a SizeOf expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ISizeOfExpression : ITypeOperationExpression
     {
     }
@@ -1034,6 +1145,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a TypeOf expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ITypeOfExpression : ITypeOperationExpression
     {
     }
@@ -1041,6 +1156,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a lambda expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ILambdaExpression : IOperation
     {
         /// <summary>
@@ -1056,6 +1175,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a textual literal numeric, string, etc. expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ILiteralExpression : IOperation
     {
         /// <summary>
@@ -1067,6 +1190,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an await expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IAwaitExpression : IOperation
     {
         /// <summary>
@@ -1078,6 +1205,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an expression that creates a pointer value by taking the address of a reference.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IAddressOfExpression : IOperation
     {
         /// <summary>
@@ -1089,6 +1220,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IObjectCreationExpression : IHasArgumentsExpression
     {
         /// <summary>
@@ -1104,6 +1239,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initializer for a field, property, or parameter.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ISymbolInitializer : IOperation
     {
         IOperation Value { get; }
@@ -1112,6 +1251,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IFieldInitializer : ISymbolInitializer
     {
         /// <summary>
@@ -1123,6 +1266,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPropertyInitializer : ISymbolInitializer
     {
         /// <summary>
@@ -1134,6 +1281,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IParameterInitializer : ISymbolInitializer
     {
         /// <summary>
@@ -1145,6 +1296,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the creation of an array instance.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IArrayCreationExpression : IOperation
     {
         /// <summary>
@@ -1164,6 +1319,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents the initialization of an array instance.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IArrayInitializer : IOperation
     {
         /// <summary>
@@ -1175,6 +1334,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IAssignmentExpression : IOperation
     {
         /// <summary>
@@ -1190,6 +1353,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorMethodExpression
     {
         /// <summary>
@@ -1201,6 +1368,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IIncrementExpression : ICompoundAssignmentExpression
     {
         /// <summary>
@@ -1212,6 +1383,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a parenthesized expression.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IParenthesizedExpression : IOperation
     {
         /// <summary>
@@ -1223,6 +1398,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a late-bound reference to a member of a class or struct.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ILateBoundMemberReferenceExpression : IOperation
     {
         /// <summary>
@@ -1238,22 +1417,42 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an argument value that has been omitted in an invocation.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IOmittedArgumentExpression : IOperation
     {
     }
 
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IUnboundLambdaExpression : IOperation
     {
     }
 
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IDefaultValueExpression : IOperation
     {
     }
 
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface ITypeParameterObjectCreationExpression : IOperation
     {
     }
 
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IInvalidExpression : IOperation
     {
     }

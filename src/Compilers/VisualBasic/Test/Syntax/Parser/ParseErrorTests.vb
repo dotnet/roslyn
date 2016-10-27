@@ -1035,7 +1035,6 @@ End Module
 
         ParseAndVerify(code, <errors>
                                  <error id="30081"/>
-                                 <error id="30198"/>
                              </errors>)
     End Sub
 
@@ -1055,7 +1054,6 @@ End Module
 
         ParseAndVerify(code, <errors>
                                  <error id="30081"/>
-                                 <error id="30198"/>
                              </errors>)
     End Sub
 
@@ -2879,8 +2877,7 @@ End Module
                 End Enum
             ]]>.Value
         ParseAndVerify(code,
-            Diagnostic(ERRID.ERR_InvInsideEnum, "if(true"),
-            Diagnostic(ERRID.ERR_ExpectedRparen, ""))
+            Diagnostic(ERRID.ERR_InvInsideEnum, "if(true,3,4)").WithLocation(5, 21))
     End Sub
 
     <Fact()>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -12,6 +13,110 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
     {
+        [Fact]
+        public void TestRoundTripPrimitiveArray()
+        {
+            var inputBool = new bool[] { true, false };
+            var inputByte = new byte[] { 1, 2, 3, 4, 5 };
+            var inputChar = new char[] { 'h', 'e', 'l', 'l', 'o' };
+            var inputDecimal = new decimal[] { 1.0M, 2.0M, 3.0M, 4.0M, 5.0M };
+            var inputDouble = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
+            var inputFloat = new float[] { 1.0F, 2.0F, 3.0F, 4.0F, 5.0F };
+            var inputInt = new int[] { -1, -2, -3, -4, -5 };
+            var inputLong = new long[] { 1, 2, 3, 4, 5 };
+            var inputSByte = new sbyte[] { -1, -2, -3, -4, -5 };
+            var inputShort = new short[] { -1, -2, -3, -4, -5 };
+            var inputUInt = new uint[] { 1, 2, 3, 4, 5 };
+            var inputULong = new ulong[] { 1, 2, 3, 4, 5 };
+            var inputUShort = new ushort[] { 1, 2, 3, 4, 5 };
+            var inputString = new string[] { "h", "e", "l", "l", "o" };
+
+            var stream = new MemoryStream();
+            var writer = new ObjectWriter(stream);
+
+            writer.WriteValue(inputBool);
+            writer.WriteValue(inputByte);
+            writer.WriteValue(inputChar);
+            writer.WriteValue(inputDecimal);
+            writer.WriteValue(inputDouble);
+            writer.WriteValue(inputFloat);
+            writer.WriteValue(inputInt);
+            writer.WriteValue(inputLong);
+            writer.WriteValue(inputSByte);
+            writer.WriteValue(inputShort);
+            writer.WriteValue(inputUInt);
+            writer.WriteValue(inputULong);
+            writer.WriteValue(inputUShort);
+            writer.WriteValue(inputString);
+
+            writer.Dispose();
+
+            stream.Position = 0;
+            var reader = new ObjectReader(stream);
+            Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputByte, (byte[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputChar, (char[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputDecimal, (decimal[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputDouble, (double[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputFloat, (float[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputInt, (int[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputLong, (long[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputSByte, (sbyte[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputShort, (short[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputUInt, (uint[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputULong, (ulong[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputUShort, (ushort[])reader.ReadValue()));
+            Assert.True(Enumerable.SequenceEqual(inputString, (string[])reader.ReadValue()));
+
+            reader.Dispose();
+        }
+
+        [Fact]
+        public void TestRoundTripBooleanArray()
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                var inputBool = new bool[i];
+
+                for (var j = 0; j < i; j++)
+                {
+                    inputBool[j] = j % 2 == 0;
+                }
+
+                var stream = new MemoryStream();
+                var writer = new ObjectWriter(stream);
+
+                writer.WriteValue(inputBool);
+
+                writer.Dispose();
+
+                stream.Position = 0;
+                var reader = new ObjectReader(stream);
+                Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
+
+                reader.Dispose();
+            }
+        }
+
+        [Fact]
+        public void TestRoundTripFalseBooleanArray()
+        {
+            var inputBool = Enumerable.Repeat<bool>(false, 1000).ToArray();
+
+            var stream = new MemoryStream();
+            var writer = new ObjectWriter(stream);
+
+            writer.WriteValue(inputBool);
+
+            writer.Dispose();
+
+            stream.Position = 0;
+            var reader = new ObjectReader(stream);
+            Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
+
+            reader.Dispose();
+        }
+
         [Fact]
         public void TestRoundTripPrimitives()
         {

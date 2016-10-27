@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = "<summary>This is a summary.</summary>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is a summary.";
 
             TestFormat(comment, expected);
@@ -48,7 +48,7 @@ $@"{FeaturesResources.Summary}
             var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     I am the very model of a modern major general. This is a very long comment. And
     getting longer by the minute.";
 
@@ -60,7 +60,7 @@ $@"{FeaturesResources.Summary}
         {
             var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe
     minute.";
 
@@ -73,7 +73,7 @@ $@"{FeaturesResources.Summary}
             var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException";
 
@@ -89,7 +89,7 @@ $@"{FeaturesResources.Exceptions}
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException
 
@@ -109,7 +109,7 @@ $@"{FeaturesResources.Exceptions}
 <exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException for reason X
 
@@ -128,7 +128,7 @@ $@"{FeaturesResources.Exceptions}
             var comment = @"<returns>A string is returned</returns>";
 
             var expected =
-$@"{FeaturesResources.Returns}
+$@"{FeaturesResources.Returns_colon}
     A string is returned";
 
             TestFormat(comment, expected);
@@ -143,10 +143,10 @@ $@"{FeaturesResources.Returns}
 <param name=""b"">The param named 'b'</param>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is the summary.
 
-{FeaturesResources.Parameters}
+{FeaturesResources.Parameters_colon}
   a:
     The param named 'a'
 
@@ -164,7 +164,7 @@ $@"{FeaturesResources.Summary}
 <typeparam name=""U"">The type param named 'U'</typeparam>";
 
             var expected =
-$@"{FeaturesResources.TypeParameters}
+$@"{FeaturesResources.Type_parameters_colon}
   T:
     The type param named 'T'
 
@@ -194,10 +194,10 @@ This is a summary of something.
 <remarks>This doc comment is really not very remarkable.</remarks>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is a summary of something.
 
-{FeaturesResources.Parameters}
+{FeaturesResources.Parameters_colon}
   a:
     The param named 'a'.
 
@@ -206,7 +206,7 @@ $@"{FeaturesResources.Summary}
   c:
     The param named 'c'.
 
-{FeaturesResources.TypeParameters}
+{FeaturesResources.Type_parameters_colon}
   T:
     A type parameter.
 
@@ -215,10 +215,10 @@ $@"{FeaturesResources.Summary}
   V:
     Another type parameter.
 
-{FeaturesResources.Returns}
+{FeaturesResources.Returns_colon}
     This returns nothing.
 
-{FeaturesResources.Exceptions}
+{FeaturesResources.Exceptions_colon}
   System.FooException:
     Thrown for an unknown reason
 
@@ -227,7 +227,7 @@ $@"{FeaturesResources.Summary}
   System.BlahException:
     Thrown when blah blah blah
 
-{FeaturesResources.Remarks}
+{FeaturesResources.Remarks_colon}
     This doc comment is really not very remarkable.";
 
             TestFormat(comment, expected);

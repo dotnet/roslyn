@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("New", VBFeaturesResources.NewKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("New", VBFeaturesResources.Creates_a_new_object_instance))
             End If
 
             If context.FollowsEndOfStatement Then
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Not DirectCast(asClause.Parent, PropertyStatementSyntax).Modifiers.Any(
                         Function(m) m.IsKind(SyntaxKind.WriteOnlyKeyword))) Then
 
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("New", VBFeaturesResources.NewKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("New", VBFeaturesResources.Creates_a_new_object_instance))
                 End If
             End If
 

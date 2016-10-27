@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     source.IsNullableType() &&
                     EncompassingExplicitConversion(null, source.GetNullableUnderlyingType(), convertsFrom, ref useSiteDiagnostics).Exists)
                 {
-                    fromConversion = ClassifyConversion(source, convertsFrom, ref useSiteDiagnostics, builtinOnly: true);
+                    fromConversion = ClassifyBuiltInConversion(source, convertsFrom, ref useSiteDiagnostics);
                 }
 
                 // As in dev11 (and the revised spec), we also accept candidates for which the return type is encompassed by the *stripped* target type.
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     target.IsNullableType() &&
                     EncompassingExplicitConversion(null, convertsTo, target.GetNullableUnderlyingType(), ref useSiteDiagnostics).Exists)
                 {
-                    toConversion = ClassifyConversion(convertsTo, target, ref useSiteDiagnostics, builtinOnly: true);
+                    toConversion = ClassifyBuiltInConversion(convertsTo, target, ref useSiteDiagnostics);
                 }
 
                 // In the corresponding implicit conversion code we can get away with first 

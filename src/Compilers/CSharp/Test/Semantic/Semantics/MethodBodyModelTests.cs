@@ -956,5 +956,43 @@ struct Outer
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "f1").WithArguments("Outer.f1").WithLocation(10, 21)
                 );
         }
+
+        [Fact, WorkItem(8556, "https://github.com/dotnet/roslyn/issues/8556")]
+        public void CastAmbiguousMethodGroupTypeProducesCorrectErrorMessage()
+        {
+            var text = @"
+using System;
+
+public delegate void Foo ();
+
+class D
+{
+    public static implicit operator D (Action d)
+    {
+        return new D ();
+    }
+
+    public static explicit operator D (Foo d)
+    {
+        return new D ();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        D d = (D) Main;
+    }
+}
+";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.GetMethodBodyDiagnostics().Verify(
+                // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Foo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
+                //          D d = (D) Main;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "(D) Main").WithArguments("D.explicit operator D(Foo)", "D.implicit operator D(System.Action)", "method group", "D").WithLocation(23, 15)
+                );
+        }
     }
 }
