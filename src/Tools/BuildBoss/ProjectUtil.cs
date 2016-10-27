@@ -18,9 +18,52 @@ namespace BuildBoss
 
         internal ProjectUtil(ProjectKey key, XDocument document)
         {
+            _key = key;
             _document = document;
             _manager = new XmlNamespaceManager(new NameTable());
             _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
+        }
+
+        internal RoslynProjectData GetRoslynProjectData()
+        {
+            var typeElement = FindSingleProperty("RoslynProjectType");
+            if (typeElement != null)
+            {
+                var value = typeElement.Value.Trim();
+                var kind = RoslynProjectKindUtil.GetRoslynProjectKind(value);
+                if (kind == null)
+                {
+                    throw new Exception($"Unrecognized RoslynProjectKind value {value}");
+                }
+
+                return new RoslynProjectData(kind.Value, kind.Value, value);
+            }
+            else
+            { 
+                var outputType = FindSingleProperty("OutputType");
+                switch (outputType?.Value.Trim())
+                {
+                    case "Exe":
+                    case "WinExe":
+                        return new RoslynProjectData(RoslynProjectKind.Exe);
+                    case "Library":
+                        return new RoslynProjectData(RoslynProjectKind.Dll);
+                    default:
+                        throw new Exception($"Unrecognized OutputType value {outputType?.Value.Trim()}");
+                }
+            }
+        }
+
+        internal RoslynProjectData? TryGetRoslynProjectData()
+        {
+            try
+            {
+                return GetRoslynProjectData();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()

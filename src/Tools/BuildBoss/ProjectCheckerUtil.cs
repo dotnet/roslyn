@@ -47,7 +47,7 @@ namespace BuildBoss
 
         private bool CheckForProperty(TextWriter textWriter, string propertyName)
         {
-            foreach (var element in ojectFileUtil. GetAllPropertyGroupElements())
+            foreach (var element in _projectUtil.GetAllPropertyGroupElements())
             {
                 if (element.Name.LocalName == propertyName)
                 {
@@ -79,44 +79,22 @@ namespace BuildBoss
 
         private bool ParseRoslynProjectData(TextWriter textWriter, out RoslynProjectData data)
         {
-            data = default(RoslynProjectData);
-
-            var typeElement = FindSingleProperty("RoslynProjectType");
-            if (typeElement != null)
+            try
             {
-                var value = typeElement.Value.Trim();
-                var kind = RoslynProjectData.GetRoslynProjectKind(value);
-                if (kind == null)
-                {
-                    textWriter.WriteLine($"Unrecognized RoslynProjectKnid value {value}");
-                    return false;
-                }
-
-                data = new RoslynProjectData(kind.Value, kind.Value, value);
+                data = _projectUtil.GetRoslynProjectData();
                 return true;
             }
-            else
-            { 
-                var outputType = FindSingleProperty("OutputType");
-                switch (outputType?.Value.Trim())
-                {
-                    case "Exe":
-                    case "WinExe":
-                        data = new RoslynProjectData(RoslynProjectKind.Exe);
-                        return true;
-                    case "Library":
-                        data = new RoslynProjectData(RoslynProjectKind.Dll);
-                        return true;
-                    default:
-                        textWriter.WriteLine($"Unrecognized OutputType value {outputType?.Value.Trim()}");
-                        return false;
-                }
+            catch (Exception ex)
+            {
+                data = default(RoslynProjectData);
+                textWriter.WriteLine(ex.Message);
+                return false;
             }
         }
 
         private bool IsVsixCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
-            var element = FindSingleProperty("ProjectTypeGuids");
+            var element = _projectUtil.FindSingleProperty("ProjectTypeGuids");
             if (element == null)
             {
                 return true;
@@ -145,7 +123,7 @@ namespace BuildBoss
         {
             var allGood = true;
 
-            var declaredList = GetDeclaredProjectReferences(_data);
+            var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
 
@@ -187,13 +165,32 @@ namespace BuildBoss
         /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
         /// much every repo has this practice.
         /// </summary>
-        private bool CheckUnitTestReferenceRestriction(TextWriter textWrite, IEnumerable<ProjectKey> declaredReferences)
+        private bool CheckUnitTestReferenceRestriction(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
         {
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (!data.HasValue || !data.Value.IsAnyUnitTest)
+            {
+                return true;
+            }
+
             var allGood = true;
             foreach (var key in declaredReferences)
             {
+                ProjectData projectData;
+                if (!_solutionMap.TryGetValue(key, out projectData))
+                {
+                    continue;
+                }
 
+                var refData = projectData.ProjectUtil.TryGetRoslynProjectData();
+                if (refData.HasValue && refData.Value.IsAnyUnitTest)
+                {
+                    textWriter.WriteLine($"Cannot reference {key.FileName} as it is another unit test project");
+                    allGood = false;
+                }
             }
+
+            return allGood;
         }
 
         private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
@@ -208,7 +205,7 @@ namespace BuildBoss
                 return true;
             }
 
-            var element = FindSingleProperty("AssemblyName");
+            var element = _projectUtil.FindSingleProperty("AssemblyName");
             if (element == null)
             {
                 textWriter.WriteLine($"Need to specify AssemblyName");
