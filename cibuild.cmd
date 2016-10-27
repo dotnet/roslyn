@@ -94,8 +94,8 @@ if defined TestPerfRun (
             set "EXTRA_PERF_RUNNER_ARGS=--report-benchview --branch "%GIT_BRANCH%""
 
             REM Check if we are in a PR or this is a rolling submission
-            if defined ghprbPullId (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%^" --benchview-submission-type private"
+            if defined ghprbPullTitle (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ""[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%"" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
