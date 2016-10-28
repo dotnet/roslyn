@@ -137,8 +137,6 @@
     <IsVSBeforeDev15Preview4 Condition="'$(OS)' == 'Windows_NT' AND '$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
     <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
     <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
   </PropertyGroup>
 
   <Choose>
@@ -150,15 +148,10 @@
           </PropertyGroup>
         </When>
 
-        <When Condition="'$(IsDev15RC)' == 'true'">
-          <PropertyGroup>
-            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25825-RC</VisualStudioBuildToolsNuGetPackagePath>
-          </PropertyGroup>
-        </When>
-
         <Otherwise>
           <PropertyGroup>
-            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
+            <!-- TODO: Detect Preview 4/5 versus RC -->
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25825-RC</VisualStudioBuildToolsNuGetPackagePath>
           </PropertyGroup>
         </Otherwise>
       </Choose>
