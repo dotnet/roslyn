@@ -24,8 +24,8 @@
         <dependency id="System.Security.AccessControl"                      version="$SystemSecurityAccessControlVersion$" />
         <dependency id="System.Security.Cryptography.Algorithms"            version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
         <dependency id="System.Security.Principal.Windows"                  version="$SystemSecurityPrincipalWindowsVersion$" />
-        <dependency id="System.Text.Encoding"                               version="$SystemTextVersion$"/>
-        <dependency id="System.Text.Encoding.Extensions"                    version="$SystemTextExtensionsVersion$"/>
+        <dependency id="System.Text.Encoding"                               version="$SystemTextEncodingVersion$"/>
+        <dependency id="System.Text.Encoding.Extensions"                    version="$SystemTextEncodingExtensionsVersion$"/>
         <dependency id="System.Text.RegularExpressions"                     version="$SystemTextRegularExpressionsVersion$"/>
         <dependency id="System.Threading.Thread"                            version="$SystemThreadingThreadVersion$" />
       </group>
