@@ -579,4 +579,7 @@
   <data name="SeparatorIsExpected" xml:space="preserve">
     <value>separator is expected</value>
   </data>
+  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
+    <value>The stream cannot be read from.</value>
+  </data>
 </root>

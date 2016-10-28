@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
+        private static SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
         private static ValueTuple<Checksum, Solution> s_lastSolution;
 
         private readonly AssetService _assetService;
@@ -40,13 +41,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 return s_lastSolution.Item2;
             }
 
-            // create new solution
-            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // make sure there is always only one that creates a new solution
+            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (s_lastSolution.Item1 == solutionChecksum)
+                {
+                    return s_lastSolution.Item2;
+                }
 
-            // save it
-            s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
+                var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
 
-            return solution;
+                return solution;
+            }
         }
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)

@@ -278,6 +278,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LowerDecisionTree(byValue.Expression, byValue.Default);
             }
 
+            /// <summary>
+            /// Add a branch in the lowered decision tree to a label for a matched
+            /// pattern, and then produce a statement for the target of that branch
+            /// that binds the pattern variables.
+            /// </summary>
+            /// <param name="bindings">The source/destination pairs for the assignments</param>
+            private BoundStatement BindingsForCase(
+                ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings)
+            {
+                var patternMatched = _factory.GenerateLabel("patternMatched");
+                _loweredDecisionTree.Add(_factory.Goto(patternMatched));
+
+                var addBindings = ArrayBuilder<BoundStatement>.GetInstance();
+                addBindings.Add(_factory.Label(patternMatched));
+                if (!bindings.IsDefaultOrEmpty)
+                {
+                    foreach (var kv in bindings)
+                    {
+                        var source = kv.Key;
+                        var dest = kv.Value;
+                        var rewriter = this.LocalRewriter;
+                            addBindings.Add(_factory.ExpressionStatement(
+                            rewriter.MakeStaticAssignmentOperator(
+                                _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
+                    }
+                }
+
+                BoundStatement result = _factory.Block(addBindings.ToImmutableAndFree());
+                if (this.LocalRewriter.Instrument)
+                {
+                    // Hide the code that binds pattern variables in a hidden sequence point
+                    result = this.LocalRewriter._instrumenter.InstrumentPatternSwitchBindCasePatternVariables(result);
+                }
+
+                return result;
+            }
+
             private void LowerDecisionTree(DecisionTree.Guarded guarded)
             {
                 var sectionBuilder = this.SwitchSections[guarded.Section];
@@ -294,20 +331,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // with bindings
-                        var matched = _factory.GenerateLabel("matched");
-                        _loweredDecisionTree.Add(_factory.Goto(matched));
-                        sectionBuilder.Add(_factory.Label(matched));
-                        AddBindings(sectionBuilder, guarded.Bindings);
+                        sectionBuilder.Add(BindingsForCase(guarded.Bindings));
                         sectionBuilder.Add(_factory.Goto(targetLabel));
                     }
                 }
                 else
                 {
-                    var checkGuard = _factory.GenerateLabel("checkGuard");
-                    _loweredDecisionTree.Add(_factory.Goto(checkGuard));
-                    sectionBuilder.Add(_factory.Label(checkGuard));
-                    AddBindings(sectionBuilder, guarded.Bindings);
-
+                    sectionBuilder.Add(BindingsForCase(guarded.Bindings));
                     var guardTest = _factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
@@ -323,22 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _loweredDecisionTree.Add(_factory.Label(guardFailed));
 
                     LowerDecisionTree(guarded.Expression, guarded.Default);
-                }
-            }
-
-            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings)
-            {
-                if (!bindings.IsDefaultOrEmpty)
-                {
-                    foreach (var kv in bindings)
-                    {
-                        var source = kv.Key;
-                        var dest = kv.Value;
-                        var rewriter = this.LocalRewriter;
-                        sectionBuilder.Add(_factory.ExpressionStatement(
-                            rewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
-                    }
                 }
             }
 

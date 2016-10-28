@@ -122,14 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
-                rules: GetCompletionItemRules(symbols, context),
-                properties: GetInitialProperties(symbols[0], context));
-        }
-
-        protected virtual ImmutableDictionary<string, string> GetInitialProperties(
-            ISymbol symbol, SyntaxContext context)
-        {
-            return null;
+                rules: GetCompletionItemRules(symbols, context));
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -344,9 +337,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 selectedItem.Span, GetInsertionText(selectedItem, ch)));
         }
 
-        /// <summary>
-        /// Override this if you want to provide customized insertion based on the character typed.
-        /// </summary>
         private string GetInsertionText(CompletionItem item, char? ch)
         {
             return ch == null
@@ -354,6 +344,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 : GetInsertionText(item, ch.Value);
         }
 
+        /// <summary>
+        /// Override this if you want to provide customized insertion based on the character typed.
+        /// </summary>
         protected virtual string GetInsertionText(CompletionItem item, char ch)
         {
             return SymbolCompletionItem.GetInsertionText(item);

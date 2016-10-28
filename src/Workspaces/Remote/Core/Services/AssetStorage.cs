@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
             {
-                foreach (var kvp in _assets.ToArray())
+                foreach (var kvp in _assets)
                 {
                     if (current - kvp.Value.LastAccessed <= s_purgeAfterTimeSpan)
                     {

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -30,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            var cacheService = solution.Services.CacheService;
+            var caches = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(document.Project.Id).Select(pid => cacheService?.EnableCaching(pid)).ToList();
+
+            try
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -64,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         throw;
                     }
                 }
+            }
+            finally
+            {
+                caches.WhereNotNull().Do(c => c.Dispose());
             }
         }
 
