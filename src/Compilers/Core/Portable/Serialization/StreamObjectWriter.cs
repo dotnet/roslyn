@@ -420,8 +420,9 @@ namespace Roslyn.Utilities
             private readonly Dictionary<object, int> _valueToIdMap;
             private int _nextId;
 
+            // note: uses value equality so strings get unified for better compaction
             private static readonly ObjectPool<Dictionary<object, int>> s_dictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
 
             private ReferenceMap(ImmutableDictionary<object, int> baseMap)
             {
