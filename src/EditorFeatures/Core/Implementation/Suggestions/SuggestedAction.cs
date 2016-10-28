@@ -6,10 +6,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,38 +23,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
     {
-        protected readonly IAsynchronousOperationListener OperationListener;
+        protected readonly SuggestedActionsSourceProvider SourceProvider;
+
         protected readonly Workspace Workspace;
         protected readonly ITextBuffer SubjectBuffer;
-        protected readonly ICodeActionEditHandlerService EditHandler;
 
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
-        private readonly ImmutableArray<SuggestedActionSet> _actionSets;
-        protected readonly IWaitIndicator WaitIndicator;
+
+        protected ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
+        protected IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
+        protected IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
 
         internal SuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
-            CodeAction codeAction,
             object provider,
-            IAsynchronousOperationListener operationListener,
-            IEnumerable<SuggestedActionSet> actionSets = null)
+            CodeAction codeAction)
         {
             Contract.ThrowIfTrue(provider == null);
 
+            this.SourceProvider = sourceProvider;
             this.Workspace = workspace;
             this.SubjectBuffer = subjectBuffer;
-            this.CodeAction = codeAction;
-            this.EditHandler = editHandler;
-            this.WaitIndicator = waitIndicator;
             this.Provider = provider;
-            OperationListener = operationListener;
-            _actionSets = actionSets.AsImmutableOrEmpty();
+            this.CodeAction = codeAction;
         }
 
         internal virtual CodeActionPriority Priority => CodeAction?.Priority ?? CodeActionPriority.Medium;
@@ -221,86 +215,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
         }
 
-        public virtual bool HasPreview
-        {
-            get
-            {
-                // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,
-                // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
-                // answer is expensive (because we will need to call CodeAction.GetPreviewOperationsAsync() for this
-                // and this will involve computing the changed solution for the ApplyChangesOperation for the fix /
-                // refactoring). So we always return 'true' here (so that platform will call GetActionSetsAsync()
-                // below). Platform guarantees that nothing bad will happen if we return 'true' here and later return
-                // 'null' / empty collection from within GetPreviewAsync().
+        public virtual bool HasPreview => false;
 
-                return true;
-            }
-        }
+        public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
+            => SpecializedTasks.Default<object>();
 
-        public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Light bulb will always invoke this function on the UI thread.
-            AssertIsForeground();
-
-            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
-            if (previewPaneService == null)
-            {
-                return null;
-            }
-
-            // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
-            // since there is no one to close the viewer
-            var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
-            var preferredProjectId = preferredDocumentId?.ProjectId;
-
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
-            {
-                // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
-                // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-                var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
-                if (previewResult == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    // TakeNextPreviewAsync() needs to run on UI thread.
-                    AssertIsForeground();
-                    return await previewResult.GetPreviewsAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
-                }
-
-                // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-            }, defaultValue: null).ConfigureAwait(true);
-
-            // GetPreviewPane() needs to run on the UI thread.
-            AssertIsForeground();
-
-            string language;
-            string projectType;
-            Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
-
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
-        }
-
-        protected virtual DiagnosticData GetDiagnostic()
-        {
-            return null;
-        }
-
-        public virtual bool HasActionSets => _actionSets.Length > 0;
+        public virtual bool HasActionSets => false;
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
-        }
-
-        internal ImmutableArray<SuggestedActionSet> GetActionSets()
-        {
-            return _actionSets;
-        }
+            => SpecializedTasks.EmptyEnumerable<SuggestedActionSet>();
 
         #region not supported
 
@@ -326,28 +249,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        string ISuggestedAction.InputGestureText
-        {
-            get
-            {
-                // no shortcut support
-                return null;
-            }
-        }
+        // no shortcut support
+        string ISuggestedAction.InputGestureText => null;
 
         #endregion
 
         #region IEquatable<ISuggestedAction>
 
         public bool Equals(ISuggestedAction other)
-        {
-            return Equals(other as SuggestedAction);
-        }
+            => Equals(other as SuggestedAction);
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as SuggestedAction);
-        }
+            => Equals(obj as SuggestedAction);
 
         internal bool Equals(SuggestedAction otherSuggestedAction)
         {
@@ -356,12 +269,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return false;
             }
 
-            if (ReferenceEquals(this, otherSuggestedAction))
+            if (this == otherSuggestedAction)
             {
                 return true;
             }
 
-            if (!ReferenceEquals(Provider, otherSuggestedAction.Provider))
+            if (Provider != otherSuggestedAction.Provider)
             {
                 return false;
             }

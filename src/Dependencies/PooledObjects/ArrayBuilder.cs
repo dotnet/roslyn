@@ -203,6 +203,9 @@ namespace Microsoft.CodeAnalysis
             _builder.Sort(comparer);
         }
 
+        public void Sort(Comparison<T> compare)
+            => Sort(Comparer<T>.Create(compare));
+
         public void Sort(int startIndex, IComparer<T> comparer)
         {
             _builder.Sort(startIndex, _builder.Count - startIndex, comparer);
