@@ -385,18 +385,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var source = kv.Key;
                         var dest = kv.Value;
-                        var rewriter = this.LocalRewriter;
-                            addBindings.Add(_factory.ExpressionStatement(
-                            rewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
+                        var rewriter = _localRewriter;
+                        addBindings.Add(_factory.ExpressionStatement(
+                        rewriter.MakeStaticAssignmentOperator(
+                            _factory.Syntax, rewriter.VisitExpression(dest), rewriter.VisitExpression(source), RefKind.None, dest.Type, false)));
                     }
                 }
 
                 BoundStatement result = _factory.Block(addBindings.ToImmutableAndFree());
-                if (this.LocalRewriter.Instrument)
+                if (_localRewriter.Instrument)
                 {
                     // Hide the code that binds pattern variables in a hidden sequence point
-                    result = this.LocalRewriter._instrumenter.InstrumentPatternSwitchBindCasePatternVariables(result);
+                    result = _localRewriter._instrumenter.InstrumentPatternSwitchBindCasePatternVariables(result);
                 }
 
                 return result;
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     sectionBuilder.Add(BindingsForCase(guarded.Bindings));
-                    var guardTest = _factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true);
+                    var guardTest = _factory.ConditionalGoto(_localRewriter.VisitExpression(guarded.Guard), targetLabel, true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (!guarded.Guard.WasCompilerGenerated && _localRewriter.Instrument)

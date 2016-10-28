@@ -120,14 +120,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             VersionStamp.Create(),
                             documentInfo.FilePath));
 
-                    var textLoader = TextLoader.From(
-                        TextAndVersion.Create(
-                            new ChecksumSourceText(
-                                documentSnapshot.Text,
-                                await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
-                            VersionStamp.Create(),
-                            documentInfo.FilePath));
-
                     // TODO: do we need version?
                     documents.Add(
                         DocumentInfo.Create(
