@@ -150,8 +150,7 @@
 
         <Otherwise>
           <PropertyGroup>
-            <!-- TODO: Detect Preview 4/5 versus RC -->
-            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25825-RC</VisualStudioBuildToolsNuGetPackagePath>
+            <VisualStudioBuildToolsNuGetPackagePath>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsNuGetPackagePath>
           </PropertyGroup>
         </Otherwise>
       </Choose>
