@@ -3,7 +3,6 @@
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</ProjectGuid>
     <OutputType>Library</OutputType>

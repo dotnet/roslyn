@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{F7712928-1175-47B3-8819-EE086753DEE2}</ProjectGuid>
@@ -43,12 +42,10 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
-    <PlatformTarget>
-    </PlatformTarget>
+    <PlatformTarget></PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
-    <PlatformTarget>
-    </PlatformTarget>
+    <PlatformTarget></PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>

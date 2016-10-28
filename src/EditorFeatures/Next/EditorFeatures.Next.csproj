@@ -5,7 +5,6 @@
   </PropertyGroup>
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</ProjectGuid>
     <OutputType>Library</OutputType>

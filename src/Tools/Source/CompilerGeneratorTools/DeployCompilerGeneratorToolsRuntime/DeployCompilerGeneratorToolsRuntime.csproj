@@ -4,7 +4,6 @@
   <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Configuration)' == '' ">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <ProjectGuid>{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}</ProjectGuid>
