@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return true;
         }
 
-        private byte GetTelemetryScope()
+        private short GetTelemetryScope()
         {
             switch (_fixAllState.Scope)
             {
