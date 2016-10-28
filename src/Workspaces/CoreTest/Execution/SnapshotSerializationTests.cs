@@ -448,12 +448,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new StreamObjectWriter(stream))
             {
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new ObjectReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
@@ -556,12 +556,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static async Task<RemotableData> CloneAssetAsync(Serializer serializer, RemotableData asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new StreamObjectWriter(stream))
             {
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new ObjectReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = SolutionAsset.Create(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
