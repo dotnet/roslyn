@@ -208,6 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
         }
 
+        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            return Previous.InstrumentPatternSwitchBindCasePatternVariables(bindings);
+        }
+
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
             return Previous.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);

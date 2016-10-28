@@ -507,10 +507,9 @@ class C
             var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
 
             var fields = displayClass.GetFields(emitContext).ToArray();
-            var x1 = fields[0];
-            var x2 = fields[1];
-            Assert.Equal("x1", x1.Name);
-            Assert.Equal("x2", x2.Name);
+            AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x1", "x2" });
+            var x1 = fields.Where(f => f.Name == "x1").Single();
+            var x2 = fields.Where(f => f.Name == "x2").Single();
 
             var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
