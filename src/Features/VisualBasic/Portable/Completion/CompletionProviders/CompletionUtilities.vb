@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Public Function GetDisplayText(name As String, symbol As ISymbol) As String
+        Private Function GetDisplayText(name As String, symbol As ISymbol) As String
             If symbol.IsConstructor() Then
                 Return "New"
             ElseIf symbol.GetArity() > 0 Then
@@ -97,13 +97,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Public Function GetInsertionText(name As String, symbol As ISymbol, context As SyntaxContext) As String
+        Private Function GetInsertionText(name As String, symbol As ISymbol, context As SyntaxContext) As String
             name = name.EscapeIdentifier(context.IsRightOfNameSeparator, symbol, context.IsWithinAsyncMethod)
 
             If symbol.IsConstructor() Then
                 name = "New"
             ElseIf symbol.GetArity() > 0 Then
-                name += GenericSuffix
+                name += OfSuffix
             End If
 
             Return name
@@ -114,13 +114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' If this item was generic, customize what we insert depending on if the user typed
             ' open paren or not.
-            If insertionText.EndsWith(GenericSuffix) Then
-                Dim insertionTextWithoutSuffix = insertionText.Substring(0, insertionText.Length - GenericSuffix.Length)
-                If ch = "("c Then
-                    Return insertionTextWithoutSuffix
-                Else
-                    Return insertionTextWithoutSuffix + OfSuffix
-                End If
+            If ch = "("c AndAlso item.DisplayText.EndsWith(GenericSuffix) Then
+                Return insertionText.Substring(0, insertionText.IndexOf("("c))
             End If
 
             If ch = "]"c Then

@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(true, root2.HasAnnotation(annotation));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestSyntaxRootNotKeptAlive()
         {
             var pid = ProjectId.CreateNewId();

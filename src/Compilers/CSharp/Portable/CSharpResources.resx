@@ -4230,9 +4230,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongNumberOfTypeArguments" xml:space="preserve">
     <value>Wrong number of type arguments</value>
   </data>
-  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
-    <value>The stream cannot be read from.</value>
-  </data>
   <data name="NameConflictForName" xml:space="preserve">
     <value>Name conflict for name {0}</value>
   </data>

@@ -582,4 +582,7 @@
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
+  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
+    <value>The stream cannot be read from.</value>
+  </data>
 </root>
