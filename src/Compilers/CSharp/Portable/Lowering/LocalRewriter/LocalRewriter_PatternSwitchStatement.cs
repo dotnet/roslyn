@@ -371,19 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// that binds the pattern variables.
             /// </summary>
             /// <param name="bindings">The source/destination pairs for the assignments</param>
-            private BoundStatement BindingsForCase(
-                ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings)
+            /// <param name="addBindings">A builder to which the label and binding assignments are added</param>
+            private void AddBindingsForCase(
+                ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings,
+                ArrayBuilder<BoundStatement> addBindings)
             {
                 var patternMatched = _factory.GenerateLabel("patternMatched");
                 _loweredDecisionTree.Add(_factory.Goto(patternMatched));
 
-                var addBindings = ArrayBuilder<BoundStatement>.GetInstance();
-                if (this._localRewriter.Instrument)
-                {
-                    // Hide the code that binds pattern variables in a hidden sequence point
-                    addBindings.Add(_factory.HiddenSequencePoint());
-                }
-
+                // Hide the code that binds pattern variables in a hidden sequence point
+                addBindings.Add(_factory.HiddenSequencePoint());
                 addBindings.Add(_factory.Label(patternMatched));
                 if (!bindings.IsDefaultOrEmpty)
                 {
@@ -396,8 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));
                     }
                 }
-
-                return _factory.StatementList(addBindings.ToImmutableAndFree());
             }
 
             private void LowerDecisionTree(DecisionTree.Guarded guarded)
@@ -416,13 +411,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // with bindings
-                        sectionBuilder.Add(BindingsForCase(guarded.Bindings));
+                        AddBindingsForCase(guarded.Bindings, sectionBuilder);
                         sectionBuilder.Add(_factory.Goto(targetLabel));
                     }
                 }
                 else
                 {
-                    sectionBuilder.Add(BindingsForCase(guarded.Bindings));
+                    AddBindingsForCase(guarded.Bindings, sectionBuilder);
                     var guardTest = _factory.ConditionalGoto(guarded.Guard, targetLabel, true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
