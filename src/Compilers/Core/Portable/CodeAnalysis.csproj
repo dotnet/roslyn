@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -44,6 +43,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -143,7 +143,7 @@
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
-    <Compile Include="UnicodeCharacterUtilities.cs" />
+    <Compile Include="InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

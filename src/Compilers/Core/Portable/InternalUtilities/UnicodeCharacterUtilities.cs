@@ -2,7 +2,7 @@
 
 using System.Globalization;
 
-namespace Microsoft.CodeAnalysis
+namespace Roslyn.Utilities
 {
     /// <summary>
     /// Defines a set of helper methods to classify Unicode characters.
