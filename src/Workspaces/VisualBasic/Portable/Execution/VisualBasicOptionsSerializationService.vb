@@ -24,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             writer.WriteBoolean(vbOptions.OptionExplicit)
             writer.WriteBoolean(vbOptions.OptionCompareText)
             writer.WriteBoolean(vbOptions.EmbedVbCoreRuntime)
+
+            ' save parse option for embeded types - My types
+            writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
+            If vbOptions.ParseOptions IsNot Nothing Then
+                WriteTo(vbOptions.ParseOptions, writer, cancellationToken)
+            End If
         End Sub
 
         Public Overrides Sub WriteTo(options As ParseOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
@@ -85,9 +91,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim optionCompareText = reader.ReadBoolean()
             Dim embedVbCoreRuntime = reader.ReadBoolean()
 
+            Dim hasParseOptions = reader.ReadBoolean()
+            Dim parseOption = If(hasParseOptions, DirectCast(ReadParseOptionsFrom(reader, cancellationToken), VisualBasicParseOptions), Nothing)
+
             Return New VisualBasicCompilationOptions(outputKind, moduleName, mainTypeName, scriptClassName,
                                                      globalImports, rootNamespace, optionStrict, optionInfer, optionExplicit,
-                                                     optionCompareText, Nothing,
+                                                     optionCompareText, parseOption,
                                                      embedVbCoreRuntime, optimizationLevel, checkOverflow,
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                                                      platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,

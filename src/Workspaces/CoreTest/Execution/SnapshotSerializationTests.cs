@@ -440,6 +440,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(metadata, analyzer);
         }
 
+        [Fact]
+        public async Task VBParseOptionsInCompilationOptions()
+        {
+            var project = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.VisualBasic);
+            project = project.WithCompilationOptions(
+                ((VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions).WithParseOptions((VisualBasic.VisualBasicParseOptions)project.ParseOptions));
+
+            var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+
+            Assert.NotNull(checksum);
+        }
+
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
             var assetBuilder = new CustomAssetBuilder(workspace.CurrentSolution);
