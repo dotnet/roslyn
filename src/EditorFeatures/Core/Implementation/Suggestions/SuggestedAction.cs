@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly object Provider;
         internal readonly CodeAction CodeAction;
 
-        protected ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-        protected IAsynchronousOperationListener OperationListener => SourceProvider.OperationListener;
-        protected IWaitIndicator WaitIndicator => SourceProvider.WaitIndicator;
+        private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
         internal SuggestedAction(
             SuggestedActionsSourceProvider sourceProvider,
@@ -44,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction codeAction)
         {
-            Contract.ThrowIfTrue(provider == null);
+            Contract.ThrowIfNull(provider);
+            Contract.ThrowIfNull(codeAction);
 
             this.SourceProvider = sourceProvider;
             this.Workspace = workspace;
@@ -53,19 +52,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.CodeAction = codeAction;
         }
 
-        internal virtual CodeActionPriority Priority => CodeAction?.Priority ?? CodeActionPriority.Medium;
+        internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        public bool TryGetTelemetryId(out Guid telemetryId)
+        protected static int GetTelemetryPrefix(CodeAction codeAction)
         {
-            // TODO: this is temporary. Diagnostic team needs to figure out how to provide unique id per a fix.
-            // for now, we will use type of CodeAction, but there are some predefined code actions that are used by multiple fixes
-            // and this will not distinguish those
-
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            var type = CodeAction.GetType();
+            var type = codeAction.GetType();
             type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
+            return type.FullName.GetHashCode();
+        }
 
-            telemetryId = new Guid(type.FullName.GetHashCode(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        public virtual bool TryGetTelemetryId(out Guid telemetryId)
+        {
+            telemetryId = new Guid(GetTelemetryPrefix(this.CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             return true;
         }
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Create a task to do the actual async invocation of this action.
             // For testing purposes mark that we still have an outstanding async 
             // operation so that we don't try to validate things too soon.
-            var asyncToken = OperationListener.BeginAsyncOperation(GetType().Name + "." + nameof(Invoke));
+            var asyncToken = SourceProvider.OperationListener.BeginAsyncOperation(GetType().Name + "." + nameof(Invoke));
             var task = YieldThenInvokeAsync(cancellationToken);
             task.CompletesAsyncOperation(asyncToken);
         }
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.AssertIsForeground();
 
             // Always wrap whatever we're doing in a threaded wait dialog.
-            using (var context = this.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
+            using (var context = this.SourceProvider.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
             using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, context.CancellationToken))
             {
                 // Yield the UI thread so that the light bulb can be dismissed.  This is necessary
