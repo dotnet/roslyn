@@ -24,7 +24,7 @@ namespace Roslyn.Utilities
             {
                 SetWithInsertionOrder<V> set;
                 return _dictionary.TryGetValue(k, out set)
-                    ? set : SetWithInsertionOrder<V>.Empty;
+                    ? set : new SetWithInsertionOrder<V>();
             }
         }
 

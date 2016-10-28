@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Visit all references to local functions (calls, delegete
+        /// Visit all references to local functions (calls, delegate
         /// conversions, delegate creations) and rewrite them to point
         /// to the rewritten local function method instead of the original. 
         /// </summary>
