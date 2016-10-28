@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct ProcessedFieldInitializers
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
-            internal BoundStatementList LoweredInitializers { get; set; }
+            internal BoundStatement LoweredInitializers { get; set; }
             internal bool HasErrors { get; set; }
             internal ImportChain FirstImportChain { get; set; }
         }

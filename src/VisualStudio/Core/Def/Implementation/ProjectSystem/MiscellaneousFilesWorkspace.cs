@@ -239,8 +239,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    // We should now claim this
-                    AttachToDocument(docCookie, moniker);
+                    // We should now try to claim this. The moniker we have here is the moniker after the rename if we're currently processing
+                    // a rename. It's possible in that case that this is being closed by the other workspace due to that rename. If the rename
+                    // is changing or removing the file extension, we wouldn't want to try attaching, which is why we have to re-check
+                    // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
+                    if (TryGetLanguageInformation(moniker) != null)
+                    {
+                        AttachToDocument(docCookie, moniker);
+                    }
                 }
             }
             else if (IsClaimedByAnotherWorkspace(workspaceRegistration))

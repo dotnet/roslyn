@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!instrumentForDynamicAnalysis);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
-                                var lowered = LowerBodyOrInitializer(
+                                BoundStatement lowered = LowerBodyOrInitializer(
                                     methodSymbol,
                                     methodOrdinal,
                                     analyzedInitializers,
@@ -1063,12 +1063,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     closureDebugInfoBuilder,
                                     out initializerStateMachineTypeOpt);
 
+                                processedInitializers.LoweredInitializers = lowered;
+
                                 // initializers can't produce state machines
                                 Debug.Assert((object)initializerStateMachineTypeOpt == null);
                                 Debug.Assert(!hasErrors);
                                 hasErrors = lowered.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
                                 SetGlobalErrorIfTrue(hasErrors);
-
                                 if (hasErrors)
                                 {
                                     _diagnostics.AddRange(diagsForCurrentMethod);
@@ -1083,7 +1084,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // initializers for global code have already been included in the body
                             if (includeInitializersInBody)
                             {
-                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                                if (processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList)
+                                {
+                                    BoundStatementList lowered = (BoundStatementList) processedInitializers.LoweredInitializers;
+                                    boundStatements = boundStatements.Concat(lowered.Statements);
+                                }
+                                else
+                                {
+                                    boundStatements = boundStatements.Add(processedInitializers.LoweredInitializers);
+                                }
                             }
 
                             if (hasBody)

@@ -48,24 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnTypeWithCustomModifiers = constructedSourceMethod.ReturnType;
             if (returnType.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
-                returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, RefKind.None, destinationMethod.ContainingAssembly);
+                returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, destinationMethod.ContainingAssembly);
             }
         }
 
         /// <param name="sourceType">Type that already has custom modifiers.</param>
         /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
-        /// <param name="refKind"><see cref="RefKind"/> of the parameter of which this is the type (or <see cref="RefKind.None"/> for a return type.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
-        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, RefKind refKind, AssemblySymbol containingAssembly)
+        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly)
         {
             Debug.Assert(sourceType.Equals(destinationType, TypeCompareKind.AllIgnoreOptions));
 
             // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
             // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
             // code gen uses and then passing them to the dynamic type decoder that metadata reading uses.
-            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
-            TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
+            // NOTE: ref is irrelevant here since we are just encoding/decoding the type out of the signature context
+            ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, RefKind.None);
+            TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, RefKind.None, flags);
 
             TypeSymbol resultType;
             if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))

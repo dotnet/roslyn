@@ -843,7 +843,7 @@ public class Cls
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            if (typeSyntax.IsVar && local.IsVar && local.Type.IsErrorType())
+            if (local.Type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
@@ -912,10 +912,9 @@ public class Cls
 
             var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
 
-            Assert.Equal(isExecutableCode, dataFlow.Succeeded);
-
             if (isExecutableCode)
             {
+                Assert.True(dataFlow.Succeeded);
                 Assert.True(dataFlow.VariablesDeclared.Contains(symbol, ReferenceEqualityComparer.Instance));
 
                 if (!isDelegateCreation)
@@ -26945,6 +26944,86 @@ class H
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+        }
+
+        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        public void ExpressionVariableInCase_1()
+        {
+            string source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (true)
+        {
+            case TakeOutParam(3, out var x1):
+                System.Console.WriteLine(x1);
+                break;
+        }
+    }
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            // The point of this test is that it should not crash.
+            compilation.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case TakeOutParam(3, out var x1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "TakeOutParam(3, out var x1)").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
+        }
+
+        [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
+        public void ExpressionVariableInCase_2()
+        {
+            string source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (true)
+        {
+            case TakeOutParam(3, out UndelcaredType x1):
+                System.Console.WriteLine(x1);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            // The point of this test is that it should not crash.
+            compilation.VerifyDiagnostics(
+                // (8,38): error CS0246: The type or namespace name 'UndelcaredType' could not be found (are you missing a using directive or an assembly reference?)
+                //             case TakeOutParam(3, out UndelcaredType x1):
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndelcaredType").WithArguments("UndelcaredType").WithLocation(8, 38),
+                // (8,18): error CS0103: The name 'TakeOutParam' does not exist in the current context
+                //             case TakeOutParam(3, out UndelcaredType x1):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
         }
 
         private static void VerifyModelForOutField(
