@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
+            var parsedFeatures = ParseFeatures(features);
 
             string compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);

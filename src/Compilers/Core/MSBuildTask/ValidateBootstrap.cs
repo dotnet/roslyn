@@ -3,7 +3,6 @@
 using Microsoft.Build.Utilities;
 using System.IO;
 using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp;
 using System;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -40,8 +39,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var dependencies = new[]
             {
                 typeof(ValidateBootstrap).GetTypeInfo().Assembly,
-                typeof(CSharpCompilation).GetTypeInfo().Assembly,
-                typeof(Compilation).GetTypeInfo().Assembly,
             };
 
             var allGood = true;
