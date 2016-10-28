@@ -285,9 +285,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
       <Link>Serialization\TypeKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
-      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
