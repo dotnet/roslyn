@@ -74,7 +74,7 @@ namespace BuildBoss
 
         private static bool ProcessProject(string solutionPath, ProjectData projectData, Dictionary<ProjectKey, ProjectData> map)
         {
-            var util = new ProjectUtil(projectData, map);
+            var util = new ProjectCheckerUtil(projectData, map);
             var textWriter = new StringWriter();
             if (!util.CheckAll(textWriter))
             {

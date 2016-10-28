@@ -4,7 +4,6 @@
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</ProjectGuid>
     <OutputType>Exe</OutputType>

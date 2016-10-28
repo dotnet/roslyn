@@ -4,14 +4,12 @@
   <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{909B656F-6095-4AC2-A5AB-C3F032315C45}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject></StartupObject>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator</RootNamespace>
     <AssemblyName>VBErrorFactsGenerator</AssemblyName>
     <VBRuntime>Embed</VBRuntime>
@@ -29,10 +27,8 @@
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <RoslynProjectType>CompilerGeneratorTool</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.vb" />
   </ItemGroup>
