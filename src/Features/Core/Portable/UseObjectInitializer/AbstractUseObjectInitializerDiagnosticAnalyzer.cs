@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 syntaxFacts,
                 objectCreationExpression);
             var matches = analyzer.Analyze();
-            if (matches == null)
+            if (matches.Length == 0)
             {
                 return;
             }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches,
+            ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
@@ -175,30 +175,30 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
+        internal ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
-                return null;
+                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
             }
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
-                return null;
+                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
             }
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return null;
+                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
             }
 
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
 
-            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches = null;
+            var matches = ArrayBuilder<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.GetInstance();
             HashSet<string> seenNames = null;
 
             foreach (var child in containingBlock.ChildNodesAndTokens())
@@ -247,7 +247,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 // found a match!
                 seenNames = seenNames ?? new HashSet<string>();
-                matches = matches ?? new List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>();
 
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     statement, leftMemberAccess, rightExpression));
             }
 
-            return matches;
+            return matches.ToImmutableAndFree();
         }
 
         private bool ValuePatternMatches(TExpressionSyntax expression)
