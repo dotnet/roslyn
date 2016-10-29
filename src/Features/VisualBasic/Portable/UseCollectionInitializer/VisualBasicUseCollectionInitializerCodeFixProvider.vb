@@ -50,12 +50,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 End If
 
                 newExpression = newExpression.WithLeadingTrivia(SyntaxFactory.ElasticMarker)
-                nodesAndTokens.Add(newExpression)
 
                 If i < matches.Length - 1 Then
+                    nodesAndTokens.Add(newExpression)
                     Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken).
                                               WithTrailingTrivia(expressionStatement.GetTrailingTrivia())
                     nodesAndTokens.Add(comma)
+                Else
+                    newExpression = newExpression.WithTrailingTrivia(expressionStatement.GetTrailingTrivia())
+                    nodesAndTokens.Add(newExpression)
                 End If
             Next
 
