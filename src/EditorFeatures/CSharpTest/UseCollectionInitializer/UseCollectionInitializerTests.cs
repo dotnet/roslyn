@@ -40,7 +40,35 @@ class C
 {
     void M()
     {
-        var c = new List<int>()
+        var c = new List<int>
+        {
+            1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestWithCreationArguments()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>(1);
+        c.Add(1);
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>(1)
         {
             1
         };
@@ -70,7 +98,7 @@ class C
     void M()
     {
         List<int> c = null;
-        c = new List<int>()
+        c = new List<int>
         {
             1
         };
@@ -119,7 +147,7 @@ class C
     {
         List<int>[] array;
 
-        array[0] = new List<int>()
+        array[0] = new List<int>
         {
             1,
             2
@@ -189,12 +217,12 @@ class C
     {
         List<int>[] array;
 
-        array[0] = new List<int>()
+        array[0] = new List<int>
         {
             1,
             2
         };
-        array[1] = new List<int>()
+        array[1] = new List<int>
         {
             3,
             4
@@ -224,7 +252,7 @@ class C
 {
     void M()
     {
-        var c = new List<int>()
+        var c = new List<int>
         {
             1, // Foo
             2 // Bar
@@ -255,7 +283,7 @@ class C
 {
     void M()
     {
-        var c = new Dictionary<int, string>()
+        var c = new Dictionary<int, string>
         {
             { 1, ""x"" },
             { 2, ""y"" }

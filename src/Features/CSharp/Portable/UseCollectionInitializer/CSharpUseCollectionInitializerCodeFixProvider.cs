@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 SyntaxKind.CollectionInitializerExpression,
                 CreateExpressions(matches)).WithOpenBraceToken(openBrace);
 
+            if (objectCreation.ArgumentList != null &&
+                objectCreation.ArgumentList.Arguments.Count == 0)
+            {
+                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
+                                               .WithArgumentList(null);
+            }
+
             return objectCreation.WithInitializer(initializer);
         }
 
