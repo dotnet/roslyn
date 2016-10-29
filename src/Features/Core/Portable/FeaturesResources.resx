@@ -1151,4 +1151,10 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
+  <data name="Use_named_arguments" xml:space="preserve">
+    <value>Use named arguments</value>
+  </data>
+  <data name="Use_named_arguments_for_literals" xml:space="preserve">
+    <value>Use named arguments for literals</value>
+  </data>
 </root>

@@ -3120,6 +3120,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use named arguments.
+        /// </summary>
+        internal static string Use_named_arguments {
+            get {
+                return ResourceManager.GetString("Use_named_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use named arguments for literals.
+        /// </summary>
+        internal static string Use_named_arguments_for_literals {
+            get {
+                return ResourceManager.GetString("Use_named_arguments_for_literals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to use pattern matching.
         /// </summary>
         internal static string Use_pattern_matching {
