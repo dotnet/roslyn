@@ -1298,6 +1298,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be read from..
+        /// </summary>
+        internal static string TheStreamCannotBeReadFrom {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The stream cannot be written to..
         /// </summary>
         internal static string TheStreamCannotBeWrittenTo {

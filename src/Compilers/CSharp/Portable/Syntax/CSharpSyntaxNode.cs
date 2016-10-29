@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!stream.CanRead)
             {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
             using (var reader = new StreamObjectReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))

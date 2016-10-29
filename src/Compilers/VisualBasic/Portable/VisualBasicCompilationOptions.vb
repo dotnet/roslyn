@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Compilation level parse options.  Used when compiling synthetic embedded code such as My template
         ''' </summary>
         ''' <returns>The Parse Options Setting.</returns>
-        Friend ReadOnly Property ParseOptions As VisualBasicParseOptions
+        Public ReadOnly Property ParseOptions As VisualBasicParseOptions
             Get
                 Return _parseOptions
             End Get

@@ -298,5 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(factory != null);
             return rewrittenExpression;
         }
+
+        public virtual BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            return bindings;
+        }
     }
 }

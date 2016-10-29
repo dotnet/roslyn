@@ -44,9 +44,21 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, Guid projectGuid, params string[] commandLineArguments)
         {
             var projectFilePath = Path.GetTempPath();
-            var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
             var binOutputPath = GetOutputPathFromArguments(commandLineArguments) ?? Path.Combine(projectFilePath, projectName + ".dll");
 
+            return CreateCSharpCPSProject(environment, projectName, projectFilePath, binOutputPath, projectGuid, commandLineArguments);
+        }
+
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, string binOutputPath, params string[] commandLineArguments)
+        {
+            var projectFilePath = Path.GetTempPath();
+            return CreateCSharpCPSProject(environment, projectName, projectFilePath, binOutputPath, projectGuid: Guid.NewGuid(), commandLineArguments: commandLineArguments);
+        }
+
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, string projectFilePath, string binOutputPath, Guid projectGuid, params string[] commandLineArguments)
+        {
+            var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
+            
             var cpsProject = CPSProjectFactory.CreateCPSProject(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
