@@ -35,9 +35,15 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource GetAssetSource(int sessionId)
+        public AssetSource TryGetAssetSource(int sessionId)
         {
-            return _assetSources[sessionId];
+            AssetSource source;
+            if (_assetSources.TryGetValue(sessionId, out source))
+            {
+                return source;
+            }
+
+            return null;
         }
 
         public void RegisterAssetSource(int sessionId, AssetSource assetSource)
