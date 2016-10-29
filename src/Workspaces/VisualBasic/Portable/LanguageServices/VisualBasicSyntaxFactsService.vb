@@ -1546,5 +1546,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return syntaxTree.IsPossibleTupleContext(token, position)
         End Function
+
+        Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfExpressionStatement
+            Return DirectCast(node, ExpressionStatementSyntax).Expression
+        End Function
+
+        Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
+            Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
+            expression = memberAccess.Expression
+            name = memberAccess.Name
+        End Sub
     End Class
 End Namespace

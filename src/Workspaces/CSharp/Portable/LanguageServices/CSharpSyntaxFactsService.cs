@@ -1795,13 +1795,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
-        {
-            return ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
-        }
+            => ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
 
         public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+            => ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
+
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
         {
-            return ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
+            var memberAccess = (MemberAccessExpressionSyntax)node;
+            expression = memberAccess.Expression;
+            name = memberAccess.Name;
         }
 
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
@@ -1856,20 +1859,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
-        {
-            return ((InvocationExpressionSyntax)node).Expression;
-        }
+            => ((InvocationExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
-        {
-            return ((AwaitExpressionSyntax)node).Expression;
-        }
+            => ((AwaitExpressionSyntax)node).Expression;
 
         public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             return syntaxTree.IsPossibleTupleContext(token, position);
         }
+
+        public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
+            => ((ExpressionStatementSyntax)node).Expression;
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {

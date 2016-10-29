@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);
-        void GetPartsOfMemberAccessExpression(SyntaxNode statement, out SyntaxNode expression, out SyntaxNode name);
+        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name);
 
         bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
