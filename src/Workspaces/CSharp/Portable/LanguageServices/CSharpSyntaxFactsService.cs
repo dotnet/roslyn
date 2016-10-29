@@ -597,9 +597,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public RefKind GetRefKindOfArgument(SyntaxNode node)
+            => (node as ArgumentSyntax).GetRefKind();
+
+        public bool IsSimpleArgument(SyntaxNode node)
         {
-            return (node as ArgumentSyntax).GetRefKind();
+            var argument = (ArgumentSyntax)node;
+            return argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
+                   argument.NameColon == null;
         }
+
 
         public bool IsInConstantContext(SyntaxNode node)
         {

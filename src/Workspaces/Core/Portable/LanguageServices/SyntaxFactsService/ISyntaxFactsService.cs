@@ -105,7 +105,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
 
+        /// <summary>
+        /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,
+        /// no named params, no omitted args).
+        /// </summary>
+        bool IsSimpleArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
+
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression);

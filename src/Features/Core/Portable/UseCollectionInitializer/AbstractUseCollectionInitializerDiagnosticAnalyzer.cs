@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
 using System.Collections;
+using System;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
         TVariableDeclarator>
-        : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 syntaxFacts,
                 objectCreationExpression);
             var matches = analyzer.Analyze();
-            if (matches == null)
+            if (matches.Length == 0)
             {
                 return;
             }
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            List<TExpressionStatementSyntax> matches,
+            ImmutableArray<TExpressionStatementSyntax> matches,
             ImmutableArray<Location> locations)
         {
 #if false
@@ -143,32 +144,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
     }
-
-    //internal struct Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
-    //    where TExpressionSyntax : SyntaxNode
-    //    where TMemberAccessExpressionSyntax : TExpressionSyntax
-    //    where TAssignmentStatementSyntax : SyntaxNode
-    //{
-    //    public readonly TAssignmentStatementSyntax Statement;
-    //    public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-    //    public readonly TExpressionSyntax Initializer;
-
-    //    public Match(
-    //        TAssignmentStatementSyntax statement,
-    //        TMemberAccessExpressionSyntax memberAccessExpression,
-    //        TExpressionSyntax initializer)
-    //    {
-    //        Statement = statement;
-    //        MemberAccessExpression = memberAccessExpression;
-    //        Initializer = initializer;
-    //    }
-    //}
 
     internal struct Analyzer<
             TExpressionSyntax,
@@ -200,30 +176,35 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal List<TExpressionStatementSyntax> Analyze()
+        internal ImmutableArray<TExpressionStatementSyntax> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
-                return null;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
-                return null;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return null;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
+            var matches = ArrayBuilder<TExpressionStatementSyntax>.GetInstance();
+            AddMatches(matches);
+            return matches.ToImmutableAndFree(); ;
+        }
+
+        private void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
+        {
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
-
-            List<TExpressionStatementSyntax> matches = null;
 
             foreach (var child in containingBlock.ChildNodesAndTokens())
             {
@@ -239,30 +220,44 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 if (child.IsToken)
                 {
-                    break;
+                    return;
                 }
 
                 var statement = child.AsNode() as TExpressionStatementSyntax;
                 if (statement == null)
                 {
-                    break;
+                    return;
                 }
 
                 var invocationExpression = _syntaxFacts.GetExpressionOfExpressionStatement(statement) as TInvocationExpressionSyntax;
                 if (invocationExpression == null)
                 {
-                    break;
+                    return;
+                }
+
+                var arguments = _syntaxFacts.GetArgumentsForInvocationExpression(invocationExpression);
+                if (arguments.Count < 1)
+                {
+                    return;
+                }
+
+                foreach (var argument in arguments)
+                {
+                    if (!_syntaxFacts.IsSimpleArgument(argument))
+                    {
+                        return;
+                    }
                 }
 
                 var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
                 if (memberAccess == null)
                 {
-                    break;
+                    return;
                 }
 
                 if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
                 {
-                    break;
+                    return;
                 }
 
                 SyntaxNode instance, memberName;
@@ -282,12 +277,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     break;
                 }
 
-                // found a match!
-                matches = matches ?? new List<TExpressionStatementSyntax>();
                 matches.Add(statement);
             }
-
-            return matches;
         }
 
         private bool ValuePatternMatches(TExpressionSyntax expression)

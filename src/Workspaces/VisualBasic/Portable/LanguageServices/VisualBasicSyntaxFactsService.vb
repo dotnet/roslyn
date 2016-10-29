@@ -485,6 +485,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RefKind.None
         End Function
 
+        Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
+            Dim argument = DirectCast(node, ArgumentSyntax)
+            Return Not argument.IsNamed AndAlso Not argument.IsOmitted
+        End Function
+
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
             Return node.IsInConstantContext()
         End Function

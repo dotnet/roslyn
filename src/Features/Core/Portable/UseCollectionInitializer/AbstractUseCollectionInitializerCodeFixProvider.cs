@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
             TObjectCreationExpressionSyntax objectCreation,
-            List<TExpressionStatementSyntax> matches);
+            ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Object_initialization_can_be_simplified, createChangedDocument)
+                : base(FeaturesResources.Collection_initialization_can_be_simplified, createChangedDocument)
             {
             }
         }

@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InlineDeclarationDiagnosticId = "IDE0018";
         public const string InlineAsTypeCheckId = "IDE0019";
         public const string InlineIsTypeCheckId = "IDE0020";
-        public const string UseCollectionInitializerDiagnosticId = "IDE0021";
 
         public const string UseExpressionBodyForConstructorsDiagnosticId = "IDE0020";
         public const string UseExpressionBodyForMethodsDiagnosticId = "IDE0021";
@@ -33,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseExpressionBodyForPropertiesDiagnosticId = "IDE0024";
         public const string UseExpressionBodyForIndexersDiagnosticId = "IDE0025";
         public const string UseExpressionBodyForAccessorsDiagnosticId = "IDE0026";
+
+        public const string UseCollectionInitializerDiagnosticId = "IDE0027";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
