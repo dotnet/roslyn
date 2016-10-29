@@ -25,6 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Dim initializer = SyntaxFactory.ObjectCollectionInitializer(
                 CreateCollectionInitializer(matches))
 
+            If objectCreation.ArgumentList IsNot Nothing AndAlso
+               objectCreation.ArgumentList.Arguments.Count = 0 Then
+
+                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia())).
+                                                WithArgumentList(Nothing)
+            End If
+
             Return objectCreation.WithoutTrailingTrivia().
                                   WithInitializer(initializer).
                                   WithTrailingTrivia(objectCreation.GetTrailingTrivia())

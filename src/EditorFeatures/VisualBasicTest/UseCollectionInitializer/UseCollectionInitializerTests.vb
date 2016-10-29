@@ -29,7 +29,30 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = New List(Of Integer)() From {
+        Dim c = New List(Of Integer) From {
+            1
+        }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestDoNotRemoveNonEmptyArgumentList() As Task
+            Await TestAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)(Nothing)
+        c.Add(1)
+    End Sub
+End Class",
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = New List(Of Integer)(Nothing) From {
             1
         }
     End Sub
@@ -52,7 +75,7 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c As New List(Of Integer)() From {
+        Dim c As New List(Of Integer) From {
             1
         }
     End Sub
@@ -77,7 +100,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c as List(Of Integer) = Nothing
-        c = New List(Of Integer)() From {
+        c = New List(Of Integer) From {
             1
         }
     End Sub
@@ -131,7 +154,7 @@ Class C
     Sub M()
         Dim array As List(Of Integer)()
 
-        array(0) = New List(Of Integer)() From {
+        array(0) = New List(Of Integer) From {
             1,
             2
         }
@@ -155,7 +178,7 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = New List(Of Integer)() From {
+        Dim c = New List(Of Integer) From {
             {1, 2}
         }
     End Sub
@@ -170,7 +193,7 @@ compareTokens:=False)
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)() From {
+        Dim c = [||]New List(Of Integer) From {
             1
         }
         c.Add(1)
@@ -202,12 +225,12 @@ Class C
     Sub M()
         Dim array As List(Of Integer)()
 
-        array(0) = New List(Of Integer)() From {
+        array(0) = New List(Of Integer) From {
             1,
             2
         }
 
-        array(1) = New List(Of Integer)() From {
+        array(1) = New List(Of Integer) From {
             3,
             4
         }
@@ -232,7 +255,7 @@ End Class",
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = New List(Of Integer)() From {
+        Dim c = New List(Of Integer) From {
             1, ' Foo
             2 ' Bar
             }
