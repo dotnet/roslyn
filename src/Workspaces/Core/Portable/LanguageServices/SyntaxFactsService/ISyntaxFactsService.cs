@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
 
+        SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
+
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
@@ -84,6 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
         SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+        void GetPartsOfMemberAccessExpression(SyntaxNode statement, out SyntaxNode expression, out SyntaxNode name);
 
         bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);

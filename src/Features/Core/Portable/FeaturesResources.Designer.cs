@@ -664,6 +664,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collection initialization can be simplified.
+        /// </summary>
+        internal static string Collection_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Compiler.
         /// </summary>
         internal static string Compiler1 {

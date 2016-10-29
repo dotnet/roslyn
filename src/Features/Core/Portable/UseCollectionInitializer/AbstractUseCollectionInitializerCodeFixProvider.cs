@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax,
+        TInvocationExpressionSyntax,
+        TExpressionStatementSyntax,
         TVariableDeclarator>
         : CodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
+            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclarator>(
                 syntaxFacts, objectCreation);
             var matches = analyzer.Analyze();
 
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             editor.ReplaceNode(statement, newStatement);
             foreach (var match in matches)
             {
-                editor.RemoveNode(match.Statement);
+                editor.RemoveNode(match);
             }
 
             var newRoot = editor.GetChangedRoot();
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
             TObjectCreationExpressionSyntax objectCreation,
-            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches);
+            List<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

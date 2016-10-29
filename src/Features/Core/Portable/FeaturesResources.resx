@@ -1151,4 +1151,7 @@ This version used in: {2}</value>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
+  <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
+    <value>Collection initialization can be simplified</value>
+  </data>
 </root>

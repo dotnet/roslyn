@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
+using System.Collections;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -16,7 +17,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax,
+        TInvocationExpressionSyntax,
+        TExpressionStatementSyntax,
         TVariableDeclarator>
         : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
         where TSyntaxKind : struct
@@ -24,7 +26,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
         protected abstract bool FadeOutOperatorToken { get; }
@@ -33,19 +36,29 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Collection_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, GetObjectCreationSyntaxKind());
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+                if (ienumerableType != null)
+                {
+                    context.RegisterSyntaxNodeAction(
+                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                        GetObjectCreationSyntaxKind());
+                }
+            });
         }
 
         protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
+            var cancellationToken = context.CancellationToken;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
 
@@ -57,8 +70,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
+            // Object creation can only be converted to collection initializer if it
+            // implements the IEnumerable type.
+            var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
+            if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
+            {
+                return;
+            }
+
             var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
+            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclarator>(
                 syntaxFacts,
                 objectCreationExpression);
             var matches = analyzer.Analyze();
@@ -81,9 +102,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches,
+            List<TExpressionStatementSyntax> matches,
             ImmutableArray<Location> locations)
         {
+#if false
             var syntaxTree = context.Node.SyntaxTree;
 
             var fadeOutCode = optionSet.GetOption(
@@ -117,6 +139,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         additionalLocations: locations));
                 }
             }
+#endif
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -127,38 +150,40 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
     }
 
-    internal struct Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : SyntaxNode
-    {
-        public readonly TAssignmentStatementSyntax Statement;
-        public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-        public readonly TExpressionSyntax Initializer;
+    //internal struct Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
+    //    where TExpressionSyntax : SyntaxNode
+    //    where TMemberAccessExpressionSyntax : TExpressionSyntax
+    //    where TAssignmentStatementSyntax : SyntaxNode
+    //{
+    //    public readonly TAssignmentStatementSyntax Statement;
+    //    public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
+    //    public readonly TExpressionSyntax Initializer;
 
-        public Match(
-            TAssignmentStatementSyntax statement,
-            TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer)
-        {
-            Statement = statement;
-            MemberAccessExpression = memberAccessExpression;
-            Initializer = initializer;
-        }
-    }
+    //    public Match(
+    //        TAssignmentStatementSyntax statement,
+    //        TMemberAccessExpressionSyntax memberAccessExpression,
+    //        TExpressionSyntax initializer)
+    //    {
+    //        Statement = statement;
+    //        MemberAccessExpression = memberAccessExpression;
+    //        Initializer = initializer;
+    //    }
+    //}
 
     internal struct Analyzer<
             TExpressionSyntax,
-            TStatementSyntax, 
+            TStatementSyntax,
             TObjectCreationExpressionSyntax, 
             TMemberAccessExpressionSyntax,
-            TAssignmentStatementSyntax,
+            TInvocationExpressionSyntax,
+            TExpressionStatementSyntax,
             TVariableDeclaratorSyntax>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -175,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
+        internal List<TExpressionStatementSyntax> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
@@ -198,8 +223,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
 
-            List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches = null;
-            HashSet<string> seenNames = null;
+            List<TExpressionStatementSyntax> matches = null;
 
             foreach (var child in containingBlock.ChildNodesAndTokens())
             {
@@ -218,48 +242,49 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     break;
                 }
 
-                var statement = child.AsNode() as TAssignmentStatementSyntax;
+                var statement = child.AsNode() as TExpressionStatementSyntax;
                 if (statement == null)
                 {
                     break;
                 }
 
-                if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
+                var invocationExpression = _syntaxFacts.GetExpressionOfExpressionStatement(statement) as TInvocationExpressionSyntax;
+                if (invocationExpression == null)
                 {
                     break;
                 }
 
-                SyntaxNode left, right;
-                _syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out right);
-
-                var rightExpression = right as TExpressionSyntax;
-                var leftMemberAccess = left as TMemberAccessExpressionSyntax;
-                if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
+                var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
+                if (memberAccess == null)
                 {
                     break;
                 }
 
-                var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
-                if (!ValuePatternMatches(expression))
+                if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+                {
+                    break;
+                }
+
+                SyntaxNode instance, memberName;
+                _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out instance, out memberName);
+
+                string name;
+                int arity;
+                _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out name, out arity);
+
+                if (arity != 0 || !name.Equals(nameof(IList.Add)))
+                {
+                    break;
+                }
+
+                if (!ValuePatternMatches((TExpressionSyntax)instance))
                 {
                     break;
                 }
 
                 // found a match!
-                seenNames = seenNames ?? new HashSet<string>();
-                matches = matches ?? new List<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>();
-
-                // If we see an assignment to the same property/field, we can't convert it
-                // to an initializer.
-                var name = _syntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
-                var identifier = _syntaxFacts.GetIdentifierOfSimpleName(name);
-                if (!seenNames.Add(identifier.ValueText))
-                {
-                    break;
-                }
-
-                matches.Add(new Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>(
-                    statement, leftMemberAccess, rightExpression));
+                matches = matches ?? new List<TExpressionStatementSyntax>();
+                matches.Add(statement);
             }
 
             return matches;
