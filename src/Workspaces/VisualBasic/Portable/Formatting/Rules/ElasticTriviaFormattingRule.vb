@@ -39,6 +39,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                              [option]:=IndentBlockOption.RelativePosition))
                 End If
             End If
+
+            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
+
+                If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    Dim initializer = collectionInitializer.Initializer
+
+                    AddIndentBlockOperation(list,
+                                            initializer.OpenBraceToken,
+                                            initializer.CloseBraceToken.GetPreviousToken(),
+                                            [option]:=IndentBlockOption.RelativePosition)
+
+                    list.Add(FormattingOperations.CreateIndentBlockOperation(
+                             initializer.CloseBraceToken, initializer.CloseBraceToken,
+                             indentationDelta:=0,
+                             [option]:=IndentBlockOption.RelativePosition))
+                End If
+            End If
         End Sub
 
         Public Overrides Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation),
@@ -54,6 +72,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     list.Add(New AlignTokensOperation(
                              initializer.WithKeyword,
                              SpecializedCollections.SingletonEnumerable(initializer.CloseBraceToken),
+                             [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
+                End If
+            End If
+
+            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
+
+                If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    list.Add(New AlignTokensOperation(
+                             collectionInitializer.FromKeyword,
+                             SpecializedCollections.SingletonEnumerable(collectionInitializer.Initializer.CloseBraceToken),
                              [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
                 End If
             End If
@@ -85,6 +114,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
             End If
 
+            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Return New AdjustSpacesOperation(1,
+                        [option]:=AdjustSpacesOption.ForceSpaces)
+            End If
+
             Return operation
         End Function
 
@@ -113,11 +149,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
-            If currentToken.Kind = SyntaxKind.CloseBraceToken AndAlso
-               currentToken.Parent.Kind = SyntaxKind.ObjectMemberInitializer Then
+            If previousToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
 
                 Return New AdjustNewLinesOperation(line:=1,
                     [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If previousToken.Kind = SyntaxKind.CommaToken AndAlso
+               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer Then
+
+                If currentToken.Parent.Parent.Kind <> SyntaxKind.ObjectCollectionInitializer Then
+                    Return New AdjustNewLinesOperation(line:=1,
+                        [option]:=AdjustNewLinesOption.ForceLines)
+                End If
+            End If
+
+            If currentToken.Kind = SyntaxKind.CloseBraceToken Then
+                If currentToken.Parent.Kind = SyntaxKind.ObjectMemberInitializer Then
+
+                    Return New AdjustNewLinesOperation(line:=1,
+                        [option]:=AdjustNewLinesOption.ForceLines)
+                End If
+
+                If currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+                   currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                    Return New AdjustNewLinesOperation(line:=1,
+                        [option]:=AdjustNewLinesOption.ForceLines)
+                End If
             End If
 
             ' put attributes in its own line if it is top level attribute
