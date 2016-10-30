@@ -248,5 +248,31 @@ class C
     }
 }");
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestFixAll1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z1 = {|FixAllInDocument:x|} == null ? y : x;
+        var z2 = x != null ? x : y;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z1 = x ?? y;
+        var z2 = x ?? y;
+    }
+}");
+        }
     }
 }
