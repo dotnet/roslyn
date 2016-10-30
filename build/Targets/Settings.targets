@@ -211,10 +211,6 @@
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
-    <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
-  </PropertyGroup>
-
   <Choose>
     <!-- VB specific settings -->
     <When Condition="'$(ProjectLanguage)' == 'VB'">
