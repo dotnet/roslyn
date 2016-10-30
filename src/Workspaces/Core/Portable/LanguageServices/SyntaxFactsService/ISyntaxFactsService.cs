@@ -29,13 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
-        bool IsNumericLiteralExpression(SyntaxNode node);
+
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsDocumentationComment(SyntaxNode node);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
+
+        bool IsNumericLiteralExpression(SyntaxNode node);
+        bool IsNullLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
 
@@ -51,6 +54,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpressionType(SyntaxNode node);
         bool IsObjectCreationExpression(SyntaxNode node);
         SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
+
+        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);

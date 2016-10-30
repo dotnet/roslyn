@@ -1871,6 +1871,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxTree.IsPossibleTupleContext(token, position);
         }
 
+        public bool IsNullLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.NullLiteralExpression;
+
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+        {
+            var binaryExpression = (BinaryExpressionSyntax)node;
+            left = binaryExpression.Left;
+            right = binaryExpression.Right;
+        }
+
+        public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
+        {
+            var conditionalExpression = (ConditionalExpressionSyntax)node;
+            condition = conditionalExpression.Condition;
+            whenTrue = conditionalExpression.WhenTrue;
+            whenFalse = conditionalExpression.WhenFalse;
+        }
+
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode; 
