@@ -44,8 +44,15 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 
+        protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (!AreObjectInitializersSupported(context))
+            {
+                return;
+            }
+
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
 
