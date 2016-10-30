@@ -12,26 +12,20 @@
                                  '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
                                  '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
-
-    <!-- 
-        $(OS) is only specific enough for windows builds.  For non-windows builds the identifier
-        is specified on the command line of MSBuild
-    -->
-  </PropertyGroup>
-
-  <!-- Import the global NuGet packages -->
-  <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>1.3.2</ToolsetCompilerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
-  </PropertyGroup>
+    <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
+    <FileAlignment>512</FileAlignment>
+    <HighEntropyVA>true</HighEntropyVA>
+    <Features>strict</Features>
 
-  <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
-       Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
-  <PropertyGroup>
+    <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
+         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: 
+         $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
     <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
   </PropertyGroup>
 
@@ -43,8 +37,7 @@
     MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
     Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
   -->
-  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx"
-             AssemblyFile="$(RoslynBuildUtilFilePath)" />
+  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx" AssemblyFile="$(RoslynBuildUtilFilePath)" />
 
   <Target Name="RestoreToolsetCheck"
       Condition="'$(BuildingProject)' == 'true'">
@@ -199,7 +192,6 @@
              Condition="'$(BootstrapBuildPath)' != ''" />
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
-    <UseSharedCompilation>true</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
@@ -207,14 +199,6 @@
   <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
     <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
-
-  <!-- Common project settings -->
-  <PropertyGroup>
-    <DeployToSamplesSubfolder Condition="'$(DeployToSamplesSubfolder)' == ''">false</DeployToSamplesSubfolder>
-    <FileAlignment>512</FileAlignment>
-    <HighEntropyVA>true</HighEntropyVA>
-    <Features>strict</Features>
-  </PropertyGroup>
 
   <!--
     If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
