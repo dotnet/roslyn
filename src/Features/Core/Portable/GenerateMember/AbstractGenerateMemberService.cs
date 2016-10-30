@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             {
                 var beforeDotExpression = isMemberAccessExpression ?
                     syntaxFacts.GetExpressionOfMemberAccessExpression(simpleNameOrMemberAccessExpression) :
-                    syntaxFacts.GetExpressionOfConditionalMemberAccessExpression(simpleNameOrMemberAccessExpression);
+                    syntaxFacts.GetExpressionOfConditionalAccessExpression(simpleNameOrMemberAccessExpression);
                 if (beforeDotExpression != null)
                 {
                     var typeInfo = semanticModel.GetTypeInfo(beforeDotExpression, cancellationToken);

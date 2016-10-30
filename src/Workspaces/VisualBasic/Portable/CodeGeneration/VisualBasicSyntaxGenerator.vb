@@ -206,6 +206,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function
 
+        Friend Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.ConditionalAccessExpression(
+                DirectCast(expression, ExpressionSyntax),
+                DirectCast(whenNotNull, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
+        End Function
+
+        Friend Overrides Function ElementBindingExpression(argumentList As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InvocationExpression(expression:=Nothing,
+                                                      argumentList:=DirectCast(argumentList, ArgumentListSyntax))
+        End Function
+
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
         Private Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
             Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
