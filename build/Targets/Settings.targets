@@ -162,11 +162,6 @@
 
   <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.props" Condition="'$(OS)' == 'Windows_NT'" />
 
-  <!-- Build reliability -->
-  <PropertyGroup>
-    <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
-  </PropertyGroup>
-
   <!-- Project language -->
   <PropertyGroup Condition="'$(ProjectLanguage)' == ''">
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
