@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -28,8 +29,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclarator : SyntaxNode
     {
-        protected abstract bool FadeOutOperatorToken { get; }
-
         public bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer() 
@@ -100,10 +99,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            ImmutableArray<TExpressionStatementSyntax> matches,
+            ImmutableArray<Match<TExpressionStatementSyntax>> matches,
             ImmutableArray<Location> locations)
         {
-#if false
             var syntaxTree = context.Node.SyntaxTree;
 
             var fadeOutCode = optionSet.GetOption(
@@ -117,30 +115,35 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             foreach (var match in matches)
             {
-                var end = this.FadeOutOperatorToken
-                    ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
 
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                    match.MemberAccessExpression.SpanStart, end));
+                    match.ExpressionStatement.SpanStart, match.Arguments[0].SpanStart));
 
                 context.ReportDiagnostic(Diagnostic.Create(
                     UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
-                if (match.Statement.Span.End > match.Initializer.FullSpan.End)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            match.Initializer.FullSpan.End,
-                            match.Statement.Span.End)),
-                        additionalLocations: locations));
-                }
+                context.ReportDiagnostic(Diagnostic.Create(
+                    UnnecessaryWithoutSuggestionDescriptor,
+                    Location.Create(syntaxTree, TextSpan.FromBounds(
+                        match.Arguments.Last().FullSpan.End,
+                        match.ExpressionStatement.Span.End)),
+                    additionalLocations: locations));
             }
-#endif
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
+    }
+
+    internal struct Match<TExpressionStatementSyntax>
+    {
+        public readonly TExpressionStatementSyntax ExpressionStatement;
+        public readonly SeparatedSyntaxList<SyntaxNode> Arguments;
+
+        public Match(TExpressionStatementSyntax expressionStatement, SeparatedSyntaxList<SyntaxNode> arguments)
+        {
+            ExpressionStatement = expressionStatement;
+            Arguments = arguments;
+        }
     }
 
     internal struct Analyzer<
@@ -173,32 +176,32 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal ImmutableArray<TExpressionStatementSyntax> Analyze()
+        internal ImmutableArray<Match<TExpressionStatementSyntax>> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
-                return ImmutableArray<TExpressionStatementSyntax>.Empty;
+                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
             }
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
-                return ImmutableArray<TExpressionStatementSyntax>.Empty;
+                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
             }
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return ImmutableArray<TExpressionStatementSyntax>.Empty;
+                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
             }
 
-            var matches = ArrayBuilder<TExpressionStatementSyntax>.GetInstance();
+            var matches = ArrayBuilder<Match<TExpressionStatementSyntax>>.GetInstance();
             AddMatches(matches);
             return matches.ToImmutableAndFree(); ;
         }
 
-        private void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
+        private void AddMatches(ArrayBuilder<Match<TExpressionStatementSyntax>> matches)
         {
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
@@ -274,7 +277,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     break;
                 }
 
-                matches.Add(statement);
+                matches.Add(new Match<TExpressionStatementSyntax>(statement, arguments));
             }
         }
 

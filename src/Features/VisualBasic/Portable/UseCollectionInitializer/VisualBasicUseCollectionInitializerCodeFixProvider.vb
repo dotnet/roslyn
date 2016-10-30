@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
         Protected Overrides Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of Match(Of ExpressionStatementSyntax))) As ObjectCreationExpressionSyntax
 
             Dim initializer = SyntaxFactory.ObjectCollectionInitializer(
                 CreateCollectionInitializer(matches))
@@ -38,11 +38,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         End Function
 
         Private Function CreateCollectionInitializer(
-                matches As ImmutableArray(Of ExpressionStatementSyntax)) As CollectionInitializerSyntax
+                matches As ImmutableArray(Of Match(Of ExpressionStatementSyntax))) As CollectionInitializerSyntax
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 
             For i = 0 To matches.Length - 1
-                Dim expressionStatement = matches(i)
+                Dim expressionStatement = matches(i).ExpressionStatement
 
                 Dim newExpression As ExpressionSyntax
                 Dim invocationExpression = DirectCast(expressionStatement.Expression, InvocationExpressionSyntax)

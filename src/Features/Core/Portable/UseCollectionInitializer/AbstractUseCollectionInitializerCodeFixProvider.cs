@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             editor.ReplaceNode(statement, newStatement);
             foreach (var match in matches)
             {
-                editor.RemoveNode(match);
+                editor.RemoveNode(match.ExpressionStatement);
             }
 
             var newRoot = editor.GetChangedRoot();
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
             TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
+            ImmutableArray<Match<TExpressionStatementSyntax>> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
