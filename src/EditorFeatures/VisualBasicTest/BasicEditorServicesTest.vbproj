@@ -602,6 +602,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
+    <Compile Include="UseNullPropagation\UseNullPropagationTests.vb" />
     <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
