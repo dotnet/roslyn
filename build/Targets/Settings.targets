@@ -15,7 +15,6 @@
         $(OS) is only specific enough for windows builds.  For non-windows builds the identifier
         is specified on the command line of MSBuild
     -->
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
@@ -56,9 +55,27 @@
     <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
   </PropertyGroup>
 
-  <!-- Point to the reference assemblies on unix -->
+  <!-- Windows specific settings -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
+    <DebugType>pdbonly</DebugType>
+    <UseSharedCompilation>true</UseSharedCompilation>
+  </PropertyGroup>
+
+  <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
+    <!-- Point to the reference assemblies on unix -->
+    <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
+
+    <!-- The /publicsign argument is required for the compiler, but the current MSBuild
+         build task can't be redirected and even if it could the new build task is not
+         built against the xplat MSBuild references so it can't be loaded properly. Providing
+         a response file works around the problem by directly adding the public sign argument
+         to all unix compilations. This shouldn't present a problem as it's impossible to
+         fully sign on unix at the moment anyway. Tracked by #7756. -->
+    <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
+
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <!-- This file is imported by all projects at the beginning of the project files -->
@@ -68,16 +85,6 @@
   <!-- NuGet props aren't imported by default on *nix so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props"
           Condition="'$(OS)' != 'Windows_NT'" />
-
-  <!-- The /publicsign argument is required for the compiler, but the current MSBuild
-       build task can't be redirected and even if it could the new build task is not
-       built against the xplat MSBuild references so it can't be loaded properly. Providing
-       a response file works around the problem by directly adding the public sign argument
-       to all unix compilations. This shouldn't present a problem as it's impossible to
-       fully sign on unix at the moment anyway. Tracked by #7756. -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
-  </PropertyGroup>
 
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
@@ -98,9 +105,6 @@
 
     <Deterministic>True</Deterministic>
 
-    <!-- Only portable PDBs are supported xplat -->
-    <DebugType Condition="'$(OS)' != 'Windows_NT'">portable</DebugType>
-    <DebugType Condition="'$(OS)' == 'Windows_NT'">pdbonly</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(VSCOMNTOOLS)' == ''">
@@ -167,11 +171,6 @@
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB'">VB</ProjectLanguage>
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.vcxproj' OR '$(Language)' == 'C++'">C++</ProjectLanguage>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <!-- Use the compiler server -->
-    <UseSharedCompilation>true</UseSharedCompilation>
   </PropertyGroup>
 
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
