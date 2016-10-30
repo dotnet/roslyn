@@ -1366,6 +1366,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer coalesce expression.
+        /// </summary>
+        internal static string Prefer_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Prefer_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer framework type.
         /// </summary>
         internal static string Prefer_framework_type {
