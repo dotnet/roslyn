@@ -248,6 +248,7 @@ class C
     }
 }");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll1()
         {
@@ -271,6 +272,31 @@ class C
     {
         var z1 = x ?? y;
         var z2 = x ?? y;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestFixAll2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y, string z)
+    {
+        var w = {|FixAllInDocument:x|} != null ? x : y != null ? y : z;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y, string z)
+    {
+        var w = x ?? y ?? z;
     }
 }");
         }

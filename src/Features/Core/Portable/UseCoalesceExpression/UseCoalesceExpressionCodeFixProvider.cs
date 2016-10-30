@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             ImmutableArray<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
@@ -52,11 +55,24 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
+                var conditionalPartHigh = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
 
+                SyntaxNode condition, whenTrue, whenFalse;
+                syntaxFacts.GetPartsOfConditionalExpression(
+                    conditionalExpression, out condition, out whenTrue, out whenFalse);
+
+                var conditionalPartLow = syntaxFacts.WalkDownParentheses(conditionalPartHigh);
                 editor.ReplaceNode(conditionalExpression,
-                    generator.CoalesceExpression(conditionalPart, whenPart));
+                    (c, g) => {
+                        SyntaxNode currentCondition, currentWhenTrue, currentWhenFalse;
+                        syntaxFacts.GetPartsOfConditionalExpression(
+                            c, out currentCondition, out currentWhenTrue, out currentWhenFalse);
+
+                        return whenPart == whenTrue
+                            ? g.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenTrue))
+                            : g.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenFalse));
+                    });
             }
 
             var newRoot = editor.GetChangedRoot();

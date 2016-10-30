@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var syntaxFacts = this.GetSyntaxFactsService();
 
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
+            SyntaxNode conditionNode, whenTrueNodeHigh, whenFalseNodeHigh;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out conditionNode, out whenTrueNodeHigh, out whenFalseNodeHigh);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
-            whenTrueNode = syntaxFacts.WalkDownParentheses(whenTrueNode);
-            whenFalseNode = syntaxFacts.WalkDownParentheses(whenFalseNode);
+            var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
+            var whenFalseNodeLow = syntaxFacts.WalkDownParentheses(whenFalseNodeHigh);
 
             var condition = conditionNode as TBinaryExpressionSyntax;
             if (condition == null)
@@ -67,14 +67,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            SyntaxNode conditionLeftHigh;
+            SyntaxNode conditionRightHigh;
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeftHigh, out conditionRightHigh);
 
-            conditionLeft = syntaxFacts.WalkDownParentheses(conditionLeft);
-            conditionRight = syntaxFacts.WalkDownParentheses(conditionRight);
-            var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
-            var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
+            var conditionLeftLow = syntaxFacts.WalkDownParentheses(conditionLeftHigh);
+            var conditionRightLow = syntaxFacts.WalkDownParentheses(conditionRightHigh);
+
+            var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeftLow);
+            var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRightLow);
 
             if (conditionRightIsNull && conditionLeftIsNull)
             {
@@ -87,15 +88,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
-            var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
-
-            if (!syntaxFacts.AreEquivalent(conditionPartToCheck, whenPartToCheck))
+            if (!syntaxFacts.AreEquivalent(
+                    conditionRightIsNull ? conditionLeftLow : conditionRightLow, 
+                    isEquals ? whenFalseNodeLow : whenTrueNodeLow))
             {
                 return;
             }
 
-            var whenPartToKeep = isEquals ? whenTrueNode : whenFalseNode;
+            var conditionPartToCheck = conditionRightIsNull ? conditionLeftHigh : conditionRightHigh;
+            var whenPartToKeep = isEquals ? whenTrueNodeHigh : whenFalseNodeHigh;
             var locations = ImmutableArray.Create(
                 conditionalExpression.GetLocation(),
                 conditionPartToCheck.GetLocation(),
