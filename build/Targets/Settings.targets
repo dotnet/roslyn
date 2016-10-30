@@ -45,11 +45,6 @@
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
   </Target>
 
-  <!-- Prevent vsix manifests from being copied to the shared output directory, makes build more deterministic -->
-  <PropertyGroup>
-    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
-  </PropertyGroup>
-
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
@@ -311,10 +306,6 @@
       </PropertyGroup>
     </When>
   </Choose>
-
-  <PropertyGroup>
-    <CopyVSReferencesToOutput>True</CopyVSReferencesToOutput>
-  </PropertyGroup>
 
   <!-- 
     When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
