@@ -170,7 +170,7 @@
              binaries will be real signed as a post processing step. -->
         <When Condition="'$(NonShipping)' != 'true'">
           <PropertyGroup>
-            <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
+            <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
             <PublicKey>$(RoslynPublicKey)</PublicKey>
             <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
             <PublicSign>true</PublicSign>
@@ -180,7 +180,7 @@
         <!-- Non-shipping binaries are simply signed with the Roslyn internal key. -->
         <Otherwise>
           <PropertyGroup>
-            <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
+            <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
             <DelaySign>false</DelaySign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>

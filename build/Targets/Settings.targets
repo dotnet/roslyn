@@ -1,5 +1,7 @@
 <Project DefaultTargets="Build" InitialTargets="RestoreToolsetCheck" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
 
+  <Import Project="VSL.Versions.targets"/>
+
   <PropertyGroup>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
     <NuGetToolPath Condition="">$(ProjectDir)nuget.exe</NuGetToolPath>
