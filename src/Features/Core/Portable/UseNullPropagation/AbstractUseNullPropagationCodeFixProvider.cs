@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             foreach (var diagnostic in diagnostics)
             {
-                var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+                var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
 

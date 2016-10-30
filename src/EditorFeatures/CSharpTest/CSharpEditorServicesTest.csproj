@@ -281,6 +281,7 @@
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
