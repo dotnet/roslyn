@@ -1393,6 +1393,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer null propagation.
+        /// </summary>
+        internal static string Prefer_null_propagation {
+            get {
+                return ResourceManager.GetString("Prefer_null_propagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer object initializer.
         /// </summary>
         internal static string Prefer_object_initializer {
