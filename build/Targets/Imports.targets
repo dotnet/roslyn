@@ -141,9 +141,9 @@
       </Choose>
 
       <PropertyGroup>
-        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(VSLToolsPath)\Rulesets\NonShippingProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
-        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(VSLToolsPath)\Rulesets\AnalyzerProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
-        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(VSLToolsPath)\Rulesets\Roslyn$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(MSBuildThisFileDirectory)..\Rulesets\NonShippingProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(MSBuildThisFileDirectory)..\Rulesets\AnalyzerProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(MSBuildThisFileDirectory)..\Rulesets\Roslyn$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </When>
   </Choose>

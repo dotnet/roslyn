@@ -90,9 +90,6 @@
 
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
 
-    <VSLToolsPath Condition="'$(VSLToolsPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..'))</VSLToolsPath>
-    <VSLTargetsPath Condition="'$(VSLTargetsPath)' == ''">$(MSBuildThisFileDirectory)</VSLTargetsPath>
-
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
 
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
@@ -243,11 +240,6 @@
   <PropertyGroup>
     <OutDir Condition="'$(OutDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Capture the root, so we'll always have it even if we're building to a sub-folder -->
-    <VSLOutDir>$(OutDir)</VSLOutDir>
   </PropertyGroup>
 
   <PropertyGroup>
