@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
+        bool IsLogicalNotExpression(SyntaxNode node);
+        SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
+
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
 
@@ -87,9 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfMemberAccessExpression(SyntaxNode node);
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
-        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
-        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
-        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
+        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode node);
+        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name);
 
         bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
