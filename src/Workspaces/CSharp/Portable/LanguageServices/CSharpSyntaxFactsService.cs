@@ -1892,6 +1892,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode WalkDownParentheses(SyntaxNode node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
+        public bool IsLogicalNotExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalNotExpression;
+
+        public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
+            => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+        {
+            var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+            expression = memberAccessExpression.Expression;
+            name = memberAccessExpression.Name;
+        }
+
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode; 
