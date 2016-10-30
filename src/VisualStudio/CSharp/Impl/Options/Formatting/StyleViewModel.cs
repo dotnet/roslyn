@@ -265,7 +265,7 @@ class C
         var v = x ?? y;
 
         // Over:
-        var v = x != null ? x : y; // and
+        var v = x != null ? x : y; // or
         var v = x == null ? y : x;
 //]
     }
