@@ -95,8 +95,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             return c;
                         }
 
-                        return CreateConditionalAccessExpression(
+                        var newNode = CreateConditionalAccessExpression(
                             syntaxFacts, g, currentWhenPartToCheck, match, c);
+
+                        newNode = newNode.WithTriviaFrom(c);
+                        return newNode;
                     });
             }
 

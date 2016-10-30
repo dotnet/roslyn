@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
