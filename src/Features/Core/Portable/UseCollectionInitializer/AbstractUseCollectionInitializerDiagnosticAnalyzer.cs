@@ -51,10 +51,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             });
         }
 
+        protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
         protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
+            if (!AreCollectionInitializersSupported(context))
+            {
+                return;
+            }
+
             var cancellationToken = context.CancellationToken;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;

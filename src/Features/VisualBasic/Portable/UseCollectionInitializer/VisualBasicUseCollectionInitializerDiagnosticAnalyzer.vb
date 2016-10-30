@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax)
 
+        Protected Overrides Function AreCollectionInitializersSupported(context As SyntaxNodeAnalysisContext) As Boolean
+            Return True
+        End Function
+
         Protected Overrides Function GetObjectCreationSyntaxKind() As SyntaxKind
             Return SyntaxKind.ObjectCreationExpression
         End Function
