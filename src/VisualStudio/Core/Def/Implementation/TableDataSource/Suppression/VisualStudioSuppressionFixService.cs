@@ -544,7 +544,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     if (documentDiagnosticsToFix.Any())
                     {
                         var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                        finalBuilder.Add(document, diagnostics.ToImmutableArray());
+                        finalBuilder.Add(document, diagnostics);
                     }
                 }
             }
@@ -609,7 +609,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 if (projectDiagnosticsToFix.Any())
                 {
                     var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                    finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
+                    finalBuilder.Add(project, projectDiagnostics);
                 }
             }
 

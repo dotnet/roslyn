@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 arguments.Select(a => a.NameColon != null)).ToList();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a))).ToList();
+                arguments.Select(semanticModel.GenerateNameForArgument)).ToList();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }

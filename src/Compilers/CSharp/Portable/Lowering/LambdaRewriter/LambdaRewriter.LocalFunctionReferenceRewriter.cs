@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -25,6 +26,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalFunctionReferenceRewriter(LambdaRewriter lambdaRewriter)
             {
                 _lambdaRewriter = lambdaRewriter;
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                var partiallyLowered = node as PartiallyLoweredLocalFunctionReference;
+                if (partiallyLowered != null)
+                {
+                    var underlying = partiallyLowered.UnderlyingNode;
+                    Debug.Assert(underlying.Kind == BoundKind.Call ||
+                                 underlying.Kind == BoundKind.DelegateCreationExpression ||
+                                 underlying.Kind == BoundKind.Conversion);
+                    var oldProxies = _lambdaRewriter.proxies;
+                    _lambdaRewriter.proxies = partiallyLowered.Proxies;
+
+                    var result = base.Visit(underlying);
+
+                    _lambdaRewriter.proxies = oldProxies;
+
+                    return result;
+                }
+                return base.Visit(node);
             }
 
             public override BoundNode VisitCall(BoundCall node)
@@ -74,6 +96,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return base.VisitConversion(conversion);
             }
+        }
+
+        /// <summary>
+        /// Visit all references to local functions (calls, delegate
+        /// conversions, delegate creations) and rewrite them to point
+        /// to the rewritten local function method instead of the original. 
+        /// </summary>
+        public BoundStatement RewriteLocalFunctionReferences(BoundStatement loweredBody)
+        {
+            var rewriter = new LocalFunctionReferenceRewriter(this);
+
+            Debug.Assert(_currentMethod == _topLevelMethod);
+
+            // Visit the body first since the state is already set
+            // for the top-level method
+            var newBody = (BoundStatement)rewriter.Visit(loweredBody);
+
+            // Visit all the rewritten methods as well
+            var synthesizedMethods = _synthesizedMethods;
+            if (synthesizedMethods != null)
+            {
+                var newMethods = ArrayBuilder<TypeCompilationState.MethodWithBody>.GetInstance(
+                    synthesizedMethods.Count);
+
+                foreach (var oldMethod in synthesizedMethods)
+                {
+                    var synthesizedLambda = oldMethod.Method as SynthesizedLambdaMethod;
+                    if (synthesizedLambda == null)
+                    {
+                        // The only methods synthesized by the rewriter should
+                        // be lowered closures and frame constructors
+                        Debug.Assert(oldMethod.Method.MethodKind == MethodKind.Constructor ||
+                                     oldMethod.Method.MethodKind == MethodKind.StaticConstructor);
+                        newMethods.Add(oldMethod);
+                        continue;
+                    }
+
+                    _currentMethod = synthesizedLambda;
+                    var closureKind = synthesizedLambda.ClosureKind;
+                    if (closureKind == ClosureKind.Static || closureKind == ClosureKind.Singleton)
+                    {
+                        // no link from a static lambda to its container
+                        _innermostFramePointer = _currentFrameThis = null;
+                    }
+                    else
+                    {
+                        _currentFrameThis = synthesizedLambda.ThisParameter;
+                        _innermostFramePointer = null;
+                        _framePointers.TryGetValue(synthesizedLambda.ContainingType, out _innermostFramePointer);
+                    }
+
+                    _currentTypeParameters = synthesizedLambda.ContainingType
+                        ?.TypeParameters.Concat(synthesizedLambda.TypeParameters)
+                        ?? synthesizedLambda.TypeParameters;
+                    _currentLambdaBodyTypeMap = synthesizedLambda.TypeMap;
+
+                    var rewrittenBody = (BoundStatement)rewriter.Visit(oldMethod.Body);
+
+                    var newMethod = new TypeCompilationState.MethodWithBody(
+                        synthesizedLambda, rewrittenBody, oldMethod.ImportChainOpt);
+                    newMethods.Add(newMethod);
+                }
+
+                _synthesizedMethods = newMethods;
+                synthesizedMethods.Free();
+            }
+
+            return newBody;
         }
 
 

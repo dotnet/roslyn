@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (stream != null)
                     {
-                        using (var reader = new ObjectReader(stream))
+                        using (var reader = new StreamObjectReader(stream))
                         {
                             // We have some previously persisted data.  Attempt to read it back.  
                             // If we're able to, and the version of the persisted data matches
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (result != null)
                 {
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                    using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
                     {
                         writeObject(writer, result);
                         stream.Position = 0;
