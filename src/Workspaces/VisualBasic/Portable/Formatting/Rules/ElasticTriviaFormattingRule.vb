@@ -166,12 +166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
-               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer Then
-
-                If currentToken.Parent.Parent.Kind <> SyntaxKind.ObjectCollectionInitializer Then
-                    Return New AdjustNewLinesOperation(line:=1,
-                        [option]:=AdjustNewLinesOption.ForceLines)
-                End If
+               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               currentToken.Parent.Parent.Kind = SyntaxKind.CollectionInitializer Then
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
             If currentToken.Kind = SyntaxKind.CloseBraceToken Then
