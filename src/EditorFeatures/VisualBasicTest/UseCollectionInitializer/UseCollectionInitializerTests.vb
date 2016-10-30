@@ -122,6 +122,32 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestMissingOnZeroArgs() As Task
+            Await TestMissingAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)()
+        c.Add()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestMissingOnNoArgs() As Task
+            Await TestMissingAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)()
+        c.Add
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
         Public Async Function TestMissingOnOmittedArg() As Task
             Await TestMissingAsync(
 "
