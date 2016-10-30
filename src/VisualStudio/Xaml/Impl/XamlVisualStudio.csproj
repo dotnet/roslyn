@@ -6,7 +6,7 @@
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -91,6 +91,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   </ImportGroup>
 </Project>

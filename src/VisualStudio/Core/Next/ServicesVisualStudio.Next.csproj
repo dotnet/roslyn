@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{FE0D4BDD-1C30-488E-A870-854F5B8C5014}</ProjectGuid>
@@ -118,5 +118,5 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

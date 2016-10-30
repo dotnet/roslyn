@@ -3,7 +3,7 @@
   <PropertyGroup>
     <UseRoslynAnalyzers>false</UseRoslynAnalyzers>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -58,5 +58,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
