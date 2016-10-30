@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -88,9 +89,16 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
+            var whenPartToKeep = isEquals ? whenTrueNode : whenFalseNode;
+            var locations = ImmutableArray.Create(
+                conditionalExpression.GetLocation(),
+                conditionPartToCheck.GetLocation(),
+                whenPartToKeep.GetLocation());
+
             context.ReportDiagnostic(Diagnostic.Create(
                 this.CreateDescriptor(this.DescriptorId, option.Notification.Value),
-                conditionalExpression.GetLocation()));
+                conditionalExpression.GetLocation(),
+                locations));
         }
     }
 }
