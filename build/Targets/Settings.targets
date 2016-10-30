@@ -22,28 +22,32 @@
     <FileAlignment>512</FileAlignment>
     <HighEntropyVA>true</HighEntropyVA>
     <Features>strict</Features>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
+    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+    <Deterministic>True</Deterministic>
+
+    <OutDir Condition="'$(OutDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
          Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: 
          $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
     <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
+    <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
+    <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+
+    <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
+         that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
+         Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
+    <WindowsAppContainer>false</WindowsAppContainer>
+
+    <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
   </PropertyGroup>
-
-  <!-- 
-    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
-    produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
-    version of the Task that is deterministic.  
-
-    MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
-    Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
-  -->
-  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx" AssemblyFile="$(RoslynBuildUtilFilePath)" />
-
-  <Target Name="RestoreToolsetCheck"
-      Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
-             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-  </Target>
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
@@ -68,6 +72,35 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
+  <!--
+    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+    Use the latest Framework toolset to build, but set msbuild properties below
+    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+  -->
+  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <NoStdLib>true</NoStdLib>
+    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\1.0.3\lib\net20</FrameworkPathOverride>
+    <NuGetTargetMoniker>.NETFramework,Version=v2.0</NuGetTargetMoniker>
+  </PropertyGroup>
+
+  <!-- 
+    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
+    produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
+    version of the Task that is deterministic.  
+
+    MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
+    Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
+  -->
+  <UsingTask TaskName="Roslyn.MSBuild.Util.WriteCodeFragmentEx" AssemblyFile="$(RoslynBuildUtilFilePath)" />
+
+  <Target Name="RestoreToolsetCheck"
+      Condition="'$(BuildingProject)' == 'true'">
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
+             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </Target>
+
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
@@ -75,27 +108,6 @@
   <!-- NuGet props aren't imported by default on *nix so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props"
           Condition="'$(OS)' != 'Windows_NT'" />
-
-  <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring(0, $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
-    <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
-    <VisualStudioCodename>Dev$(VisualStudioReferenceMajorVersion)</VisualStudioCodename>
-
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-
-    <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
-
-    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
-
-    <Deterministic>True</Deterministic>
-
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(VSCOMNTOOLS)' == ''">
     <VSCOMNTOOLS>$([System.Environment]::ExpandEnvironmentVariables("%VS$(VisualStudioReferenceMajorVersion)0COMNTOOLS%"))</VSCOMNTOOLS>
@@ -195,41 +207,12 @@
     <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
 
-  <!--
-    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\1.0.3\lib\net20</FrameworkPathOverride>
-    <NuGetTargetMoniker>.NETFramework,Version=v2.0</NuGetTargetMoniker>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <OutDir Condition="'$(OutDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup>
-      <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(DeployToSamplesSubfolder)' == 'true'">
     <OutDir>$(OutDir)\Samples\$(MSBuildProjectName)</OutDir>
-  </PropertyGroup>
-
-  <PropertyGroup>
-  <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
-       that any builds of portable projects end up in a sub folder of $(OutDir). Search for this flag in
-       Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
-    <WindowsAppContainer>false</WindowsAppContainer>
   </PropertyGroup>
 
   <Choose>
