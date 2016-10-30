@@ -1889,6 +1889,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             whenFalse = conditionalExpression.WhenFalse;
         }
 
+        public SyntaxNode WalkDownParentheses(SyntaxNode node)
+            => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
+
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode; 

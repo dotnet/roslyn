@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             syntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
 
+            conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
+            whenTrueNode = syntaxFacts.WalkDownParentheses(whenTrueNode);
+            whenFalseNode = syntaxFacts.WalkDownParentheses(whenFalseNode);
+
             var condition = conditionNode as TBinaryExpressionSyntax;
             if (condition == null)
             {
@@ -67,6 +71,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             SyntaxNode conditionRight;
             syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
 
+            conditionLeft = syntaxFacts.WalkDownParentheses(conditionLeft);
+            conditionRight = syntaxFacts.WalkDownParentheses(conditionRight);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
 

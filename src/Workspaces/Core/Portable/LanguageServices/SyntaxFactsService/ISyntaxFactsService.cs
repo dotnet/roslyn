@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken FindTokenOnRightOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
 
         SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true);
+        SyntaxNode WalkDownParentheses(SyntaxNode node);
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 

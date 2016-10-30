@@ -1563,5 +1563,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             whenTrue = conditionalExpression.WhenTrue
             whenFalse = conditionalExpression.WhenFalse
         End Sub
+
+        Public Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.WalkDownParentheses
+            Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
+        End Function
     End Class
 End Namespace

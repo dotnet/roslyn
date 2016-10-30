@@ -148,5 +148,105 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestParens1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = [||](x == null) ? y : x;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = x ?? y;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestParens2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = [||](x) == null ? y : x;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = x ?? y;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestParens3()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = [||]x == null ? y : (x);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = x ?? y;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestParens4()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = [||]x == null ? (y) : x;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string x, string y)
+    {
+        var z = x ?? y;
+    }
+}");
+        }
     }
 }
