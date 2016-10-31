@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "Microsoft.NetFX20": "1.0.3",
-    "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
-    "Microsoft.VisualStudio.Debugger.Metadata": "14.3.25421"
+    "Microsoft.VisualStudio.Debugger.Engine": "15.0.25824-RC",
+    "Microsoft.VisualStudio.Debugger.Metadata": "15.0.25824-RC"
   },
   "frameworks": {
     "net20": { }

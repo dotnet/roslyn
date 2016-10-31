@@ -92,6 +92,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Debugger\Engine\DkmClrCastExpressionOptions.cs" />
     <Compile Include="Debugger\Engine\DkmClrCustomTypeInfo.cs" />
     <Compile Include="Debugger\Engine\DkmCompilerId.cs" />
     <Compile Include="Debugger\Engine\DkmContinueCorruptingException.cs" />
@@ -137,6 +138,8 @@
     <Compile Include="Debugger\Engine\DkmVendorId.cs" />
     <Compile Include="Debugger\Engine\DkmWorkList.cs" />
     <Compile Include="Debugger\Engine\IDkmClrFormatter.cs" />
+    <Compile Include="Debugger\Engine\IDkmClrFormatter2.cs" />
+    <Compile Include="Debugger\Engine\IDkmClrFullNameProvider.cs" />
     <Compile Include="Debugger\Engine\IDkmClrResultProvider.cs" />
     <Compile Include="Debugger\MemberInfo\AssemblyImpl.cs" />
     <Compile Include="Debugger\MemberInfo\ConstructorInfoImpl.cs" />
