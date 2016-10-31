@@ -119,7 +119,6 @@
     <!-- While UseCommonOutputDirectory will prevent NuGet implementations from being copied, 
          we still need to turn off CopyNuGetImplementations to prevent the build task from complaining about a 
          lack of a runtime section in our project.json. -->
-
     <CopyNuGetImplementations Condition="'$(UseCommonOutputDirectory)' == 'true'">false</CopyNuGetImplementations>
   </PropertyGroup>
 
@@ -286,25 +285,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
   </PropertyGroup>
-
-  <!-- Verify some build flags are correct -->
-  <PropertyGroup>
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);VerifyBuildFlags</PrepareForBuildDependsOn>
-  </PropertyGroup>
-
-  <Target Name="VerifyBuildFlags">
-    <Error 
-        Condition="'$(CheckForOverflowUnderflow)' != '' OR '$(RemoveIntegerChecks)' != ''"
-        Text="The following properties cannot be set by individual projects: CheckForOverflowUnderflow and RemoveIntegerChecks" />
-    
-    <PropertyGroup Condition="'$(ProjectLanguage)' == 'CSharp'">
-        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(ProjectLanguage)' == 'VB'">
-        <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    </PropertyGroup>
-  </Target>
 
   <!-- For our projects that specify multiple targets in the project.json to work around https://github.com/dotnet/roslyn/issues/12458,
        we need to also silence a NuGet generated warning -->
