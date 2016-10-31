@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -17,8 +18,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal abstract partial class AbstractGenerateConstructorService<TService, TArgumentSyntax, TAttributeArgumentSyntax>
     {
-        protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
-
         internal abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
 
         private partial class Editor
@@ -406,7 +405,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         var field = (IFieldSymbol)symbol;
                         return
                             !field.IsConst &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsWidening;
                     }
                     else if (symbol is IPropertySymbol)
                     {
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         return
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsWidening;
                     }
                 }
 

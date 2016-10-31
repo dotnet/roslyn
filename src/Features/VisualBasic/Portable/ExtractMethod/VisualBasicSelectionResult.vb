@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -196,17 +197,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             ' get type without considering implicit conversion
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
-        End Function
-
-        Private Shared Function IsCoClassImplicitConversion(info As TypeInfo, conversion As Conversion, coclassSymbol As ISymbol) As Boolean
-            If Not conversion.IsWidening OrElse
-                 info.ConvertedType Is Nothing OrElse
-                 info.ConvertedType.TypeKind <> TypeKind.Interface Then
-                Return False
-            End If
-
-            ' let's see whether this interface has coclass attribute
-            Return info.ConvertedType.GetAttributes().Any(Function(c) c.AttributeClass.Equals(coclassSymbol))
         End Function
 
         Public Overloads Function GetFirstStatement() As ExecutableStatementSyntax

@@ -161,12 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 return this.State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;
             }
 
-            protected override bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-            {
-                var conversion = compilation.ClassifyConversion(sourceType, targetType);
-                return conversion.IsImplicit && conversion.IsReference;
-            }
-
             protected override IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
             {
                 var result = new List<ITypeSymbol>();

@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var converisionKind = operation.ConversionKind;
-            var isExplicit = operation.IsExplicit;
+            var isExplicit = operation.ExplicitCastInSource;
 
             base.VisitConversionExpression(operation);
         }

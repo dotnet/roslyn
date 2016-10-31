@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IConversionExpression));
 
             var kindStr = $"{nameof(ConversionKind)}.{operation.ConversionKind}";
-            var isExplicitStr = operation.IsExplicit ? "Explicit" : "Implicit";
+            var isExplicitStr = operation.ExplicitCastInSource ? "Explicit" : "Implicit";
             LogString($" ({kindStr}, {isExplicitStr})");
 
             LogHasOperatorMethodExpressionCommon(operation);

@@ -850,6 +850,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : CSharpTypeInfo.None;
         }
 
+        protected internal override IConversion GetConversionCore(SyntaxNode expression, CancellationToken cancellationToken)
+        {
+            return GetConversion(expression, cancellationToken);
+        }
+
         /// <summary>
         /// Gets the conversion that occurred between the expression's type and type implied by the expression's context.
         /// </summary>
@@ -2438,6 +2443,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>To determine the conversion between two types (instead of an expression and a
         /// type), use Compilation.ClassifyConversion.</remarks>
         public abstract Conversion ClassifyConversion(ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false);
+
+        protected internal override IConversion ClassifyConversionCore(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource)
+        {
+            return ClassifyConversion((ExpressionSyntax)expression, destination, isExplicitInSource);
+        }
 
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was

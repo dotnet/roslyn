@@ -926,9 +926,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpresson_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
+            End Get
+        End Property
+
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
+            Get
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
             End Get
         End Property
 
@@ -963,8 +969,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDirectCast
+    Partial Friend Class BoundDirectCast
         Implements IConversionExpression
+
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
+            Get
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
+            End Get
+        End Property
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
             Get
@@ -972,7 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return True
             End Get
@@ -1009,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundConversion
+    Partial Friend Class BoundConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1018,9 +1030,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Me.ExplicitCastInCode
+            End Get
+        End Property
+
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
+            Get
+                Return New Conversion(Me.ConversionKind, method:=Nothing)
             End Get
         End Property
 
@@ -1055,7 +1073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedConversion
+    Partial Friend Class BoundUserDefinedConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1064,7 +1082,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IConversionExpression_IsExplicit As Boolean Implements IConversionExpression.IsExplicit
+        Private ReadOnly Property IConversionExpression_Conversion As IConversion Implements IConversionExpression.Conversion
+            Get
+                Return New Conversion(ConversionKind.UserDefined, Me.Call.Method)
+            End Get
+        End Property
+
+        Private ReadOnly Property IConversionExpression_ExplicitCastInSource As Boolean Implements IConversionExpression.ExplicitCastInSource
             Get
                 Return Not Me.WasCompilerGenerated
             End Get

@@ -97,6 +97,10 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+        protected internal abstract IConversion GetConversionCore(SyntaxNode expression, CancellationToken cancellationToken);
+
+        protected internal abstract IConversion ClassifyConversionCore(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource);
+
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>

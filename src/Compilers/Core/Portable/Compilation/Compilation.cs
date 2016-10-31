@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -825,6 +826,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
+
+        protected internal abstract IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>

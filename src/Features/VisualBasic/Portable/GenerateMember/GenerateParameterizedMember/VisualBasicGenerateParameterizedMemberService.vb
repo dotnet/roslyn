@@ -154,11 +154,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Return Me.State.SimpleNameOpt.Kind = SyntaxKind.IdentifierName
             End Function
 
-            Protected Overrides Function IsImplicitReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
-                Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
-                Return conversion.IsWidening AndAlso conversion.IsReference
-            End Function
-
             Protected Overrides Function DetermineTypeArguments(cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
                 Dim Result = New List(Of ITypeSymbol)()
 

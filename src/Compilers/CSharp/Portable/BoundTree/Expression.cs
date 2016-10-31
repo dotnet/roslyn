@@ -750,7 +750,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IConversionExpression.IsExplicit => this.ExplicitCastInCode;
+        IConversion IConversionExpression.Conversion => new Conversion(this.ConversionKind, this.SymbolOpt, isExtensionMethod: false);
+
+        bool IConversionExpression.ExplicitCastInSource => this.ExplicitCastInCode;
 
         IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => this.SymbolOpt;
 
@@ -817,7 +819,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Semantics.ConversionKind IConversionExpression.ConversionKind => Semantics.ConversionKind.TryCast;
 
-        bool IConversionExpression.IsExplicit => true;
+        bool IConversionExpression.ExplicitCastInSource => true;
+
+        IConversion IConversionExpression.Conversion => this.Conversion;
 
         IMethodSymbol IHasOperatorMethodExpression.OperatorMethod => null;
 

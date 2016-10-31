@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1543,6 +1544,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool MightContainNoPiaLocalTypes()
         {
             return SourceAssembly.MightContainNoPiaLocalTypes();
+        }
+
+        protected internal override IConversion CommonClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination);
         }
 
         // NOTE(cyrusn): There is a bit of a discoverability problem with this method and the same

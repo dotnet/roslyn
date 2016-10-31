@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
     internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
-        SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-        ArgumentSyntax, CommonForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion>
+        ExpressionSyntax, TypeSyntax, AttributeSyntax,
+        ArgumentSyntax, CommonForEachStatementSyntax, ThrowStatementSyntax>
     {
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
@@ -660,15 +661,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-        {
-            return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
-        }
-
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
-            Conversion? originalConversion = null;
-            Conversion? newConversion = null;
+            IConversion originalConversion = null;
+            IConversion newConversion = null;
 
             this.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, out originalConversion, out newConversion);
 
@@ -677,31 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            return ConversionsAreCompatible(originalConversion.Value, newConversion.Value);
-        }
-
-        private bool ConversionsAreCompatible(Conversion originalConversion, Conversion newConversion)
-        {
-            if (originalConversion.Exists != newConversion.Exists ||
-                (!originalConversion.IsExplicit && newConversion.IsExplicit))
-            {
-                return false;
-            }
-
-            var originalIsUserDefined = originalConversion.IsUserDefined;
-            var newIsUserDefined = newConversion.IsUserDefined;
-
-            if (originalIsUserDefined != newIsUserDefined)
-            {
-                return false;
-            }
-
-            if (originalIsUserDefined || originalConversion.MethodSymbol != null || newConversion.MethodSymbol != null)
-            {
-                return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol);
-            }
-
-            return true;
+            return ConversionsAreCompatible(originalConversion, newConversion);
         }
 
         protected override bool ForEachConversionsAreCompatible(SemanticModel originalModel, CommonForEachStatementSyntax originalForEach, SemanticModel newModel, CommonForEachStatementSyntax newForEach)
@@ -718,16 +690,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             getEnumeratorMethod = info.GetEnumeratorMethod;
             elementType = info.ElementType;
         }
-
-        protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsReference;
-        }
-
-        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
-            model.ClassifyConversion(expression, targetType);
-
-        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

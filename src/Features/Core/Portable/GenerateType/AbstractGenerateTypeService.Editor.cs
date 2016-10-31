@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -19,8 +20,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
-
         private partial class Editor
         {
             private readonly TService _service;
@@ -604,7 +603,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         var field = (IFieldSymbol)symbol;
                         return
                             !field.IsReadOnly &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, field.Type).IsWidening;
                     }
                     else if (symbol is IPropertySymbol)
                     {
@@ -613,7 +612,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
                             IsSymbolAccessible(property.SetMethod) &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
+                            _document.SemanticModel.Compilation.ClassifyConversion(parameterType, property.Type).IsWidening;
                     }
                 }
 

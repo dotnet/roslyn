@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -915,6 +916,104 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
     }
 
+    public interface IConversion
+    {
+        /// <summary>
+        /// Returns true if the conversion exists, either as an <see cref="IsWidening"/> or 
+        /// an <see cref="IsNarrowing"/> conversion.
+        /// </summary>
+        bool Exists { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an identity conversion.
+        /// </summary>
+        bool IsIdentity { get; }
+
+        /// <summary>
+        /// Returns true if the conversion widens from some narrower type to some broader
+        /// type.  For example, a conversion from <see cref="System.String"/> to <see cref="System.Object"/>.
+        /// A widening conversion may generally appear with or without a
+        /// <see cref="IConversionExpression.ExplicitCastInSource"/>.  For example, a user in C# could
+        /// write both:
+        /// 
+        /// <code>
+        ///     object o1 = ""; // and
+        ///     object o2 = (object)"";
+        /// </code>
+        /// 
+        /// These would be both be <see cref="IsWidening"/> conversions, but only the second would
+        /// have an <see cref="IConversionExpression.ExplicitCastInSource"/>.
+        /// 
+        /// <see cref="IsWidening"/> conversions can appear with other
+        /// conversion types.  For example there are <see cref="IsWidening"/> <see cref="IsReference"/>
+        /// conversions, and <see cref="IsWidening"/> <see cref="IsNumeric"/> conversions.
+        /// </summary>
+        bool IsWidening { get; }
+
+        /// <summary>
+        /// True if and only if the conversion narrows from some broader type to some 
+        /// narrower type.  For example, a conversion from <see cref="System.Object"/> to
+        /// <see cref="System.String"/> In general, narrowing conversions appear when there is an
+        /// <see cref="IConversionExpression.ExplicitCastInSource"/> present.
+        /// 
+        /// <see cref="IsNarrowing"/> conversions can appear with other
+        /// conversion types.  For example there are <see cref="IsNarrowing"/> <see cref="IsReference"/>
+        /// conversions, and <see cref="IsNarrowing"/> <see cref="IsNumeric"/> conversions.
+        /// </summary>
+        bool IsNarrowing { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit numeric conversion or explicit numeric conversion. 
+        /// </summary>
+        bool IsNumeric { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit nullable conversion or explicit nullable conversion.
+        /// </summary>
+        bool IsNullable { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit reference conversion or explicit reference conversion.
+        /// </summary>
+        bool IsReference { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit user-defined conversion or explicit user-defined conversion.
+        /// </summary>
+        bool IsUserDefined { get; }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit default ('null' in C#, 'nothing' in VB) literal conversion.
+        /// </summary>
+        bool IsDefault { get; }
+
+        /// <summary>
+        /// Returns the method that defines the user defined conversion, if any..
+        /// </summary>
+        IMethodSymbol MethodSymbol { get; }
+    }
+
+    public static class ConversionExtensions
+    {
+        public static IConversion ClassifyConversion(
+            this Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
+        {
+            return compilation.CommonClassifyConversion(source, destination);
+        }
+
+        public static IConversion ClassifyConversion(
+            this SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+        {
+            return semanticModel.ClassifyConversionCore(expression, destination, isExplicitInSource);
+        }
+
+        public static IConversion GetConversion(
+            this SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return semanticModel.GetConversionCore(expression, cancellationToken);
+        }
+    }
+
     /// <summary>
     /// Represents a conversion operation.
     /// </summary>
@@ -928,14 +1027,24 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be converted.
         /// </summary>
         IOperation Operand { get; }
+
         /// <summary>
         /// Kind of conversion.
         /// </summary>
         ConversionKind ConversionKind { get; }
+
         /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// Gets the <see cref="IConversion"/> instance that provides more information about what
+        /// sort of conversion this was.
         /// </summary>
-        bool IsExplicit { get; }
+        IConversion Conversion { get; }
+
+        /// <summary>
+        /// True if and only if the conversion is indicated explicity by a cast operation 
+        /// (<code>(Type)</code> or <code>as Type</code> in C#, or 
+        /// <code>DirectCast/TryCast</code> in Visual Basic).
+        /// </summary>
+        bool ExplicitCastInSource { get; }
     }
 
     /// <summary>

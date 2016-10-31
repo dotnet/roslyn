@@ -359,6 +359,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicTypeInfo(type, convertedType, conversion)
         End Function
 
+        Protected Overrides Function GetConversionCore(expression As SyntaxNode, cancellationToken As CancellationToken) As IConversion
+            Return GetConversion(expression, cancellationToken)
+        End Function
+
         ''' <summary>
         ''' Gets the conversion that occurred between the expression's type and type implied by the expression's context.
         ''' </summary>
@@ -2314,6 +2318,10 @@ _Default:
         ''' <remarks>To determine the conversion between two types (instead of an expression and a
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public MustOverride Shadows Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
+
+        Protected Overrides Function ClassifyConversionCore(expression As SyntaxNode, destination As ITypeSymbol, isExplicitInSource As Boolean) As IConversion
+            Return ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination)
+        End Function
 
         ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was
