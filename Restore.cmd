@@ -54,8 +54,10 @@ call "%NugetExe%" restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditional
 echo Restoring packages: Templates
 call "%NugetExe%" restore "%RoslynRoot%src\Setup\Templates\Templates.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolset
+call "%NugetExe%" restore "%RoslynRoot%build\Toolset\Toolset.csproj" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Roslyn (this may take some time)
-call "%NugetExe%" restore "%RoslynRoot%build\Toolset.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 call "%NugetExe%" restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: DevDiv tools

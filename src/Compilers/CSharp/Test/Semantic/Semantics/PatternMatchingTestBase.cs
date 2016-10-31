@@ -63,8 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
 
-            var type = ((LocalSymbol)symbol).Type;
-            if (!decl.Type.IsVar || !type.IsErrorType())
+            var local = ((SourceLocalSymbol)symbol);
+            var type = local.Type;
+            if (type.IsErrorType())
+            {
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+            }
+            else
             {
                 Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
             }

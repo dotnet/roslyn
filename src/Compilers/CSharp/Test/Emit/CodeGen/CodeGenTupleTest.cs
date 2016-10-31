@@ -13575,7 +13575,14 @@ class C
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: "2");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,41): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         System.Console.WriteLine(Local((d: 1, c: 2)).b);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 1").WithArguments("d", "(int c, int d)").WithLocation(7, 41),
+                // (7,47): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int c, int d)'.
+                //         System.Console.WriteLine(Local((d: 1, c: 2)).b);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 2").WithArguments("c", "(int c, int d)").WithLocation(7, 47)
+                );
         }
 
         [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
@@ -16292,25 +16299,37 @@ public class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (6,27): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var t = M2((a: 1, b: 2), (a: 1, c: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 27),
+                // (6,41): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int)'.
+                //         var t = M2((a: 1, b: 2), (a: 1, c: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int)").WithLocation(6, 41),
                 // (8,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.b);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(8, 32),
                 // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'c' and no extension method 'c' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(t.c);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "c").WithArguments("(int a, int)", "c").WithLocation(9, 32),
+                // (10,21): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int, int)'.
+                //         M2((1, 2), (c: 1, d: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 1").WithArguments("c", "(int, int)").WithLocation(10, 21),
+                // (10,27): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(int, int)'.
+                //         M2((1, 2), (c: 1, d: 3));
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 3").WithArguments("d", "(int, int)").WithLocation(10, 27)
                 );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation1 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().First());
-            Assert.Equal("(System.Int32 a, System.Int32) C.M2<(System.Int32 a, System.Int32)>((System.Int32 a, System.Int32) x1, (System.Int32 a, System.Int32) x2)", invocation1.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32)", ((MethodSymbol)invocation1.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation2 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(4).First());
-            Assert.Equal("(System.Int32, System.Int32) C.M2<(System.Int32, System.Int32)>((System.Int32, System.Int32) x1, (System.Int32, System.Int32) x2)", invocation2.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", ((MethodSymbol)invocation2.Symbol).ReturnType.ToTestDisplayString());
 
             var invocation3 = model.GetSymbolInfo(nodes.OfType<InvocationExpressionSyntax>().Skip(5).First());
-            Assert.Equal("(System.Int32, System.Int32)[] C.M2<(System.Int32, System.Int32)[]>((System.Int32, System.Int32)[] x1, (System.Int32, System.Int32)[] x2)", invocation3.Symbol.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)[]", ((MethodSymbol)invocation3.Symbol).ReturnType.ToTestDisplayString());
         }
 
         [Fact]
@@ -16463,6 +16482,11 @@ public class Derived : Base
                 //     public override (dynamic notA, dynamic) M6() { return (1, 2); }
                 Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M6").WithArguments("Derived.M6()", "Base.M6()").WithLocation(18, 45)
                 );
+
+            var m3 = comp.GetMember<MethodSymbol>("Derived.M3").ReturnType;
+            Assert.Equal("(System.Int32 notA, System.Int32 notB)[]", m3.ToTestDisplayString());
+            Assert.Equal(new []{"System.Collections.Generic.IList<(System.Int32 notA, System.Int32 notB)>"},
+                         m3.Interfaces.SelectAsArray(t => t.ToTestDisplayString()));
         }
 
         [Fact]
@@ -19360,5 +19384,523 @@ public class B1
             var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp1.VerifyDiagnostics();
         }
+
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode001()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo(int  arg)
+        {
+            return ref new (int, dynamic)[]{(1, arg)}[0];
+        }
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+        }
+
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode002()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo(int  arg)
+        {
+            return ref new (int, dynamic)[]{(1, arg)}[0];
+        }
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify:false);
+
+            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+
+        }
+
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_01()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test((X1:1, Y1:2));
+        var t1 = (X1:3, Y1:4);
+        Test(t1);
+        Test((5, 6));
+        var t2 = (7, 8);
+        Test(t2);
+    }
+
+    public static void Test(AA val)
+    {
+    }
+}
+
+class AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_02()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test((X1:1, Y1:2));
+        var t1 = (X1:3, Y1:4);
+        Test(t1);
+        Test((5, 6));
+        var t2 = (7, 8);
+        Test(t2);
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_03()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        (int X1, int Y1)? t1 = (X1:3, Y1:4);
+        Test(t1);
+        (int, int)? t2 = (7, 8);
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+        t1 = null;
+        Test(t1);
+        t2 = null;
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA ((int X1, int Y1) x)
+    {
+        System.Console.WriteLine(x);	
+        return new AA();
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(3, 4)
+(7, 8)
+--
+--");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_04()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test(new AA());
+    }
+
+    public static void Test((int X1, int Y1) val)
+    {
+        System.Console.WriteLine(val);	
+    }
+}
+
+class AA
+{
+    public static implicit operator (int, int) (AA x)
+    {
+        return (1, 2);
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:@"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_05()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        Test(new AA());
+    }
+
+    public static void Test((int X1, int Y1) val)
+    {
+        System.Console.WriteLine(val);	
+    }
+}
+
+class AA
+{
+    public static implicit operator (int X1, int Y1) (AA x)
+    {
+        return (1, 2);
+    }
+}";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")]
+        public void UserDefinedConversionsAndNameMismatch_06()
+        {
+            var source = @"
+
+partial class C
+{
+    public static void Main()
+    {
+        BB<(int X1, int Y1)>? t1 = new BB<(int X1, int Y1)>();
+        Test(t1);
+        BB<(int, int)>? t2 = new BB<(int, int)>();
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+        t1 = null;
+        Test(t1);
+        t2 = null;
+        Test(t2);
+        System.Console.WriteLine(""--"");	
+    }
+
+    public static void Test(AA? val)
+    {
+    }
+}
+
+struct AA
+{
+    public static implicit operator AA (BB<(int X1, int Y1)> x)
+    {
+        System.Console.WriteLine(""implicit operator AA"");	
+        return new AA();
+    }
+}
+
+struct BB<T>
+{
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput:
+@"implicit operator AA
+implicit operator AA
+--
+--");
+        }
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode003()
+        {
+            string lib = @"
+
+// Metadata version: v4.0.30319
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System.Core
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )                         // .{...-.Q
+  .ver 4:0:1:0
+}
+
+// =============== CLASS MEMBERS DECLARATION ===================
+
+.class public auto ansi beforefieldinit ClassLibrary1.C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual 
+          instance valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>& 
+          Foo(int32 arg) cil managed
+  {
+    .param [0]
+    // the dynamic flags array is too short - decoder expects a flag matching ""ref"", but it is missing here.
+    .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 00 01 00 00 ) 
+    // Code size       37 (0x25)
+    .maxstack  5
+    .locals init (valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>& V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  newarr     valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_0007:  dup
+    IL_0008:  ldc.i4.0
+    IL_0009:  ldc.i4.1
+    IL_000a:  ldarg.1
+    IL_000b:  box        [mscorlib]System.Int32
+    IL_0010:  newobj     instance void valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>::.ctor(!0,
+                                                                                                             !1)
+    IL_0015:  stelem     valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_001a:  ldc.i4.0
+    IL_001b:  ldelema    valuetype [System.ValueTuple]System.ValueTuple`2<int32,object>
+    IL_0020:  stloc.0
+    IL_0021:  br.s       IL_0023
+
+    IL_0023:  ldloc.0
+    IL_0024:  ret
+  } // end of method C1::Foo
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class ClassLibrary1.C1
+";
+            var libCompRef = CompileIL(lib);
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo(42);
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, dynamic) Foo(int arg)
+        {
+            return ref base.Foo(arg);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: "42qq", verify: false);
+
+            var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
+
+            var b = m.OverriddenMethod;
+            // not (int, dynamic),
+            // since dynamic flags were not aligned, we have ignored the flags
+            Assert.Equal("ref (System.Int32, System.Object) ClassLibrary1.C1.Foo(System.Int32 arg)", b.ToTestDisplayString());
+
+        }
+
+        [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
+        [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
+        [Fact]
+        public void RefTupleDynamicDecode004()
+        {
+            string lib = @"
+
+namespace ClassLibrary1
+{
+    public class C1
+    {
+        public virtual ref (int, dynamic) Foo => ref new (int, dynamic)[]{(1, 42)}[0];
+    }
+}
+";
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+namespace ConsoleApplication5
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ref var x = ref new C2().Foo;
+            System.Console.Write(x.Item2);
+            x.Item2 = ""qq"";
+            System.Console.WriteLine(x.Item2);
+        }
+    }
+
+    class C2: ClassLibrary1.C1
+    {
+        public override ref (int, object) Foo => ref base.Foo;
+    }
+}
+";
+
+            var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
+
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
+
+            var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo { get; }", m.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo.get", m.GetMethod.ToTestDisplayString());
+
+            var b = m.OverriddenProperty;
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo { get; }", b.ToTestDisplayString());
+            Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo.get", b.GetMethod.ToTestDisplayString());
+        }
+
     }
 }

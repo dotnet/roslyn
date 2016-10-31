@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -38,11 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ObjectCreationExpressionSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<ObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(ObjectCreationExpressionSyntax expression, SyntaxToken token)

@@ -1290,7 +1290,7 @@ lVbRuntimePlus:
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
-            Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
+            Dim parsedFeatures = ParseFeatures(features)
 
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)

@@ -23,9 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        node.Checked,
                                        node.ExplicitCastInCode,
                                        node.ConstantValueOpt,
-                                       node.ConstructorOpt,
-                                       node.RelaxationLambdaOpt,
-                                       node.RelaxationReceiverPlaceholderOpt,
+                                       node.ExtendedInfoOpt,
                                        node.Type)
                 End If
 
@@ -50,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Handle other conversions.
-            Debug.Assert(node.RelaxationReceiverPlaceholderOpt Is Nothing)
+            Debug.Assert(TryCast(node.ExtendedInfoOpt, BoundRelaxationLambda)?.ReceiverPlaceholderOpt Is Nothing)
 
             ' Optimization for object comparisons that are operands of a conversion to boolean.
             ' Must be done before the object comparison is visited.
@@ -95,14 +93,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _inExpressionLambda = True
             End If
 
-            If node.RelaxationLambdaOpt IsNot Nothing Then
+            If node.ExtendedInfoOpt IsNot Nothing AndAlso node.ExtendedInfoOpt.Kind = BoundKind.RelaxationLambda Then
                 returnValue = RewriteLambdaRelaxationConversion(node)
 
-            ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
+            ElseIf (node.ConversionKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
 
-            ElseIf node.ConversionKind = ConversionKind.WideningTuple OrElse
-                node.ConversionKind = ConversionKind.NarrowingTuple Then
+            ElseIf (node.ConversionKind And (ConversionKind.Tuple Or ConversionKind.Nullable)) = conversionKind.Tuple Then
                 returnValue = RewriteTupleConversion(node)
 
             Else
@@ -121,10 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenOperand = VisitExpression(node.Operand)
             Dim rewrittenType = DirectCast(VisitType(node.Type), NamedTypeSymbol)
 
-            Return MakeTupleConversion(syntax, rewrittenOperand, rewrittenType, node.Checked)
+            Return MakeTupleConversion(syntax, rewrittenOperand, rewrittenType, DirectCast(node.ExtendedInfoOpt, BoundConvertedTupleElements))
         End Function
 
-        Private Function MakeTupleConversion(syntax As SyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, isChecked As Boolean) As BoundExpression
+        Private Function MakeTupleConversion(syntax As SyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, convertedElements As BoundConvertedTupleElements) As BoundExpression
             If destinationType.IsSameTypeIgnoringAll(rewrittenOperand.Type) Then
                 'binder keeps some tuple conversions just for the purpose of semantic model
                 'otherwisw they are as good as identity conversions
@@ -170,60 +167,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, constantValueOpt:=Nothing, isLValue:=False)
-                Dim elementType = destElementTypes(i)
-                Dim conv = Conversions.ClassifyConversion(fieldAccess.Type, elementType, useSiteDiagnostics:=Nothing)
 
-                Dim convertedFieldAccess = If(conv.Value Is Nothing,
-                                                TransformRewrittenConversion(factory.Convert(elementType, fieldAccess, conv.Key, isChecked)),
-                                                MakeUserDefinedTupleFieldConversion(factory, elementType, fieldAccess, conv.Value, isChecked))
-
-                fieldAccessorsBuilder.Add(convertedFieldAccess)
+                ' lower the conversion
+                AddPlaceholderReplacement(convertedElements.ElementPlaceholders(i), fieldAccess)
+                fieldAccessorsBuilder.Add(VisitExpression(convertedElements.ConvertedElements(i)))
+                RemovePlaceholderReplacement(convertedElements.ElementPlaceholders(i))
             Next
 
             Dim result = MakeTupleCreationExpression(syntax, DirectCast(destinationType, NamedTypeSymbol), fieldAccessorsBuilder.ToImmutableAndFree())
             Return factory.Sequence(tupleTemp, assignmentToTemp, result)
         End Function
 
-        Private Function MakeUserDefinedTupleFieldConversion(factory As SyntheticBoundNodeFactory, elementType As TypeSymbol, fieldAccess As BoundExpression, method As MethodSymbol, isChecked As Boolean) As BoundExpression
-            ' User defined conversion here would be applied like:
-            '                    field -> [predefined conv] -> [call] -> [predefined conv] -> result
-            '
-            ' NOTE: predefined conversions here may themselves be tuple conversions,
-            '       which may contain more tuple conversions and so on, so we have to lower them.
-            '       We do not want to lower the field access though, so use a placeholder instead.
-            Dim placeholder = New BoundRValuePlaceholder(fieldAccess.Syntax, fieldAccess.Type)
-
-            Dim convIn = factory.Convert(method.Parameters(0).Type, placeholder, isChecked)
-            Dim [call] = factory.Call(Nothing, method, convIn)
-            Dim convOut = factory.Convert(elementType, [call], isChecked)
-
-            ' lower the conversions
-            AddPlaceholderReplacement(placeholder, fieldAccess)
-            Dim result = VisitExpression(convOut)
-            RemovePlaceholderReplacement(placeholder)
-
-            Return result
-        End Function
-
         Private Function RewriteLambdaRelaxationConversion(node As BoundConversion) As BoundNode
             Dim returnValue As BoundNode
+            Dim relaxationLambda As BoundLambda = DirectCast(node.ExtendedInfoOpt, BoundRelaxationLambda).Lambda
 
             If _inExpressionLambda AndAlso
-                 NoParameterRelaxation(node.Operand, node.RelaxationLambdaOpt.LambdaSymbol) Then
+                 NoParameterRelaxation(node.Operand, relaxationLambda.LambdaSymbol) Then
 
                 ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
                 returnValue = MyBase.VisitConversion(
                     node.Update(node.Operand,
                                       node.ConversionKind, node.Checked, node.ExplicitCastInCode,
-                                      node.ConstantValueOpt, node.ConstructorOpt,
-                                      relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type))
+                                      node.ConstantValueOpt,
+                                      extendedInfoOpt:=Nothing, type:=node.Type))
 
                 returnValue = TransformRewrittenConversion(DirectCast(returnValue, BoundConversion))
             Else
-                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
+                returnValue = node.Update(VisitExpressionNode(relaxationLambda),
                                       node.ConversionKind, node.Checked, node.ExplicitCastInCode,
-                                      node.ConstantValueOpt, node.ConstructorOpt,
-                                      relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type)
+                                      node.ConstantValueOpt,
+                                      extendedInfoOpt:=Nothing, type:=node.Type)
             End If
 
             Return returnValue
@@ -298,30 +272,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim F As New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, node.Syntax, Me._compilationState, Me._diagnostics)
             If (node.Operand.IsDefaultValueConstant) Then
                 Return F.Null(node.Type)
-            ElseIf (Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
-                Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
-                Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
-                Dim conversionIfNothing = F.Null(node.Type)
-                Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, F.Local(savedOriginalValue, False),
-                                                                            DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
-                                                                            node.RelaxationLambdaOpt,
-                                                                            node.RelaxationReceiverPlaceholderOpt,
-                                                                            methodGroupOpt:=Nothing,
-                                                                            type:=node.Type)
-                Dim conditionalResult As BoundExpression = F.TernaryConditionalExpression(condition:=checkIfNothing, ifTrue:=conversionIfNothing, ifFalse:=convertedValue)
-                Return F.Sequence(savedOriginalValue,
-                                  F.AssignmentExpression(F.Local(savedOriginalValue, True), VisitExpression(node.Operand)),
-                                  VisitExpression(conditionalResult))
             Else
-                Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, node.Operand,
+                Dim lambdaOpt As BoundLambda
+                Dim receiverPlaceholderOpt As BoundRValuePlaceholder
+
+                If node.ExtendedInfoOpt IsNot Nothing Then
+                    Dim relaxationLambda = DirectCast(node.ExtendedInfoOpt, BoundRelaxationLambda)
+                    lambdaOpt = relaxationLambda.Lambda
+                    receiverPlaceholderOpt = relaxationLambda.ReceiverPlaceholderOpt
+                Else
+                    lambdaOpt = Nothing
+                    receiverPlaceholderOpt = Nothing
+                End If
+
+                If (Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
+                    Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
+                    Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
+                    Dim conversionIfNothing = F.Null(node.Type)
+                    Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, F.Local(savedOriginalValue, False),
+                                                                                DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
+                                                                                lambdaOpt,
+                                                                                receiverPlaceholderOpt,
+                                                                                methodGroupOpt:=Nothing,
+                                                                                type:=node.Type)
+                    Dim conditionalResult As BoundExpression = F.TernaryConditionalExpression(condition:=checkIfNothing, ifTrue:=conversionIfNothing, ifFalse:=convertedValue)
+                    Return F.Sequence(savedOriginalValue,
+                                      F.AssignmentExpression(F.Local(savedOriginalValue, True), VisitExpression(node.Operand)),
+                                      VisitExpression(conditionalResult))
+                Else
+                    Dim convertedValue = New BoundDelegateCreationExpression(node.Syntax, node.Operand,
                                                                             DirectCast(node.Operand.Type, NamedTypeSymbol).DelegateInvokeMethod,
-                                                                            node.RelaxationLambdaOpt,
-                                                                            node.RelaxationReceiverPlaceholderOpt,
+                                                                            lambdaOpt,
+                                                                            receiverPlaceholderOpt,
                                                                             methodGroupOpt:=Nothing,
                                                                             type:=node.Type)
-                Return VisitExpression(convertedValue)
+                    Return VisitExpression(convertedValue)
+                End If
             End If
-
         End Function
 
         Private Function CouldPossiblyBeNothing(F As SyntheticBoundNodeFactory, node As BoundExpression) As Boolean
@@ -397,9 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     node.Checked,
                                                     node.ExplicitCastInCode,
                                                     node.ConstantValueOpt,
-                                                    node.ConstructorOpt,
-                                                    node.RelaxationLambdaOpt,
-                                                    node.RelaxationReceiverPlaceholderOpt,
+                                                    node.ExtendedInfoOpt,
                                                     resultType.GetNullableUnderlyingType)),
                                     resultType)
 
@@ -432,9 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         node.Checked,
                                         node.ExplicitCastInCode,
                                         node.ConstantValueOpt,
-                                        node.ConstructorOpt,
-                                        node.RelaxationLambdaOpt,
-                                        node.RelaxationReceiverPlaceholderOpt,
+                                        node.ExtendedInfoOpt,
                                         resultType))
             End If
 
@@ -499,6 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteDiagnostics).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
+                Debug.Assert((convKind And ConversionKind.Tuple) = (node.ConversionKind And ConversionKind.Tuple))
 
                 ' Check for potential constant folding
                 Dim integerOverflow As Boolean = False
@@ -515,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _diagnostics.Add(node, useSiteDiagnostics)
 
                     If (convKind And ConversionKind.Tuple) <> 0 Then
-                        operand = MakeTupleConversion(node.Syntax, operand, unwrappedResultType, node.Checked)
+                        operand = MakeTupleConversion(node.Syntax, operand, unwrappedResultType, DirectCast(node.ExtendedInfoOpt, BoundConvertedTupleElements))
 
                     Else
                         operand = TransformRewrittenConversion(New BoundConversion(node.Syntax,
@@ -524,9 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     node.Checked,
                                                     node.ExplicitCastInCode,
                                                     node.ConstantValueOpt,
-                                                    node.ConstructorOpt,
-                                                    node.RelaxationLambdaOpt,
-                                                    node.RelaxationReceiverPlaceholderOpt,
+                                                    node.ExtendedInfoOpt,
                                                     unwrappedResultType))
                     End If
                 End If
@@ -577,9 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             node.Checked,
                                             node.ExplicitCastInCode,
                                             node.ConstantValueOpt,
-                                            node.ConstructorOpt,
-                                            node.RelaxationLambdaOpt,
-                                            node.RelaxationReceiverPlaceholderOpt,
+                                            node.ExtendedInfoOpt,
                                             resultType.GetNullableUnderlyingType)),
                                 resultType)
             End If
@@ -601,9 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         node.Checked,
                                         node.ExplicitCastInCode,
                                         node.ConstantValueOpt,
-                                        node.ConstructorOpt,
-                                        node.RelaxationLambdaOpt,
-                                        node.RelaxationReceiverPlaceholderOpt,
+                                        node.ExtendedInfoOpt,
                                         resultType))
             End If
 
@@ -784,8 +762,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = RewriteAsDirectCast(rewrittenConversion)
                 Else
                     Debug.Assert(underlyingTypeTo.IsValueType)
-                    ' Find the parameterless constructor to be used in conversion of Nothing to a value type
-                    result = InitWithParameterlessValueTypeConstructor(rewrittenConversion, DirectCast(underlyingTypeTo, NamedTypeSymbol))
                 End If
 
             ElseIf operand.Kind = BoundKind.Lambda Then
@@ -838,59 +814,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Else
                     Debug.Assert(underlyingTypeTo.IsValueType)
-                    ' Find the parameterless constructor to be used in emit phase, see 'CodeGenerator.EmitConversionExpression'
-                    result = InitWithParameterlessValueTypeConstructor(rewrittenConversion, DirectCast(underlyingTypeTo, NamedTypeSymbol))
                 End If
             End If
 
             Return result
-        End Function
-
-        ''' <summary> Given bound conversion node and the type the conversion is being done to initializes 
-        ''' bound conversion node with the reference to parameterless value type constructor and returns 
-        ''' modified bound node.
-        ''' In case the constructor is not accessible from current context, or there is no parameterless
-        ''' constructor found in the type (which should never happen, because in such cases a synthesized 
-        ''' constructor is supposed to be generated)
-        ''' </summary>
-        Private Function InitWithParameterlessValueTypeConstructor(node As BoundConversion, typeTo As NamedTypeSymbol) As BoundExpression
-            Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
-            Debug.Assert(node.RelaxationLambdaOpt Is Nothing AndAlso node.RelaxationReceiverPlaceholderOpt Is Nothing)
-
-            '  find valuetype parameterless constructor and check the accessibility
-            For Each constr In typeTo.InstanceConstructors
-                ' NOTE: we intentionally skip constructors with all 
-                '       optional parameters; this matches Dev10 behavior
-                If constr.ParameterCount = 0 Then
-
-                    '  check 'constr' 
-                    If AccessCheck.IsSymbolAccessible(constr, Me._topMethod.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
-                        ' before we use constructor symbol we need to report use site error if any
-                        Dim useSiteError = constr.GetUseSiteErrorInfo()
-                        If useSiteError IsNot Nothing Then
-                            ReportDiagnostic(node, useSiteError, Me._diagnostics)
-                        End If
-
-                        ' update bound node
-                        Return node.Update(node.Operand,
-                                           node.ConversionKind,
-                                           node.Checked,
-                                           node.ExplicitCastInCode,
-                                           node.ConstantValueOpt,
-                                           constr,
-                                           node.RelaxationLambdaOpt,
-                                           node.RelaxationReceiverPlaceholderOpt,
-                                           node.Type)
-                    End If
-
-                    '  exit for each in any case
-                    Return node
-                End If
-            Next
-
-            ' This point should not be reachable, because if there is no constructor in the 
-            ' loaded value type, we should have generated a synthesized constructor.
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         Private Function RewriteReferenceTypeToCharArrayRankOneConversion(node As BoundConversion, typeFrom As TypeSymbol, typeTo As TypeSymbol) As BoundExpression

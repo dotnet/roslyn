@@ -3,16 +3,13 @@
   <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ProcessWatchdog</RootNamespace>
     <AssemblyName>ProcessWatchdog</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>
-    <OutDir>$(OutDir)ProcessWatchdog\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />

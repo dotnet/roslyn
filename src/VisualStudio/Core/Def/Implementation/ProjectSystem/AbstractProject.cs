@@ -152,7 +152,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (visualStudioWorkspaceOpt != null)
             {
-                this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
+                if (Language == LanguageNames.CSharp || Language == LanguageNames.VisualBasic)
+                {
+                    this.EditAndContinueImplOpt = new VsENCRebuildableProjectImpl(this);
+                }
+
                 this.MetadataService = visualStudioWorkspaceOpt.Services.GetService<IMetadataService>();
             }
 

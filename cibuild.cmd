@@ -61,15 +61,15 @@ set bindir=%RoslynRoot%Binaries
 if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
-msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true "%RoslynRoot%build\Toolset.sln" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset\Toolset.csproj" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\*" "%bindir%\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\Deployment\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
 copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset/Toolset.csproj /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
@@ -81,7 +81,7 @@ if defined TestDeterminism (
 
 if defined TestPerfCorrectness (
     msbuild %MSBuildAdditionalCommandLineArgs% Roslyn.sln /p:Configuration=%BuildConfiguration% /p:DeployExtension=false || goto :BuildFailed
-    .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --ci-test || goto :BuildFailed
+    .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe --ci-test || goto :BuildFailed
     exit /b 0
 )
 
@@ -94,8 +94,8 @@ if defined TestPerfRun (
             set "EXTRA_PERF_RUNNER_ARGS=--report-benchview --branch "%GIT_BRANCH%""
 
             REM Check if we are in a PR or this is a rolling submission
-            if defined ghprbPullId (
-                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ^"[%ghprbPullAuthorLogin%] PR %ghprbPullId%^" --benchview-submission-type private"
+            if defined ghprbPullTitle (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-name ""[%ghprbPullAuthorLogin%] PR %ghprbPullId%: %ghprbPullTitle%"" --benchview-submission-type private"
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
@@ -105,17 +105,25 @@ if defined TestPerfRun (
         )
     )
 
-    .\Binaries\%BuildConfiguration%\Roslyn.Test.Performance.Runner.exe --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
+    .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic || goto :BuildFailed
+REM Temporarily forcing MSBuild 14.0 here to work around a bug in 15.0
+REM MSBuild bug: https://github.com/Microsoft/msbuild/issues/1183
+REM Roslyn tracking bug: https://github.com/dotnet/roslyn/issues/14451
+"c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
 
 REM Verify the state of our project.jsons
-.\Binaries\%BuildConfiguration%\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
+echo Running RepoUtil
+.\Binaries\%BuildConfiguration%\Exes\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
+
+REM Verify the state of our project.jsons
+echo Running BuildBoss
+.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln src\Samples\Samples.sln || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

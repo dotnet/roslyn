@@ -179,7 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddDynamicAnalysis(original, base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl));
         }
-        
+
+        public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl));
+        }
+
         public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
         {
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
@@ -227,16 +232,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            // TODO: Desired behavior for a switch when clause has not been specified.
-            // See also https://github.com/dotnet/roslyn/issues/14156
-            return base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            Debug.Assert(whenClause != null);
+
+            // Instrument the statement using a factory with the same syntax as the clause, so that the instrumentation appears to be part of the clause.
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, whenClause, _methodBodyFactory.CompilationState, _diagnostics);
+
+            // Instrument using the span of the expression
+            return statementFactory.StatementList(AddAnalysisPoint(whenClause, statementFactory), ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
-        
+
+        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentLocalDeconstructionDeclaration(original, rewritten));
+        }
+
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             if (!original.WasCompilerGenerated)

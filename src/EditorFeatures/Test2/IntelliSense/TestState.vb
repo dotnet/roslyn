@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As PresentationItem)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
@@ -226,17 +226,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentCompletionPresenterSession.PresentationItems.Any(
-                                       Function(i) i.Item.DisplayText = v))
+            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
+                                       Function(i) i.DisplayText = v))
         End Function
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.PresentationItems.Any(
-                                       Function(i) i.Item.DisplayText = v))
+            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
+                                       Function(i) i.DisplayText = v))
         End Function
 
-        Public Async Function AssertSelectedCompletionItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedCompletionItem(
+                               Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
@@ -251,11 +252,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.Item.DisplayText)
+                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
             End If
 
             If shouldFormatOnCommit.HasValue Then
-                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Item.Rules.FormatOnCommit)
+                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Rules.FormatOnCommit)
             End If
 
 #If False Then
@@ -266,7 +267,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim itemDescription = Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync(document, CancellationToken.None)
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await service.GetDescriptionAsync(
+                    document, Me.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
         End Function

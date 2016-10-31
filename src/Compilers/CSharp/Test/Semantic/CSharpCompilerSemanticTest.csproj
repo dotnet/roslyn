@@ -4,7 +4,6 @@
   <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{B2C33A93-DB30-4099-903E-77D75C4C3F45}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -12,6 +11,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Semantic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
@@ -47,10 +47,8 @@
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -137,6 +135,7 @@
     <Compile Include="Semantics\SyntaxTreeRootTests.cs" />
     <Compile Include="Semantics\SynthesizedStaticConstructorTests.cs" />
     <Compile Include="Semantics\TryCatchTests.cs" />
+    <Compile Include="Semantics\TypeOfTests.cs" />
     <Compile Include="Semantics\UnsafeTests.cs" />
     <Compile Include="Semantics\UserDefinedConversionTests.cs" />
     <Compile Include="Semantics\UseSiteErrorTests.cs" />

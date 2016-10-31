@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections;
+using System.Collections.Specialized;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return new DesktopBuildServerController().RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                var appSettings = new NameValueCollection();
+                return new DesktopBuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
             [Fact]
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 using (var doneMre = new ManualResetEvent(initialState: false))
                 {
                     var pipeName = Guid.NewGuid().ToString();
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool created = false;
                     bool connected = false;
 

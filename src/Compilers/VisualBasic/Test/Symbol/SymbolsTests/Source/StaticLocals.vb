@@ -922,5 +922,172 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
+        <Fact>
+        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        Public Sub InitializeWithAsNew_01()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Structure S1
+    Public F1 As String
+End Structure
+
+Module Module1
+    Sub Main()
+         Test()
+         Test()
+    End Sub
+
+    Sub Test()
+        Static val As New S1 With {.F1 = GetString()}
+        System.Console.WriteLine(val.F1)
+    End Sub
+
+    Function GetString() As String
+        System.Console.WriteLine("GetString")
+        Return "F1"
+    End Function
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+<![CDATA[
+GetString
+F1
+F1
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        Public Sub InitializeWithAsNew_02()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Structure S1
+    Public F1 As String
+End Structure
+
+Module Module1
+    Sub Main()
+         Test()
+         Test()
+    End Sub
+
+    Sub Test()
+        Static val1, val2 As New S1 With {.F1 = GetString()}
+        System.Console.WriteLine(val1.F1)
+        System.Console.WriteLine(val2.F1)
+    End Sub
+
+    Function GetString() As String
+        System.Console.WriteLine("GetString")
+        Return "F1"
+    End Function
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+<![CDATA[
+GetString
+GetString
+F1
+F1
+F1
+F1
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        Public Sub InitializeWithAsNew_03()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class S1
+    Public F1 As String
+End Class
+
+Module Module1
+    Sub Main()
+         Test()
+         Test()
+    End Sub
+
+    Sub Test()
+        Static val As New S1 With {.F1 = GetString()}
+        System.Console.WriteLine(val.F1)
+    End Sub
+
+    Function GetString() As String
+        System.Console.WriteLine("GetString")
+        Return "F1"
+    End Function
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+<![CDATA[
+GetString
+F1
+F1
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(264417, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=264417")>
+        Public Sub InitializeWithAsNew_04()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class S1
+    Public F1 As String
+End Class
+
+Module Module1
+    Sub Main()
+         Test()
+         Test()
+    End Sub
+
+    Sub Test()
+        Static val1, val2 As New S1 With {.F1 = GetString()}
+        System.Console.WriteLine(val1.F1)
+        System.Console.WriteLine(val2.F1)
+        System.Console.WriteLine(val1 Is val2)
+    End Sub
+
+    Function GetString() As String
+        System.Console.WriteLine("GetString")
+        Return "F1"
+    End Function
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+<![CDATA[
+GetString
+GetString
+F1
+F1
+False
+F1
+F1
+False
+]]>)
+        End Sub
+
     End Class
 End Namespace

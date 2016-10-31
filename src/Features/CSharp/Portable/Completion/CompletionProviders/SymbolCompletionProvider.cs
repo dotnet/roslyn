@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet set)
+        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet options)
         {
             var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);

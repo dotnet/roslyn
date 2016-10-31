@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext,
-                leftToken.IsPossibleTupleElementNameContext(position),
+                syntaxTree.IsPossibleTupleContext(leftToken, position),
                 cancellationToken);
         }
 

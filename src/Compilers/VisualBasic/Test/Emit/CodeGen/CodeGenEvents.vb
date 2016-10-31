@@ -2583,7 +2583,7 @@ End Class
 #If Not ISSUE_14104_IS_FIXED Then
             compilation.AssertTheseDiagnostics(
 <expected>
-BC30299: 'Main' cannot inherit from class '' because '' is declared 'NotInheritable'.
+BC30258: Classes can inherit only from other classes.
     Inherits System.ValueTuple(Of Integer, Integer)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.

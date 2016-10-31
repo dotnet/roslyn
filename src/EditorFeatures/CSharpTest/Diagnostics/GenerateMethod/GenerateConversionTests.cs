@@ -3,7 +3,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -33,6 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
             await TestAsync(
 @"class Program { void Test ( int [ ] a ) { C x1 = [|1|] ; } } class C { } ",
 @"using System ; class Program { void Test ( int [ ] a ) { C x1 = 1 ; } } class C { public static implicit operator C ( int v ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateImplicitConversionClass_CodeStyle()
+        {
+            await TestAsync(
+@"class Program { void Test ( int [ ] a ) { C x1 = [|1|] ; } } class C { } ",
+@"using System ; class Program { void Test ( int [ ] a ) { C x1 = 1 ; } } 
+class C { public static implicit operator C ( int v ) => throw new NotImplementedException ( ) ; } ",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]

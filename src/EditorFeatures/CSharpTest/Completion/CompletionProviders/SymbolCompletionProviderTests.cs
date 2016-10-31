@@ -8904,6 +8904,23 @@ class C
             await VerifyItemExistsAsync(markup, "Item3");
         }
 
+        [WorkItem(14546, "https://github.com/dotnet/roslyn/issues/14546")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementsCompletionOffMethodGroup()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        new object().ToString.$$
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs;
+
+            // should not crash
+            await VerifyItemExistsAsync(markup, "ToString");            
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
@@ -8934,6 +8951,93 @@ class C
         await Local<$$";
 
             await VerifyAnyItemExistsAsync(markup);
+		}
+			
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel1()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel2()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    ($$)
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel3()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeAtMemberLevel4()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    (C, $$)
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInForeach()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        foreach ((C, $$
+    }
+}", "C");
+        }
+
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInParameterList()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M((C, $$)
+    {
+    }
+}", "C");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleTypeInNameOf()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    void M()
+    {
+        var x = nameof((C, $$
+    }
+}", "C");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

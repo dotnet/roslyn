@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -194,16 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
         {
-            // NOTE: This is slightly different from Dev10.  In Dev10, when you stop the debugger
-            // on the collection expression, you can see the (uninitialized) iteration variable.
-            // In Roslyn, you cannot because the iteration variable is re-declared in each iteration
-            // of the loop and is, therefore, not yet in scope.
-            if (original.Syntax is ForEachComponentStatementSyntax)
-            {
-                return InstrumentForEachStatementDeconstructionVariablesDeclaration(original, collectionVarDecl);
-            }
-
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             return new BoundSequencePoint(forEachSyntax.Expression,
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }
@@ -397,7 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            WhenClauseSyntax whenClause = (WhenClauseSyntax)original.Syntax.Parent;
+            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            Debug.Assert(whenClause != null);
 
             return new BoundSequencePointWithSpan(
                 syntax: whenClause,
@@ -438,5 +431,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
+        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            // Mark the code that binds pattern variables to their values as hidden.
+            // We do it to tell that this is not a part of previous statement.
+            return new BoundSequencePoint(null, base.InstrumentPatternSwitchBindCasePatternVariables(bindings));
+        }
     }
 }

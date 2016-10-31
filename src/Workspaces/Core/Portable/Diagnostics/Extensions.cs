@@ -72,15 +72,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DiagnosticData.Create(project, diagnostic);
         }
 
-        public static async Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
         {
-            var result = new List<Diagnostic>();
+            var result = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
                 result.Add(await diagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false));
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         public static async Task<IList<Location>> ConvertLocationsAsync(

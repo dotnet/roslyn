@@ -51,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 IOleUndoManager undoManager)
             {
                 this.packageInstallerService = packageInstallerService;
+                this.source = source;
                 this.packageName = packageName;
                 this.versionOpt = versionOpt;
                 this.dte = dte;

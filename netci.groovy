@@ -152,7 +152,7 @@ set TMP=%TEMP%
     }
   }
 
-  def triggerPhraseOnly = true
+  def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
@@ -202,7 +202,6 @@ commitPullList.each { isPr ->
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-set VS150COMNTOOLS=%ProgramFiles(x86)%\\Microsoft Visual Studio\\VS15Preview\\Common7\\Tools\\
 .\\cibuild.cmd /debug /testVsi""")
     }
   }

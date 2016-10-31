@@ -477,5 +477,42 @@ class C
                 Await state.AssertSignatureHelpSession()
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function MixedTupleNaming() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void Foo()
+    {
+        (int, int x) t = (5$$
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars(",")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="(int, int x)", selectedParameter:="int x")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function ParameterSelectionWhileParsedAsParenthesizedExpression() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void Foo()
+    {
+        (int a, string b) x = (b$$
+    }
+}
+                              </Document>)
+
+                state.SendInvokeSignatureHelp()
+                Await state.AssertSelectedSignatureHelpItem(displayText:="(int a, string b)", selectedParameter:="int a")
+            End Using
+        End Function
+
     End Class
 End Namespace

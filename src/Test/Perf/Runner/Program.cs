@@ -143,11 +143,11 @@ namespace Runner
         {
             RuntimeSettings.IsRunnerAttached = true;
 
-            var testDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Perf", "tests");
+            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Print message at startup
             Log("Starting Performance Test Run");
-            Log("hash: " + FirstLine(StdoutFrom("git", "show --format=\"%h\" HEAD --")));
+            Log("hash: " + FirstLine(StdoutFromOrDefault("git", "show --format=\"%h\" HEAD --", "git missing")));
             Log("time: " + DateTime.Now.ToString());
 
             var testInstances = new List<PerfTest>();
@@ -238,6 +238,19 @@ namespace Runner
                 {
                     traceManager.Cleanup();
                 }
+            }
+        }
+
+        private static string StdoutFromOrDefault(string program, string args = "", string workingDirectory = null, string defaultText = "")
+        {
+            try
+            {
+
+                return StdoutFrom(program, args, workingDirectory);
+            }
+            catch
+            {
+                return defaultText;
             }
         }
     }

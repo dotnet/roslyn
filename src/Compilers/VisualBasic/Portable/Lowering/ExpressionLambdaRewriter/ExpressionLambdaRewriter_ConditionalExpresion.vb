@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim convKind As ConversionKind = Conversions.ClassifyPredefinedConversion(parameterType, conversion.Operand.Type, useSiteDiagnostics)
                 Diagnostics.Add(conversion, useSiteDiagnostics)
 
-                If convKind = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
+                If (convKind And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
                     ' Convert to non-nullable type first to mimic Dev11
                     Return Me._factory.Convert(toType, CreateUserDefinedNullableToUnderlyingConversion(parameter, parameterType, isChecked), isChecked)
                 Else
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim innerConversionApplied As Boolean = Not Conversions.IsIdentityConversion(innerConversion)
             If innerConversionApplied Then
-                Debug.Assert(innerConversion = ConversionKind.NarrowingNullable)
+                Debug.Assert((innerConversion And ConversionKind.NarrowingNullable) = ConversionKind.NarrowingNullable)
 
                 'If outConv Is Nothing OrElse outConv.ConversionKind = ConversionKind.WideningNullable Then
                 ' NOTE: in simple cases where inner conversion is (T? -> T) and outer conversion is (S -> S?),
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If outConv IsNot Nothing Then
                 outConv = outConv.Update([call], outConv.ConversionKind, outConv.Checked, outConv.ExplicitCastInCode, outConv.ConstantValueOpt,
-                                            outConv.ConstructorOpt, outConv.RelaxationLambdaOpt, outConv.RelaxationReceiverPlaceholderOpt, outConv.Type)
+                                         outConv.ExtendedInfoOpt, outConv.Type)
             End If
 
             Dim newInOutConversionFlags As Byte = CByte(If(outConv IsNot Nothing, 2, 0) + If(innerConversionApplied, 1, 0))
@@ -241,8 +241,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return conversion.Update(userDefinedConv, newConversionKind,
-                                     conversion.Checked, conversion.ExplicitCastInCode, conversion.ConstantValueOpt, conversion.ConstructorOpt,
-                                     conversion.RelaxationLambdaOpt, conversion.RelaxationReceiverPlaceholderOpt, toType)
+                                     conversion.Checked, conversion.ExplicitCastInCode, conversion.ConstantValueOpt,
+                                     conversion.ExtendedInfoOpt, toType)
         End Function
 
     End Class

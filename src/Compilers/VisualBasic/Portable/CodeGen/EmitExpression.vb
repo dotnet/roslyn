@@ -1542,17 +1542,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitLoadDefaultValueOfTypeFromNothingLiteral(type, used, syntaxNode)
         End Sub
 
-        Private Sub EmitLoadDefaultValueOfTypeFromConstructorCall(constructor As MethodSymbol,
-                                                                  used As Boolean,
-                                                                  syntaxNode As SyntaxNode)
-
-            If constructor.IsDefaultValueTypeConstructor() Then
-                EmitInitObj(constructor.ContainingType, used, syntaxNode)
-            Else
-                EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used, syntaxNode)
-            End If
-        End Sub
-
         Private Sub EmitLoadDefaultValueOfTypeFromNothingLiteral(type As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
             EmitInitObj(type, used, syntaxNode)
         End Sub

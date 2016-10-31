@@ -13,10 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// A short title describing of the effect of the operation.
         /// </summary>
-        public virtual string Title
-        {
-            get { return null; }
-        }
+        public virtual string Title => null;
 
         /// <summary>
         /// Called by the host environment to apply the effect of the operation.
@@ -26,9 +23,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
         }
 
-        internal virtual void Apply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal virtual bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.Apply(workspace, cancellationToken);
+            return true;
         }
 
         /// <summary>

@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp);
             Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionService.GetOption(
                 CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp) == true;
+            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
 
             BindToOption(Never_include_snippets, CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude, LanguageNames.CSharp);
             BindToOption(Always_include_snippets, CompletionOptions.SnippetsBehavior, SnippetsRule.AlwaysInclude, LanguageNames.CSharp);
@@ -28,6 +29,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Never_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Never, LanguageNames.CSharp);
             BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.EnterKeyBehavior, EnterKeyRule.AfterFullyTypedWord, LanguageNames.CSharp);
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.CSharp);
+        }
+
+        private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
+        {
+            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
+        }
+
+        private void Show_completion_list_after_a_character_is_typed_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
+            Show_completion_list_after_a_character_is_deleted.IsChecked = false;
+            Show_completion_list_after_a_character_is_deleted_Unchecked(sender, e);
         }
 
         private void Show_completion_list_after_a_character_is_deleted_Checked(object sender, RoutedEventArgs e)

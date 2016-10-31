@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private class MyCodeAction : CodeAction.SimpleCodeAction
+        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
         {
             public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions)
+                : base(title, nestedActions, isInlinable: true)
             {
             }
         }

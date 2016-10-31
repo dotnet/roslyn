@@ -1,18 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     {
         private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
+
+        internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
         {
@@ -378,8 +379,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        internal abstract RequestLanguage Language { get; }
-
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
@@ -395,7 +394,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!UseSharedCompilation ||
                 !string.IsNullOrEmpty(ToolPath) ||
-                !Utilities.IsCompilerServerSupported)
+                !BuildServerConnection.IsCompilerServerSupported)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -418,13 +417,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
-                    var buildPaths = new BuildPaths(
+                    var workingDir = CurrentDirectoryToUse();
+                    var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
-                        workingDir: CurrentDirectoryToUse());
+                        workingDir: workingDir,
+                        tempDir: BuildServerConnection.GetTempPath(workingDir));
 
-                    var responseTask = DesktopBuildClient.RunServerCompilation(
+                    var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
                         buildPaths,
@@ -457,10 +458,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ExitCode = -1;
                 }
             }
+
             return ExitCode;
         }
-
-
 
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
@@ -476,14 +476,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
             if (inGac != false)
+            {
                 return null;
+            }
 
             var codeBase = (string)typeof(Assembly)
                 .GetTypeInfo()
                 .GetDeclaredProperty("CodeBase")
                 ?.GetMethod.Invoke(buildTask, parameters: null);
 
-            if (codeBase == null) return null;
+            if (codeBase == null)
+            {
+                return null;
+            }
 
             var uri = new Uri(codeBase);
 
@@ -499,15 +504,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     .GetDeclaredMethod("GetCallingAssembly")
                     ?.Invoke(null, null);
 
-                var location = (string)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredProperty("Location")
-                    ?.GetMethod.Invoke(callingAssembly, parameters: null);
-
-                if (location == null) return null;
+                var location = Utilities.GetLocation(callingAssembly);
+                if (location == null)
+                {
+                    return null;
+                }
 
                 assemblyPath = location;
             }
+
             return Path.GetDirectoryName(assemblyPath);
         }
 
@@ -530,7 +535,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // if ToolTask didn't override. MSBuild uses the process directory.
             string workingDirectory = GetWorkingDirectory();
             if (string.IsNullOrEmpty(workingDirectory))
+            {
                 workingDirectory = Directory.GetCurrentDirectory();
+            }
             return workingDirectory;
         }
 
@@ -573,10 +580,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             switch (response.Type)
             {
-                case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
-                    return -1;
-
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
                     LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
@@ -592,12 +595,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     return completedResponse.ReturnCode;
 
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    throw new InvalidOperationException("Encountered unknown response type");
+                    LogErrorOutput($"Recieved an unrecognized response from the server: {response.Type}");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
 
@@ -634,9 +642,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
             var commandLineArguments =
-                CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+                CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
             var responseFileArguments =
-                CommandLineParser.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+                CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
             return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
 

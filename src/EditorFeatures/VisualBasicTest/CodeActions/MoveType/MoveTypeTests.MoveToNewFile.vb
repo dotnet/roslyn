@@ -106,5 +106,38 @@ End Class
 </File>
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index:=1)
         End Function
+
+        <WorkItem(14484, "https://github.com/dotnet/roslyn/issues/14484")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function MoveNestedTypeToNewFile_RemoveComments() As Task
+            Dim code =
+<File>
+''' Outer comment
+Public Class Class1
+    ''' Inner comment
+    Class Class2[||]
+    End Class
+End Class
+</File>
+            Dim codeAfterMove =
+<File>
+''' Outer comment
+Public Partial Class Class1
+End Class
+</File>
+            Dim expectedDocumentName = "Class1.Class2.vb"
+
+            Dim destinationDocumentText =
+<File>
+Public Partial Class Class1
+    ''' Inner comment
+    Class Class2
+    End Class
+End Class
+</File>
+            Await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+                index:=1, compareTokens:=False)
+        End Function
     End Class
 End Namespace

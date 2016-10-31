@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
+        private static SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
         private static ValueTuple<Checksum, Solution> s_lastSolution;
 
         private readonly AssetService _assetService;
@@ -38,13 +40,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 return s_lastSolution.Item2;
             }
 
-            // create new solution
-            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // make sure there is always only one that creates a new solution
+            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (s_lastSolution.Item1 == solutionChecksum)
+                {
+                    return s_lastSolution.Item2;
+                }
 
-            // save it
-            s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
+                var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
 
-            return solution;
+                return solution;
+            }
         }
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
@@ -80,13 +88,17 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-            var solutionInfo = await _assetService.GetAssetAsync<SerializedSolutionInfo>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+
+            // never cache any tree in memory
+            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+
+            var solutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
             foreach (var projectChecksum in solutionChecksumObject.Projects)
             {
                 var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-                var projectInfo = await _assetService.GetAssetAsync<SerializedProjectInfo>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
                 if (!workspace.Services.IsSupported(projectInfo.Language))
                 {
                     // only add project our workspace supports. 
@@ -98,11 +110,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var documentChecksum in projectSnapshot.Documents)
                 {
                     var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                            new ChecksumSourceText(
+                                documentSnapshot.Text,
+                                await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
                             VersionStamp.Create(),
                             documentInfo.FilePath));
 
@@ -151,11 +165,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<SerializedDocumentInfo>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
 
                     var textLoader = TextLoader.From(
                         TextAndVersion.Create(
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                            new ChecksumSourceText(
+                                documentSnapshot.Text,
+                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
                             VersionStamp.Create(),
                             documentInfo.FilePath));
 

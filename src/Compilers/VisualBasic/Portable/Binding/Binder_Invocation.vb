@@ -1031,8 +1031,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(receiver, useSiteDiagnostics)
 
-                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver AndAlso oldReceiver.Kind = BoundKind.MeReference Then
-                    receiver.SetWasCompilerGenerated()
+                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver Then
+                    Select Case oldReceiver.Kind
+                        Case BoundKind.MeReference,
+                             BoundKind.WithLValueExpressionPlaceholder,
+                             BoundKind.WithRValueExpressionPlaceholder
+                            receiver.SetWasCompilerGenerated()
+                    End Select
                 End If
             End If
 

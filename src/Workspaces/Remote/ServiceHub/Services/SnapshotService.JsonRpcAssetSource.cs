@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Stream stream, int sessionId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
                 var results = new List<ValueTuple<Checksum, object>>();
-
-                using (var reader = new ObjectReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var responseSessionId = reader.ReadInt32();
                     Contract.ThrowIfFalse(sessionId == responseSessionId);

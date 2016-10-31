@@ -2115,6 +2115,49 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName, //args
                 SymbolDisplayPartKind.Punctuation);
+
+            // Without SymbolDisplayParameterOptions.IncludeParamsRefOut.
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName),
+                "M(Int16 s, Int32 i, String[] args)",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Without SymbolDisplayParameterOptions.IncludeType, drops
+            // ref/out/params modifiers. (VB retains ByRef/ParamArray.)
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format.WithParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeName),
+                "M(s, i, args)",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
         }
 
         [Fact()]
@@ -2887,12 +2930,7 @@ class C1 {
             Assert.Equal(expectedText, actualParts.ToDisplayString());
             if (expectedKinds.Length > 0)
             {
-                for (int i = 0; i < Math.Min(expectedKinds.Length, actualParts.Length); i++)
-                {
-                    Assert.Equal(expectedKinds[i], actualParts[i].Kind);
-                }
-
-                Assert.Equal(expectedKinds.Length, actualParts.Length);
+                AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"SymbolDisplayPartKind.{p}");
             }
         }
 
@@ -4157,7 +4195,6 @@ namespace N
                 SymbolDisplayPartKind.EventName);
         }
 
-
         [WorkItem(765287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765287")]
         [Fact]
         public void TestVbSymbols()
@@ -5181,6 +5218,185 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
+        [Fact]
+        public void RefReturn()
+        {
+            var sourceA =
+@"public delegate ref int D();
+public class C
+{
+    public ref int F(ref int i) => ref i;
+    int _p;
+    public ref int P => ref _p;
+    public ref int this[int i] => ref _p;
+}";
+            var compA = CreateCompilationWithMscorlib(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+            // From C# symbols.
+            RefReturnInternal(compA);
+
+            var compB = CreateVisualBasicCompilation(GetUniqueName(), "", referencedAssemblies: new[] { MscorlibRef, refA });
+            compB.VerifyDiagnostics();
+            // From VB symbols.
+            RefReturnInternal(compB);
+        }
+
+        private static void RefReturnInternal(Compilation comp)
+        {
+            var formatBase = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var formatWithoutRef = formatBase.WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType);
+            var formatWithRef = formatBase.WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeRef);
+            var formatWithoutTypeWithRef = formatBase.WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeRef);
+
+            var global = comp.GlobalNamespace;
+            var type = global.GetTypeMembers("C").Single();
+            var method = type.GetMembers("F").Single();
+            var property = type.GetMembers("P").Single();
+            var indexer = type.GetMembers().Where(m => m.Kind == SymbolKind.Property && ((IPropertySymbol)m).IsIndexer).Single();
+            var @delegate = global.GetTypeMembers("D").Single();
+
+            // Method without IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutRef),
+                "int F(ref int)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Property without IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(property, formatWithoutRef),
+                "int P { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Indexer without IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(indexer, formatWithoutRef),
+                "int this[int] { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Delegate without IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(@delegate, formatWithoutRef),
+                "int D()",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Method with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithRef),
+                "ref int F(ref int)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Property with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(property, formatWithRef),
+                "ref int P { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Indexer with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
+                "ref int this[int] { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Delegate with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(@delegate, formatWithRef),
+                "ref int D()",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+
+            // Method without IncludeType, with IncludeRef.
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutTypeWithRef),
+                "F(ref int)",
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation);
         }
 

@@ -3837,7 +3837,7 @@ class D {
 
             Assert.Null(semanticInfo.Symbol);
 
-            // Should bind to "field" with a candidateReason (not a typeornamespace>)Skip:
+            // Should bind to "field" with a candidateReason (not a typeornamespace>)
             Assert.NotEqual(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.NotEqual(0, semanticInfo.CandidateSymbols.Length);
 
@@ -15177,6 +15177,40 @@ public class C {
             var qe = tree.GetRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
             var infoSymbol2 = semanticModel.GetSymbolInfo(qe.Body.SelectOrGroup).Symbol;
             Assert.Equal(expectedNames[i++], infoSymbol2.Name);
+        }
+
+        [Fact]
+        public void TestIncompleteMember()
+        {
+            // Note: binding information in an incomplete member is not available.
+            // When https://github.com/dotnet/roslyn/issues/7536 is fixed this test
+            // will have to be updated.
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public /*<bind>*/K/*</bind>*/
+}
+
+class K
+{ }
+";
+            var semanticInfo = GetSemanticInfoForTest(sourceCode);
+
+            Assert.Equal("K", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("K", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("K", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
         }
     }
 }

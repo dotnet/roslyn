@@ -80,15 +80,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; naming violation - {1}.
-        /// </summary>
-        internal static string _0_naming_violation_1 {
-            get {
-                return ResourceManager.GetString("_0_naming_violation_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
@@ -348,6 +339,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All lowercase.
+        /// </summary>
+        internal static string All_lowercase {
+            get {
+                return ResourceManager.GetString("All_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All uppercase.
+        /// </summary>
+        internal static string All_uppercase {
+            get {
+                return ResourceManager.GetString("All_uppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
         internal static string An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session {
@@ -492,6 +501,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Awaited_task_returns {
             get {
                 return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Camel Case.
+        /// </summary>
+        internal static string Camel_Case {
+            get {
+                return ResourceManager.GetString("Camel_Case", resourceCulture);
             }
         }
         
@@ -1023,6 +1041,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Find_and_install_latest_version_of_0 {
             get {
                 return ResourceManager.GetString("Find_and_install_latest_version_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First word capitalized.
+        /// </summary>
+        internal static string First_word_capitalized {
+            get {
+                return ResourceManager.GetString("First_word_capitalized", resourceCulture);
             }
         }
         
@@ -1594,6 +1621,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        internal static string Keywords {
+            get {
+                return ResourceManager.GetString("Keywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to label.
         /// </summary>
         internal static string label {
@@ -1922,6 +1958,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rule violation: {0}.
+        /// </summary>
+        internal static string Naming_rule_violation_0 {
+            get {
+                return ResourceManager.GetString("Naming_rule_violation_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naming Styles.
         /// </summary>
         internal static string Naming_Styles {
@@ -2046,6 +2091,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string paren_Unknown_paren {
             get {
                 return ResourceManager.GetString("paren_Unknown_paren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pascal Case.
+        /// </summary>
+        internal static string Pascal_Case {
+            get {
+                return ResourceManager.GetString("Pascal_Case", resourceCulture);
             }
         }
         
@@ -2373,6 +2427,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
             }
         }
         
@@ -2921,6 +2984,114 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for accessors.
+        /// </summary>
+        internal static string Use_block_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for constructors.
+        /// </summary>
+        internal static string Use_block_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for indexers.
+        /// </summary>
+        internal static string Use_block_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for operators.
+        /// </summary>
+        internal static string Use_block_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for properties.
+        /// </summary>
+        internal static string Use_block_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for accessors.
+        /// </summary>
+        internal static string Use_expression_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for constructors.
+        /// </summary>
+        internal static string Use_expression_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for indexers.
+        /// </summary>
+        internal static string Use_expression_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for operators.
+        /// </summary>
+        internal static string Use_expression_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for properties.
+        /// </summary>
+        internal static string Use_expression_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use framework type.
         /// </summary>
         internal static string Use_framework_type {
@@ -2945,6 +3116,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
             }
         }
         

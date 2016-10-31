@@ -195,6 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case TypedVariableComponent:
                         return ((TypedVariableComponentSyntax)parent).Type == node;
+
+                    case IncompleteMember:
+                        return ((IncompleteMemberSyntax)parent).Type == node;
                 }
             }
 

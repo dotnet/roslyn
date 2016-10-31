@@ -193,8 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(), location)
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                   syntax.GetReference(),
+                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
+                   location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
                 PropertySymbol associatedProperty = _property;
-                _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, RefKind.None, this.ContainingAssembly);
+                _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, this.ContainingAssembly);
                 _lazyReturnTypeCustomModifiers = associatedProperty.TypeCustomModifiers;
             }
         }

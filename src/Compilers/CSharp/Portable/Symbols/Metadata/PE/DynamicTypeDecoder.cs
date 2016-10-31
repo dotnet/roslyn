@@ -275,6 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var underlying = tupleType.TupleUnderlyingType;
             var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            
+            if (transformedUnderlying == null)
+            {
+                // Bail, something is wrong with the flags.
+                // the dynamic transformation should be ignored.
+                return null;
+            }
+
             return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 

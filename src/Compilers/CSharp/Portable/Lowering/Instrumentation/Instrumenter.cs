@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachStatement);
+            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
             return collectionVarDecl;
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Parent.Kind() == SyntaxKind.WhenClause);
+            Debug.Assert(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>() != null);
             return ifConditionGotoBody;
         }
 
@@ -297,6 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             Debug.Assert(factory != null);
             return rewrittenExpression;
+        }
+
+        public virtual BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            return bindings;
         }
     }
 }

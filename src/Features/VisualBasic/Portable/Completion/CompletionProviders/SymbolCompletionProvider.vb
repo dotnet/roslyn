@@ -78,22 +78,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
 
-        Private Shared s_importDirectiveRules As CompletionItemRules =
-            CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
-        Private Shared s_importDirectiveRules_preselect As CompletionItemRules =
-            s_importDirectiveRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+        Private Shared cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
+            InitCachedRules()
 
-        ' '(' should not filter the completion list, even though it's in generic items like IList(Of...)
-        Private Shared ReadOnly s_itemRules As CompletionItemRules = CompletionItemRules.Default.
-            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)).
-            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
+        Private Shared Function InitCachedRules() As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)
 
-        Private Shared ReadOnly s_itemRules_preselect As CompletionItemRules = s_itemRules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+            Dim result = New Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)()
 
-        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean) As CompletionItemRules
-            Return If(context.IsInImportsDirective,
-                If(preselect, s_importDirectiveRules_preselect, s_importDirectiveRules),
-                If(preselect, s_itemRules_preselect, s_itemRules))
+            For importDirective = 0 To 1
+                For preselect = 0 To 1
+                    For tuple = 0 To 1
+                        If importDirective = 1 AndAlso tuple = 1 Then
+                            Continue For
+                        End If
+
+                        Dim context = ValueTuple.Create(importDirective = 1, preselect = 1, tuple = 1)
+                        result(context) = MakeRule(importDirective, preselect, tuple)
+                    Next
+                Next
+            Next
+
+            Return result
+        End Function
+
+        Private Shared Function MakeRule(importDirective As Integer, preselect As Integer, tuple As Integer) As CompletionItemRules
+            Return MakeRule(importDirective = 1, preselect = 1, tuple = 1)
+        End Function
+
+        Private Shared Function MakeRule(importDirective As Boolean, preselect As Boolean, tuple As Boolean) As CompletionItemRules
+
+            ' '(' should not filter the completion list, even though it's in generic items like IList(Of...)
+            Dim generalBaseline = CompletionItemRules.Default.
+                WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)).
+                WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, "("c))
+
+            Dim importDirectBasline As CompletionItemRules =
+                CompletionItemRules.Create(commitCharacterRules:=
+                    ImmutableArray.Create(
+                        CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, "."c)))
+
+            Dim rule = If(importDirective, importDirectBasline, generalBaseline)
+
+            If preselect Then
+                rule = rule.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+            End If
+
+            If tuple Then
+                rule = rule.WithCommitCharacterRule(
+                    CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+            End If
+
+            Return rule
+        End Function
+
+        Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol),
+                                                            context As SyntaxContext, preselect As Boolean) As CompletionItemRules
+
+            Return If(cachedRules(
+                        ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext)),
+                    CompletionItemRules.Default)
         End Function
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules

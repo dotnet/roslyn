@@ -21,35 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub New(
-            syntax As SyntaxNode,
-            operand As BoundExpression,
-            conversionKind As ConversionKind,
-            checked As Boolean,
-            explicitCastInCode As Boolean,
-            relaxationLambdaOpt As BoundLambda,
-            type As TypeSymbol,
-            Optional hasErrors As Boolean = False
-        )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=Nothing, constructorOpt:=Nothing,
-                   relaxationLambdaOpt:=relaxationLambdaOpt, relaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
-        End Sub
-
-        Public Sub New(
-            syntax As SyntaxNode,
-            operand As BoundExpression,
-            conversionKind As ConversionKind,
-            checked As Boolean,
-            explicitCastInCode As Boolean,
-            relaxationLambdaOpt As BoundLambda,
-            RelaxationReceiverPlaceholderOpt As BoundRValuePlaceholder,
-            type As TypeSymbol,
-            Optional hasErrors As Boolean = False
-        )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=Nothing, constructorOpt:=Nothing,
-                   relaxationLambdaOpt:=relaxationLambdaOpt, relaxationReceiverPlaceholderOpt:=RelaxationReceiverPlaceholderOpt, type:=type, hasErrors:=hasErrors)
-        End Sub
-
-        Public Sub New(
                 syntax As SyntaxNode,
                 operand As BoundExpression,
                 conversionKind As ConversionKind,
@@ -59,13 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 type As TypeSymbol,
                 Optional hasErrors As Boolean = False
             )
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=constantValueOpt, constructorOpt:=Nothing, type:=type, hasErrors:=hasErrors)
-        End Sub
-
-
-        Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, constructorOpt As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, constructorOpt,
-                   relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt:=constantValueOpt, extendedInfoOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
 #If DEBUG Then
@@ -77,6 +42,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Operand.Kind <> BoundKind.UserDefinedConversion)
             Else
                 Debug.Assert(((ConversionKind And VisualBasic.ConversionKind.UserDefined) <> 0) = (Operand.Kind = BoundKind.UserDefinedConversion))
+
+                If Conversions.IsIdentityConversion(ConversionKind) Then
+                    Debug.Assert(ExtendedInfoOpt Is Nothing)
+                End If
+
+                If (ConversionKind And (ConversionKind.Lambda Or ConversionKind.AnonymousDelegate)) <> 0 Then
+                    Debug.Assert(ExtendedInfoOpt Is Nothing OrElse ExtendedInfoOpt.Kind = BoundKind.RelaxationLambda)
+                    Debug.Assert((ConversionKind And ConversionKind.AnonymousDelegate) <> 0 OrElse
+                                 TryCast(ExtendedInfoOpt, BoundRelaxationLambda)?.ReceiverPlaceholderOpt Is Nothing)
+                End If
+
+                If (ConversionKind And ConversionKind.Tuple) <> 0 Then
+                    If ExtendedInfoOpt Is Nothing Then
+                        Debug.Assert(Operand.Kind = BoundKind.ConvertedTupleLiteral OrElse Operand.HasErrors)
+                    Else
+                        Debug.Assert(ExtendedInfoOpt.Kind = BoundKind.ConvertedTupleElements)
+                    End If
+                End If
 
                 If Operand.Kind = BoundKind.UserDefinedConversion Then
                     Dim udc = DirectCast(Operand, BoundUserDefinedConversion)

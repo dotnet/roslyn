@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
     [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
     internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
-        public override bool CanSerialize(object value)
-        {
-            return value is CSharpCompilationOptions || value is CSharpParseOptions;
-        }
-
         public override void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WriteCompilationOptionsTo(options, writer, cancellationToken);
@@ -44,9 +38,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
         {
             WriteOptionSetTo(options, LanguageNames.CSharp, writer, cancellationToken);
 
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, writer, cancellationToken);
+            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
+            {
+                WriteOptionTo(options, option, writer, cancellationToken);
+            }
+        }
+
+        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            OptionSet options = new SerializedPartialOptionSet();
+
+            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
+
+            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
+            {
+                options = ReadOptionFrom(options, option, reader, cancellationToken);
+            }
+
+            return options;
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -104,19 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
             return options.WithFeatures(features);
-        }
-
-        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            OptionSet options = new SerializedPartialOptionSet();
-
-            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
-
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.UseImplicitTypeWherePossible, reader, cancellationToken);
-
-            return options;
         }
     }
 }

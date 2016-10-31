@@ -201,6 +201,9 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
+             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             Condition="'$(BootstrapBuildPath)' != ''" />
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <UseSharedCompilation>true</UseSharedCompilation>
@@ -208,6 +211,9 @@
     <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
+  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
+    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
+  </Target>
 
   <!-- Common project settings -->
   <PropertyGroup>
@@ -290,6 +296,9 @@
         <DefineTrace>true</DefineTrace>
         <Optimize>true</Optimize>
       </PropertyGroup>
+      <PropertyGroup>
+        <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(InitialDefineConstants)</DefineConstants>
+      </PropertyGroup>
     </When>
 
     <!-- C# specific settings -->
@@ -313,6 +322,9 @@
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DefineConstants>TRACE</DefineConstants>
         <Optimize>true</Optimize>
+      </PropertyGroup>
+      <PropertyGroup>
+        <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(DefineConstants);$(InitialDefineConstants)</DefineConstants>
       </PropertyGroup>
     </When>
 

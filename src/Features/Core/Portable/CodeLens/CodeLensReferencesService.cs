@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
             new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
@@ -29,37 +31,47 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var cacheService = solution.Services.CacheService;
+            var caches = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(document.Project.Id).Select(pid => cacheService?.EnableCaching(pid)).ToList();
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol == null)
+            try
             {
-                return null;
-            }
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
-            {
-                try
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+                if (symbol == null)
                 {
-                    await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                        progress.CancellationToken).ConfigureAwait(false);
-
-                    return await onResults(progress).ConfigureAwait(false);
+                    return null;
                 }
-                catch (OperationCanceledException)
+
+                using (var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken))
                 {
-                    if (onCapped != null && progress.SearchCapReached)
+                    try
                     {
-                        // search was cancelled, and it was cancelled by us because a cap was reached.
-                        return await onCapped(progress).ConfigureAwait(false);
-                    }
+                        await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
+                            progress.CancellationToken).ConfigureAwait(false);
 
-                    // search was cancelled, but not because of cap.
-                    // this always throws.
-                    throw;
+                        return await onResults(progress).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        if (onCapped != null && progress.SearchCapReached)
+                        {
+                            // search was cancelled, and it was cancelled by us because a cap was reached.
+                            return await onCapped(progress).ConfigureAwait(false);
+                        }
+
+                        // search was cancelled, but not because of cap.
+                        // this always throws.
+                        throw;
+                    }
                 }
+            }
+            finally
+            {
+                caches.WhereNotNull().Do(c => c.Dispose());
             }
         }
 
@@ -120,12 +132,16 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
             var symbol = semanticModel.GetDeclaredSymbol(node);
             var glyph = symbol?.GetGlyph();
+            var startLinePosition = location.GetLineSpan().StartLinePosition;
+            var documentId = solution.GetDocument(location.SourceTree)?.Id;
 
             return new ReferenceLocationDescriptor(longName,
                 semanticModel.Language,
                 glyph,
-                location,
-                solution.GetDocument(location.SourceTree)?.Id,
+                startLinePosition.Line,
+                startLinePosition.Character,
+                documentId.ProjectId.Id,
+                documentId.Id,
                 line.TrimEnd(),
                 referenceSpan.Start,
                 referenceSpan.Length,
@@ -248,16 +264,18 @@ namespace Microsoft.CodeAnalysis.CodeLens
             CancellationToken cancellationToken)
         {
             var commonLocation = syntaxNode.GetLocation();
-            var doc = solution.GetDocument(commonLocation.SourceTree);
-            if (doc == null)
+            var document = solution.GetDocument(commonLocation.SourceTree);
+
+            if (document == null)
             {
                 return null;
             }
 
-            var document = solution.GetDocument(doc.Id);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
+            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
+            }
         }
     }
 }
