@@ -232,15 +232,15 @@ class C
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.ArrayRankSpecifier);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
                         {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.OmittedArraySizeExpression);
-                            {
-                                N(SyntaxKind.OmittedArraySizeExpressionToken);
-                            }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                 }
             }
