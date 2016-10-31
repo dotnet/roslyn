@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteCompressedUInt((uint)_xmlErrorCode);
+            writer.WriteUInt32((uint)_xmlErrorCode);
         }
 
         protected override Func<ObjectReader, object> GetReader()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private XmlSyntaxDiagnosticInfo(ObjectReader reader)
             : base(reader)
         {
-            _xmlErrorCode = (XmlParseErrorCode)reader.ReadCompressedUInt();
+            _xmlErrorCode = (XmlParseErrorCode)reader.ReadUInt32();
         }
 
         #endregion

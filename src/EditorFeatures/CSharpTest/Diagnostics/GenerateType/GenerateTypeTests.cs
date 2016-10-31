@@ -7,9 +7,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2016,6 +2015,28 @@ index: 1);
 @"class A { public B<int> b = new [|B|]<int>(); }",
 @"class A { public B<int> b = new B<int>(); public class B<T>{ public B(){}}}",
 index: 2);
+        }
+    }
+
+    public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    {
+        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        {
+            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
+            => FlattenActions(codeActions);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WorkItem(13211, "https://github.com/dotnet/roslyn/issues/13211")]
+        public async Task TestGenerateOffOfIncompleteMember()
+        {
+            await TestAsync(
+@"class Class { public [|Foo|] }",
+@"class Class { public Foo } internal class Foo { }",
+index: 1);
         }
     }
 }

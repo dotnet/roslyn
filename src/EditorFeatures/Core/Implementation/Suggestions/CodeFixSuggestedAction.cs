@@ -15,28 +15,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Represents light bulb menu item for code fixes.
     /// </summary>
-    internal sealed class CodeFixSuggestedAction : SuggestedActionWithPreview, ITelemetryDiagnosticID<string>
+    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
-        private readonly SuggestedActionSet _fixAllSuggestedActionSet;
 
         public CodeFixSuggestedAction(
+            SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             CodeFix fix,
-            CodeAction action,
             object provider,
-            SuggestedActionSet fixAllSuggestedActionSet,
-            IAsynchronousOperationListener operationListener)
-            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider, operationListener)
+            CodeAction action,
+            SuggestedActionSet fixAllFlavors)
+            : base(sourceProvider, workspace, subjectBuffer, 
+                   provider, action, fixAllFlavors)
         {
             _fix = fix;
-            _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
         }
-
-        protected override SuggestedActionSet GetAdditionalActionSet() => _fixAllSuggestedActionSet;
 
         public string GetDiagnosticID()
         {

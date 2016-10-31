@@ -475,10 +475,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.NotNull(actions);
             if (actions.Count == 1)
             {
-                var suppressionAction = actions.Single() as SuppressionCodeAction;
+                var suppressionAction = actions.Single() as TopLevelSuppressionCodeAction;
                 if (suppressionAction != null)
                 {
-                    actions = suppressionAction.GetCodeActions().ToList();
+                    actions = suppressionAction.NestedCodeActions.ToList();
                 }
             }
 
@@ -529,7 +529,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
         {
-            return codeActions?.SelectMany(a => a.HasCodeActions ? a.GetCodeActions().ToArray() : new[] { a }).ToList();
+            return codeActions?.SelectMany(a => a.NestedCodeActions.Length > 0
+                ? a.NestedCodeActions.ToArray() 
+                : new[] { a }).ToList();
         }
 
         protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)

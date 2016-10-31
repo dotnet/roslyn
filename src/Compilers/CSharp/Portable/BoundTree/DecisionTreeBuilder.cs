@@ -46,8 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return AddByValue(decisionTree, constantPattern,
-                            (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), sectionSyntax, guard, label));
+                        DecisionMaker makeDecision = (e, t) => new DecisionTree.Guarded(e, t, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), sectionSyntax, guard, label);
+                        if (constantPattern.ConstantValue == ConstantValue.Null)
+                        {
+                            return AddByNull(decisionTree, makeDecision);
+                        }
+                        else
+                        {
+                            return AddByValue(decisionTree, constantPattern, makeDecision);
+                        }
                     }
                 case BoundKind.DeclarationPattern:
                     {

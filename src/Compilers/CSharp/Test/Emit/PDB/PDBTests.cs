@@ -2284,7 +2284,8 @@ class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("Program.Operate", @"<symbols>
+            c.VerifyPdb("Program.Operate",
+@"<symbols>
   <methods>
     <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
       <customDebugInfo>

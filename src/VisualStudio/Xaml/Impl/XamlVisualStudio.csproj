@@ -6,10 +6,9 @@
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{971E832B-7471-48B5-833E-5913188EC0E4}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -92,6 +91,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   </ImportGroup>
 </Project>

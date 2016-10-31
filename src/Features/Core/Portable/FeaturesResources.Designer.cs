@@ -3120,7 +3120,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to use pattern matching.
+        ///   Looks up a localized string similar to Use pattern matching.
         /// </summary>
         internal static string Use_pattern_matching {
             get {

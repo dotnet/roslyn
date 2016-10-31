@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Settings.targets" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</ProjectGuid>
@@ -22,10 +21,8 @@
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <RoslynProjectType>CompilerGeneratorTool</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Compile Include="BoundNodeClassWriter.cs" />
     <Compile Include="Model.cs" />
@@ -35,5 +32,5 @@
     <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
-  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

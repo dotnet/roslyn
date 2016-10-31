@@ -97,11 +97,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase()));
+                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
             return parameters;
         }
+
+        private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,

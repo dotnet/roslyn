@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,43 +10,19 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    /// <summary>
-    /// Fix all occurrences code action.
-    /// </summary>
-    internal partial class FixSomeCodeAction : CodeAction
+    internal abstract class FixSomeCodeAction : CodeAction
     {
-        private readonly FixAllState _fixAllState;
-        private readonly bool _showPreviewChangesDialog;
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
+
+        internal readonly FixAllState FixAllState;
+        private readonly bool _showPreviewChangesDialog;
 
         internal FixSomeCodeAction(
             FixAllState fixAllState, bool showPreviewChangesDialog)
         {
-            _fixAllState = fixAllState;
+            FixAllState = fixAllState;
             _showPreviewChangesDialog = showPreviewChangesDialog;
         }
-
-        public override string Title
-        {
-            get
-            {
-                switch (_fixAllState.Scope)
-                {
-                    case FixAllScope.Document:
-                        return FeaturesResources.Document;
-                    case FixAllScope.Project:
-                        return FeaturesResources.Project;
-                    case FixAllScope.Solution:
-                        return FeaturesResources.Solution;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-        }
-
-        internal override string Message => FeaturesResources.Computing_fix_all_occurrences_code_fix;
-
-        public FixAllState FixAllState => _fixAllState;
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
@@ -58,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
+            FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = _fixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllOperationsAsync(
-                _fixAllState.CreateFixAllContext(progressTracker, cancellationToken),
+                FixAllState.CreateFixAllContext(progressTracker, cancellationToken),
                 _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
@@ -72,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
+            FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = _fixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                _fixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
