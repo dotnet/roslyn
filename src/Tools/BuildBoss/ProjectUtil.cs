@@ -78,6 +78,11 @@ namespace BuildBoss
             }
         }
 
+        internal IEnumerable<XElement> GetImports()
+        {
+            return _document.XPathSelectElements("//mb:Import", _manager);
+        }
+
         internal List<ProjectKey> GetDeclaredProjectReferences()
         {
             var references = _document.XPathSelectElements("//mb:ProjectReference", _manager);

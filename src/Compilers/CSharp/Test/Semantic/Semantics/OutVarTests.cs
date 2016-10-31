@@ -27251,5 +27251,36 @@ public class X
 @"System.Int32
 System.Int32");
         }
+
+        [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
+        public void OutVarDeclaredInReceiverUsedInArgument()
+        {
+            var source =
+@"using System.Linq;
+
+public class C
+{
+    public string[] Foo2(out string x) { x = """"; return null; }
+    public string[] Foo3(bool b) { return null; }
+
+    public string[] Foo5(string u) { return null; }
+    
+    public void Test()
+    {
+        var t1 = Foo2(out var x1).Concat(Foo5(x1));
+        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+        }
     }
 }
