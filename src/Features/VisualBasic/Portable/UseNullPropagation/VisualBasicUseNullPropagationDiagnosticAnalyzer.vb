@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax)
 
+        Protected Overrides Function ShouldAnalyze(options As ParseOptions) As Boolean
+            Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic14
+        End Function
+
         Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
             Return VisualBasicSyntaxFactsService.Instance
         End Function

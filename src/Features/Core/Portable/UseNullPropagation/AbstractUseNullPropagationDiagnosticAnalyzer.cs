@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
+        protected abstract bool ShouldAnalyze(ParseOptions options);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -45,6 +46,10 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
+            if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
+            {
+                return;
+            }
 
             var optionSet = context.Options.GetOptionSet();
             var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);

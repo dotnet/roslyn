@@ -48,6 +48,22 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMissingOnCSharp5()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o == null ? null : o.ToString();
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestRight_Equals()
         {
             await TestAsync(
