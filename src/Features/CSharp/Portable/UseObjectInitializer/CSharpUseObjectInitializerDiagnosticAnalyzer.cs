@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
     {
         protected override bool FadeOutOperatorToken => true;
 
+        protected override bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context)
+        {
+            // object initializers are only available in C# 3.0 and above.  Don't offer this refactoring
+            // in projects targeting a lesser version.
+            return ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
+        }
+
         protected override SyntaxKind GetObjectCreationSyntaxKind() => SyntaxKind.ObjectCreationExpression;
 
         protected override ISyntaxFactsService GetSyntaxFactsService() => CSharpSyntaxFactsService.Instance;

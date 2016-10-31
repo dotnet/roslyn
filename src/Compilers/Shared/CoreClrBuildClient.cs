@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new CoreClrBuildClient(language, compileFunc);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
-            var tempDir = GetTempPath(workingDir);
+            var tempDir = Path.GetTempPath();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: null, tempDir: tempDir);
             return client.RunCompilation(arguments, buildPaths).ExitCode;
         }

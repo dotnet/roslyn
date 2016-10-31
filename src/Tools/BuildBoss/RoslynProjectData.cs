@@ -21,27 +21,9 @@ namespace BuildBoss
         Depedency,
         Custom
     }
-
-    internal struct RoslynProjectData
+    
+    internal static class RoslynProjectKindUtil
     {
-        internal RoslynProjectKind EffectiveKind { get; }
-        internal RoslynProjectKind? DeclaredKind { get; }
-        internal string DeclaredValue { get; }
-
-        internal RoslynProjectData(RoslynProjectKind effectiveKind)
-        {
-            EffectiveKind = effectiveKind;
-            DeclaredValue = null;
-            DeclaredKind = null;
-        }
-
-        internal RoslynProjectData(RoslynProjectKind effectiveKind, RoslynProjectKind declaredKind, string declaredValue)
-        {
-            Debug.Assert(declaredKind == GetRoslynProjectKind(declaredValue).Value);
-            EffectiveKind = effectiveKind;
-            DeclaredValue = declaredValue;
-            DeclaredKind = declaredKind;
-        }
 
         /// <summary>
         /// Convert a declared kind into the correspending enum value.
@@ -75,6 +57,43 @@ namespace BuildBoss
                 default:
                     return null;
             }
+        }
+
+        internal static bool IsAnyUnitTest(RoslynProjectKind kind)
+        {
+            return
+                kind == RoslynProjectKind.UnitTest ||
+                kind == RoslynProjectKind.UnitTestNext;
+        }
+
+        internal static bool IsDeploymentProject(RoslynProjectKind kind)
+        {
+            return kind == RoslynProjectKind.Exe;
+        }
+    }
+
+    internal struct RoslynProjectData
+    {
+        internal RoslynProjectKind EffectiveKind { get; }
+        internal RoslynProjectKind? DeclaredKind { get; }
+        internal string DeclaredValue { get; }
+
+        internal bool IsAnyUnitTest => RoslynProjectKindUtil.IsAnyUnitTest(EffectiveKind);
+        internal bool IsDeploymentProject => RoslynProjectKindUtil.IsDeploymentProject(EffectiveKind);
+
+        internal RoslynProjectData(RoslynProjectKind effectiveKind)
+        {
+            EffectiveKind = effectiveKind;
+            DeclaredValue = null;
+            DeclaredKind = null;
+        }
+
+        internal RoslynProjectData(RoslynProjectKind effectiveKind, RoslynProjectKind declaredKind, string declaredValue)
+        {
+            Debug.Assert(declaredKind == RoslynProjectKindUtil.GetRoslynProjectKind(declaredValue).Value);
+            EffectiveKind = effectiveKind;
+            DeclaredValue = declaredValue;
+            DeclaredKind = declaredKind;
         }
     }
 }

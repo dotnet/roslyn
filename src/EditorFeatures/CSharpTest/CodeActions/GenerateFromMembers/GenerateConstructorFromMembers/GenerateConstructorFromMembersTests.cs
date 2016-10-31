@@ -202,5 +202,24 @@ index: 0,
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
+
+        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUnderscoreInName1()
+        {
+            await TestAsync(
+@"class Program { [|int _field ;|] } ",
+@"class Program { int _field ; public Program ( int field ) { _field = field ; } } ");
+        }
+
+        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUnderscoreInName_PreferThis()
+        {
+            await TestAsync(
+@"class Program { [|int _field ;|] } ",
+@"class Program { int _field ; public Program ( int field ) { this._field = field ; } } ",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
     }
 }

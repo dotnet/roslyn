@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{B501A547-C911-4A05-AC6E-274A50DFF30E}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -402,6 +401,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrame.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.LocalFunctionReferenceRewriter.cs" />
+    <Compile Include="Lowering\LambdaRewriter\PartiallyLoweredLocalFunctionReference.cs" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.cs" />
     <Compile Include="Lowering\LocalRewriter\DynamicSiteContainer.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.cs" />

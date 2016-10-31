@@ -48,17 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // we always mark it as handled if entry is ours
                 e.Handled = true;
 
-                // REVIEW: 
-                // turning off one click navigation.
-                // unlike FindAllReference which don't lose focus even after navigation, 
-                // error list loses focus once navigation happens. I checked our find all reference implementation, and it uses
-                // same mechanism as error list, so it must be the find all reference window doing something to not lose focus or it must
-                // taking focus back once navigation happened. we need to implement same thing in error list. until then, I am disabling one
-                // click navigation.
-                if (!e.IsPreview)
-                {
-                    roslynSnapshot.TryNavigateTo(index, e.IsPreview);
-                }
+                roslynSnapshot.TryNavigateTo(index, e.IsPreview);
             }
         }
     }

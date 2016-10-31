@@ -45,7 +45,6 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</ProjectGuid>
     <OutputType>Library</OutputType>

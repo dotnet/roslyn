@@ -30,6 +30,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
+        public static CaretPreservingEditTransaction TryCreate(string description, 
+            ITextView textView,
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            ITextUndoHistory unused;
+            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out unused))
+            {
+                return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
+            }
+
+            return null;
+        }
+
         public void Complete()
         {
             if (!_active)

@@ -52,9 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.StopModelComputation();
 
             CompletionChange completionChange;
-            using (var transaction = new CaretPreservingEditTransaction(
+            using (var transaction = CaretPreservingEditTransaction.TryCreate(
                 EditorFeaturesResources.IntelliSense, TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
+                if (transaction == null)
+                {
+                    // This text buffer has no undo history and has probably been unmapped.
+                    // (Workflow unmaps its projections when losing focus (such as double clicking the completion list)).
+                    // Bail on committing completion because we won't be able to find a Document to update either.
+
+                    return;
+                }
+
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 

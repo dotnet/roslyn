@@ -158,6 +158,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private struct ChecksumSynchronizer
         {
+            // make sure there is always only 1 bulk synchronization
+            private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+
             private readonly AssetService _assetService;
 
             public ChecksumSynchronizer(AssetService assetService)
@@ -167,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task SynchronizeAssetsAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
+                using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 using (var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject())
                 {
                     AddIfNeeded(pooledObject.Object, checksums);
@@ -176,19 +180,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
             {
-                // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
+                using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
 
-                // first, get solution checksum object for the given solution checksum
-                var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    // first, get solution checksum object for the given solution checksum
+                    var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                // second, get direct children of the solution
-                await SynchronizeSolutionAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+                    // second, get direct children of the solution
+                    await SynchronizeSolutionAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
 
-                // third, get direct children for all projects in the solution
-                await SynchronizeProjectsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+                    // third, get direct children for all projects in the solution
+                    await SynchronizeProjectsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
 
-                // last, get direct children for all documents in the solution
-                await SynchronizeDocumentsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+                    // last, get direct children for all documents in the solution
+                    await SynchronizeDocumentsAsync(solutionChecksumObject, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             private async Task SynchronizeSolutionAsync(SolutionStateChecksums solutionChecksumObject, CancellationToken cancellationToken)

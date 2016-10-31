@@ -3,7 +3,6 @@
   <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}</ProjectGuid>
@@ -16,10 +15,8 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <None Include="Microsoft.CSharp.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -31,18 +28,20 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
-      <Link>DesktopBuildClient.cs</Link>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs">
+      <Link>BuildServerConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs">
+      <Link>CommandLineUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
+      <Link>CompilerOptionParseUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs">
+      <Link>IReadOnlySet.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
+      <Link>UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="CanonicalError.cs" />
     <Compile Include="ValidateBootstrap.cs" />

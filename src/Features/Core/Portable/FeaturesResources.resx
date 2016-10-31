@@ -1083,7 +1083,7 @@ This version used in: {2}</value>
     <value>Inline variable declaration</value>
   </data>
   <data name="Use_pattern_matching" xml:space="preserve">
-    <value>use pattern matching</value>
+    <value>Use pattern matching</value>
   </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
