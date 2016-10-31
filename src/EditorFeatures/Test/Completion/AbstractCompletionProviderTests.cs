@@ -275,12 +275,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (options != null && options.Any())
             {
+                // Work on a cached copy since OptionServiceFactory.OptionService.GetOptions
+                // always returns a new instance, losing any recorded observations.
                 defaultOptions = workspace.Options;
+
+                // Workspace options are not guaranteed to be immutable until observed.
+                foreach (var option in options)
+                {
+                    defaultOptions.GetOption(option.Key);
+                }
+
+                var changedOptions = workspace.Options;
 
                 foreach (var option in options)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(option.Key, option.Value);
+                    changedOptions = changedOptions.WithChangedOption(option.Key, option.Value);
                 }
+
+                workspace.Options = changedOptions;
             }
 
             try
