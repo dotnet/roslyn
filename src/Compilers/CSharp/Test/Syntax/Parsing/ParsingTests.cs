@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Initializes a depth-first preorder enumerator for the given node.
         /// </summary>
-        protected void UsingNode(CSharpSyntaxNode root, CSharpParseOptions options = null)
+        protected void UsingNode(CSharpSyntaxNode root)
         {
             var nodes = EnumerateNodes(root);
 #if PARSING_TESTS_DUMP
