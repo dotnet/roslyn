@@ -3460,5 +3460,36 @@ True";
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
+        public void PatternVarDeclaredInReceiverUsedInArgument()
+        {
+            var source =
+@"using System.Linq;
+
+public class C
+{
+    public string[] Foo2(out string x) { x = """"; return null; }
+    public string[] Foo3(bool b) { return null; }
+
+    public string[] Foo5(string u) { return null; }
+    
+    public void Test()
+    {
+        var t1 = Foo2(out var x1).Concat(Foo5(x1));
+        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
+        }
     }
 }
