@@ -102,6 +102,7 @@ if defined TestPerfRun (
 
             REM Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
             call "%RoslynRoot%\build\scripts\install_benchview_tools.cmd" ".\Binaries\%BuildConfiguration%\" || goto :BuildFailed
+            dir ".\Binaries\%BuildConfiguration%\"
         )
     )
 
