@@ -184,16 +184,17 @@
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsVSBeforeDev15Preview4)' == 'true'">
       <PropertyGroup>
-        <VisualStudioBuildToolsVersion>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
+        <VisualStudioBuildToolsVersion>15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
       </PropertyGroup>
     </When>
     <When Condition="'$(VisualStudioVersion)' == '15.0'">
       <PropertyGroup>
-        <VisualStudioBuildToolsVersion>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\15.0.25604-Preview4</VisualStudioBuildToolsVersion>
+        <VisualStudioBuildToolsVersion>15.0.25604-Preview4</VisualStudioBuildToolsVersion>
       </PropertyGroup>
+    </When>
     <Otherwise>
       <PropertyGroup>
-        <VisualStudioBuildToolsVersion>$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\14.3.25420</VisualStudioBuildToolsVersion>
+        <VisualStudioBuildToolsVersion>14.3.25420</VisualStudioBuildToolsVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -230,18 +231,14 @@
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true'" />
 
-  <ImportGroup Label="WindowsImports" Condition"'$(OS)' == 'Windows_NT'">
+  <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
     <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''" />
   </ImportGroup>
 
-  <ImportGroup Label="WindowsImports" Condition"'$(OS)' != 'Windows_NT'">
+  <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
     <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
-  </ImportGroup>
-
-
-  <ImportGroup>
   </ImportGroup>
 
   <Target Name="RestoreToolsetCheck"
