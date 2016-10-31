@@ -1104,17 +1104,17 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
-            await TestMissingAsync(@"
-var [|x|] = 1;");
+            await TestMissingAsync(
+@"var [|x|] = 1;");
 
-            await TestMissingAsync(@"
-namespace N
+            await TestMissingAsync(
+@"namespace N
 {
     var [|x|] = 1;
 }");
 
-            await TestMissingAsync(@"
-enum E
+            await TestMissingAsync(
+@"enum E
 {
     [|x|] = 1;
 }");

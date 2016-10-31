@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -17,14 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertToIn
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
     {
         var a = [|string.Format(""{0}"", 1)|];
     }
-    }",
+}",
 @"using System;
+
 class T
 {
     void M()
@@ -39,6 +41,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -47,6 +50,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -61,6 +65,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -69,6 +74,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -83,6 +89,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -91,6 +98,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -105,6 +113,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -113,6 +122,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -127,6 +137,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -135,6 +146,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -149,6 +161,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -157,6 +170,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -171,6 +185,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -179,6 +194,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -193,6 +209,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -201,6 +218,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -215,6 +233,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -223,6 +242,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -237,18 +257,18 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
     {
         var a = [|string.Format(
-            ""{0}"", 
-            true 
-                ? ""Yes""
-                : false as object)|];
+            ""{0}"",
+            true ? ""Yes"" : false as object)|];
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -263,6 +283,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -273,6 +294,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -288,6 +310,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -296,6 +319,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -341,6 +365,7 @@ class T
         {
             await TestAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -349,6 +374,7 @@ class T
     }
 }",
 @"using System;
+
 class T
 {
     void M()
@@ -363,19 +389,21 @@ class T
         {
             await TestAsync(
 @"using System;
+
 public class T
 {
     public static void M()
     {
-        Tuple<string, DateTime, int, DateTime, int>[] cities =
-            { Tuple.Create(""Los Angeles"", new DateTime(1940, 1, 1), 1504277,
+        Tuple<string, DateTime, int, DateTime, int>[] cities = {
+            Tuple.Create(""Los Angeles"", new DateTime(1940, 1, 1), 1504277,
                          new DateTime(1950, 1, 1), 1970358),
             Tuple.Create(""New York"", new DateTime(1940, 1, 1), 7454995,
                          new DateTime(1950, 1, 1), 7891957),
             Tuple.Create(""Chicago"", new DateTime(1940, 1, 1), 3396808,
                          new DateTime(1950, 1, 1), 3620962),
             Tuple.Create(""Detroit"", new DateTime(1940, 1, 1), 1623452,
-                         new DateTime(1950, 1, 1), 1849568) };
+                         new DateTime(1950, 1, 1), 1849568)
+        };
         string output;
         foreach (var city in cities)
         {
@@ -386,19 +414,21 @@ public class T
     }
 }",
 @"using System;
+
 public class T
 {
     public static void M()
     {
-        Tuple<string, DateTime, int, DateTime, int>[] cities =
-            { Tuple.Create(""Los Angeles"", new DateTime(1940, 1, 1), 1504277,
+        Tuple<string, DateTime, int, DateTime, int>[] cities = {
+            Tuple.Create(""Los Angeles"", new DateTime(1940, 1, 1), 1504277,
                          new DateTime(1950, 1, 1), 1970358),
             Tuple.Create(""New York"", new DateTime(1940, 1, 1), 7454995,
                          new DateTime(1950, 1, 1), 7891957),
             Tuple.Create(""Chicago"", new DateTime(1940, 1, 1), 3396808,
                          new DateTime(1950, 1, 1), 3620962),
             Tuple.Create(""Detroit"", new DateTime(1940, 1, 1), 1623452,
-                         new DateTime(1950, 1, 1), 1849568) };
+                         new DateTime(1950, 1, 1), 1849568)
+        };
         string output;
         foreach (var city in cities)
         {
@@ -413,11 +443,18 @@ public class T
         {
             await TestAsync(
 @"using System;
+
 public class T
 {
     public static void M()
     {
-        short[] values = { Int16.MinValue, -27, 0, 1042, Int16.MaxValue };
+        short[] values = {
+            Int16.MinValue,
+            -27,
+            0,
+            1042,
+            Int16.MaxValue
+        };
         foreach (short value in values)
         {
             string formatString = [|String.Format(""{0,10:G}: {0,10:X}"", value)|];
@@ -425,11 +462,18 @@ public class T
     }
 }",
 @"using System;
+
 public class T
 {
     public static void M()
     {
-        short[] values = { Int16.MinValue, -27, 0, 1042, Int16.MaxValue };
+        short[] values = {
+            Int16.MinValue,
+            -27,
+            0,
+            1042,
+            Int16.MaxValue
+        };
         foreach (short value in values)
         {
             string formatString = $""{value,10:G}: {value,10:X}"";
@@ -488,11 +532,10 @@ public class T
         decimal hiTemp = 62.1m;
         TimeSpan loTime = new TimeSpan(3, 16, 10);
         decimal loTemp = 54.8m;
-        
-         string result = [|String.Format(@""Temperature on {0:d}:
+        string result = [|String.Format(@""Temperature on {0:d}:
                                         {1,11}: {2} degrees (hi)
                                         {3,11}: {4} degrees (lo)"",
-                                       new object[] { date1, hiTime, hiTemp, loTime, loTemp })|];
+                                      new object[] { date1, hiTime, hiTemp, loTime, loTemp })|];
     }
 }");
         }
@@ -526,6 +569,7 @@ public class T
         {
             await TestMissingAsync(
 @"using System;
+
 class T
 {
     void M()
@@ -540,6 +584,7 @@ class T
         {
             await TestMissingAsync(
 @"using System;
+
 class T
 {
     void M()

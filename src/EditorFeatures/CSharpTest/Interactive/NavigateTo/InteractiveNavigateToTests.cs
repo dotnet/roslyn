@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindClass()
         {
-            await TestAsync("class Foo { }", async w =>
+            await TestAsync(
+@"class Foo
+{
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
@@ -51,7 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindNestedClass()
         {
-            await TestAsync("class Foo { class Bar { internal class DogBed { } } }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    class Bar
+    {
+        internal class DogBed
+        {
+        }
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
@@ -62,7 +74,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindMemberInANestedClass()
         {
-            await TestAsync("class Foo { class Bar { class DogBed { public void Method() { } } } }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    class Bar
+    {
+        class DogBed
+        {
+            public void Method()
+            {
+            }
+        }
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Method")).Single();
@@ -73,7 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindGenericClassWithConstraints()
         {
-            await TestAsync("using System.Collections; class Foo<T> where T : IEnumerable { }", async w =>
+            await TestAsync(
+@"using System.Collections;
+
+class Foo<T> where T : IEnumerable
+{
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
@@ -84,7 +113,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindGenericMethodWithConstraints()
         {
-            await TestAsync("using System; class Foo<U> { public void Bar<T>(T item) where T:IComparable<T> {} }", async w =>
+            await TestAsync(
+@"using System;
+
+class Foo<U>
+{
+    public void Bar<T>(T item) where T : IComparable<T>
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
@@ -95,7 +132,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindPartialClass()
         {
-            await TestAsync("public partial class Foo { int a; } partial class Foo { int b; }", async w =>
+            await TestAsync(
+@"public partial class Foo
+{
+    int a;
+}
+
+partial class Foo
+{
+    int b;
+}", async w =>
             {
                 var expecteditem1 = new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
@@ -109,7 +155,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindTypesInMetadata()
         {
-            await TestAsync("using System; Class Program {FileStyleUriParser f;}", async w =>
+            await TestAsync(
+@"using System;
+
+Class Program { FileStyleUriParser f; }", async w =>
             {
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
                 Assert.Equal(items.Count(), 0);
@@ -119,7 +168,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindClassInNamespace()
         {
-            await TestAsync("namespace Bar { class Foo { } }", async w =>
+            await TestAsync(
+@"namespace Bar
+{
+    class Foo
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(x => x.Kind != "Method");
@@ -130,7 +185,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindStruct()
         {
-            await TestAsync("struct Bar { }", async w =>
+            await TestAsync(
+@"struct Bar
+{
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
@@ -141,7 +199,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindEnum()
         {
-            await TestAsync("enum Colors {Red, Green, Blue}", async w =>
+            await TestAsync(
+@"enum Colors
+{
+    Red,
+    Green,
+    Blue
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
@@ -152,7 +216,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindEnumMember()
         {
-            await TestAsync("enum Colors {Red, Green, Blue}", async w =>
+            await TestAsync(
+@"enum Colors
+{
+    Red,
+    Green,
+    Blue
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("R")).Single();
@@ -163,7 +233,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindConstField()
         {
-            await TestAsync("class Foo { const int bar = 7;}", async w =>
+            await TestAsync(
+@"class Foo
+{
+    const int bar = 7;
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("ba")).Single();
@@ -174,7 +248,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindVerbatimIdentifier()
         {
-            await TestAsync("class Foo { string @string; }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    string @string;
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("string")).Single();
@@ -209,7 +287,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindAutoProperty()
         {
-            await TestAsync("class Foo { int Bar { get; set; } }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    int Bar { get; set; }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("B")).Single();
@@ -220,7 +302,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindMethod()
         {
-            await TestAsync("class Foo { void DoSomething(); }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    void DoSomething();
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
@@ -231,7 +317,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindParameterizedMethod()
         {
-            await TestAsync("class Foo { void DoSomething(int a, string b) {} }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    void DoSomething(int a, string b)
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("DS")).Single();
@@ -242,7 +334,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindConstructor()
         {
-            await TestAsync("class Foo { public Foo(){} }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    public Foo()
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method);
@@ -253,7 +351,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindParameterizedConstructor()
         {
-            await TestAsync("class Foo { public Foo(int i){} }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    public Foo(int i)
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method);
@@ -264,7 +368,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindStaticConstructor()
         {
-            await TestAsync("class Foo { static Foo(){} }", async w =>
+            await TestAsync(
+@"class Foo
+{
+    static Foo()
+    {
+    }
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Foo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
@@ -289,7 +399,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindPartialMethodDefinitionOnly()
         {
-            await TestAsync("partial class Foo { partial void Bar(); }", async w =>
+            await TestAsync(
+@"partial class Foo
+{
+    partial void Bar();
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("Bar")).Single();
@@ -332,7 +446,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindInterface()
         {
-            await TestAsync("public interface IFoo { }", async w =>
+            await TestAsync(
+@"public interface IFoo
+{
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic);
                 var item = (await _aggregator.GetItemsAsync("IF")).Single();
@@ -343,7 +460,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindDelegateInNamespace()
         {
-            await TestAsync("namespace Foo { delegate void DoStuff(); }", async w =>
+            await TestAsync(
+@"namespace Foo
+{
+    delegate void DoStuff();
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend);
                 var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
@@ -354,7 +475,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task FindLambdaExpression()
         {
-            await TestAsync("using System; class Foo { Func<int, int> sqr = x => x*x; }", async w =>
+            await TestAsync(
+@"using System;
+
+class Foo
+{
+    Func<int, int> sqr = x => x * x;
+}", async w =>
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = (await _aggregator.GetItemsAsync("sqr")).Single();
@@ -365,16 +492,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public async Task OrderingOfConstructorsAndTypes()
         {
-            await TestAsync(@"
-                class C1
-                {
-                    C1(int i) {}
-                }
-                class C2
-                {
-                    C2(float f) {}
-                    static C2() {}
-                }", async w =>
+            await TestAsync(
+@"class C1
+{
+    C1(int i)
+    {
+    }
+}
+
+class C2
+{
+    C2(float f)
+    {
+    }
+
+    static C2()
+    {
+    }
+}", async w =>
             {
                 var expecteditems = new List<NavigateToItem>
                 {
@@ -394,7 +529,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         public async Task StartStopSanity()
         {
             // Verify that multiple calls to start/stop and dispose don't blow up
-            await TestAsync("public class Foo { }", async w =>
+            await TestAsync(
+@"public class Foo
+{
+}", async w =>
             {
                 // Do one set of queries
                 Assert.Single((await _aggregator.GetItemsAsync("Foo")).Where(x => x.Kind != "Method"));

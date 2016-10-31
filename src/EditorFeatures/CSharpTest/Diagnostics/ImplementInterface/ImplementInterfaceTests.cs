@@ -330,7 +330,23 @@ index: 1);
         public async Task TestExplicitProperties()
         {
             await TestMissingAsync(
-@"interface I2 { decimal Calc { get ; } } class C : [|I2|] { protected decimal pay ; decimal I2 . Calc { get { return pay ; } } } ");
+@"interface I2
+{
+    decimal Calc { get; }
+}
+
+class C : [|I2|]
+{
+    protected decimal pay;
+
+    decimal I2.Calc
+    {
+        get
+        {
+            return pay;
+        }
+    }
+}");
         }
 
         [WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
@@ -788,7 +804,18 @@ compareTokens: false);
         public async Task TestMissingWithIncompleteMember()
         {
             await TestMissingAsync(
-@"interface ITest { void Method ( ) ; } class Test : [|ITest|] { p public void Method ( ) { throw new NotImplementedException ( ) ; } } ");
+@"interface ITest
+{
+    void Method();
+}
+
+class Test : [|ITest|]
+{
+    p public void Method()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(541380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541380")]
@@ -1251,7 +1278,14 @@ index: 1);
         public async Task TestMissingOnWrongArity()
         {
             await TestMissingAsync(
-@"interface I1<T> { int X { get; set; } } class C : [|I1|] { }");
+@"interface I1<T>
+{
+    int X { get; set; }
+}
+
+class C : [|I1|]
+{
+}");
         }
 
         [WorkItem(544281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544281")]
@@ -1361,9 +1395,9 @@ compareTokens: false);
 @"using System;
 #line 1 ""Bar""
 class Foo : [|IComparable|]
+
 #line default
-#line hidden
-");
+#line hidden");
         }
 
         [WorkItem(545476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]

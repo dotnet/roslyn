@@ -826,13 +826,43 @@ public class P
             public async Task NonIdentifierConditionalIndexer()
             {
                 var expected = new[] { new SignatureHelpTestItem("char string[int index]") };
-                await TestAsync(@"class C { void M() { """"?[$$ } }", expected); // inline with a string literal
-                await TestAsync(@"class C { void M() { """"?[/**/$$ } }", expected); // inline with a string literal and multiline comment
-                await TestAsync(@"class C { void M() { ("""")?[$$ } }", expected); // parenthesized expression
-                await TestAsync(@"class C { void M() { new System.String(' ', 1)?[$$ } }", expected); // new object expression
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        """"?[$$ }
+}", expected); // inline with a string literal
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        """"?[/**/$$ }
+}", expected); // inline with a string literal and multiline comment
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        ("""")?[$$ }
+}", expected); // parenthesized expression
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        new System.String(' ', 1)?[$$ }
+}", expected); // new object expression
 
                 // more complicated parenthesized expression
-                await TestAsync(@"class C { void M() { (null as System.Collections.Generic.List<int>)?[$$ } }", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        (null as System.Collections.Generic.List<int>)?[$$ }
+}", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
             }
 
             [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]

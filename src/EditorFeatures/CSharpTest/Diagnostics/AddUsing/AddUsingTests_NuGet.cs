@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,13 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -100,13 +98,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NS1.NS2;
+@"using NS1.NS2;
 
 class C
 {
@@ -131,8 +127,7 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
                 await TestMissingAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
@@ -201,13 +196,11 @@ fixProviderData: data);
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -232,13 +225,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -264,13 +255,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-class C
+@"class C
 {
     NuGetType n;
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
