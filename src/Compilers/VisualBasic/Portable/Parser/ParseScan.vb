@@ -62,11 +62,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // enabled), and it isn't possible to look back past the first token of a
             ' // line, so test if this is the first token of the last read line.
 
-            ' // (bug 32704) "else" is a special case in the construct "if foo then resume else statement"
-
             ' REM and XmlDocComment are now trivia so they have been removed from the test
-            Return SyntaxFacts.IsTerminator(t.Kind) OrElse
-                (Context.IsLineIf AndAlso t.Kind = SyntaxKind.ElseKeyword)
+            Return SyntaxFacts.IsTerminator(t.Kind)
         End Function
 
         ' // Parser::CanFollowStatement -- Can this token follow a complete statement?
