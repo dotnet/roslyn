@@ -114,6 +114,7 @@
         <OptionStrict>On</OptionStrict>
         <RootNamespace></RootNamespace>
         <VBRuntime>Embed</VBRuntime>
+        <RemoveIntegerChecks>true</RemoveIntegerChecks>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
@@ -153,6 +154,7 @@
                       thorough documentation story
         -->
         <NoWarn>$(NoWarn);1591</NoWarn>
+        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
@@ -262,4 +264,4 @@
         SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
         DestinationFolder="$(OutDir)" />
   </Target>
- </Project>
+</Project>
