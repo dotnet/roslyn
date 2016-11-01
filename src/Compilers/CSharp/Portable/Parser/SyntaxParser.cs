@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
         private GreenNode _prevTokenTrailingTrivia;
-        private int _firstToken;
+        private int _firstToken; // The position of the first token in _lexedTokens. Summed with _tokenOffset, we get the position of the current token.
         private int _tokenOffset;
         private int _tokenCount;
         private int _resetCount;
@@ -1079,11 +1079,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         ///     while (IsMakingProgress(ref tokenProgress))
         /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
         /// </summary>
-        protected bool IsMakingProgress(ref int lastTokenOffset)
+        protected bool IsMakingProgress(ref int lastTokenPosition)
         {
-            if (_tokenOffset > lastTokenOffset)
+            var currentPosition = _firstToken + _tokenOffset;
+            if (currentPosition > lastTokenPosition)
             {
-                lastTokenOffset = _tokenOffset;
+                lastTokenPosition = currentPosition;
                 return true;
             }
 
