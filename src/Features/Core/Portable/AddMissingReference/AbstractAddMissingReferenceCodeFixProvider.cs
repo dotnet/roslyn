@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 var nodes = FindNodes(root, diagnostic);
                 var types = GetTypesForNodes(semanticModel, nodes, cancellationToken).Distinct();
                 var message = diagnostic.GetMessage();
-                AssemblyIdentity identity = GetAssemblyIdentity(types, message);
+                var identity = GetAssemblyIdentity(types, message);
 
                 if (identity != null &&
                     !identity.Equals(compilation.Assembly.Identity) &&
