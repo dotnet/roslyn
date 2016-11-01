@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             return symbol.TypeSwitch(
                 (IFieldSymbol field) => !field.IsConst,
-                (IPropertySymbol property) => property.SetMethod != null);
+                (IPropertySymbol property) => property.IsWritableInConstructor());
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
