@@ -1,7 +1,6 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
-  <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
   <Choose>
     <When Condition="'$(RoslynProjectType)' == 'Dll'">
       <PropertyGroup>
@@ -95,20 +94,32 @@
     </When>
   </Choose>
 
-  <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
-    <Reference>
-      <Private>False</Private>
-    </Reference>
-  </ItemDefinitionGroup>
+  <Choose>
+    <When Condition="'$(ProjectLanguage)' == 'VB'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+  </Choose>
 
-  <ItemDefinitionGroup Condition="'$(_CopyProjectReferences)' == 'false'">
-    <ProjectReference>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemDefinitionGroup>
+  <Choose>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
-  <!-- This file is imported by all projects at the end of the project files -->
-  <!-- Update common properties -->
   <PropertyGroup>
     <OutputPath>$(OutDir)</OutputPath>
     <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'VB' AND '$(AssemblyName)' != ''">$(AssemblyName).xml</DocumentationFile>
@@ -120,7 +131,16 @@
          we still need to turn off CopyNuGetImplementations to prevent the build task from complaining about a 
          lack of a runtime section in our project.json. -->
     <CopyNuGetImplementations Condition="'$(UseCommonOutputDirectory)' == 'true'">false</CopyNuGetImplementations>
+
+    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-beta5-60913-03\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
+  </PropertyGroup>
+
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
   <Choose>
@@ -189,6 +209,32 @@
     </When>
   </Choose>
 
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
+    <Reference>
+      <Private>False</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup Condition="'$(_CopyProjectReferences)' == 'false'">
+    <ProjectReference>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
   <!-- ====================================================================================
 
          Generation of binding redirects.
@@ -211,47 +257,6 @@
         <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
       </SuggestedBindingRedirects>
   </ItemGroup>
-  <PropertyGroup>
-    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
-    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-
-  <Target Name="ForceGenerationOfBindingRedirects"
-          AfterTargets="ResolveAssemblyReferences"
-          BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
-
-    <PropertyGroup>
-      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
-      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    </PropertyGroup>
-  </Target>
-
-  <Choose>
-    <When Condition="'$(ProjectLanguage)' == 'VB'">
-      <PropertyGroup>
-        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
-      <PropertyGroup>
-        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
-  <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
 
   <Import Project="$(MSBuildTargetsFilePath)" />
 
@@ -295,10 +300,6 @@
          Support for a IncludeInVSIXLocalOnly Content metadata
 
        ==================================================================================== -->
-
-  <PropertyGroup>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
-  </PropertyGroup>
 
   <Target Name="IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
@@ -347,12 +348,6 @@
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
-
-  <ItemDefinitionGroup>
-    <NuGetPackageToIncludeInVsix>
-      <Visible>false</Visible>
-    </NuGetPackageToIncludeInVsix>
-  </ItemDefinitionGroup>
 
   <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
        assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
@@ -445,10 +440,16 @@
 
        ==================================================================================== -->
 
-  <PropertyGroup>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-beta5-60913-03\content\OptimizationData</OptimizationDataFolderPath>
-    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-  </PropertyGroup>
+  <Target Name="ForceGenerationOfBindingRedirects"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="GenerateBindingRedirects"
+          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
+
+    <PropertyGroup>
+      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    </PropertyGroup>
+  </Target>
 
   <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a build definition variable -->
   <Target Name="ApplyOptimizations"
@@ -464,16 +465,4 @@
       <Message Text="$(IbcMergeOutput)" />
 
   </Target>
-
-  <!-- ====================================================================================
-
-         Support for signing VSIXes
-
-       ==================================================================================== -->
-
-    
-
-  <PropertyGroup>
-	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
-  </PropertyGroup>
 </Project>
