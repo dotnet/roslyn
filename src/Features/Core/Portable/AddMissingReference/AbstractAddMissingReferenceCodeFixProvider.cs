@@ -16,17 +16,21 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         {
             var cancellationToken = context.CancellationToken;
             var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+
             var uniqueIdentities = new HashSet<AssemblyIdentity>();
             foreach (var diagnostic in context.Diagnostics)
             {
                 var nodes = FindNodes(root, diagnostic);
-                var types = GetTypesForNodes(model, nodes, cancellationToken).Distinct();
+                var types = GetTypesForNodes(semanticModel, nodes, cancellationToken).Distinct();
                 var message = diagnostic.GetMessage();
                 AssemblyIdentity identity = GetAssemblyIdentity(types, message);
-                if (identity != null && !uniqueIdentities.Contains(identity) && !identity.Equals(model.Compilation.Assembly.Identity))
+
+                if (identity != null &&
+                    !identity.Equals(compilation.Assembly.Identity) &&
+                    uniqueIdentities.Add(identity))
                 {
-                    uniqueIdentities.Add(identity);
                     context.RegisterCodeFix(
                         await AddMissingReferenceCodeAction.CreateAsync(context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false),
                         diagnostic);
