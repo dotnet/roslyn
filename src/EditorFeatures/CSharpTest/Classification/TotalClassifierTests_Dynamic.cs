@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUsingAliasForClass()
         {
-            await TestAsync(@"using dynamic = System.EventArgs;",
+            await TestAsync(
+@"using dynamic = System.EventArgs;",
                 Keyword("using"),
                 Class("dynamic"),
                 Operators.Equals,
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUsingAliasForDelegate()
         {
-            await TestAsync(@"using dynamic = System.Action;",
+            await TestAsync(
+@"using dynamic = System.Action;",
                 Keyword("using"),
                 Delegate("dynamic"),
                 Operators.Equals,
@@ -90,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUsingAliasForStruct()
         {
-            await TestAsync(@"using dynamic = System.DateTime;",
+            await TestAsync(
+@"using dynamic = System.DateTime;",
                 Keyword("using"),
                 Struct("dynamic"),
                 Operators.Equals,
@@ -103,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUsingAliasForEnum()
         {
-            await TestAsync(@"using dynamic = System.DayOfWeek;",
+            await TestAsync(
+@"using dynamic = System.DayOfWeek;",
                 Keyword("using"),
                 Enum("dynamic"),
                 Operators.Equals,
@@ -116,7 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUsingAliasForInterface()
         {
-            await TestAsync(@"using dynamic = System.IDisposable;",
+            await TestAsync(
+@"using dynamic = System.IDisposable;",
                 Keyword("using"),
                 Interface("dynamic"),
                 Operators.Equals,
@@ -129,8 +134,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsExternAlias()
         {
-            await TestAsync(@"extern alias dynamic;
-class C { dynamic::Foo a; }",
+            await TestAsync(
+@"extern alias dynamic;
+
+class C
+{
+    dynamic::Foo a;
+}",
                 Keyword("extern"),
                 Keyword("alias"),
                 Identifier("dynamic"),
@@ -201,7 +211,15 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGenericTypeName()
         {
-            await TestAsync(@"partial class dynamic<T> { } class C { dynamic<int> d; }",
+            await TestAsync(
+@"partial class dynamic<T>
+{
+}
+
+class C
+{
+    dynamic<int> d;
+}",
                 Keyword("partial"),
                 Keyword("class"),
                 Class("dynamic"),
@@ -225,7 +243,11 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGenericField()
         {
-            await TestAsync(@"class A<T> { T dynamic; }",
+            await TestAsync(
+@"class A<T>
+{
+    T dynamic;
+}",
                 Keyword("class"),
                 Class("A"),
                 Punctuation.OpenAngle,
@@ -495,7 +517,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsBaseClass()
         {
-            await TestAsync(@"class C : dynamic { }",
+            await TestAsync(
+@"class C : dynamic
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.Colon,
@@ -507,7 +532,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGenericConstraint()
         {
-            await TestAsync(@"class C<T> where T : dynamic { }",
+            await TestAsync(
+@"class C<T> where T : dynamic
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -553,7 +581,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsArrayName()
         {
-            await TestAsync(@"int[] dynamic = { 1 };",
+            await TestAsync(
+@"int[] dynamic = {
+    1
+};",
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
@@ -599,7 +630,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsNamespaceName()
         {
-            await TestAsync(@"namespace dynamic { }",
+            await TestAsync(
+@"namespace dynamic
+{
+}",
                 Keyword("namespace"),
                 Identifier("dynamic"),
                 Punctuation.OpenCurly,
@@ -609,7 +643,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsClassName()
         {
-            await TestAsync(@"class dynamic { }",
+            await TestAsync(
+@"class dynamic
+{
+}",
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
@@ -619,7 +656,13 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsConstructorDeclarationName()
         {
-            await TestAsync(@"class dynamic { dynamic() { } }",
+            await TestAsync(
+@"class dynamic
+{
+    dynamic()
+    {
+    }
+}",
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
@@ -675,7 +718,11 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsEnumFieldDefinition()
         {
-            await TestAsync(@"enum A { dynamic }",
+            await TestAsync(
+@"enum A
+{
+    dynamic
+}",
                 Keyword("enum"),
                 Enum("A"),
                 Punctuation.OpenCurly,
@@ -686,7 +733,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsEnumType()
         {
-            await TestAsync(@"enum dynamic { }",
+            await TestAsync(
+@"enum dynamic
+{
+}",
                 Keyword("enum"),
                 Enum("dynamic"),
                 Punctuation.OpenCurly,
@@ -696,7 +746,11 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGenericTypeParameter()
         {
-            await TestAsync(@"class C<dynamic, T> where dynamic : T { dynamic d; }",
+            await TestAsync(
+@"class C<dynamic, T> where dynamic : T
+{
+    dynamic d;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -876,7 +930,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsInterfaceType()
         {
-            await TestAsync(@"interface dynamic{}",
+            await TestAsync(
+@"interface dynamic
+{
+}",
                 Keyword("interface"),
                 Interface("dynamic"),
                 Punctuation.OpenCurly,
@@ -886,7 +943,10 @@ class C { dynamic::Foo a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsStructType()
         {
-            await TestAsync(@"struct dynamic {  }",
+            await TestAsync(
+@"struct dynamic
+{
+}",
                 Keyword("struct"),
                 Struct("dynamic"),
                 Punctuation.OpenCurly,

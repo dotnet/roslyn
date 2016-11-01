@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i))
         {
-        } 
+        }
     }
 }");
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (new C1(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (new C1(v, out int i))
         {
-        } 
+        }
     }
 }");
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (this[out i])
         {
-        } 
+        }
     }
 }");
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i, out i))
         {
-        } 
+        }
     }
 }");
         }
@@ -124,10 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
+
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -136,10 +137,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i))
         {
-        } 
+        }
+
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }");
         }
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out var i))
         {
-        } 
+        }
     }
 }", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
         }
@@ -196,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i))
         {
-        } 
+        }
     }
 }", options: UseImplicitTypeTests.ImplicitTypeButKeepIntrinsics());
         }
@@ -222,6 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         if (int.TryParse(v, out i))
         {
         }
+
         i = 0;
     }
 }",
@@ -232,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         if (int.TryParse(v, out int i))
         {
         }
+
         i = 0;
     }
 }");
@@ -308,6 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             if (int.TryParse(v, out i))
             {
             }
+
             i = 1;
         }
     }
@@ -328,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             {
             }
         }
+
         i = 1;
     }
 }");
@@ -363,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (int.TryParse(v, i))
         {
-        } 
+        }
     }
 }");
         }
@@ -375,11 +381,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 @"class C
 {
     [|int|] i;
+
     void M()
     {
         if (int.TryParse(v, out this.i))
         {
-        } 
+        }
     }
 }");
         }
@@ -391,11 +398,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 @"class C
 {
     [|int|] i;
+
     void M()
     {
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }");
         }
@@ -430,7 +438,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         while (true)
             if (int.TryParse(v, out i))
             {
-            } 
+            }
+
         i = 1;
     }
 }");
@@ -449,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             if (int.TryParse(v, out i))
             {
                 i = 1;
-            } 
+            }
     }
 }",
 @"class C
@@ -460,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             if (int.TryParse(v, out int i))
             {
                 i = 1;
-            } 
+            }
     }
 }");
         }
@@ -478,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
             if (int.TryParse(v, out i))
             {
-            } 
+            }
         }
     }
 }",
@@ -491,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             if (int.TryParse(v, out int i))
             {
             }
-        } 
+        }
     }
 }");
         }
@@ -507,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (M2(out i))
         {
-        } 
+        }
     }
 
     void M2(out int i)
@@ -524,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (M2(out int i))
         {
-        } 
+        }
     }
 
     void M2(out int i)
@@ -548,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|var|] i = 0;
         if (M2(out i))
         {
-        } 
+        }
     }
 
     void M2(out int i)
@@ -565,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (M2(out int i))
         {
-        } 
+        }
     }
 
     void M2(out int i)
@@ -589,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [|int|] i;
         if (M2(out i))
         {
-        } 
+        }
     }
 
     void M2<T>(out T i)
@@ -602,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (M2(out int i))
         {
-        } 
+        }
     }
 
     void M2<T>(out T i)

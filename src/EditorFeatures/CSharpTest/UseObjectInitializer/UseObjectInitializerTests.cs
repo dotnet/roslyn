@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -25,20 +25,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         public async Task TestOnVariableDeclarator()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         var c = [||]new C();
         c.i = 1;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         var c = new C()
@@ -53,10 +53,10 @@ class C
         public async Task TestOnAssignmentExpression()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         C c = null;
@@ -64,10 +64,10 @@ class C
         c.i = 1;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         C c = null;
@@ -83,10 +83,10 @@ class C
         public async Task TestStopOnDuplicateMember()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         var c = [||]new C();
@@ -94,10 +94,10 @@ class C
         c.i = 2;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
+
     void M()
     {
         var c = new C()
@@ -113,29 +113,27 @@ class C
         public async Task TestComplexInitializer()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         C[] array;
-
         array[0] = [||]new C();
         array[0].i = 1;
         array[0].j = 2;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         C[] array;
-
         array[0] = new C()
         {
             i = 1,
@@ -149,11 +147,11 @@ class C
         public async Task TestNotOnCompoundAssignment()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         var c = [||]new C();
@@ -161,11 +159,11 @@ class C
         c.j += 1;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         var c = new C()
@@ -181,11 +179,11 @@ class C
         public async Task TestMissingWithExistingInitializer()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         var c = [||]new C() { i = 1 };
@@ -198,11 +196,11 @@ class C
         public async Task TestMissingBeforeCSharp3()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         var c = [||]new C();
@@ -215,33 +213,30 @@ class C
         public async Task TestFixAllInDocument()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         C[] array;
-
         array[0] = {|FixAllInDocument:new|} C();
         array[0].i = 1;
         array[0].j = 2;
-
         array[1] = new C();
         array[1].i = 3;
         array[1].j = 4;
     }
 }",
-@"
-class C
+@"class C
 {
     int i;
     int j;
+
     void M()
     {
         C[] array;
-
         array[0] = new C()
         {
             i = 1,

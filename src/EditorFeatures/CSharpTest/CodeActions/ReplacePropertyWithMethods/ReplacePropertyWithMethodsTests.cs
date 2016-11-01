@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
@@ -18,29 +18,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
         public async Task TestGetWithBody()
         {
             await TestAsync(
-@"class C { int [||]Prop { get { return 0; } } }",
-@"class C { private int GetProp() { return 0; } }");
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestPublicProperty()
         {
             await TestAsync(
-@"class C { public int [||]Prop { get { return 0; } } }",
-@"class C { public int GetProp() { return 0; } }");
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}",
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestAnonyousType1()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } } 
-    public void M() { var v = new { P = this.Prop } }
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public void M()
+    {
+        var v = new { P = this.Prop } }
 }",
-@"class C {
-    public int GetProp() { return 0; } 
-    public void M() { var v = new { P = this.GetProp() } }
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+
+    public void M()
+    {
+        var v = new { P = this.GetProp() } }
 }");
         }
 
@@ -48,13 +95,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
         public async Task TestAnonyousType2()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } } 
-    public void M() { var v = new { this.Prop } }
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public void M()
+    {
+        var v = new { this.Prop } }
 }",
-@"class C {
-    public int GetProp() { return 0; } 
-    public void M() { var v = new { Prop = this.GetProp() } }
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+
+    public void M()
+    {
+        var v = new { Prop = this.GetProp() } }
 }");
         }
 
@@ -62,15 +126,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
         public async Task TestPassedToRef1()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } }
-    public void RefM(ref int i) { }
-    public void M() { RefM(ref this.Prop); }
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public void RefM(ref int i)
+    {
+    }
+
+    public void M()
+    {
+        RefM(ref this.Prop);
+    }
 }",
-@"class C {
-    public int GetProp() { return 0; } 
-    public void RefM(ref int i) { }
-    public void M() { RefM(ref this.{|Conflict:GetProp|}()); }
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+
+    public void RefM(ref int i)
+    {
+    }
+
+    public void M()
+    {
+        RefM(ref this.{|Conflict:GetProp|}());
+    }
 }");
         }
 
@@ -78,15 +167,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
         public async Task TestPassedToOut1()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } }
-    public void OutM(out int i) { }
-    public void M() { OutM(out this.Prop); }
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public void OutM(out int i)
+    {
+    }
+
+    public void M()
+    {
+        OutM(out this.Prop);
+    }
 }",
-@"class C {
-    public int GetProp() { return 0; } 
-    public void OutM(out int i) { }
-    public void M() { OutM(out this.{|Conflict:GetProp|}()); }
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+
+    public void OutM(out int i)
+    {
+    }
+
+    public void M()
+    {
+        OutM(out this.{|Conflict:GetProp|}());
+    }
 }");
         }
 
@@ -94,23 +208,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
         public async Task TestUsedInAttribute1()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
-class CAttribute : Attribute {
-    public int [||]Prop { get { return 0; } }
+class CAttribute : Attribute
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
 }
 
 [C(Prop = 1)]
 class D
 {
-}
-",
-@"
-using System;
+}",
+@"using System;
 
-class CAttribute : Attribute {
-    public int GetProp() { return 0; }
+class CAttribute : Attribute
+{
+    public int GetProp()
+    {
+        return 0;
+    }
 }
 
 [C({|Conflict:Prop|} = 1)]
@@ -123,21 +245,55 @@ class D
         public async Task TestSetWithBody1()
         {
             await TestAsync(
-@"class C { int [||]Prop { set { var v = value; } } }",
-@"class C { private void SetProp(int value) { var v = value; } }");
+@"class C
+{
+    int [||]Prop
+    {
+        set
+        {
+            var v = value;
+        }
+    }
+}",
+@"class C
+{
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestSetReference1()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { set { var v = value; } } 
-    void M() { this.Prop = 1; }
+@"class C
+{
+    int [||]Prop
+    {
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop = 1;
+    }
 }",
-@"class C {
-    private void SetProp(int value) { var v = value; }
-    void M() { this.SetProp(1); }
+@"class C
+{
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(1);
+    }
 }");
         }
 
@@ -145,12 +301,32 @@ class D
         public async Task TestGetterAndSetter()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return 0; } set { var v = value; } } 
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
 }",
-@"class C {
-    private int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
 }");
         }
 
@@ -158,12 +334,32 @@ class D
         public async Task TestGetterAndSetterAccessibilityChange()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } private set { var v = value; } } 
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        private set
+        {
+            var v = value;
+        }
+    }
 }",
-@"class C {
-    public int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
+@"class C
+{
+    public int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
 }");
         }
 
@@ -171,14 +367,42 @@ class D
         public async Task TestIncrement1()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return 0; } set { var v = value; } } 
-    void M() { this.Prop++; }
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop++;
+    }
 }",
-@"class C {
-    private int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
-    void M() { this.SetProp(this.GetProp() + 1); }
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() + 1);
+    }
 }");
         }
 
@@ -186,14 +410,42 @@ class D
         public async Task TestDecrement2()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return 0; } set { var v = value; } } 
-    void M() { this.Prop--; }
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop--;
+    }
 }",
-@"class C {
-    private int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
-    void M() { this.SetProp(this.GetProp() - 1); }
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() - 1);
+    }
 }");
         }
 
@@ -201,11 +453,22 @@ class D
         public async Task TestRecursiveGet()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return this.Prop + 1; } } 
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return this.Prop + 1;
+        }
+    }
 }",
-@"class C {
-    private int GetProp() { return this.GetProp() + 1; }
+@"class C
+{
+    private int GetProp()
+    {
+        return this.GetProp() + 1;
+    }
 }");
         }
 
@@ -213,11 +476,22 @@ class D
         public async Task TestRecursiveSet()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { set { this.Prop = value + 1; } } 
+@"class C
+{
+    int [||]Prop
+    {
+        set
+        {
+            this.Prop = value + 1;
+        }
+    }
 }",
-@"class C {
-    private void SetProp(int value) { this.SetProp(value + 1); }
+@"class C
+{
+    private void SetProp(int value)
+    {
+        this.SetProp(value + 1);
+    }
 }");
         }
 
@@ -225,14 +499,42 @@ class D
         public async Task TestCompoundAssign1()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return 0; } set { var v = value; } } 
-    void M() { this.Prop *= x; }
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop *= x;
+    }
 }",
-@"class C {
-    private int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
-    void M() { this.SetProp(this.GetProp() * x); }
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() * x);
+    }
 }");
         }
 
@@ -240,14 +542,42 @@ class D
         public async Task TestCompoundAssign2()
         {
             await TestAsync(
-@"class C {
-    int [||]Prop { get { return 0; } set { var v = value; } } 
-    void M() { this.Prop *= x + y; }
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop *= x + y;
+    }
 }",
-@"class C {
-    private int GetProp() { return 0; }
-    private void SetProp(int value) { var v = value; }
-    void M() { this.SetProp(this.GetProp() * (x + y)); }
+@"class C
+{
+    private int GetProp()
+    {
+        return 0;
+    }
+
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(this.GetProp() * (x + y));
+    }
 }");
         }
 
@@ -255,12 +585,21 @@ class D
         public async Task TestMissingAccessors()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     int [||]Prop { }
-    void M() { var v = this.Prop; }
+
+    void M()
+    {
+        var v = this.Prop;
+    }
 }",
-@"class C {
-    void M() { var v = this.GetProp(); }
+@"class C
+{
+    void M()
+    {
+        var v = this.GetProp();
+    }
 }");
         }
 
@@ -268,11 +607,16 @@ class D
         public async Task TestComputedProp()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     int [||]Prop => 1;
 }",
-@"class C {
-    private int GetProp() { return 1; }
+@"class C
+{
+    private int GetProp()
+    {
+        return 1;
+    }
 }");
         }
 
@@ -314,13 +658,21 @@ class D
         public async Task TestAbstractProperty()
         {
             await TestAsync(
-@"class C {
-    public abstract int [||]Prop { get; } 
-    public void M() { var v = new { P = this.Prop } }
+@"class C
+{
+    public abstract int [||]Prop { get; }
+
+    public void M()
+    {
+        var v = new { P = this.Prop } }
 }",
-@"class C {
+@"class C
+{
     public abstract int GetProp();
-    public void M() { var v = new { P = this.GetProp() } }
+
+    public void M()
+    {
+        var v = new { P = this.GetProp() } }
 }");
         }
 
@@ -328,13 +680,30 @@ class D
         public async Task TestVirtualProperty()
         {
             await TestAsync(
-@"class C {
-    public virtual int [||]Prop { get { return 1; } } 
-    public void M() { var v = new { P = this.Prop } }
+@"class C
+{
+    public virtual int [||]Prop
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    public void M()
+    {
+        var v = new { P = this.Prop } }
 }",
-@"class C {
-    public virtual int GetProp() { return 1; }
-    public void M() { var v = new { P = this.GetProp() } }
+@"class C
+{
+    public virtual int GetProp()
+    {
+        return 1;
+    }
+
+    public void M()
+    {
+        var v = new { P = this.GetProp() } }
 }");
         }
 
@@ -342,10 +711,12 @@ class D
         public async Task TestInterfaceProperty()
         {
             await TestAsync(
-@"interface I {
+@"interface I
+{
     int [||]Prop { get; }
 }",
-@"interface I {
+@"interface I
+{
     int GetProp();
 }");
         }
@@ -354,12 +725,18 @@ class D
         public async Task TestAutoProperty1()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     public int [||]Prop { get; }
 }",
-@"class C {
+@"class C
+{
     private readonly int prop;
-    public int GetProp() { return prop; }
+
+    public int GetProp()
+    {
+        return prop;
+    }
 }");
         }
 
@@ -367,16 +744,26 @@ class D
         public async Task TestAutoProperty2()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     public int [||]Prop { get; }
-    public C() {
+
+    public C()
+    {
         this.Prop++;
     }
 }",
-@"class C {
+@"class C
+{
     private readonly int prop;
-    public int GetProp() { return prop; }
-    public C() {
+
+    public int GetProp()
+    {
+        return prop;
+    }
+
+    public C()
+    {
         this.prop = this.GetProp() + 1;
     }
 }");
@@ -386,16 +773,26 @@ class D
         public async Task TestAutoProperty3()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     public int [||]Prop { get; }
-    public C() {
+
+    public C()
+    {
         this.Prop *= x + y;
     }
 }",
-@"class C {
+@"class C
+{
     private readonly int prop;
-    public int GetProp() { return prop; }
-    public C() {
+
+    public int GetProp()
+    {
+        return prop;
+    }
+
+    public C()
+    {
         this.prop = this.GetProp() * (x + y);
     }
 }");
@@ -405,12 +802,18 @@ class D
         public async Task TestAutoProperty4()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     public int [||]Prop { get; } = 1;
 }",
-@"class C {
+@"class C
+{
     private readonly int prop = 1;
-    public int GetProp() { return prop; }
+
+    public int GetProp()
+    {
+        return prop;
+    }
 }");
         }
 
@@ -418,14 +821,21 @@ class D
         public async Task TestAutoProperty5()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     private int prop;
+
     public int [||]Prop { get; } = 1;
 }",
-@"class C {
+@"class C
+{
     private int prop;
     private readonly int prop1 = 1;
-    public int GetProp() { return prop1; }
+
+    public int GetProp()
+    {
+        return prop1;
+    }
 }");
         }
 
@@ -433,12 +843,18 @@ class D
         public async Task TestAutoProperty6()
         {
             await TestAsync(
-@"class C {
+@"class C
+{
     public int [||]PascalCase { get; }
 }",
-@"class C {
+@"class C
+{
     private readonly int pascalCase;
-    public int GetPascalCase() { return pascalCase; }
+
+    public int GetPascalCase()
+    {
+        return pascalCase;
+    }
 }");
         }
 
@@ -446,12 +862,25 @@ class D
         public async Task TestUniqueName1()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { get { return 0; } }
+@"class C
+{
+    public int [||]Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
     public abstract int GetProp();
 }",
-@"class C {
-    public int GetProp1() { return 0; }
+@"class C
+{
+    public int GetProp1()
+    {
+        return 0;
+    }
+
     public abstract int GetProp();
 }");
         }
@@ -460,12 +889,23 @@ class D
         public async Task TestUniqueName2()
         {
             await TestAsync(
-@"class C {
-    public int [||]Prop { set { } }
+@"class C
+{
+    public int [||]Prop
+    {
+        set
+        {
+        }
+    }
+
     public abstract void SetProp(int i);
 }",
-@"class C {
-    public void SetProp1(int value) { }
+@"class C
+{
+    public void SetProp1(int value)
+    {
+    }
+
     public abstract void SetProp(int i);
 }");
         }
@@ -474,12 +914,23 @@ class D
         public async Task TestUniqueName3()
         {
             await TestAsync(
-@"class C {
-    public object [||]Prop { set { } }
+@"class C
+{
+    public object [||]Prop
+    {
+        set
+        {
+        }
+    }
+
     public abstract void SetProp(dynamic i);
 }",
-@"class C {
-    public void SetProp1(object value) { }
+@"class C
+{
+    public void SetProp1(object value)
+    {
+    }
+
     public abstract void SetProp(dynamic i);
 }");
         }
