@@ -19906,8 +19906,8 @@ namespace ConsoleApplication5
         [WorkItem(14649, "https://github.com/dotnet/roslyn/issues/14649")]
         public void ParseLongLambda()
         {
-            string filler = string.Join("\r\n", Enumerable.Range(1, 2000).Select(i => $"int y{i}"));
-            string parameters = string.Join(", ", Enumerable.Range(1, 200).Select(i => $"int x{i}"));
+            string filler = string.Join("\r\n", Enumerable.Range(1, 1000).Select(i => $"int y{i};"));
+            string parameters = string.Join(", ", Enumerable.Range(1, 2000).Select(i => $"int x{i}"));
             string text = @"
 class C
 {
