@@ -109,6 +109,40 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
+        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            string source, string assemblyName)
+        {
+            IAddReferenceDatabaseWrapper databaseWrapper;
+            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
+            {
+                // Don't have a database to search.  
+                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+            }
+
+            var database = databaseWrapper.Database;
+
+            var query = new MemberQuery(assemblyName, isFullSuffix: true, isFullNamespace: false);
+            var symbols = new PartialArray<Symbol>(100);
+
+            var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
+            if (query.TryFindMembers(database, ref symbols))
+            {
+                foreach (var symbol in symbols)
+                {
+                    if (symbol.Type == SymbolType.Assembly)
+                    {
+                        result.Add(new PackageWithAssemblyResult(
+                            symbol.PackageName.ToString(),
+                            database.GetPackageVersion(symbol.Index).ToString(),
+                            GetRank(symbol)));
+                    }
+                }
+            }
+
+            return Task.FromResult(result.ToImmutableAndFree());
+        }
+
+
         public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity)
         {

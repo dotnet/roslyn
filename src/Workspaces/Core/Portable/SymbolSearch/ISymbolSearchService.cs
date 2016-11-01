@@ -50,14 +50,23 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string name, int arity, CancellationToken cancellationToken);
     }
 
-    internal class PackageWithTypeResult
+    internal abstract class PackageResult
+    {
+        public readonly string PackageName;
+        internal readonly int Rank;
+
+        protected PackageResult(string packageName, int rank)
+        {
+            PackageName = packageName;
+            Rank = rank;
+        }
+    }
+
+    internal class PackageWithTypeResult : PackageResult
     {
         public readonly IReadOnlyList<string> ContainingNamespaceNames;
-        public readonly string PackageName;
         public readonly string TypeName;
         public readonly string Version;
-
-        internal readonly int Rank;
 
         public PackageWithTypeResult(
             string packageName,
@@ -65,30 +74,25 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string version,
             int rank,
             IReadOnlyList<string> containingNamespaceNames)
+            : base(packageName, rank)
         {
-            PackageName = packageName;
             TypeName = typeName;
             Version = string.IsNullOrWhiteSpace(version) ? null : version;
-            Rank = rank;
             ContainingNamespaceNames = containingNamespaceNames;
         }
     }
 
-    internal class PackageWithAssemblyResult : IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
+    internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
     {
-        public readonly string PackageName;
         public readonly string Version;
-
-        internal readonly int Rank;
 
         public PackageWithAssemblyResult(
             string packageName,
             string version,
             int rank)
+            : base(packageName, rank)
         {
-            PackageName = packageName;
             Version = string.IsNullOrWhiteSpace(version) ? null : version;
-            Rank = rank;
         }
 
         public override int GetHashCode()

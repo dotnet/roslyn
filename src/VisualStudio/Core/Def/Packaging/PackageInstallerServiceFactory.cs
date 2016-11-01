@@ -414,7 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 installedPackages.ContainsKey(packageName);
         }
 
-        public IEnumerable<string> GetInstalledVersions(string packageName)
+        public ImmutableArray<string> GetInstalledVersions(string packageName)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -439,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
             });
 
-            return versionsAndSplits.Select(v => v.Version).ToList();
+            return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
         private int CompareSplit(string[] split1, string[] split2)
