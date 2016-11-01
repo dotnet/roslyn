@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             var cancellationToken = context.CancellationToken;
             var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
 
+            await AddMissingReferencesAsync(context, uniqueIdentities).ConfigureAwait(false);
+        }
+
+        private static async Task AddMissingReferencesAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
+        {
             foreach (var identity in uniqueIdentities)
             {
                 context.RegisterCodeFix(
