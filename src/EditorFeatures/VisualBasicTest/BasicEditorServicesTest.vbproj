@@ -504,6 +504,7 @@
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.vb" />
     <Compile Include="TodoComment\TodoCommentTests.vb" />
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
@@ -601,6 +602,7 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
     <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

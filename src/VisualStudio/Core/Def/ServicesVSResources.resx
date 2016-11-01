@@ -804,4 +804,7 @@ Additional information: {1}</value>
   <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
     <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
   </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
 </root>

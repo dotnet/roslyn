@@ -251,6 +251,27 @@ class C
 }
 ";
 
+        private static readonly string s_preferCoalesceExpression = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        var v = x ?? y;
+
+        // Over:
+        var v = x != null ? x : y; // or
+        var v = x == null ? y : x;
+//]
+    }
+}
+";
+
         private static readonly string s_preferConditionalDelegateCall = @"
 using System;
 
@@ -598,6 +619,7 @@ class List<T>
             // Null preferences.
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
         }
     }
 }
