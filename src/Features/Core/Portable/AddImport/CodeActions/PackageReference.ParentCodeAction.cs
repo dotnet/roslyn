@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -118,8 +119,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     newDocument = await CleanupDocumentAsync(
                         newDocument, cancellationToken).ConfigureAwait(false);
 
-                    var installOperation = new InstallNugetPackageOperation(
-                        reference._installerService, document, reference._source, reference._packageName, versionOpt, isLocal);
+                    var installOperation = new InstallPackageCodeActionOperation(
+                        reference._installerService, document, reference._source, 
+                        reference._packageName, versionOpt, isLocal);
 
                     return new InstallPackageAndAddImportData(
                         oldDocument, newDocument, installOperation);

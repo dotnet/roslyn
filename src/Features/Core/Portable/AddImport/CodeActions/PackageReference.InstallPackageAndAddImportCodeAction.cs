@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -31,9 +32,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
-                public readonly InstallNugetPackageOperation InstallOperation;
+                public readonly InstallPackageCodeActionOperation InstallOperation;
 
-                public InstallPackageAndAddImportData(Document oldDocument, Document newDocument, InstallNugetPackageOperation installOperation)
+                public InstallPackageAndAddImportData(
+                    Document oldDocument, Document newDocument,
+                    InstallPackageCodeActionOperation installOperation)
                 {
                     OldDocument = oldDocument;
                     NewDocument = newDocument;
@@ -105,22 +108,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly DocumentId _changedDocumentId;
                 private readonly SourceText _oldText;
                 private readonly SourceText _newText;
-                private readonly InstallNugetPackageOperation _installNugetPackage;
+                private readonly InstallPackageCodeActionOperation _installPackageOperation;
 
                 public InstallPackageAndAddImportOperation(
                     DocumentId changedDocumentId, 
                     SourceText oldText,
-                    SourceText newText, 
-                    InstallNugetPackageOperation item2)
+                    SourceText newText,
+                    InstallPackageCodeActionOperation item2)
                 {
                     _changedDocumentId = changedDocumentId;
                     _oldText = oldText;
                     _newText = newText;
-                    _installNugetPackage = item2;
+                    _installPackageOperation = item2;
                 }
 
-                internal override bool ApplyDuringTests => _installNugetPackage.ApplyDuringTests;
-                public override string Title => _installNugetPackage.Title;
+                internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
+                public override string Title => _installPackageOperation.Title;
 
                 internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // First make the changes to add the import to the document.
                     if (workspace.TryApplyChanges(newSolution, progressTracker))
                     {
-                        if (_installNugetPackage.TryApply(workspace, progressTracker, cancellationToken))
+                        if (_installPackageOperation.TryApply(workspace, progressTracker, cancellationToken))
                         {
                             return true;
                         }
