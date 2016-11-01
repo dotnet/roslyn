@@ -44,11 +44,9 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             context.RegisterFixes(addReferenceCodeActions, context.Diagnostics);
         }
 
-        private Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
+        private async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
         {
-            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
-#if false
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
@@ -63,6 +61,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             var searchNugetPackages = options.GetOption(
                 SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
+            var builder = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
@@ -71,12 +70,24 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 foreach (var packageSource in installerService.PackageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await FindNugetAssemblyReferencesAsync(
+                    await AddPackagesCodeActionsAsync(
                         packageSource, symbolSearchService, installerService, 
-                        uniqueIdentities, cancellationToken).ConfigureAwait(false);
+                        uniqueIdentities, builder, cancellationToken).ConfigureAwait(false);
                 }
             }
-#endif
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private Task AddPackagesCodeActionsAsync(
+            PackageSource packageSource, 
+            ISymbolSearchService symbolSearchService, 
+            IPackageInstallerService installerService, 
+            ISet<AssemblyIdentity> uniqueIdentities, 
+            ArrayBuilder<CodeAction> builder, 
+            CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
         }
 
         private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
