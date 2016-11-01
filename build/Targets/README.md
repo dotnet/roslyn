@@ -42,7 +42,8 @@ This file is imported at the end of projects.  The primary purposes of this file
 - Define all properties which are necessary to build the product. 
 - Use Import and custom Targets to define the necessary build logic.
 
-Properties which are central to our build should be defined here.  For example $(Deterministic) is unconditionally defined in this file.  No project should be able to override it because it's important to the correctness of our build.  
+Properties which are central to our build should be defined here.  For example $(Deterministic) is unconditionally defined in this file.  No project should be able to override it because it's important to the correctness of our build.  To protect against accidentally setting this property and having it silently ignored, such properties should also be banned in BuildBoss.
+
 
 The general structure of this file is:
 

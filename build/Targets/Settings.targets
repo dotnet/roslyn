@@ -16,13 +16,10 @@
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
-    <FileAlignment>512</FileAlignment>
-    <HighEntropyVA>true</HighEntropyVA>
-    <Features>strict</Features>
+    <Features>strict,IOperation</Features>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
-    <Deterministic>True</Deterministic>
     <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutDir>
     <BaseIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
 
@@ -115,6 +112,7 @@
         <RootNamespace></RootNamespace>
         <VBRuntime>Embed</VBRuntime>
         <RemoveIntegerChecks>true</RemoveIntegerChecks>
+        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
@@ -155,6 +153,7 @@
         -->
         <NoWarn>$(NoWarn);1591</NoWarn>
         <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
