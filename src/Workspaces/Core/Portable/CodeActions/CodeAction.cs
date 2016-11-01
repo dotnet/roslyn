@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
-            return operations.ToImmutableArray();
+            return operations.ToImmutableArrayOrEmpty();
         }
 
         /// <summary>
