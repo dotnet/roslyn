@@ -591,5 +591,42 @@ withScriptOption: true);
 }",
 options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
+
+        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestGetter_Only_Auto_Props()
+        {
+            await TestAsync(
+@"abstract class Contribution
+{
+  [|public string Title { get; }
+    public int Number { get; }|]
+}",
+@"abstract class Contribution
+{
+    public Contribution(string title, int number)
+    {
+        Title = title;
+        Number = number;
+    }
+
+    public string Title { get; }
+    public int Number { get; }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAbstract_Getter_Only_Auto_Props()
+        {
+            await TestMissingAsync(
+@"abstract class Contribution
+{
+  [|public abstract string Title { get; }
+    public int Number { get; }|]
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
     }
 }

@@ -1651,27 +1651,28 @@ end class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function Support_Readonly_Properties() As Task
             Await TestAsync(
-"class C 
-    readonly property Prop as integer
-end class 
-module P 
-    sub M() 
-        dim prop = 42
-        dim c = new C([|prop|])
-    end sub
-end module",
-"class C
-    public sub new(prop As integer)
-        me.Prop = prop
-    end sub
-    readonly property Prop as integer
-end class
-module P
-    sub M()
-        dim prop = 42
-        dim c = new C(prop)
-    end sub
-end module")
+"Class C
+    ReadOnly Property Prop As Integer
+End Class
+Module P
+    Sub M()
+        Dim prop = 42
+        Dim c = New C([|prop|])
+    End Sub
+End Module",
+"Class C
+    Public Sub New(prop As Integer)
+        Me.Prop = prop
+    End Sub
+
+    ReadOnly Property Prop As Integer
+End Class
+Module P
+    Sub M()
+        Dim prop = 42
+        Dim c = New C(prop)
+    End Sub
+End Module")
         End Function
     End Class
 End Namespace

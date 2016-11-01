@@ -3096,7 +3096,7 @@ withScriptOption: true);
         {
             await TestAsync(
 @"class C { public int Prop { get ; } } class P { static void M ( ) { var prop = 42 ; var c = new [|C|] ( prop ) ; } } ",
-@"class C { public C ( int prop ) { Prop = prop ; } public int Prop { get ; } } class P { static void M ( ) { var prop = 42 ; var c = new C ( prop ) ; } } }",
+@"class C { public C ( int prop ) { Prop = prop ; } public int Prop { get ; } } class P { static void M ( ) { var prop = 42 ; var c = new C ( prop ) ; } }",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
