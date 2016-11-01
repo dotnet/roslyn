@@ -32,4 +32,7 @@
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider.Portable" Path="|CSharpResultProvider.Portable;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>

@@ -37,4 +37,7 @@ governing permissions and limitations under the License.
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="ImplementNotifyPropertyChangedVB.dll" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>
