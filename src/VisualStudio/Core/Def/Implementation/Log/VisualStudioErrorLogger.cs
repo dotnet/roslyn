@@ -23,21 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
             }
         }
 
-        public bool TryLogException(object source, Exception exception)
-        {
-            bool watsonReportResult = true;
-
-            var name = source.GetType().Name;
-            var activityLogResult = ActivityLog.TryLogError(name, ToLogFormat(exception));
-
-            if (ShouldReportCrashDumps(source))
-            {
-                WatsonReporter.Report(name, exception);
-            }
-
-            return watsonReportResult && activityLogResult;
-        }
-
         private bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
 
         private static string ToLogFormat(Exception exception)

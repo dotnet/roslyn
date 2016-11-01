@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
-        /// <param name="description">watson description</param>
+        /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(string description, Exception exception)
         {
