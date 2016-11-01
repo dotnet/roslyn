@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,6 +16,19 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
+            var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
+
+            foreach (var identity in uniqueIdentities)
+            {
+                context.RegisterCodeFix(
+                    await AddMissingReferenceCodeAction.CreateAsync(context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false),
+                    context.Diagnostics);
+            }
+        }
+
+        private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+        {
+            var cancellationToken = context.CancellationToken;
             var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
@@ -28,14 +42,13 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 var identity = GetAssemblyIdentity(types, message);
 
                 if (identity != null &&
-                    !identity.Equals(compilation.Assembly.Identity) &&
-                    uniqueIdentities.Add(identity))
+                    !identity.Equals(compilation.Assembly.Identity))
                 {
-                    context.RegisterCodeFix(
-                        await AddMissingReferenceCodeAction.CreateAsync(context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false),
-                        diagnostic);
+                    uniqueIdentities.Add(identity);
                 }
             }
+
+            return uniqueIdentities;
         }
 
         /// <summary>
