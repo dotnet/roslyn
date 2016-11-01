@@ -2,33 +2,94 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
     internal abstract class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider
         where TIdentifierNameSyntax : SyntaxNode
     {
+        private readonly IPackageInstallerService _packageInstallerService;
+        private readonly ISymbolSearchService _symbolSearchService;
+
+        /// <summary>
+        /// Values for these parameters can be provided (during testing) for mocking purposes.
+        /// </summary> 
+        protected AbstractAddMissingReferenceCodeFixProvider(
+            IPackageInstallerService packageInstallerService = null,
+            ISymbolSearchService symbolSearchService = null)
+        {
+            _packageInstallerService = packageInstallerService;
+            _symbolSearchService = symbolSearchService;
+        }
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
             var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
 
-            await AddMissingReferencesAsync(context, uniqueIdentities).ConfigureAwait(false);
+            var addPackageCodeActions = await GetAddPackagesCodeActionsAsync(context, uniqueIdentities).ConfigureAwait(false);
+            var addReferenceCodeActions = await GetAddReferencesCodeActionsAsync(context, uniqueIdentities).ConfigureAwait(false);
+
+            context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
+            context.RegisterFixes(addReferenceCodeActions, context.Diagnostics);
         }
 
-        private static async Task AddMissingReferencesAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
+        private Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
+            CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
         {
+            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
+#if false
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+
+            var workspaceServices = document.Project.Solution.Workspace.Services;
+
+            var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
+            var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
+
+            var language = document.Project.Language;
+
+            var options = workspaceServices.Workspace.Options;
+            var searchNugetPackages = options.GetOption(
+                SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
+
+            if (symbolSearchService != null &&
+                installerService != null &&
+                searchNugetPackages &&
+                installerService.IsEnabled)
+            {
+                foreach (var packageSource in installerService.PackageSources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await FindNugetAssemblyReferencesAsync(
+                        packageSource, symbolSearchService, installerService, 
+                        uniqueIdentities, cancellationToken).ConfigureAwait(false);
+                }
+            }
+#endif
+        }
+
+        private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
+        {
+            var result = ArrayBuilder<CodeAction>.GetInstance();
             foreach (var identity in uniqueIdentities)
             {
-                context.RegisterCodeFix(
-                    await AddMissingReferenceCodeAction.CreateAsync(context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false),
-                    context.Diagnostics);
+                var codeAction = await AddMissingReferenceCodeAction.CreateAsync(
+                    context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false);
+                result.Add(codeAction);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
