@@ -995,6 +995,8 @@ public class C {}
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
 
+            Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
             var attrs = consoleappCompilation.Assembly.GetAttributes();
@@ -1052,6 +1054,118 @@ public class C {}
             Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+        }
+
+        [Fact]
+        [WorkItem(10550, "https://github.com/dotnet/roslyn/issues/10550")]
+        public void AssemblyAttributesFromNetModule_WithoutAssemblyAttributesGoHereTypes()
+        {
+            string netModuleSource =
+              @"using System;
+                using System.Reflection;
+
+                [assembly: UserDefinedAssemblyAttrNoAllowMultiple(""UserDefinedAssemblyAttrNoAllowMultiple"")]
+                [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
+
+                public class NetModuleClass { }
+
+                [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+                public class UserDefinedAssemblyAttrNoAllowMultipleAttribute : Attribute
+                {
+                    public UserDefinedAssemblyAttrNoAllowMultipleAttribute(string text) {}
+                }
+
+                [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+                public class UserDefinedAssemblyAttrAllowMultipleAttribute : Attribute
+                {
+                    public UserDefinedAssemblyAttrAllowMultipleAttribute(string text) {}
+                }
+                ";
+
+            string consoleappSource =
+                @"
+                class Program
+                {
+                    static void Main(string[] args) { }
+                }
+                ";
+
+            var netmoduleCompilation = CreateCompilation(netModuleSource, 
+                                                         options: TestOptions.ReleaseModule, 
+                                                         references: new[] { MinCorlibRef });
+            Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
+            var netModuleWithAssemblyAttributes = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
+
+            PEModule peModule = netModuleWithAssemblyAttributes.Module;
+            var metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(4, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+
+            var consoleappCompilation = CreateCompilation(
+                consoleappSource,
+                references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                options: TestOptions.ReleaseExe);
+
+            Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
+            Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
+            consoleappCompilation.GetDiagnostics().Verify();
+
+            var attrs = consoleappCompilation.Assembly.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+            foreach (var a in attrs)
+            {
+                switch (a.AttributeClass.Name)
+                {
+                    case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
+                        Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
+                        break;
+                    case "UserDefinedAssemblyAttrAllowMultipleAttribute":
+                        Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
+                        break;
+                    default:
+                        Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
+                        break;
+                }
+            }
+
+            var exeMetadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
+
+            peModule = exeMetadata.GetAssembly().ManifestModule;
+            metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+            Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(2, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
+
+            consoleappCompilation = CreateCompilation(
+                consoleappSource,
+                references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
+                options: TestOptions.ReleaseModule);
+
+            Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length);
+
+            var modMetadata = ModuleMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
+
+            peModule = modMetadata.Module;
+            metadataReader = peModule.GetMetadataReader();
+
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
+            Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+            Assert.Equal(0, metadataReader.CustomAttributes.Count);
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
+
+            token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
         }
 
