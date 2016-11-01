@@ -6,7 +6,7 @@
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\Settings.props" />
   </ImportGroup>
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
