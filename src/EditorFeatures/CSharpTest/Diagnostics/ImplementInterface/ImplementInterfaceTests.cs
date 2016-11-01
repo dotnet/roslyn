@@ -1397,7 +1397,8 @@ compareTokens: false);
 class Foo : [|IComparable|]
 
 #line default
-#line hidden");
+#line hidden
+");
         }
 
         [WorkItem(545476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
