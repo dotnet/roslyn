@@ -1,4 +1,4 @@
-﻿{
+{
     "dependencies": {
         "Microsoft.VisualStudio.Imaging": "15.0.25726-Preview5",
         "Microsoft.VisualStudio.Utilities": "15.0.25726-Preview5",
@@ -11,7 +11,7 @@
         "Microsoft.VisualStudio.Text.UI.Wpf": "15.0.25726-Preview5",
         "Microsoft.VisualStudio.Editor": "15.0.25726-Preview5",
         "Roslyn.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "15.0.25726-Preview5",
-        "System.Collections.Immutable": "1.2.0",
+        "System.Collections.Immutable": "1.3.0",
         "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
             "version": "14.3.25407",
             "suppressParent": "all"

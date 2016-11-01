@@ -127,6 +127,7 @@
         "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",
         "System.IO.Pipes.dll",
+        "System.Xml.ReaderWriter.dll",
         "System.Reflection.Metadata.dll",
         "System.Runtime.InteropServices.RuntimeInformation.dll",
         "System.Security.AccessControl.dll",

@@ -98,7 +98,7 @@
       "version": "1.1.4322",
       "suppressParent": "all"
     },
-    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60818-02",
     "Microsoft.Build": "14.3.0",
     "NuGet.VisualStudio": {
       "version": "4.0.0-rc-2048",
