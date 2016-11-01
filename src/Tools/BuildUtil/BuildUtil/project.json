@@ -4,8 +4,8 @@
     "dnxcore50.app": {}
   },
   "dependencies": {
-    "Microsoft.Build": "14.3.0-prerelease01",
-    "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
+    "Microsoft.Build": "14.3.0",
+    "Microsoft.Build.Tasks.Core": "14.3.0",
     "Microsoft.NETCore": "5.0.0",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "NuSpec.ReferenceGenerator": "1.4.2",

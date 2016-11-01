@@ -3,8 +3,8 @@
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
-    <MicrosoftBuildVersion>14.3.0-prerelease01</MicrosoftBuildVersion>
-    <MicrosoftBuildTasksCoreVersion>14.3.0-prerelease01</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildVersion>14.3.0</MicrosoftBuildVersion>
+    <MicrosoftBuildTasksCoreVersion>14.3.0</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
