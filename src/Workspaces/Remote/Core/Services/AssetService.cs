@@ -138,9 +138,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
             }
 
-            var source = _assetStorage.GetAssetSource(_sessionId);
-
+            var source = _assetStorage.TryGetAssetSource(_sessionId);
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (source == null)
+            {
+                return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
+            }
 
             try
             {
