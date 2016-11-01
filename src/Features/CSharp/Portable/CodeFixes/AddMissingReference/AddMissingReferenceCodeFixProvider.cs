@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddMissingReference
     {
         private const string CS0012 = nameof(CS0012); // The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'ProjectA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS0012); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+            = ImmutableArray.Create(CS0012);
     }
 }
