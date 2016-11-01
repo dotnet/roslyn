@@ -1131,7 +1131,8 @@
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DeclarationExpression"/>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax">
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax">
       <PropertyComment>
         <summary>Declaration representing the variable declared in an out parameter.</summary>
       </PropertyComment>
@@ -1841,32 +1842,6 @@
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
 
-  <AbstractNode Name="VariableComponentSyntax" Base="CSharpSyntaxNode">
-  </AbstractNode>
-  <Node Name="TypedVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="TypedVariableComponent"/>
-    <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Designation" Type="VariableDesignationSyntax"/>
-  </Node>
-  <Node Name="ParenthesizedVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="ParenthesizedVariableComponent"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableComponentSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
-    </Field>
-  </Node>
-  <!--
-  <Node Name="WildcardVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="WildcardVariableComponent"/>
-    <Field Name="AsteriskToken" Type="SyntaxToken">
-      <Kind Name="AsteriskToken"/>
-    </Field>
-  </Node>
-  -->
-
   <AbstractNode Name="VariableDesignationSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <Node Name="SingleVariableDesignationSyntax" Base="VariableDesignationSyntax">
@@ -1893,23 +1868,6 @@
     </Field>
   </Node>
   -->
-
-  <Node Name="DeconstructionDeclarationStatementSyntax" Base="StatementSyntax">
-    <Kind Name="DeconstructionDeclarationStatement"/>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
-    <Field Name="Assignment" Type="VariableComponentAssignmentSyntax"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken">
-      <Kind Name="SemicolonToken"/>
-    </Field>
-  </Node>
-  <Node Name="VariableComponentAssignmentSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="VariableComponentAssignment"/>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
-    <Field Name="EqualsToken" Type="SyntaxToken">
-      <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="Value" Type="ExpressionSyntax"/>
-  </Node>
 
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
@@ -2089,8 +2047,7 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <!-- Deconstruction, Declaration, and Initializers are mutually exclusive. -->
-    <Field Name="Deconstruction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
+    <!-- Declaration and Initializers are mutually exclusive. -->
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">
@@ -2153,7 +2110,7 @@
   <!-- We name this "DeclarationForEachStatementSyntax" because it can express existing foreach
        loops. We may elect to represent all foreach loops using this node and deprecate (stop parsing
        into) the old one. -->
-  <Node Name="ForEachComponentStatementSyntax" Base="CommonForEachStatementSyntax">
+  <Node Name="ForEachComponentStatementSyntax" Base="CommonForEachStatementSyntax"> <!-- Change name TODO REVIEW -->
     <Kind Name="ForEachComponentStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
@@ -2161,7 +2118,7 @@
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
+    <Field Name="VariableComponent" Type="ExpressionSyntax"/> <!-- Should this be something more specific? TODO REVIEW -->
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
     </Field>

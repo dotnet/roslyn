@@ -2413,8 +2413,7 @@ tryAgain:
                     if (deconstruction != null)
                     {
                         var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                        return _syntaxFactory.GlobalStatement(_syntaxFactory.DeconstructionDeclarationStatement(
-                            new SyntaxList<SyntaxToken>(), deconstruction, semicolon));
+                        return _syntaxFactory.GlobalStatement(_syntaxFactory.ExpressionStatement(deconstruction, semicolon));
                     }
                 }
 
@@ -7533,7 +7532,6 @@ tryAgain:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
             }
@@ -7848,7 +7846,7 @@ tryAgain:
             {
                 // Here can be either a declaration or an expression statement list.  Scan
                 // for a declaration first.
-                VariableComponentAssignmentSyntax deconstruction = null;
+                AssignmentExpressionSyntax deconstruction = null;
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
                 if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
@@ -7866,6 +7864,10 @@ tryAgain:
                                         this.IsTrueIdentifier();
 
                         this.Reset(ref resetPoint);
+                    }
+                    else
+                    {
+                        initializers.Add(deconstruction);
                     }
                 }
 
@@ -7895,7 +7897,7 @@ tryAgain:
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var statement = ParseEmbeddedStatement(true);
 
-                return _syntaxFactory.ForStatement(forToken, openParen, deconstruction, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
+                return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
             {
@@ -8413,7 +8415,7 @@ tryAgain:
             if (deconstruction != null)
             {
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                var result = _syntaxFactory.DeconstructionDeclarationStatement(mods.ToList(), deconstruction, semicolon);
+                var result = _syntaxFactory.ExpressionStatement(deconstruction, semicolon);
                 _pool.Free(mods);
                 return result;
             }
@@ -8469,7 +8471,7 @@ tryAgain:
         /// <summary>
         /// Returns null and resets the pointer if this does not look like a deconstruction-declaration after all.
         /// </summary>
-        private VariableComponentAssignmentSyntax TryParseDeconstructionDeclarationAssignment()
+        private AssignmentExpressionSyntax TryParseDeconstructionDeclarationAssignment()
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                || CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -8502,7 +8504,7 @@ tryAgain:
         /// <summary>
         /// Returns null and resets the pointer if this does not look like a deconstruction-declaration after all.
         /// </summary>
-        private VariableComponentSyntax TryParseDeconstructionDeclaration(SyntaxKind nextExpectedKind)
+        private ExpressionSyntax TryParseDeconstructionDeclaration(SyntaxKind nextExpectedKind)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                || CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -8511,7 +8513,7 @@ tryAgain:
 
                 try
                 {
-                    var deconstruction = ParseDeconstructionComponent(true);
+                    var deconstruction = ParseDeconstructionDeclarationVariables(true);
                     if (deconstruction == null || CurrentToken.Kind != nextExpectedKind)
                     {
                         this.Reset(ref resetPoint);
@@ -8538,13 +8540,13 @@ tryAgain:
         /// The syntax is either var form: `var (deconstruction-declaration, ...) = expression` or list form `(deconstruction-declaration, ...) = expression`.
         /// Cannot return null, except at the top-level.
         /// </summary>
-        private VariableComponentAssignmentSyntax ParseDeconstructionDeclarationAssignment()
+        private AssignmentExpressionSyntax ParseDeconstructionDeclarationAssignment()
         {
             var component = TryParseDeconstructionDeclaration(SyntaxKind.EqualsToken);
             if (component == null) return null;
             var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
             var value = this.ParseExpressionCore();
-            return _syntaxFactory.VariableComponentAssignment(component, equalsToken, value);
+            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, component, equalsToken, value);
         }
 
         /// <summary>
@@ -8555,7 +8557,7 @@ tryAgain:
         /// Cannot return null, except at the top-level.
         /// </summary>
         /// <param name="topLevel">Specifies whether to parse the terminal form of a deconstruction-declaration (which can't appear at the top-level).</param>
-        private VariableComponentSyntax ParseDeconstructionComponent(bool topLevel = false)
+        private ExpressionSyntax ParseDeconstructionDeclarationVariables(bool topLevel = false)
         {
             if (topLevel &&
                 !(CurrentToken.IsVarOrPredefinedType() && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.CurrentToken.Kind == SyntaxKind.OpenParenToken))
@@ -8565,18 +8567,18 @@ tryAgain:
 
             // the two forms of component are
             // (1) type designator
-            // (2) ( component ... )
-            VariableComponentSyntax result;
+            // (2) ( decl-expr, ... )
+            ExpressionSyntax result;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var listOfComponents = _pool.AllocateSeparated<VariableComponentSyntax>();
+                var listOfDeclarations = _pool.AllocateSeparated<ArgumentSyntax>();
                 while (true)
                 {
-                    listOfComponents.Add(ParseDeconstructionComponent());
+                    listOfDeclarations.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: null, expression: ParseDeconstructionDeclarationVariables()));
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        listOfComponents.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                        listOfDeclarations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     }
                     else
                     {
@@ -8584,9 +8586,8 @@ tryAgain:
                     }
                 }
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                SeparatedSyntaxList<VariableComponentSyntax> components = listOfComponents;
-                result = _syntaxFactory.ParenthesizedVariableComponent(openParen, listOfComponents, closeParen);
-                _pool.Free(listOfComponents);
+                result = _syntaxFactory.TupleExpression(openParen, listOfDeclarations, closeParen);
+                _pool.Free(listOfDeclarations);
             }
             else
             {
@@ -8610,31 +8611,32 @@ tryAgain:
                     designation = this.AddError(designation, ErrorCode.ERR_TypeExpected);
                 }
 
-                result = _syntaxFactory.TypedVariableComponent(type, designation);
+                result = _syntaxFactory.DeclarationExpression(type, designation);
             }
 
             return
-                topLevel ? (ComponentHasTypes(result) ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
+                topLevel ? (TypeFoundInDeconstructionDeclarationVariables(result) ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
         }
 
-        private static bool ComponentHasTypes(VariableComponentSyntax node)
+        // Check if we can find at least one type in the deconstruction variables
+        private static bool TypeFoundInDeconstructionDeclarationVariables(ExpressionSyntax node)
         {
             switch (node.Kind)
             {
-                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TupleExpression:
                     {
-                        var syntax = (ParenthesizedVariableComponentSyntax)node;
-                        if (syntax.Variables.Count <= 1) return false; // don't count 1ples
-                        for (int i = 0; i < syntax.Variables.Count; i++)
+                        var syntax = (TupleExpressionSyntax)node;
+                        if (syntax.Arguments.Count <= 1) return false; // don't count 1ples
+                        for (int i = 0; i < syntax.Arguments.Count; i++)
                         {
-                            if (ComponentHasTypes(syntax.Variables[i])) return true;
+                            if (TypeFoundInDeconstructionDeclarationVariables(syntax.Arguments[i].Expression)) return true;
                         }
 
                         return false;
                     }
-                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.DeclarationExpression:
                     {
-                        var syntax = (TypedVariableComponentSyntax)node;
+                        var syntax = (DeclarationExpressionSyntax)node;
                         if (syntax.Type.IsMissing || syntax.Designation.IsMissing) return false;
                         if (syntax.Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation)
                         {
@@ -8697,7 +8699,7 @@ tryAgain:
                 try
                 {
                     var assignment = ParseDeconstructionDeclarationAssignment();
-                    return assignment != null && !assignment.equalsToken.IsMissing;
+                    return assignment != null && assignment.operatorToken.Kind == SyntaxKind.EqualsToken;
                 }
                 finally
                 {
@@ -9932,10 +9934,9 @@ tryAgain:
                 {
                     TypeSyntax typeSyntax = ParseType();
                     SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
-                    var declarationSyntax = _syntaxFactory.TypedVariableComponent(
-                        typeSyntax,
-                        _syntaxFactory.SingleVariableDesignation(identifier));
-                    expression = _syntaxFactory.DeclarationExpression(declarationSyntax);
+                    expression = _syntaxFactory.DeclarationExpression(
+                                                    typeSyntax,
+                                                    _syntaxFactory.SingleVariableDesignation(identifier));
                 }
                 else
                 {
