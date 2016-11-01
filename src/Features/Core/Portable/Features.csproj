@@ -101,9 +101,10 @@
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
     <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />

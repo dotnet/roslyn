@@ -117,10 +117,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
-        internal virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        internal virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return ComputeOperationsAsync(cancellationToken);
+            var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            return operations.ToImmutableArray();
         }
 
         /// <summary>

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal abstract class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider
+    internal abstract partial class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider
         where TIdentifierNameSyntax : SyntaxNode
     {
         private readonly IPackageInstallerService _packageInstallerService;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             var searchNugetPackages = options.GetOption(
                 SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
-            var builder = ArrayBuilder<CodeAction>.GetInstance();
+            var codeActions = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
@@ -70,24 +70,50 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 foreach (var packageSource in installerService.PackageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await AddPackagesCodeActionsAsync(
+
+                    var sortedPackages = await FindMatchingPackagesAsync(
                         packageSource, symbolSearchService, installerService, 
-                        uniqueIdentities, builder, cancellationToken).ConfigureAwait(false);
+                        uniqueIdentities, codeActions, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var package in sortedPackages)
+                    {
+                        var installedVersions = installerService.GetInstalledVersions(package.PackageName);
+                        foreach (var version in installedVersions)
+                        {
+                            codeActions.Add(new InstallPackageCodeAction(
+                                installerService, document, packageSource.Source,
+                                package.PackageName, version, isLocal: true));
+                        }
+                    }
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return codeActions.ToImmutableAndFree();
         }
 
-        private Task AddPackagesCodeActionsAsync(
-            PackageSource packageSource, 
-            ISymbolSearchService symbolSearchService, 
+        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+            PackageSource source, 
+            ISymbolSearchService searchService, 
             IPackageInstallerService installerService, 
             ISet<AssemblyIdentity> uniqueIdentities, 
             ArrayBuilder<CodeAction> builder, 
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = new HashSet<PackageWithAssemblyResult>();
+
+            foreach (var identity in uniqueIdentities)
+            {
+                var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
+                    source.Name, identity.Name, cancellationToken).ConfigureAwait(false);
+
+                result.AddRange(packagesWithAssembly);
+            }
+
+            // Ensure the packages are sorted by rank.
+            var sortedPackages = result.ToImmutableArray().Sort();
+
+            return sortedPackages;
         }
 
         private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
@@ -182,6 +208,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
                     yield return propertySymbol.Type;
                 }
+
                 yield return symbol?.GetContainingTypeOrThis();
             }
         }
