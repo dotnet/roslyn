@@ -86,7 +86,7 @@ try
                     -Verbosity quiet
                 if ($LastExitCode -ne 0)
                 {
-                    Write-Error "Failed to upload NuGet package: $nupkg"
+                    Write-Error "Failed to upload NuGet package: $package"
                     $exitCode = 3
                 }
             }
