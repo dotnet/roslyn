@@ -2,10 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemberAccess
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 {
     public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -91,7 +93,7 @@ class D
                 expectedMarkup: expected,
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion),
                 compareTokens: false,
-                fixAllActionEquivalenceKey: FeaturesResources.Add_qualification);
+                fixAllActionEquivalenceKey: CSharpFeaturesResources.Add_this);
         }
     }
 }

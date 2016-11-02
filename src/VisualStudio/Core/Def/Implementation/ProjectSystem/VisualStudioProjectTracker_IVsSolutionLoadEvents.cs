@@ -278,7 +278,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var addedProjectReferences = new HashSet<string>();
             foreach (var projectReferencePath in projectInfo.ReferencedProjectFilePaths)
             {
-                var referencedProject = ImmutableProjects.SingleOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
+                // NOTE: ImmutableProjects might contain projects for other languages like
+                // Xaml, or Typescript where the project file ends up being identical.
+                var referencedProject = ImmutableProjects.SingleOrDefault(
+                    p => (p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
+                         && StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
                 if (referencedProject == null)
                 {
                     referencedProject = GetOrCreateProjectFromArgumentsAndReferences(

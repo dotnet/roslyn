@@ -810,4 +810,7 @@ Additional information: {1}</value>
   <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
     <value>Collapse #regions when collapsing to definitions</value>
   </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
+  </data>
 </root>

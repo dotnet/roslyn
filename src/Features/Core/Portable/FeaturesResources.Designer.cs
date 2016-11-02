@@ -171,15 +171,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add qualification..
-        /// </summary>
-        internal static string Add_qualification {
-            get {
-                return ResourceManager.GetString("Add_qualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Add_reference_to_0 {
@@ -3125,6 +3116,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use null propagation.
+        /// </summary>
+        internal static string Use_null_propagation {
+            get {
+                return ResourceManager.GetString("Use_null_propagation", resourceCulture);
             }
         }
         

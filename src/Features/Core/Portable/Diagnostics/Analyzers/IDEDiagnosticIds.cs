@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseCoalesceExpressionDiagnosticId = "IDE0028";
         public const string UseCoalesceExpressionForNullableDiagnosticId = "IDE0029";
 
+        public const string UseNullPropagationDiagnosticId = "IDE0030";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

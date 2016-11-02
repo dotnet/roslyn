@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</ProjectGuid>
@@ -55,6 +55,7 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
@@ -72,6 +73,8 @@
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
+    <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
@@ -101,7 +104,7 @@
     <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
+    <Compile Include="QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="CodeFixes\NamingStyles\CSharpNamingStyleCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
@@ -283,7 +286,7 @@
     <Compile Include="Diagnostics\Analyzers\CSharpPreferFrameworkTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
+    <Compile Include="QualifyMemberAccess\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
