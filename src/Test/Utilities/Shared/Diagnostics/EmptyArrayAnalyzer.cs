@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>Analyzer that looks for empty array allocations and recommends their replacement.</summary>
     public class EmptyArrayAnalyzer : DiagnosticAnalyzer

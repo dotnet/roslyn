@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>Analyzer used to identify local variables and fields that could be declared with more specific types.</summary>
     public class SymbolCouldHaveMoreSpecificTypeAnalyzer : DiagnosticAnalyzer

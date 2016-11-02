@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     // These analyzers are not intended for any actual use. They exist solely to test IOperation support.
 

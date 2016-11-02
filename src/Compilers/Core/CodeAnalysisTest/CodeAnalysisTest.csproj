@@ -28,13 +28,7 @@
     <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
     <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
     <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
-    <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
-    <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
-    <Compile Include="Diagnostics\EmptyArrayAnalyzer.cs" />
-    <Compile Include="Diagnostics\LocalCouldBeConstAnalyzer.cs" />
-    <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
-    <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="FileSystem\PathUtilitiesTests.cs" />
@@ -83,8 +77,10 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>

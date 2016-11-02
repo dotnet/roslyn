@@ -30,10 +30,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\OperationTreeVerifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\TestOperationWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\VersionTestHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\BoxingOperationAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DescriptorFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticDescription.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\EmptyArrayAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\LocalCouldBeConstAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\OperationTestAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\OptionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TestDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />

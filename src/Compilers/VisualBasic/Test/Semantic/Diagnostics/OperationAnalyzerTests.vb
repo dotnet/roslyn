@@ -2,8 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
