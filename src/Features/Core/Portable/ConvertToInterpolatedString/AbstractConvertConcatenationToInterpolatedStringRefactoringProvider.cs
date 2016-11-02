@@ -69,6 +69,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
+            // If the entire expression is just concatenated strings, then don't offer to
+            // make an interpolated string.  The user likely manually split this for 
+            // readability.
+            if (pieces.All(syntaxFacts.IsStringLiteralExpression))
+            {
+                return;
+            }
+
             // Make sure that all the string tokens we're concatenating are the same type
             // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
             // then we don't merge this.  We don't want to be munging differnet types of

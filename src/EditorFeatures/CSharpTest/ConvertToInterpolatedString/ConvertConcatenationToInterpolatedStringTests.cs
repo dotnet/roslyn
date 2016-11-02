@@ -29,6 +29,34 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnConcatenatedStrings1()
+        {
+            await TestMissingAsync(
+@"
+public class C
+{
+    void M()
+    {
+        var v = [||]""string"" + ""string"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingOnConcatenatedStrings2()
+        {
+            await TestMissingAsync(
+@"
+public class C
+{
+    void M()
+    {
+        var v = ""string"" + [||]""string"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnLeft()
         {
             await TestAsync(
