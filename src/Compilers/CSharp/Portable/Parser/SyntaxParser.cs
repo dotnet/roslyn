@@ -163,6 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // forget anything after and including any slot not holding a token
                         _tokenCount = i;
+                        if (_tokenCount == _tokenOffset)
+                        {
+                            FetchCurrentToken();
+                        }
                         break;
                     }
                 }
@@ -674,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : GreenNode
         {
-            return AddError(node, code, SpecializedCollections.EmptyObjects);
+            return AddError(node, code, Array.Empty<object>());
         }
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
@@ -1065,6 +1069,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected bool IsFeatureEnabled(MessageID feature)
         {
             return this.Options.IsFeatureEnabled(feature);
+        }
+
+        /// <summary>
+        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// this method can prevent the parsing from hanging.
+        /// Use as:
+        ///     int tokenProgress = -1;
+        ///     while (IsMakingProgress(ref tokenProgress))
+        /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
+        /// </summary>
+        protected bool IsMakingProgress(ref int lastTokenOffset)
+        {
+            if (_tokenOffset > lastTokenOffset)
+            {
+                lastTokenOffset = _tokenOffset;
+                return true;
+            }
+
+            Debug.Assert(false);
+            return false;
         }
     }
 }

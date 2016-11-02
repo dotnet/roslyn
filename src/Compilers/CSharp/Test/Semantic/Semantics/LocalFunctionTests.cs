@@ -29,6 +29,186 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void RefArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public void M1()
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+    }
+
+    public void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(ref int x) { yield break; }
+            int y = 0;
+            Local(ref y);
+            return;
+        };
+        a();
+    }
+
+    public Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+        return 0;
+    });
+
+    public IEnumerable<int> M4(ref int a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(ref int b) { yield break; }
+                int x = 0;
+                Local(ref x);
+                return 0;
+            })();
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(8, 40),
+                // (17,44): error CS1623: Iterators cannot have ref or out parameters
+                //             IEnumerable<int> Local(ref int x) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(17, 44),
+                // (27,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(27, 40),
+                // (33,40): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerable<int> M4(ref int a)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(33, 40),
+                // (37,48): error CS1623: Iterators cannot have ref or out parameters
+                //                 IEnumerable<int> Local(ref int b) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "b").WithLocation(37, 48));
+        }
+
+        [Fact]
+        public void UnsafeArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public unsafe void M1()
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+    }
+
+    public unsafe void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(int* x) { yield break; }
+            int y = 0;
+            Local(&y);
+            return;
+        };
+        a();
+    }
+
+    public unsafe Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+        return 0;
+    });
+
+    public unsafe IEnumerable<int> M4(int* a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(int* b) { yield break; }
+                int x = 0;
+                Local(&x);
+                return 0;
+            })();
+    }
+}";
+            CreateCompilationWithMscorlib(src, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics(
+                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (37,40): error CS1629: Unsafe code may not appear in iterators
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
+                // (39,23): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
+                // (39,17): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17));
+        }
+
+        [Fact]
+        [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
+        public void LocalFunctionConflictingName()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M<TLocal>()
+    {
+        void TLocal() { }
+        TLocal();
+    }
+    public void M(int Local)
+    {
+        void Local() { }
+        Local();
+    }
+    public void M()
+    {
+        int local = 0;
+
+        void local() { }
+        local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0412: 'TLocal': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void TLocal() { }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TLocal").WithArguments("TLocal").WithLocation(6, 14),
+                // (11,14): error CS0136: A local or parameter named 'Local' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Local").WithArguments("Local").WithLocation(11, 14),
+                // (18,14): error CS0128: A local variable or function named 'local' is already defined in this scope
+                //         void local() { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local").WithArguments("local").WithLocation(18, 14),
+                // (16,13): warning CS0219: The variable 'local' is assigned but its value is never used
+                //         int local = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(16, 13));
+        }
 
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
@@ -1605,6 +1785,140 @@ class Program
                     comp,
                     expectedOutput: "async");
             }
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_01()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 14),
+                // (14,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_02()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+            return; // 1 
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+            return; // 2 
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 1 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 2 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_03()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,13): error CS0161: 'TakeOutParam1(out int)': not all code paths return a value
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam1").WithArguments("TakeOutParam1(out int)").WithLocation(6, 13),
+                // (6,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 13),
+                // (14,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 13),
+                // (14,13): error CS0161: 'C.TakeOutParam2(out int)': not all code paths return a value
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam2").WithArguments("C.TakeOutParam2(out int)").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_04()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+            return 1;
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+            return 2;
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 1;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 2;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
+                );
         }
     }
 }

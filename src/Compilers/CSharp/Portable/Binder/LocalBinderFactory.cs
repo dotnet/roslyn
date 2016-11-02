@@ -360,10 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    if (declarator.Initializer != null)
-                    {
-                        Visit(declarator.Initializer.Value, usingBinder);
-                    }
+                    Visit(declarator, usingBinder);
                 }
             }
 
@@ -401,10 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var variable in declaration.Variables)
                 {
-                    if (variable.Initializer != null)
-                    {
-                        Visit(variable.Initializer.Value, binder);
-                    }
+                    Visit(variable, binder);
                 }
             }
             else
@@ -478,10 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
                 {
-                    if (declarator.Initializer != null)
-                    {
-                        Visit(declarator.Initializer.Value, binder);
-                    }
+                    Visit(declarator, binder);
                 }
             }
 
@@ -527,14 +518,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var label in node.Labels)
             {
-                var match = label as CasePatternSwitchLabelSyntax;
-                if (match != null)
+                switch (label.Kind())
                 {
-                    Visit(match.Pattern, patternBinder);
-                    if (match.WhenClause != null)
-                    {
-                        Visit(match.WhenClause.Condition, patternBinder);
-                    }
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        {
+                            var switchLabel = (CasePatternSwitchLabelSyntax)label;
+                            Visit(switchLabel.Pattern, patternBinder);
+                            if (switchLabel.WhenClause != null)
+                            {
+                                Visit(switchLabel.WhenClause.Condition, patternBinder);
+                            }
+                            break;
+                        }
+                    case SyntaxKind.CaseSwitchLabel:
+                        {
+                            var switchLabel = (CaseSwitchLabelSyntax)label;
+                            Visit(switchLabel.Value, patternBinder);
+                            break;
+                        }
                 }
             }
 
@@ -651,12 +652,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var decl in node.Declaration.Variables)
             {
-                var value = decl.Initializer?.Value;
-                if (value != null)
-                {
-                    Visit(value, _enclosing);
-                }
+                Visit(decl);
             }
+        }
+
+        public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
+        {
+            Visit(node.ArgumentList);
+            Visit(node.Initializer?.Value);
         }
 
         public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)

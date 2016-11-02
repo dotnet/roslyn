@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -44,20 +46,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool MustRunInProcess(this DiagnosticAnalyzer analyzer)
+        public static bool ShouldRunForFullProject(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
         {
+            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
+            if (builtInAnalyzer != null)
+            {
+                return !builtInAnalyzer.OpenFileOnly(project.Solution.Workspace);
+            }
+
             if (analyzer.IsWorkspaceDiagnosticAnalyzer())
             {
                 return true;
             }
 
-            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-            if (builtInAnalyzer == null)
-            {
-                return false;
-            }
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return service.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
+        }
 
-            return builtInAnalyzer.RunInProcess;
+        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
+        {
+            return options == null
+                ? descriptor.DefaultSeverity.MapSeverityToReport()
+                : descriptor.GetEffectiveSeverity(options);
+        }
+
+        public static ReportDiagnostic MapSeverityToReport(this DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
@@ -152,12 +179,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static VersionStamp GetAnalyzerVersion(string path)
         {
-            if (path == null || !PortableShim.File.Exists(path))
+            if (path == null || !File.Exists(path))
             {
                 return VersionStamp.Default;
             }
 
-            return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)

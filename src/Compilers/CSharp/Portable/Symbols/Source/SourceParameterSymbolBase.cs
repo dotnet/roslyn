@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
             }
 
-            if (Type.ContainsTuple())
+            if (Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttributeOpt(Type));
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

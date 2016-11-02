@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

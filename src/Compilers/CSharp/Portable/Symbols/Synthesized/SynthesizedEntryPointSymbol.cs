@@ -377,7 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         // var script = new Script();
                         new BoundExpressionStatement(
@@ -497,7 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(submissionLocal.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(submissionAssignment, returnStatement))
                 { WasCompilerGenerated = true };
             }

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -18,14 +19,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private abstract class AbstractPriorityProcessor : GlobalOperationAwareIdleProcessor
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
+
+                    private readonly object _gate;
+                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+
                     public AbstractPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
+                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
                         base(listener, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
+                        _gate = new object();
+                        _lazyAnalyzers = lazyAnalyzers;
+
                         this.Processor = processor;
 
                         if (this.Processor._documentTracker != null)
@@ -34,22 +43,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void OnNonRoslynBufferTextChanged(object sender, EventArgs e)
+                    public ImmutableArray<IIncrementalAnalyzer> Analyzers
                     {
-                        // There are 2 things incremental processor takes care of
-                        //
-                        // #1 is making sure we delay processing any work until there is enough idle (ex, typing) in host.
-                        // #2 is managing cancellation and pending works.
-                        //
-                        // we used to do #1 and #2 only for Roslyn files. and that is usually fine since most of time solution contains only roslyn files.
-                        //
-                        // but for mixed solution (ex, Roslyn files + HTML + JS + CSS), #2 still makes sense but #1 doesn't. We want
-                        // to pause any work while something is going on in other project types as well. 
-                        //
-                        // we need to make sure we play nice with neighbors as well.
-                        //
-                        // now, we don't care where changes are coming from. if there is any change in host, we pause ourselves for a while.
-                        this.UpdateLastAccessTime();
+                        get
+                        {
+                            lock (_gate)
+                            {
+                                return _lazyAnalyzers.Value;
+                            }
+                        }
+                    }
+
+                    public void AddAnalyzer(IIncrementalAnalyzer analyzer)
+                    {
+                        lock (_gate)
+                        {
+                            var analyzers = _lazyAnalyzers.Value;
+                            _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                        }
                     }
 
                     protected override void PauseOnGlobalOperation()
@@ -100,6 +111,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             this.Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
                         }
+                    }
+
+                    private void OnNonRoslynBufferTextChanged(object sender, EventArgs e)
+                    {
+                        // There are 2 things incremental processor takes care of
+                        //
+                        // #1 is making sure we delay processing any work until there is enough idle (ex, typing) in host.
+                        // #2 is managing cancellation and pending works.
+                        //
+                        // we used to do #1 and #2 only for Roslyn files. and that is usually fine since most of time solution contains only roslyn files.
+                        //
+                        // but for mixed solution (ex, Roslyn files + HTML + JS + CSS), #2 still makes sense but #1 doesn't. We want
+                        // to pause any work while something is going on in other project types as well. 
+                        //
+                        // we need to make sure we play nice with neighbors as well.
+                        //
+                        // now, we don't care where changes are coming from. if there is any change in host, we pause ourselves for a while.
+                        this.UpdateLastAccessTime();
                     }
                 }
             }

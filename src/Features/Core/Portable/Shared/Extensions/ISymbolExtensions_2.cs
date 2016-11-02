@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Assembly;
 
                 case SymbolKind.Parameter:
-                    return symbol.IsValueParameter()
+                    return symbol.IsImplicitValueParameter()
                         ? Glyph.Keyword
                         : Glyph.Parameter;
 

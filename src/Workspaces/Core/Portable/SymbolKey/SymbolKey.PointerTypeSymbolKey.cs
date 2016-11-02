@@ -14,11 +14,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.PointedAtType);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(1, reader.ReadSymbolKey());
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var pointedAtTypeResolution = reader.ReadSymbolKey();

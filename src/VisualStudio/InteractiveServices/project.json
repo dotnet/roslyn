@@ -1,11 +1,12 @@
 {
-  "dependencies": { 
-    "Microsoft.VisualStudio.Editor": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407",
+        "Microsoft.VisualStudio.Editor": "14.3.25407",
+        "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
+        "Microsoft.VisualStudio.VsInteractiveWindow": "2.0.0-beta5-60820-04",
+        "System.ValueTuple": "4.0.1-beta-24425-02"
+    },
+    "frameworks": {
+        "net46": { }
     }
-  },
-  "frameworks": {
-    "net46": { }
-  }
 }

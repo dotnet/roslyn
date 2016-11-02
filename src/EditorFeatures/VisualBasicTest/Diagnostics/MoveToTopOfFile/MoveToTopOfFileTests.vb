@@ -17,21 +17,44 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestImportsMissing() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n [|Imports Microsoft|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+[|Imports Microsoft|]
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsInsideDeclaration() As Task
             Await TestAsync(
-NewLines("Module Program \n [|Imports System|] \n Sub Main(args As String()) \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Module Program
+    [|Imports System|]
+    Sub Main(args As String())
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsAfterDeclarations() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Imports System|]"),
-NewLines("Imports System Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+[|Imports System|]",
+"Imports System Module Program 
+ Sub Main(args As String())
+End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -150,21 +173,42 @@ Option Infer Off
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestOptionsMissing() As Task
             Await TestMissingAsync(
-NewLines("[|Option Explicit Off|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
+"[|Option Explicit Off|]
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsInsideDeclaration() As Task
             Await TestAsync(
-NewLines("Module Program \n [|Option Explicit Off|] \n Sub Main(args As String()) \n End Sub \n End Module"),
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Module Program
+    [|Option Explicit Off|]
+    Sub Main(args As String())
+    End Sub
+End Module",
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsAfterDeclarations() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Option Explicit Off|]"),
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+[|Option Explicit Off|]",
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -107,14 +108,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if DEBUG
         public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
         {
+            var errors = await GetErrorsAsync(document, cancellationToken, ignoreErrorCode).ConfigureAwait(false);
+            return errors.Length > 0;
+        }
+
+        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string> ignoreErrorCode = null)
+        {
             if (!document.SupportsSemanticModel)
             {
-                return false;
+                return ImmutableArray<Diagnostic>.Empty;
             }
 
+            ignoreErrorCode = ignoreErrorCode ?? SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).Any(diag => diag.Severity == DiagnosticSeverity.Error &&
-                                                                          (ignoreErrorCode == null || ignoreErrorCode.Count == 0 ? true : !ignoreErrorCode.Contains(diag.Id)));
+            return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
+                diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));
         }
 
         /// <summary>
@@ -122,8 +130,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task VerifyNoErrorsAsync(this Document newDocument, string message, CancellationToken cancellationToken, List<string> ignoreErrorCodes = null)
         {
-            bool newDocumentHasErrors = await newDocument.HasAnyErrorsAsync(cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
-            Debug.Assert(!newDocumentHasErrors, message);
+            var errors = await newDocument.GetErrorsAsync(cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
+            if (errors.Length > 0)
+            {
+                var diagnostics = string.Join(", ", errors.Select(d => d.ToString()));
+                Debug.Assert(false, message + ". " + diagnostics);
+            }
         }
 #endif
 

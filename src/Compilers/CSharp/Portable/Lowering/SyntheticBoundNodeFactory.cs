@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             set
             {
                 _currentMethod = value;
-                if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
+                if ((object)value != null &&
+                    value.MethodKind != MethodKind.AnonymousFunction &&
+                    value.MethodKind != MethodKind.LocalFunction)
                 {
                     _topLevelMethod = value;
                     _currentType = value.ContainingType;
@@ -408,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
         }
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
@@ -734,30 +736,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(LocalSymbol temp, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
+            return MakeSequence(ImmutableArray.Create<LocalSymbol>(temp), parts);
         }
 
-        public BoundExpression Sequence(params BoundExpression[] parts)
+        public BoundExpression MakeSequence(params BoundExpression[] parts)
         {
-            return Sequence(ImmutableArray<LocalSymbol>.Empty, parts);
+            return MakeSequence(ImmutableArray<LocalSymbol>.Empty, parts);
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
+        public BoundExpression MakeSequence(ImmutableArray<LocalSymbol> locals, params BoundExpression[] parts)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i < parts.Length - 1; i++) builder.Add(parts[i]);
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var part = parts[i];
+                if (LocalRewriter.ReadIsSideeffecting(part))
+                {
+                    builder.Add(parts[i]);
+                }
+            }
             var lastExpression = parts[parts.Length - 1];
+
+            if (locals.IsDefaultOrEmpty && builder.Count == 0)
+            {
+                builder.Free();
+                return lastExpression;
+            }
+
             return Sequence(locals, builder.ToImmutableAndFree(), lastExpression);
         }
 
-        public BoundExpression Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
+        public BoundSequence Sequence(BoundExpression[] sideEffects, BoundExpression result, TypeSymbol type = null)
         {
             return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, type ?? result.Type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
         {
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
@@ -927,6 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
         }
 
+        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        {
+            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Null(TypeSymbol type)
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
@@ -937,6 +958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)type == null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 

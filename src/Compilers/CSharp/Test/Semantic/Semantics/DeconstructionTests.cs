@@ -637,9 +637,6 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
                 );
         }
 
@@ -759,6 +756,30 @@ class C
                 // (9,22): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "string").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        public void NotAssignable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (1, P) = (1, 2);
+    }
+    static int P { get { return 1; } }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1").WithLocation(6, 10),
+                // (6,13): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         (1, P) = (1, 2);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(6, 13)
                 );
         }
 
@@ -1147,10 +1168,34 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (7,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, x) = new C()").WithArguments("System.ValueTuple`2").WithLocation(7, 17)
                 );
+        }
+
+        [Fact]
+        public void ChainedAssignment()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        long x1, x2;
+        var y = (x1, x1) = (x2, x2) = new C();
+        System.Console.Write($""{y.ToString()} {x1} {x2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = b = 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
 
         [Fact]
@@ -1277,6 +1322,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2)").WithArguments("tuples", "7").WithLocation(6, 9),
                 // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
@@ -1287,7 +1333,19 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7").WithLocation(8, 18),
                 // (9,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14),
+                // (8,32): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x6'.
+                //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x6").WithArguments("x6").WithLocation(8, 32),
+                // (8,36): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x7'.
+                //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x7").WithArguments("x7").WithLocation(8, 36),
+                // (9,28): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x9'.
+                //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x9").WithArguments("x9").WithLocation(9, 28),
+                // (9,32): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x10'.
+                //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x10").WithArguments("x10").WithLocation(9, 32)
                 );
         }
 
@@ -1487,7 +1545,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (x1, x2) = null;
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 24),
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         var (x1, x2) = null;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 14),
+                // (6,18): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         var (x1, x2) = null;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 18)
                 );
         }
 
@@ -1505,9 +1569,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8130: The type information on the left-hand-side 'x2' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
                 //         var (x1, x2) = (1, null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "var (x1, x2) = (1, null);").WithArguments("x2", "null").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 14),
+                // (6,18): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         var (x1, x2) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 18)
                 );
         }
 
@@ -1525,12 +1592,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8130: The type information on the left-hand-side 'x3' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                // (6,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("x3", "null").WithLocation(6, 9),
-                // (6,9): error CS8130: The type information on the left-hand-side 'x4' and right-hand-side 'null' of the deconstruction was insufficient to infer a merged type.
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 35),
+                // (6,44): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x4'.
                 //         (string x1, (byte x2, var x3), var x4) = (null, (2, null), null);
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, (byte x2, var x3), var x4) = (null, (2, null), null);").WithArguments("x4", "null").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x4").WithArguments("x4").WithLocation(6, 44)
                 );
         }
 
@@ -1550,7 +1617,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,51): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         ((string x1, byte x2, var x3), int x4) = (null, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(6, 51),
+                // (6,35): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x3'.
+                //         ((string x1, byte x2, var x3), int x4) = (null, 4);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x3").WithArguments("x3").WithLocation(6, 35)
                 );
         }
 
@@ -1568,9 +1638,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8130: The type information on the left-hand-side 'x2' and right-hand-side '(null, 2)' of the deconstruction was insufficient to infer a merged type.
+                // (6,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
                 //         (string x1, var x2) = (null, (null, 2));
-                Diagnostic(ErrorCode.ERR_DeconstructCouldNotInferMergedType, "(string x1, var x2) = (null, (null, 2));").WithArguments("x2", "(null, 2)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 25)
                 );
         }
 
@@ -1614,7 +1684,10 @@ class C
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
                 // (7,47): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (string x2, var y2) = (null, "hello", null);
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47),
+                // (7,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+                //         (string x2, var y2) = (null, "hello", null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(7, 25)
                 );
         }
 
@@ -1701,7 +1774,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3);").WithArguments("3", "2").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3);").WithArguments("3", "2").WithLocation(6, 9),
+                // (6,15): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         (var (x1, x2), var x3) = (1, 2, 3);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 15),
+                // (6,19): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         (var (x1, x2), var x3) = (1, 2, 3);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 19)
                 );
         }
 
@@ -1773,26 +1852,29 @@ class C
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS0128: A local variable named 'x' is already defined in this scope
-                //         var(x, y) = 42;
+                //         var(x, y) = 42; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(9, 13),
                 // (9,16): error CS0128: A local variable named 'y' is already defined in this scope
-                //         var(x, y) = 42;
+                //         var(x, y) = 42; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(9, 16),
                 // (9,21): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         var(x, y) = 42;
+                //         var(x, y) = 42; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 21),
                 // (9,21): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
-                //         var(x, y) = 42;
+                //         var(x, y) = 42; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 21),
+                // (9,13): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                //         var(x, y) = 42; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(9, 13),
+                // (9,16): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         var(x, y) = 42; // parsed as deconstruction
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(9, 16),
                 // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
                 // (8,20): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int x = 0, y = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20),
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 20)
                 );
         }
 
@@ -1911,9 +1993,6 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics(
-                // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-                //     static int i;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
                 );
         }
 
@@ -1934,15 +2013,24 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (int x1, x2)").WithLocation(6, 9),
                 // (6,14): error CS1525: Invalid expression term 'int'
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
+                // (7,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (var x3, x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (var x3, x4)").WithLocation(7, 9),
                 // (7,18): error CS1003: Syntax error, ',' expected
                 //         var (var x3, x4) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 18),
+                // (8,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (x5, var (x6, x7)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x5, var (x6, x7))").WithLocation(8, 9),
                 // (6,18): error CS0103: The name 'x1' does not exist in the current context
                 //         var (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),
@@ -2166,7 +2254,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,34): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public definition for 'GetEnumerator'
                 //         foreach (var (x1, x2) in 1)
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "1").WithArguments("int", "GetEnumerator").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "1").WithArguments("int", "GetEnumerator").WithLocation(6, 34),
+                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         foreach (var (x1, x2) in 1)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),
+                // (6,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         foreach (var (x1, x2) in 1)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 27)
                 );
         }
 
@@ -2220,7 +2314,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
+                // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),
+                // (6,27): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 27)
                 );
         }
 
@@ -2320,17 +2420,163 @@ class C1
 ";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (4,32): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
-                // (6,38): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(byte, byte)").WithArguments("System.ValueTuple`2").WithLocation(4, 32),
+                // (6,38): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
-                // (6,18): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 38),
+                // (6,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         foreach ((int, int) e in new (int, int)[10])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 18)
                 );
             // no crash
+        }
+
+        [Fact]
+        public void DeclarationCannotBeEmbedded()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        if (true)
+            var (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void DeconstructObsoleteWarning()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+       (int y1, int y2) = new C();
+    }
+    [System.Obsolete()]
+    void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
+                //        (int y1, int y2) = new C();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.Deconstruct(out int, out int)").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void DeconstructObsoleteError()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+       (int y1, int y2) = new C();
+    }
+    [System.Obsolete(""Deprecated"", error: true)]
+    void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
+                //        (int y1, int y2) = new C();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.Deconstruct(out int, out int)", "Deprecated").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionLocalsDeclaredNotUsed()
+        {
+            // Check that there are no *use sites* within this code for local variables.
+            // They are declared herein, but nowhere used. So they should not be returned
+            // by SemanticModel.GetSymbolInfo.
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        var (x1, y1) = (1, 2);
+
+        (var x2, var y2) = (1, 2);
+    }
+
+    static void M((int, int) t)
+    {
+        var (x3, y3) = t;
+
+        (var x4, var y4) = t;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            foreach (var node in nodes)
+            {
+                var si = model.GetSymbolInfo(node);
+                var symbol = si.Symbol;
+                if (symbol == null) continue;
+                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+            }
+        }
+
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const (int x, int y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const (int x, int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "(int x, int y)").WithArguments("const").WithLocation(6, 15)
+                );
+        }
+
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithoutTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const var (x, y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "var (x, y)").WithArguments("const").WithLocation(6, 15)
+                );
         }
     }
 }

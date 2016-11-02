@@ -73,7 +73,8 @@ namespace Roslyn.Test.Performance.Utilities
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            foreach (var configuration in new string[] {"debug", "release"}) {
+            foreach (var configuration in new string[] {"debug", "release"})
+            {
                 var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
                 if (configurationIndex != -1)
                 {
@@ -103,7 +104,7 @@ namespace Roslyn.Test.Performance.Utilities
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
             {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+                logger.Log($"Didn't download and extract {zipFileName} because one already exists at {zipPath}.");
                 return;
             }
 

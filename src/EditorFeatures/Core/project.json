@@ -1,14 +1,48 @@
 ﻿{
-  "dependencies": {
-    "System.Collections.Immutable": "1.2.0",
-    "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": "14.3.25407",
-    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.3.25407",
-	"Microsoft.VisualStudio.Language.Intellisense": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "System.Collections.Immutable": "1.2.0",
+        "Microsoft.VisualStudio.InteractiveWindow": {
+            "version": "2.0.0-beta5-60820-04",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.StandardClassification": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.ImageCatalog": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Text.UI.Wpf": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        "net46": { }
     }
-  },
-  "frameworks": {
-    "net46": {}
-  }
 }

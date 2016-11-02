@@ -954,13 +954,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnType.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length, this.RefKind));
             }
 
-            if (ReturnType.ContainsTuple())
+            if (ReturnType.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(ReturnType));
             }
         }
 
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 

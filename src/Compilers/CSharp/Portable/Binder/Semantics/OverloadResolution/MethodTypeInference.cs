@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
                         Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        best = MergeTupleNames(best, candidate, MergeDynamic(best, candidate, best, _conversions.CorLibrary), _conversions.CorLibrary);
+                        best = MergeTupleNames(MergeDynamic(best, candidate, _conversions.CorLibrary), candidate);
                     }
 
                     OuterBreak:
@@ -2516,34 +2516,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Takes the dynamic flags from both types and applies them onto the target.
+        /// Returns first or a modified version of first with merged dynamic flags from both types.
         /// </summary>
-        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, AssemblySymbol corLibrary)
         {
             // SPEC: 4.7 The Dynamic Type
             //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreTupleNames))
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
             {
-                return target;
+                return first;
             }
             ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
             ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
             ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
 
-            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(target, corLibrary, RefKind.None, mergedFlags);
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
         }
 
         /// <summary>
-        /// Takes the names from the two types, finds the common names, and applies them onto the target.
+        /// Returns first or a modified version of first with common tuple names from both types.
         /// </summary>
-        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second, TypeSymbol target, AssemblySymbol corLibrary)
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second)
         {
-            if (!target.ContainsTuple() ||
-                first.Equals(second, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic) ||
-                !target.ContainsTupleNames())
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
+                !first.ContainsTupleNames())
             {
-                return target;
+                return first;
             }
+
+            Debug.Assert(first.ContainsTuple());
 
             ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
             ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
@@ -2564,7 +2565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(target, corLibrary, mergedNames);
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2615,36 +2616,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var anonymousFunction = (UnboundLambda)source;
-
-            // If the anonymous function is an anonymous method with no formal parameter
-            // list then infer the return type; there are no parameters to be typed, so
-            // we should be able to work out the return type regardless of the delegate type.
-
-            // Future optimization: we could return null if
-            // the delegate has any out parameters, since this will then not be applicable.
-
-            if (!anonymousFunction.HasSignature)
+            if (anonymousFunction.HasSignature)
             {
-                return anonymousFunction.InferReturnType(null, ref useSiteDiagnostics);
-            }
+                // Optimization: 
+                // We know that the anonymous function has a parameter list. If it does not
+                // have the same arity as the delegate, then it cannot possibly be applicable.
+                // Rather than have type inference fail, we will simply not make a return
+                // type inference and have type inference continue on.  Either inference
+                // will fail, or we will infer a nonapplicable method. Either way, there
+                // is no change to the semantics of overload resolution.
 
-            // Optimization: 
-            // We know that the anonymous function has a parameter list. If it does not
-            // have the same arity as the delegate, then it cannot possibly be applicable.
-            // Rather than have type inference fail, we will simply not make a return
-            // type inference and have type inference continue on.  Either inference
-            // will fail, or we will infer a nonapplicable method. Either way, there
-            // is no change to the semantics of overload resolution.
+                var originalDelegateParameters = target.DelegateParameters();
+                if (originalDelegateParameters.IsDefault)
+                {
+                    return null;
+                }
 
-            var originalDelegateParameters = target.DelegateParameters();
-            if (originalDelegateParameters.IsDefault)
-            {
-                return null;
-            }
-
-            if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
-            {
-                return null;
+                if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
+                {
+                    return null;
+                }
             }
 
             var fixedDelegate = GetFixedDelegate(target);

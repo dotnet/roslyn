@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Public Function GetDisplayText(name As String, symbol As ISymbol) As String
+        Private Function GetDisplayText(name As String, symbol As ISymbol) As String
             If symbol.IsConstructor() Then
                 Return "New"
             ElseIf symbol.GetArity() > 0 Then
@@ -97,13 +97,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Public Function GetInsertionText(name As String, symbol As ISymbol, context As SyntaxContext) As String
+        Private Function GetInsertionText(name As String, symbol As ISymbol, context As SyntaxContext) As String
             name = name.EscapeIdentifier(context.IsRightOfNameSeparator, symbol, context.IsWithinAsyncMethod)
 
             If symbol.IsConstructor() Then
                 name = "New"
             ElseIf symbol.GetArity() > 0 Then
-                name += GenericSuffix
+                name += OfSuffix
             End If
 
             Return name
@@ -114,19 +114,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' If this item was generic, customize what we insert depending on if the user typed
             ' open paren or not.
-            If insertionText.EndsWith(GenericSuffix) Then
-                Dim insertionTextWithoutSuffix = insertionText.Substring(0, insertionText.Length - GenericSuffix.Length)
-                If ch = "("c Then
-                    Return insertionTextWithoutSuffix
-                Else
-                    Return insertionTextWithoutSuffix + OfSuffix
-                End If
+            If ch = "("c AndAlso item.DisplayText.EndsWith(GenericSuffix) Then
+                Return insertionText.Substring(0, insertionText.IndexOf("("c))
             End If
 
-            ' If the user is attempting to escape something, escape the item if it isn't already
-            ' escaped
-            If ch = "]"c AndAlso insertionText(0) <> "["c Then
-                Return "[" + insertionText
+            If ch = "]"c Then
+                If insertionText(0) <> "["c Then
+                    ' user is committing with ].  If the item doesn't start with '['
+                    ' then add that to the beginning so [ and ] properly pair up.
+                    Return "[" + insertionText
+                End If
+
+                If insertionText.EndsWith("]") Then
+                    ' If the user commits with "]" and the item already ends with "]"
+                    ' then trim "]" off the end so we don't have ]] inserted into the
+                    ' document.
+                    Return insertionText.Substring(0, insertionText.Length - 1)
+                End If
             End If
 
             Return insertionText

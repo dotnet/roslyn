@@ -1,4 +1,6 @@
 *REMOVED*static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, Microsoft.CodeAnalysis.Text.TextSpan span = default(Microsoft.CodeAnalysis.Text.TextSpan), System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation
+Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.DocumentNavigationOperation(Microsoft.CodeAnalysis.DocumentId documentId, int position = 0) -> void
 Microsoft.CodeAnalysis.Completion.CompletionChange.TextChange.get -> Microsoft.CodeAnalysis.Text.TextChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChange(Microsoft.CodeAnalysis.Text.TextChange textChange) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
@@ -18,6 +20,7 @@ Microsoft.CodeAnalysis.Completion.SnippetsRule.AlwaysInclude = 2 -> Microsoft.Co
 Microsoft.CodeAnalysis.Completion.SnippetsRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.IncludeAfterTypingIdentifierQuestionTab = 3 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
 Microsoft.CodeAnalysis.Completion.SnippetsRule.NeverInclude = 1 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+override Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken) -> void
 static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem

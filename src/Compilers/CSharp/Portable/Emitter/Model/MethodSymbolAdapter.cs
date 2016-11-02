@@ -580,11 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             userDefined = this.GetReturnTypeAttributes();
             this.AddSynthesizedReturnTypeAttributes(ref synthesized);
 
-            if (userDefined.IsEmpty && synthesized == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
-            }
-
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
             return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: true, emittingAssemblyAttributesInNetModule: false);

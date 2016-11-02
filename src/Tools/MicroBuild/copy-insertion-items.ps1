@@ -9,13 +9,10 @@ try
 {
     $items = @(
         "ExpressionEvaluatorPackage.vsix",
-        "Microsoft.VisualStudio.VsInteractiveWindow.vsix",
-        "Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Roslyn.VisualStudio.Setup.Interactive.vsix",
-        "Roslyn.VisualStudio.Setup.Next.vsix",
-        "Roslyn.VisualStudio.Setup.vsix",
+        "VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
+        "VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Microsoft.CodeAnalysis.ExpressionEvaluator.json",
-        "Microsoft.CodeAnalysis.VisualStudio.Setup.Interactive.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
         "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",
@@ -23,7 +20,7 @@ try
         "Microsoft.CodeAnalysis.Compilers.json",
         "Microsoft.CodeAnalysis.Compilers.vsix",
         "Microsoft.CodeAnalysis.Compilers.vsman",
-        "Microsoft.VisualStudio.InteractiveWindow.json")
+        "PortableFacades.vsman")
     $baseDestPath = join-path $binariesPath "Insertion"
     if (-not (test-path $baseDestPath))
     {
@@ -33,7 +30,7 @@ try
     foreach ($item in $items) 
     {
         $sourcePath = join-path $binariesPath $item
-        $destPath = join-path $baseDestPath $item
+        $destPath = join-path $baseDestPath (split-path -leaf $item)
 
         # Many of these files are only produced in the Official MicroBuild runs.  On test runs, which run locally,
         # we need to guard agains this.

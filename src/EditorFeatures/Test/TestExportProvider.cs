@@ -13,92 +13,53 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// <summary>
     /// This type caches MEF compositions for our unit tests.  MEF composition is a relatively expensive
     /// operation and caching yields demonstrable benefits for testing.
-    /// 
-    /// These caches must be done in a thread static manner.  Many of the stored values are non-frozen
-    /// WPF elements which will throw if shared between threads.  It is legal for a given xUnit runner
-    /// to execute classes on different threads hence we must handle this scenario.  
     /// </summary>
     public static class TestExportProvider
     {
-        [ThreadStatic]
-        private static Lazy<ComposableCatalog> t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic;
+        private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
+            new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
-        {
-            get
-            {
-                if (t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic == null)
-                {
-                    t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
-                }
+            => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
-                return t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
-            }
-        }
-
-        [ThreadStatic]
-        private static Lazy<ExportProvider> t_lazyExportProviderWithCSharpAndVisualBasic;
+        private static Lazy<ExportProvider> s_lazyExportProviderWithCSharpAndVisualBasic
+            = new Lazy<ExportProvider>(CreateExportProviderWithCSharpAndVisualBasic);
 
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-        {
-            get
-            {
-                if (t_lazyExportProviderWithCSharpAndVisualBasic == null)
-                {
-                    t_lazyExportProviderWithCSharpAndVisualBasic = new Lazy<ExportProvider>(CreateExportProviderWithCSharpAndVisualBasic);
-                }
+            => s_lazyExportProviderWithCSharpAndVisualBasic.Value;
 
-                return t_lazyExportProviderWithCSharpAndVisualBasic.Value;
-            }
-        }
-
-        [ThreadStatic]
-        private static Lazy<ComposableCatalog> t_lazyMinimumCatalogWithCSharpAndVisualBasic;
+        private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
+            new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
+                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies())));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
-        {
-            get
-            {
-                if (t_lazyMinimumCatalogWithCSharpAndVisualBasic == null)
-                {
-                    t_lazyMinimumCatalogWithCSharpAndVisualBasic = new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies())));
-                }
-
-                return t_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
-            }
-        }
+            => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
 
         private static Type[] GetNeutralAndCSharpAndVisualBasicTypes()
         {
             var types = new[]
             {
                 // ROSLYN
-                typeof(Workspaces.NoCompilationLanguageServiceFactory),
-                typeof(Workspaces.NoCompilationContentTypeDefinitions),
-                typeof(Workspaces.NoCompilationContentTypeLanguageService),
-                typeof(Microsoft.CodeAnalysis.CSharp.IntroduceVariable.CSharpIntroduceVariableService), // Ensures that CSharpFeatures is included in the composition
-                typeof(Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
-                typeof(Microsoft.CodeAnalysis.Editor.CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
-                typeof(Microsoft.CodeAnalysis.Editor.VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
-                typeof(Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
-                typeof(Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation.CSharpIndentationService),
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
-                typeof(Microsoft.CodeAnalysis.CSharp.CSharpCompilationFactoryService),
-                typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationFactoryService),
-                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTreeFactoryServiceFactory), // CSharpServicesCore
-                typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTreeFactoryServiceFactory), // BasicServicesCore
+                typeof(CodeAnalysis.CSharp.IntroduceVariable.CSharpIntroduceVariableService), // Ensures that CSharpFeatures is included in the composition
+                typeof(CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
+                typeof(CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
+                typeof(VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
+                typeof(VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
+                typeof(CSharp.Formatting.Indentation.CSharpIndentationService),
+                typeof(CodeAnalysis.CSharp.CSharpCompilationFactoryService),
+                typeof(CodeAnalysis.VisualBasic.VisualBasicCompilationFactoryService),
+                typeof(CodeAnalysis.CSharp.CSharpSyntaxTreeFactoryServiceFactory), // CSharpServicesCore
+                typeof(CodeAnalysis.VisualBasic.VisualBasicSyntaxTreeFactoryServiceFactory), // BasicServicesCore
                 typeof(CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
-                typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
-                typeof(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
+                typeof(CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
+                typeof(CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
-                typeof(CodeAnalysis.Editor.CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
-                typeof(Microsoft.CodeAnalysis.Editor.CSharp.Interactive.CSharpInteractiveEvaluator),
-                typeof(CodeAnalysis.Editor.VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
-                typeof(Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive.VisualBasicInteractiveEvaluator),
+                typeof(CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
+                typeof(CSharp.Interactive.CSharpInteractiveEvaluator),
+                typeof(VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
+                typeof(VisualBasic.Interactive.VisualBasicInteractiveEvaluator),
                 typeof(CodeAnalysis.CSharp.Simplification.CSharpSimplificationService),
                 typeof(CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService),
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),
@@ -109,19 +70,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
-                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
-                typeof(CodeAnalysis.Diagnostics.EngineV2.InProcCodeAnalysisDiagnosticAnalyzerExecutor)
+                typeof(TestExportProvider)
             };
 
-            return MinimalTestExportProvider.GetLanguageNeutralTypes()
+            return ServiceTestExportProvider.GetLanguageNeutralTypes()
                 .Concat(types)
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(Microsoft.CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
-                .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();
         }

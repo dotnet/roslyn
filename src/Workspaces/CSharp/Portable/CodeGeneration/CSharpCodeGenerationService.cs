@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ISymbolDeclarationService>())
+            : base(languageServices.GetService<ISymbolDeclarationService>(), 
+                   languageServices.WorkspaceServices.Workspace)
         {
         }
 
@@ -56,6 +58,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
         {
             return destination.GetInsertionIndices(cancellationToken);
+        }
+
+        public override async Task<Document> AddEventAsync(
+            Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
+            CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            var newDocument = await base.AddEventAsync(
+                solution, destination, @event, options, cancellationToken).ConfigureAwait(false);
+
+            var namedType = @event.Type as INamedTypeSymbol;
+            if (namedType?.AssociatedSymbol != null)
+            {
+                // This is a VB event that declares its own type.  i.e. "Public Event E(x As Object)"
+                // We also have to generate "public void delegate EEventHandler(object x)"
+                var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var newDestinationSymbol = destination.GetSymbolKey().Resolve(compilation).Symbol;
+
+                if (newDestinationSymbol?.ContainingType != null)
+                {
+                    return await this.AddNamedTypeAsync(
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingType, 
+                        namedType, options, cancellationToken).ConfigureAwait(false);
+                }
+                else if (newDestinationSymbol?.ContainingNamespace != null)
+                {
+                    return await this.AddNamedTypeAsync(
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingNamespace,
+                        namedType, options, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return newDocument;
         }
 
         protected override TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -109,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 if (method.IsConstructor())
                 {
-                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConstructorGenerator.AddConstructorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.IsDestructor())
@@ -119,15 +154,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 if (method.MethodKind == MethodKind.Conversion)
                 {
-                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(ConversionGenerator.AddConversionTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
                 if (method.MethodKind == MethodKind.UserDefinedOperator)
                 {
-                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(typeDeclaration, method, options, availableIndices));
+                    return Cast<TDeclarationNode>(OperatorGenerator.AddOperatorTo(
+                        typeDeclaration, method, Workspace, options, availableIndices));
                 }
 
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(typeDeclaration, method, options, availableIndices));
+                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
+                    typeDeclaration, method, Workspace, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -139,11 +177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var compilationUnit = destination as CompilationUnitSyntax;
             if (compilationUnit != null)
             {
-                return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
+                return Cast<TDeclarationNode>(
+                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
-            return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
+            return Cast<TDeclarationNode>(
+                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -194,11 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (destination is TypeDeclarationSyntax)
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<TypeDeclarationSyntax>(destination), property, Workspace, options, availableIndices));
             }
             else
             {
-                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(Cast<CompilationUnitSyntax>(destination), property, options, availableIndices));
+                return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
+                    Cast<CompilationUnitSyntax>(destination), property, Workspace, options, availableIndices));
             }
         }
 
@@ -577,7 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.IsConstructor())
             {
-                return ConstructorGenerator.GenerateConstructorDeclaration(method, destination, options);
+                return ConstructorGenerator.GenerateConstructorDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else if (method.IsDestructor())
             {
@@ -585,22 +628,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (method.IsUserDefinedOperator())
             {
-                return OperatorGenerator.GenerateOperatorDeclaration(method, destination, options);
+                return OperatorGenerator.GenerateOperatorDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else if (method.IsConversion())
             {
-                return ConversionGenerator.GenerateConversionDeclaration(method, destination, options);
+                return ConversionGenerator.GenerateConversionDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
             else
             {
-                return MethodGenerator.GenerateMethodDeclaration(method, destination, options);
+                return MethodGenerator.GenerateMethodDeclaration(
+                    method, destination, Workspace, options, options.ParseOptions);
             }
         }
 
         public override SyntaxNode CreatePropertyDeclaration(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return PropertyGenerator.GeneratePropertyOrIndexer(property, destination, options);
+            return PropertyGenerator.GeneratePropertyOrIndexer(
+                property, destination, Workspace, options, options.ParseOptions);
         }
 
         public override SyntaxNode CreateNamedTypeDeclaration(

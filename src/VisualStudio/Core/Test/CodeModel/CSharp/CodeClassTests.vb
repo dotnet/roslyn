@@ -3,8 +3,11 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CodeClassTests
@@ -2157,6 +2160,32 @@ class C
 {
     string Name
     {
+        get => default(string);
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAddProperty_NoCodeStyle1() As Task
+            Dim code =
+<Code>
+class C$$
+{
+}
+</Code>
+
+            Dim expected =
+<Code>
+class C
+{
+    string Name
+    {
         get
         {
             return default(string);
@@ -2169,11 +2198,37 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+            Await TestAddProperty(
+                code, expected,
+                New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
+                New Dictionary(Of OptionKey, Object) From {
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement}
+                })
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddProperty2() As Task
+            Dim code =
+<Code>
+class C$$
+{
+}
+</Code>
+
+            Dim expected =
+<Code>
+class C
+{
+    string Name => default(string);
+}
+</Code>
+
+            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAddProperty_NoCodeStyle2() As Task
             Dim code =
 <Code>
 class C$$
@@ -2195,7 +2250,12 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+            Await TestAddProperty(
+                code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
+                New Dictionary(Of OptionKey, Object) From {
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement},
+                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement}
+                })
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

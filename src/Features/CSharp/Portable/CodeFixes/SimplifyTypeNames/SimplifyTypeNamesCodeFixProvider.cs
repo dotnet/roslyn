@@ -68,8 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             string diagnosticId;
-            var node = GetNodeToSimplify(root, model, span, document.Options, out diagnosticId, cancellationToken);
+            var node = GetNodeToSimplify(root, model, span, documentOptions, out diagnosticId, cancellationToken);
             if (node == null)
             {
                 return;

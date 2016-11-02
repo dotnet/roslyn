@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var code = @"        using System;$$";
             var expected = @"        using System;";
 
-            Assert.NotNull(await Record.ExceptionAsync(async () => await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.None)));
+            Assert.NotNull(await Record.ExceptionAsync(() => AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.None)));
         }
 
         [WpfFact]

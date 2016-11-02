@@ -1,19 +1,14 @@
 ﻿{
-  "dependencies": {
-    "StreamJsonRpc": "0.14.3-alpha",
-    "Newtonsoft.Json": "8.0.3",
-    "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
-        "version": "14.3.25407",
-        "suppressParent": "all"
+    "dependencies": {
+        "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        }
     },
-    "Microsoft.VisualStudio.Threading": "15.0.20-pre",
-    "Microsoft.VisualStudio.Validation": "15.0.11-pre",
-    "RoslynDependencies.Microsoft.Build.Desktop": "14.3.25407"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": {}
-  }
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

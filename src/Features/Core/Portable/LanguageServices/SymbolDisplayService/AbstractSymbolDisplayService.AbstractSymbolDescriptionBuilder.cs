@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitablePrefix();
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
-            protected abstract Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
+            protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -410,20 +410,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetFieldPartsAsync(IFieldSymbol symbol)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetFieldPartsAsync(IFieldSymbol symbol)
             {
                 if (symbol.IsConst)
                 {
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
-                    if (initializerParts != null)
+                    if (!initializerParts.IsDefaultOrEmpty)
                     {
-                        var parts = ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat).ToList();
+                        var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+                        parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
                         parts.AddRange(Space());
                         parts.AddRange(Punctuation("="));
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts;
+                        return parts.ToImmutableAndFree();
                     }
                 }
 
@@ -441,20 +442,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     parts);
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetLocalPartsAsync(ILocalSymbol symbol)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetLocalPartsAsync(ILocalSymbol symbol)
             {
                 if (symbol.IsConst)
                 {
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
                     if (initializerParts != null)
                     {
-                        var parts = ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat).ToList();
+                        var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+                        parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
                         parts.AddRange(Space());
                         parts.AddRange(Punctuation("="));
                         parts.AddRange(Space());
                         parts.AddRange(initializerParts);
 
-                        return parts;
+                        return parts.ToImmutableAndFree();
                     }
                 }
 
@@ -506,11 +508,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private async Task AddDescriptionForParameterAsync(IParameterSymbol symbol)
             {
-                IEnumerable<SymbolDisplayPart> initializerParts;
                 if (symbol.IsOptional)
                 {
-                    initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
-                    if (initializerParts != null)
+                    var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
+                    if (!initializerParts.IsDefaultOrEmpty)
                     {
                         var parts = ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat).ToList();
                         parts.AddRange(Space());
@@ -530,17 +531,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 
-            protected virtual void AddDescriptionForProperty(IPropertySymbol symbol)
+            protected void AddDescriptionForProperty(IPropertySymbol symbol)
             {
-                if (symbol.IsIndexer)
-                {
-                    // TODO : show duplicated member case
-                    // TODO : a way to check whether it is a member call off dynamic type?
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
-                    return;
-                }
-
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     ToMinimalDisplayParts(symbol, s_memberSignatureDisplayFormat));
             }
@@ -671,7 +663,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
             }
 
-            protected IEnumerable<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
+            protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
                 format = format ?? MinimallyQualifiedFormat;
                 return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);

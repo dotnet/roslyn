@@ -59,7 +59,7 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitDynamicAnalysisData ? 
+            var dynamicAnalysisDataWriterOpt = context.Module.EmitOptions.EmitTestCoverageData ? 
                 new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
                 null;
 

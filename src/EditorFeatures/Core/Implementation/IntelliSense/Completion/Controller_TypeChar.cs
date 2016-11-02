@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return;
                     }
                     else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
-                             this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
+                             this.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
                              this.IsCommitCharacter(args.TypedChar))
                     {
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
@@ -311,15 +309,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItem == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
             var completionService = GetCompletionService();
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
+            if (completionService == null)
+            {
+                return false;
+            }
+
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
             return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItem.Item, ch, textTypedSoFar);
+                completionService.GetRules(), model.SelectedItem, ch, textTypedSoFar);
         }
 
         /// <summary>
@@ -373,13 +376,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItem == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
-            return IsFilterCharacter(model.SelectedItem.Item, ch, textTypedSoFar);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
+            return IsFilterCharacter(model.SelectedItem, ch, textTypedSoFar);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)

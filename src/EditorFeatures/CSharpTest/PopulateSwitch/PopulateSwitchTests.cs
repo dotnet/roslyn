@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -895,6 +897,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        [WorkItem(13455, "https://github.com/dotnet/roslyn/issues/13455")]
         public async Task AllMissingTokens()
         {
             await TestAsync(
@@ -928,7 +931,7 @@ class MyClass
                 break;
         }
     }
-");
+}", compareTokens: false);
         }
     }
 }

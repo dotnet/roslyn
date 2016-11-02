@@ -9,6 +9,7 @@ Supported Platforms:
 - .NET Framework 4.6
     </description>
     <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Remote.ServiceHub" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="[$version$]" />
     </dependencies>
@@ -23,8 +24,8 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.VisualStudio.LanguageServices.Next.dll" target="lib\net46" />
-    <file src="Microsoft.VisualStudio.LanguageServices.Next.xml" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio.Next\Microsoft.VisualStudio.LanguageServices.Next.dll" target="lib\net46" />
+    <file src="Dlls\ServicesVisualStudio.Next\Microsoft.VisualStudio.LanguageServices.Next.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

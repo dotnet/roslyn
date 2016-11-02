@@ -999,14 +999,14 @@ namespace Microsoft.CodeAnalysis
         public ProjectDependencyGraph GetProjectDependencyGraph() => _state.GetProjectDependencyGraph();
 
         /// <summary>
-        /// Returns the options that should be applied to this solution. This consists of global options from <see cref="Workspace.Options"/>,
-        /// merged with any settings the user has specified at the solution level.
+        /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
+        /// instance was created.
         /// </summary>
         public OptionSet Options
         {
             get
             {
-                // TODO: merge with solution-specific options
+                // TODO: actually make this a snapshot
                 return this.Workspace.Options;
             }
         }

@@ -1,0 +1,7 @@
+{
+    "targets": [
+        "Roslyn.sln",
+        "src\\Samples\\Samples.sln"
+    ]
+}
+

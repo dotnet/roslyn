@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis
 
         private unsafe static bool TryGetPublicKeyFromPublicKeyBlob(byte* blob, int blobLen, out ImmutableArray<byte> publicKey)
         {
-            var header = (BlobHeader)Marshal.PtrToStructure((IntPtr)blob, typeof(BlobHeader));
-            var rsaPubKey = (RsaPubKey)Marshal.PtrToStructure((IntPtr)(blob + sizeof(BlobHeader)), typeof(RsaPubKey));
+            var header = Marshal.PtrToStructure<BlobHeader>((IntPtr)blob);
+            var rsaPubKey = Marshal.PtrToStructure<RsaPubKey>((IntPtr)(blob + sizeof(BlobHeader)));
             var modulus = new byte[rsaPubKey.BitLen >> 3];
 
             // The key blob data just contains the modulus

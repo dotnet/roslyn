@@ -520,7 +520,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
             Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
             Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim indentSize = newDocument.Options.GetOption(FormattingOptions.IndentationSize)
+            Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)

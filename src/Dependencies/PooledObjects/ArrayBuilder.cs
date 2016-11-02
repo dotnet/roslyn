@@ -158,6 +158,26 @@ namespace Microsoft.CodeAnalysis
             return _builder.IndexOf(item, startIndex, count);
         }
 
+        public int FindIndex(Predicate<T> match) 
+            => FindIndex(0, this.Count, match);
+
+        public int FindIndex(int startIndex, Predicate<T> match)
+            => FindIndex(startIndex, this.Count - startIndex, match);
+
+        public int FindIndex(int startIndex, int count, Predicate<T> match)
+        {
+            int endIndex = startIndex + count;
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                if (match(_builder[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);
@@ -182,6 +202,9 @@ namespace Microsoft.CodeAnalysis
         {
             _builder.Sort(comparer);
         }
+
+        public void Sort(Comparison<T> compare)
+            => Sort(Comparer<T>.Create(compare));
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {
@@ -419,6 +442,11 @@ namespace Microsoft.CodeAnalysis
         public void AddRange(ImmutableArray<T> items, int length)
         {
             _builder.AddRange(items, length);
+        }
+
+        public void AddRange<S>(ImmutableArray<S> items) where S : class, T
+        {
+            AddRange(ImmutableArray<T>.CastUp(items));
         }
 
         public void AddRange(T[] items, int start, int length)

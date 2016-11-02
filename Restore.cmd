@@ -54,14 +54,16 @@ call "%NugetExe%" restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditional
 echo Restoring packages: Templates
 call "%NugetExe%" restore "%RoslynRoot%src\Setup\Templates\Templates.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolset
+call "%NugetExe%" restore "%RoslynRoot%build\Toolset\Toolset.csproj" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Roslyn (this may take some time)
-call "%NugetExe%" restore "%RoslynRoot%build\Toolset.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 call "%NugetExe%" restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: DevDiv tools
-call %NugetExe% restore "%RoslynRoot%src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
-call %NugetExe% restore "%DevDivPackages%\Roslyn\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
-call %NugetExe% restore "%DevDivPackages%\Debugger\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%RoslynRoot%src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%DevDivPackages%\Roslyn\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%DevDivPackages%\Debugger\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 exit /b 0
 

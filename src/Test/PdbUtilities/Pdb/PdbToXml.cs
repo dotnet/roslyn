@@ -295,6 +295,9 @@ namespace Roslyn.Test.PdbUtilities
                         case CustomDebugInfoKind.EditAndContinueLambdaMap:
                             WriteEditAndContinueLambdaMap(record);
                             break;
+                        case CustomDebugInfoKind.TupleElementNames:
+                            WriteTupleElementNamesCustomDebugInfo(record);
+                            break;
                         default:
                             WriteUnknownCustomDebugInfo(record);
                             break;
@@ -470,11 +473,48 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteAttributeString("flagCount", CultureInvariantToString(flagCount));
                 _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
                 _writer.WriteAttributeString("slotId", CultureInvariantToString(dynamicLocal.SlotId));
-                _writer.WriteAttributeString("localName", dynamicLocal.Name);
+                _writer.WriteAttributeString("localName", dynamicLocal.LocalName);
                 _writer.WriteEndElement(); //bucket
             }
 
             _writer.WriteEndElement(); //dynamicLocals
+        }
+
+        private void WriteTupleElementNamesCustomDebugInfo(CustomDebugInfoRecord record)
+        {
+            Debug.Assert(record.Kind == CustomDebugInfoKind.TupleElementNames);
+
+            _writer.WriteStartElement("tupleElementNames");
+
+            var tuples = CustomDebugInfoReader.DecodeTupleElementNamesRecord(record.Data);
+
+            foreach (var tuple in tuples)
+            {
+                _writer.WriteStartElement("local");
+                _writer.WriteAttributeString("elementNames", JoinNames(tuple.ElementNames));
+                _writer.WriteAttributeString("slotIndex", CultureInvariantToString(tuple.SlotIndex));
+                _writer.WriteAttributeString("localName", tuple.LocalName);
+                _writer.WriteAttributeString("scopeStart", AsILOffset(tuple.ScopeStart));
+                _writer.WriteAttributeString("scopeEnd", AsILOffset(tuple.ScopeEnd));
+                _writer.WriteEndElement();
+            }
+
+            _writer.WriteEndElement();
+        }
+
+        private static string JoinNames(ImmutableArray<string> names)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            foreach (var name in names)
+            {
+                builder.Append('|');
+                if (name != null)
+                {
+                    builder.Append(name);
+                }
+            }
+            return pooledBuilder.ToStringAndFree();
         }
 
         private unsafe void WriteEditAndContinueLocalSlotMap(CustomDebugInfoRecord record)

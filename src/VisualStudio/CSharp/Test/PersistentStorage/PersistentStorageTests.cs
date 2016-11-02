@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
         {
             { PersistentStorageOptions.Enabled, true },
-            { InternalFeatureOnOffOptions.EsentPerformanceMonitor, false }
+            { PersistentStorageOptions.EsentPerformanceMonitor, false }
         });
 
         private readonly string _persistentFolder;

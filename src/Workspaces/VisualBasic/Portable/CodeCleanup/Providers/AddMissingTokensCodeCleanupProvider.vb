@@ -82,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' can't/don't try to transform member access to invocation
                 If TypeOf name.Parent Is MemberAccessExpressionSyntax OrElse
+                   TypeOf name.Parent Is TupleElementSyntax OrElse
                    name.CheckParent(Of AttributeSyntax)(Function(p) p.Name Is name) OrElse
                    name.CheckParent(Of ImplementsClauseSyntax)(Function(p) p.InterfaceMembers.Any(Function(i) i Is name)) OrElse
                    name.CheckParent(Of UnaryExpressionSyntax)(Function(p) p.Kind = SyntaxKind.AddressOfExpression AndAlso p.Operand Is name) OrElse

@@ -854,6 +854,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: node.Type));
         }
 
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var receiver = VisitExpression(ref builder, node.ReceiverOpt);
+            return UpdateExpression(builder, node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiver, node.ResultKind));
+        }
+
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             BoundSpillSequenceBuilder builder = null;
@@ -965,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
-                                    _F.Sequence(
+                                    _F.MakeSequence(
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
                                         _F.ObjectNotEqual(
                                             _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
@@ -1107,6 +1114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Include(valueBuilder);
 
             return builder.Update(value);
+        }
+
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression operand = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         /// <summary>

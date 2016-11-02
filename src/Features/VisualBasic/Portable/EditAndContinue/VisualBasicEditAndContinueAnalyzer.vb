@@ -267,7 +267,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
                     Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
                     If propertyStatement.Initializer IsNot Nothing Then
-                        Return {propertyStatement.Identifier}.Concat(If(propertyStatement.AsClause?.DescendantTokens(), {})).Concat(propertyStatement.Initializer.DescendantTokens())
+                        Return {propertyStatement.Identifier}.Concat(If(propertyStatement.AsClause?.DescendantTokens(),
+                                                                     Array.Empty(Of SyntaxToken))).Concat(propertyStatement.Initializer.DescendantTokens())
                     End If
 
                     If HasAsNewClause(propertyStatement) Then
@@ -3170,6 +3171,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
+        End Sub
+
+        Friend Overrides Sub ReportSemanticRudeEdits(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic))
         End Sub
 
 #End Region

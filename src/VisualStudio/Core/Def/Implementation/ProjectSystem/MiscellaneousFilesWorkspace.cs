@@ -8,12 +8,10 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -241,8 +239,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    // We should now claim this
-                    AttachToDocument(docCookie, moniker);
+                    // We should now try to claim this. The moniker we have here is the moniker after the rename if we're currently processing
+                    // a rename. It's possible in that case that this is being closed by the other workspace due to that rename. If the rename
+                    // is changing or removing the file extension, we wouldn't want to try attaching, which is why we have to re-check
+                    // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
+                    if (TryGetLanguageInformation(moniker) != null)
+                    {
+                        AttachToDocument(docCookie, moniker);
+                    }
                 }
             }
             else if (IsClaimedByAnotherWorkspace(workspaceRegistration))
@@ -313,9 +317,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
             var document = _documentProvider.TryGetDocumentForFile(
                 hostProject,
-                ImmutableArray<string>.Empty,
                 moniker,
                 parseOptions.Kind,
+                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true);
 
             // If the buffer has not yet been initialized, we won't get a document.
@@ -333,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Notify the document provider, so it knows the document is now open and a part of
             // the project
-            _documentProvider.NotifyDocumentRegisteredToProject(document);
+            _documentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
             Contract.ThrowIfFalse(document.IsOpen);
 
@@ -415,9 +419,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
+        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {
-            return _hostProjects.Values;
+            return _hostProjects.Values.ToImmutableReadOnlyListOrEmpty<IVisualStudioHostProject>();
         }
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)

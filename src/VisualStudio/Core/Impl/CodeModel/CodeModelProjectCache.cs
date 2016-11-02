@@ -208,28 +208,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)
         {
-            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandle = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToRename = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToShutDown = null;
 
             lock (_cacheGate)
             {
                 CacheEntry cacheEntry;
                 if (_cache.TryGetValue(oldFileName, out cacheEntry))
                 {
-                    comHandle = cacheEntry.ComHandle;
+                    comHandleToRename = cacheEntry.ComHandle;
 
                     _cache.Remove(oldFileName);
 
-                    if (comHandle != null)
+                    if (comHandleToRename != null)
                     {
+                        // We might already have a code model for this new filename. This can happen if
+                        // we were to rename Foo.cs to Foocs, which will call this method, and then rename
+                        // it back, which does not call this method. This results in both Foo.cs and Foocs
+                        // being in the cache. We could fix that "correctly", but the zombied Foocs code model
+                        // is pretty broken, so there's no point in trying to reuse it.
+                        if (_cache.TryGetValue(newFileName, out cacheEntry))
+                        {
+                            comHandleToShutDown = cacheEntry.ComHandle;
+                        }
+
                         _cache.Add(newFileName, cacheEntry);
                     }
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.OnRename(newFileName);
-            }
+            comHandleToShutDown?.Object.Shutdown();
+            comHandleToRename?.Object.OnRename(newFileName);
         }
     }
 }

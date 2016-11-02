@@ -350,21 +350,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal const int TupleFieldRestPosition = 8;
         private const string TupleTypeNamePrefix = "ValueTuple`";
         private const string TupleFieldItemNamePrefix = "Item";
-        private const string TupleFieldRestName = "Rest";
+        internal const string TupleFieldRestName = "Rest";
 
         // See NamedTypeSymbol.IsTupleCompatible.
         internal static bool IsTupleCompatible(this Type type, out int cardinality)
-        {
-            if (type.IsTupleCompatibleInternal(out cardinality) &&
-                cardinality > 1) // ValueTuple<T> is not a tuple.
-            {
-                return true;
-            }
-            cardinality = 0;
-            return false;
-        }
-
-        private static bool IsTupleCompatibleInternal(this Type type, out int cardinality)
         {
             if (type.IsGenericType &&
                 AreNamesEqual(type.Namespace, "System") &&
@@ -388,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     var restType = typeArguments[n - 1];
                     int restCardinality;
-                    if (restType.IsTupleCompatibleInternal(out restCardinality))
+                    if (restType.IsTupleCompatible(out restCardinality))
                     {
                         cardinality = n - 1 + restCardinality;
                         return true;
@@ -400,23 +389,54 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return false;
         }
 
-        internal static void GetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
+        // Returns cardinality if tuple type, otherwise 0.
+        internal static int GetTupleCardinalityIfAny(this Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
+        }
+
+        internal static FieldInfo GetTupleField(this Type type, string name)
+        {
+            return type.GetField(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        }
+
+        internal static string GetTupleFieldName(int index)
+        {
+            Debug.Assert(index >= 0);
+            return TupleFieldItemNamePrefix + (index + 1);
+        }
+
+        internal static bool TryGetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
         {
             while (true)
             {
+                var type = tuple.Type.GetLmrType();
                 int n = Math.Min(cardinality, TupleFieldRestPosition - 1);
-                for (int i = 0; i < n; i++)
+                for (int index = 0; index < n; index++)
                 {
-                    var value = GetFieldValue(tuple, TupleFieldItemNamePrefix + (i + 1), inspectionContext);
+                    var fieldName = GetTupleFieldName(index);
+                    var fieldInfo = type.GetTupleField(fieldName);
+                    if (fieldInfo == null)
+                    {
+                        return false;
+                    }
+                    var value = tuple.GetFieldValue(fieldName, inspectionContext);
                     var str = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
                     values.Add(str);
                 }
                 cardinality -= n;
                 if (cardinality == 0)
                 {
-                    return;
+                    return true;
                 }
-                tuple = GetFieldValue(tuple, TupleFieldRestName, inspectionContext);
+                var restInfo = type.GetTupleField(TypeHelpers.TupleFieldRestName);
+                if (restInfo == null)
+                {
+                    return false;
+                }
+                tuple = tuple.GetFieldValue(TupleFieldRestName, inspectionContext);
             }
         }
 

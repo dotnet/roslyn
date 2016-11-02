@@ -794,6 +794,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
+        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
+        {
+            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
+            return (object)result != null;
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
+            (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
         /// </summary>
@@ -815,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => t.IsTupleType && !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1273,9 +1282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
         }
 
         internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1289,16 +1297,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            return namedType.IsCustomTaskType(out builderType, out createBuilderMethod);
+            object builderArgument;
+            return namedType.IsCustomTaskType(out builderArgument);
         }
 
         /// <summary>
-        /// Returns true if the type is generic or non-generic task-like type. If so, the async
-        /// method builder type is returned along with the method to construct that type.
+        /// Returns true if the type is generic or non-generic custom task-like type due to the
+        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
         /// </summary>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out NamedTypeSymbol builderType, out MethodSymbol createBuilderMethod)
+        /// <remarks>
+        /// For the Task types themselves, this method might return true or false depending on mscorlib.
+        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
+        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
+        /// without validation of any kind.
+        /// </remarks>
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
@@ -1306,34 +1319,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the public static CreateAsyncMethodBuilder method.
-                var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
-                foreach (var member in members)
+                // Find the AsyncBuilder attribute.
+                foreach (var attr in type.GetAttributes())
                 {
-                    if (member.Kind != SymbolKind.Method)
+                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
+                        && attr.CommonConstructorArguments.Length == 1
+                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        continue;
-                    }
-                    var method = (MethodSymbol)member;
-                    if ((method.DeclaredAccessibility == Accessibility.Public) &&
-                        method.IsStatic &&
-                        (method.ParameterCount == 0) &&
-                        !method.IsGenericMethod)
-                    {
-                        var returnType = method.ReturnType as NamedTypeSymbol;
-                        if ((object)returnType == null || returnType.Arity != arity)
-                        {
-                            break;
-                        }
-                        builderType = returnType;
-                        createBuilderMethod = method;
+                        builderArgument = attr.CommonConstructorArguments[0].Value;
                         return true;
                     }
                 }
             }
 
-            builderType = null;
-            createBuilderMethod = null;
+            builderArgument = null;
             return false;
         }
 
@@ -1412,9 +1411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeArgumentsBuilder.Free();
             }
 
-            NamedTypeSymbol builderType;
-            MethodSymbol createBuilderMethod;
-            if (type.OriginalDefinition.IsCustomTaskType(out builderType, out createBuilderMethod))
+            object builderArgument;
+            if (type.OriginalDefinition.IsCustomTaskType(out builderArgument))
             {
                 int arity = type.Arity;
                 Debug.Assert(arity < 2);
@@ -1481,9 +1479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation declaringCompilation,
             Cci.ITypeReference typeRef)
         {
-            if (type.ContainsTuple())
+            if (type.ContainsTupleNames())
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttributeOpt(type);
+                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
                     return new Cci.TypeReferenceWithAttributes(

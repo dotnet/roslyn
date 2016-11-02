@@ -15,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractCodeGenerationService
 
         Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
+            MyBase.New(provider.GetService(Of ISymbolDeclarationService)(),
+                       provider.WorkspaceServices.Workspace)
         End Sub
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 options As CodeGenerationOptions,
                 availableIndices As IList(Of Boolean)) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax)(destinationType)
-            Return Cast(Of TDeclarationNode)(EventGenerator.AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
+            Return Cast(Of TDeclarationNode)(AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
         End Function
 
         Protected Overrides Function AddField(Of TDeclarationNode As SyntaxNode)(

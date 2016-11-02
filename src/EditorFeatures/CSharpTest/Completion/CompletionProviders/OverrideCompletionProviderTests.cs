@@ -2,8 +2,10 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -22,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override CompletionProvider CreateCompletionProvider()
         {
             return new OverrideCompletionProvider();
+        }
+
+        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        {
+            workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement)
+                                                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement);
         }
 
         #region "CompletionItem tests"

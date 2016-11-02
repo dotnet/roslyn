@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '
             '     payloadRoot = New T(MaximumMethodDefIndex)() {}
             '
-            ' where T Is the type of the payload at each instrumentation point, and MaximumMethodDefIndex is the 
+            ' where T Is the type of the payload at each instrumentation point, and MaximumMethodDefIndex is the
             ' index portion of the greatest method definition token in the compilation. This guarantees that any
             ' method can use the index portion of its own method definition token as an index into the payload array.
 
@@ -84,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             ' Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
-            ' MVID = Guid.Parse(ModuleVersionIdString)
+            ' MVID = New Guid(ModuleVersionIdString)
 
-            Dim guidParse As MethodSymbol = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Guid__Parse)
-            If guidParse IsNot Nothing Then
+            Dim guidConstructor As MethodSymbol = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Guid__ctor)
+            If guidConstructor IsNot Nothing Then
                 body.Add(
                     factory.Assignment(
                        factory.ModuleVersionId(isLValue:=True),
-                       factory.Call(Nothing, guidParse, ImmutableArray.Create(factory.ModuleVersionIdString()))))
+                       factory.[New](guidConstructor, factory.ModuleVersionIdString())))
             End If
 
             body.Add(factory.Return())

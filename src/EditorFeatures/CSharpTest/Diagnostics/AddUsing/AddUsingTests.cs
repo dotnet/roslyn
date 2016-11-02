@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         {
             await TestAsync(initialMarkup, expected, index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
             {
-                { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
             });
         }
 
@@ -764,8 +765,8 @@ compareTokens: false);
 using System.Linq.Expressions;
 
 Expression",
-parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
+GetScriptOptions(),
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 
@@ -2355,6 +2356,91 @@ namespace NS
 }");
         }
 
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+
+class C : [|IEnumerable|]<int>
+{
+}
+",
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+using System.Collections.Generic;
+
+class C : IEnumerable<int>
+{
+}
+",
+compareTokens: false);
+        }
+
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing2()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System.Collections;
+
+class C
+{
+    [|DateTime|] d;
+}
+",
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+
+using System;
+using System.Collections;
+
+class C
+{
+    DateTime d;
+}
+",
+compareTokens: false);
+        }
+
+        [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestAddUsingWithLeadingDocCommentInFrontOfClass1()
+        {
+            await TestAsync(
+@"
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+class C
+{
+    [|DateTime|] d;
+}
+",
+@"
+using System;
+/// Copyright 2016 - MyCompany 
+/// All Rights Reserved 
+class C
+{
+    DateTime d;
+}
+",
+compareTokens: false);
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2372,7 +2458,7 @@ namespace NS
             {
                 return TestAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
-                    { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                    { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
                 });
             }
 

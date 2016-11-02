@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext"/>. 
+    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext(string, string, string, Guid, object, string)"/>. 
     /// </summary>
     internal interface IWorkspaceProjectContext : IDisposable
     {
@@ -16,9 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         string ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         bool LastDesignTimeBuildSucceeded { get; set; }
+        string BinOutputPath { get; set; }
 
         // Options.
-        void SetCommandLineArguments(string commandLineForOptions);
+        void SetOptions(string commandLineForOptions);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);

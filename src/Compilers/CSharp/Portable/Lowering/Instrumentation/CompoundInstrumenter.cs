@@ -163,9 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
-            return Previous.InstrumentBoundPatternSwitchStatement(original, rewritten);
+            return Previous.InstrumentPatternSwitchStatement(original, rewritten);
+        }
+
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        {
+            return Previous.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -198,9 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentCatchClauseFilter(original, rewrittenFilter, factory);
         }
 
-        public override BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
+        }
+
+        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            return Previous.InstrumentPatternSwitchBindCasePatternVariables(bindings);
         }
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)

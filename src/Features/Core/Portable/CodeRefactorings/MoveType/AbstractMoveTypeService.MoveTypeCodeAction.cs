@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             public override string Title => _title;
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var editor = GetEditor(cancellationToken);
-                return editor.GetOperationsAsync();
+                return await editor.GetOperationsAsync().ConfigureAwait(false);
             }
 
             private Editor GetEditor(CancellationToken cancellationToken)

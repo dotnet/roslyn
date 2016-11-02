@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,8 +32,9 @@ namespace Microsoft.CodeAnalysis
             ParseOptions options,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textSource,
-            ValueSource<TreeAndVersion> treeSource)
-            : base(solutionServices, info, sourceTextOpt, textSource)
+            ValueSource<TreeAndVersion> treeSource,
+            ValueSource<DocumentStateChecksums> lazyChecksums)
+            : base(solutionServices, info, sourceTextOpt, textSource, lazyChecksums)
         {
             _languageServices = languageServices;
             _options = options;
@@ -81,7 +83,8 @@ namespace Microsoft.CodeAnalysis
                 options: options,
                 sourceTextOpt: null,
                 textSource: textSource,
-                treeSource: treeSource);
+                treeSource: treeSource,
+                lazyChecksums: null);
         }
 
         // This is the string used to represent the FilePath property on a SyntaxTree object.
@@ -162,10 +165,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion CreateTreeAndVersion(
-            ValueSource<TextAndVersion> newTextSource, 
-            ProjectId cacheKey, string filePath, 
-            ParseOptions options, HostLanguageServices languageServices, 
-            PreservationMode mode, TextAndVersion textAndVersion, 
+            ValueSource<TextAndVersion> newTextSource,
+            ProjectId cacheKey, string filePath,
+            ParseOptions options, HostLanguageServices languageServices,
+            PreservationMode mode, TextAndVersion textAndVersion,
             CancellationToken cancellationToken)
         {
             var text = textAndVersion.Text;
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion IncrementallyParse(
-            TextAndVersion newTextAndVersion, 
+            TextAndVersion newTextAndVersion,
             TreeAndVersion oldTreeAndVersion,
             CancellationToken cancellationToken)
         {
@@ -340,7 +343,8 @@ namespace Microsoft.CodeAnalysis
                 options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                newTreeSource);
+                newTreeSource,
+                lazyChecksums: null);
         }
 
         public DocumentState UpdateSourceCodeKind(SourceCodeKind kind)
@@ -362,7 +366,8 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
-                _treeSource);
+                _treeSource,
+                lazyChecksums: null);
         }
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -437,7 +442,8 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: null,
                 textSource: newTextSource,
-                treeSource: newTreeSource);
+                treeSource: newTreeSource,
+                lazyChecksums: null);
         }
 
         public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
@@ -470,7 +476,8 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: textOpt,
                 textSource: newTextSource,
-                treeSource: newTreeSource);
+                treeSource: newTreeSource,
+                lazyChecksums: null);
         }
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
@@ -513,7 +520,8 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceTextOpt: null,
                 textSource: result.Item1,
-                treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2));
+                treeSource: new ConstantValueSource<TreeAndVersion>(result.Item2),
+                lazyChecksums: null);
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)

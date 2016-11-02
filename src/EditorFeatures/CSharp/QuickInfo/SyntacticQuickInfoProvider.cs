@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             foreach (var trivia in triviaSearchList)
             {
-                if (IsCommentTrivia(trivia))
+                if (trivia.IsSingleOrMultiLineComment())
                 {
                     nearbyTrivia = trivia;
                 }
@@ -132,12 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 }
             }
 
-            return IsCommentTrivia(nearbyTrivia);
-        }
-
-        private static bool IsCommentTrivia(SyntaxTrivia trivia)
-        {
-            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            return nearbyTrivia.IsSingleOrMultiLineComment();
         }
     }
 }

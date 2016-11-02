@@ -5,8 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Security;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -15,13 +15,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        /// <summary>
-        /// False if the compiler server is not supported on this platform.
-        /// </summary>
-        internal static bool IsCompilerServerSupported =>
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-            DesktopBuildClient.GetRuntimeDirectoryOpt() != null;
-
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
@@ -144,6 +137,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                 params object[] args)
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
+        }
+
+        internal static string GetLocation(Assembly assembly)
+        {
+            var method = typeof(Assembly).GetTypeInfo().GetDeclaredProperty("Location")?.GetMethod;
+            if (method == null)
+            {
+                return null;
+            }
+
+            return (string)method.Invoke(assembly, parameters: null);
         }
     }
 }

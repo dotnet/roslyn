@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 IEnumerable<TypeInfo> typeInfos = null;
-                ImmutableArray<CodeFixProvider>.Builder builder = null;
+                var builder = ArrayBuilder<CodeFixProvider>.GetInstance();
 
                 try
                 {
@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                         attribute.Languages.Length == 0 ||
                                         attribute.Languages.Contains(language))
                                     {
-                                        builder = builder ?? ImmutableArray.CreateBuilder<CodeFixProvider>();
                                         builder.Add((CodeFixProvider)Activator.CreateInstance(typeInfo.AsType()));
                                     }
                                 }
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
                 }
 
-                return builder != null ? builder.ToImmutable() : ImmutableArray<CodeFixProvider>.Empty;
+                return builder.ToImmutableAndFree();
             }
         }
     }

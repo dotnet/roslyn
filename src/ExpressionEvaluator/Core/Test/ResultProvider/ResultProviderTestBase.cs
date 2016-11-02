@@ -25,6 +25,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (string)emptyProperty.GetValue(exceptionType.Instantiate());
         }
 
+        internal static DkmClrCustomTypeInfo MakeCustomTypeInfo(params bool[] dynamicFlags)
+        {
+            if (dynamicFlags == null || dynamicFlags.Length == 0)
+            {
+                return null;
+            }
+
+            var builder = ArrayBuilder<bool>.GetInstance(dynamicFlags.Length);
+            builder.AddRange(dynamicFlags);
+            var result = CustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.ToBytes(builder), tupleElementNames: null);
+            builder.Free();
+            return result;
+        }
+
         private readonly DkmInspectionSession _inspectionSession;
         internal readonly DkmInspectionContext DefaultInspectionContext;
 

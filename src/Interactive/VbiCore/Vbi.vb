@@ -12,12 +12,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Public Shared Function Main(args As String()) As Integer
             Try
                 Dim responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName)
+                Dim buildPaths = New BuildPaths(
+                    clientDir:=AppContext.BaseDirectory,
+                    workingDir:=CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    sdkDir:=AppContext.BaseDirectory,
+                    tempDir:=Path.GetTempPath())
 
                 Dim compiler = New VisualBasicInteractiveCompiler(
                     responseFile,
-                    AppContext.BaseDirectory,
-                    CorLightup.Desktop.TryGetRuntimeDirectory(),
-                    AppContext.BaseDirectory,
+                    buildPaths,
                     args,
                     New NotImplementedAnalyzerLoader())
 

@@ -332,29 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
         {
-            if (!method.ContainingType.IsValueType)
-            {
-                return false;
-            }
-
-            if (!method.IsParameterlessConstructor() || !method.IsImplicitlyDeclared)
-            {
-                return false;
-            }
-
-            var container = method.ContainingType as SourceNamedTypeSymbol;
-            if ((object)container == null)
-            {
-                // synthesized ctor not from source -> must be default
-                return true;
-            }
-
-            // if we are here we have a struct in source for which a parameterless ctor was not provided by the user.
-            // So, are we ok with default behavior?
-            // Returning false will result in a production of synthesized parameterless ctor 
-
-            // this ctor is not default if we have instance initializers
-            return container.InstanceInitializers.IsDefaultOrEmpty;
+            return method.IsImplicitlyDeclared &&
+                   method.ContainingType.IsValueType &&
+                   method.IsParameterlessConstructor();
         }
 
         /// <summary>
@@ -450,48 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((EventSymbol)member).ExplicitInterfaceImplementations.Cast<EventSymbol, Symbol>();
                 default:
                     return ImmutableArray<Symbol>.Empty;
-            }
-        }
-
-        internal static TypeSymbol GetTypeOrReturnType(this Symbol member)
-        {
-            RefKind refKind;
-            TypeSymbol returnType;
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-            GetTypeOrReturnType(member, out refKind, out returnType, out returnTypeCustomModifiers);
-            return returnType;
-        }
-
-        internal static void GetTypeOrReturnType(this Symbol member, out RefKind refKind, out TypeSymbol returnType, out ImmutableArray<CustomModifier> returnTypeCustomModifiers)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Field:
-                    FieldSymbol field = (FieldSymbol)member;
-                    refKind = RefKind.None;
-                    returnType = field.Type;
-                    returnTypeCustomModifiers = field.CustomModifiers;
-                    break;
-                case SymbolKind.Method:
-                    MethodSymbol method = (MethodSymbol)member;
-                    refKind = method.RefKind;
-                    returnType = method.ReturnType;
-                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
-                    break;
-                case SymbolKind.Property:
-                    PropertySymbol property = (PropertySymbol)member;
-                    refKind = property.RefKind;
-                    returnType = property.Type;
-                    returnTypeCustomModifiers = property.TypeCustomModifiers;
-                    break;
-                case SymbolKind.Event:
-                    EventSymbol @event = (EventSymbol)member;
-                    refKind = RefKind.None;
-                    returnType = @event.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

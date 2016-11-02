@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -166,6 +167,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return
                 End If
             End If
+
+            'If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+            '    Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
+
+            '    If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+            '        AddIndentBlockOperation(operations,
+            '                                initializer.WithKeyword,
+            '                                initializer.OpenBraceToken,
+            '                                initializer.CloseBraceToken)
+            '        'list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(
+            '        '         initializer.WithKeyword,
+            '        '         initializer.OpenBraceToken,
+            '        '         initializer.CloseBraceToken,
+            '        '         indentationDelta:=1,
+            '        '         [option]:=IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
+            '    End If
+            'End If
 
             AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
         End Sub

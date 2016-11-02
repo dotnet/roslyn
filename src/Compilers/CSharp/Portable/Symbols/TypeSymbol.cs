@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbol obj)
             {
-                return obj.GetHashCode();
+                return (object)obj == null ? 0 : obj.GetHashCode();
             }
 
             public override bool Equals(TypeSymbol x, TypeSymbol y)
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this symbol represents a tuple type, get the fields for the tuple's elements.
         /// Otherwise, returns default.
         /// </summary>
-        public virtual ImmutableArray<FieldSymbol> TupleElementFields => default(ImmutableArray<FieldSymbol>);
+        public virtual ImmutableArray<FieldSymbol> TupleDefaultElementFields => default(ImmutableArray<FieldSymbol>);
 
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and

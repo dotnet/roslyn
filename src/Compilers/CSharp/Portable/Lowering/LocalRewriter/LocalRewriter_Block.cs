@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.Instrument)
-                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
+                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
                 : _instrumenter.InstrumentNoOpStatement(node, node);
         }
     }

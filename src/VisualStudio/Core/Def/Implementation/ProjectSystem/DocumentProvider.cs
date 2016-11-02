@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,27 +25,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// in that they watch the running document table, tracking open/close events, and also file
     /// change events while the file is closed.
     /// </summary>
-    internal abstract partial class DocumentProvider
+    internal abstract partial class DocumentProvider : ForegroundThreadAffinitizedObject
     {
-        protected readonly IVsRunningDocumentTable4 RunningDocumentTable;
-        protected readonly bool IsRoslynPackageInstalled;
-        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-        protected readonly IContentTypeRegistryService ContentTypeRegistryService;
-
+        #region Immutable readonly fields that can be accessed from foreground or background threads - do not need locking for access.
+        private readonly object _gate = new object();
         private readonly uint _runningDocumentTableEventCookie;
-
-        /// <summary>
-        /// The core data structure of this entire class.
-        /// </summary>
-        private readonly Dictionary<DocumentKey, StandardTextDocument> _documentMap = new Dictionary<DocumentKey, StandardTextDocument>();
-        private Dictionary<uint, List<DocumentKey>> _docCookiesToOpenDocumentKeys = new Dictionary<uint, List<DocumentKey>>();
-
-        private readonly Dictionary<string, DocumentId> _documentIdHints = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
-
         private readonly IVisualStudioHostProjectContainer _projectContainer;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
+        protected readonly IVsRunningDocumentTable4 RunningDocumentTable;
+        protected readonly bool IsRoslynPackageInstalled;
+        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
+        protected readonly IContentTypeRegistryService ContentTypeRegistryService;
+        #endregion
+
+        #region Mutable fields accessed from foreground or background threads - need locking for access.
+        /// <summary>
+        /// The core data structure of this entire class.
+        /// </summary>
+        private readonly Dictionary<DocumentKey, StandardTextDocument> _documentMap = new Dictionary<DocumentKey, StandardTextDocument>();
+        private readonly Dictionary<uint, List<DocumentKey>> _docCookiesToOpenDocumentKeys = new Dictionary<uint, List<DocumentKey>>();
+        private readonly Dictionary<string, DocumentId> _documentIdHints = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<DocumentId, TaskAndTokenSource> _pendingDocumentInitializationTasks = new Dictionary<DocumentId, TaskAndTokenSource>();
+        #endregion
 
         public DocumentProvider(
             IVisualStudioHostProjectContainer projectContainer,
@@ -81,76 +86,100 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
         }
 
+        /// <summary>
+        /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
+        /// If we are on the foreground thread and this document is already open in the editor,
+        /// then we also attempt to associate the text buffer with it.
+        /// Otherwise, if we are on a background thread, then this text buffer association will happen on a scheduled task
+        /// whenever <see cref="NotifyDocumentRegisteredToProjectAndStartToRaiseEvents"/> is invoked for the returned document.
+        /// </summary>
         public IVisualStudioHostDocument TryGetDocumentForFile(
             IVisualStudioHostProject hostProject,
-            IReadOnlyList<string> folderNames,
             string filePath,
             SourceCodeKind sourceCodeKind,
-            Func<ITextBuffer, bool> canUseTextBuffer)
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null)
         {
             var documentKey = new DocumentKey(hostProject, filePath);
             StandardTextDocument document;
 
-            if (_documentMap.TryGetValue(documentKey, out document))
+            lock (_gate)
             {
-                return document;
+                if (_documentMap.TryGetValue(documentKey, out document))
+                {
+                    return document;
+                }
             }
 
             ITextBuffer openTextBuffer = null;
             uint foundCookie = VSConstants.VSCOOKIE_NIL;
 
-            // If this document is already open in the editor we want to associate the text buffer with it.
-            // However, determining if a document is already open is a bit complicated. With the introduction
-            // of the lazy tabs feature in Dev12, a document may be open (i.e. it has a tab in the shell) but not
-            // actually initialized (no data has been loaded for it because its contents have not actually been
-            // viewed or used). We only care about documents that are open AND initialized.
-            // That means we can't call IVsRunningDocumentTable::FindAndLockDocument to find the document; if the
-            // document is open but not initialized, the call will force initialization. This is bad for two
-            // reasons:
-            //   1.) It circumvents lazy tabs for any document that is part of a VB or C# project.
-            //   2.) Initialization may cause a whole host of other code to run synchronously, such as taggers.
-            // Instead, we check if the document is already initialized, and avoid asking for the doc data and
-            // hierarchy if it is not.
-            if (RunningDocumentTable.TryGetCookieForInitializedDocument(documentKey.Moniker, out foundCookie))
+            if (IsForeground())
             {
-                object foundDocData = RunningDocumentTable.GetDocumentData(foundCookie);
-                openTextBuffer = TryGetTextBufferFromDocData(foundDocData);
-                if (openTextBuffer == null)
+                // If we are on the foreground thread and this document is already open in the editor we want to associate the text buffer with it.
+                // Otherwise, we are on a background thread, and this text buffer association will happen on a scheduled task
+                // whenever NotifyDocumentRegisteredToProjectAndStartToRaiseEvents is invoked for the returned document.
+                // However, determining if a document is already open is a bit complicated. With the introduction
+                // of the lazy tabs feature in Dev12, a document may be open (i.e. it has a tab in the shell) but not
+                // actually initialized (no data has been loaded for it because its contents have not actually been
+                // viewed or used). We only care about documents that are open AND initialized.
+                // That means we can't call IVsRunningDocumentTable::FindAndLockDocument to find the document; if the
+                // document is open but not initialized, the call will force initialization. This is bad for two
+                // reasons:
+                //   1.) It circumvents lazy tabs for any document that is part of a VB or C# project.
+                //   2.) Initialization may cause a whole host of other code to run synchronously, such as taggers.
+                // Instead, we check if the document is already initialized, and avoid asking for the doc data and
+                // hierarchy if it is not.
+                if (RunningDocumentTable.TryGetCookieForInitializedDocument(documentKey.Moniker, out foundCookie))
                 {
-                    // We're open but not open as a normal text buffer. This can happen if the
-                    // project system (say in ASP.NET cases) is telling us to add a file which
-                    // actually isn't a normal text file at all.
-                    return null;
-                }
+                    object foundDocData = RunningDocumentTable.GetDocumentData(foundCookie);
+                    openTextBuffer = TryGetTextBufferFromDocData(foundDocData);
+                    if (openTextBuffer == null)
+                    {
+                        // We're open but not open as a normal text buffer. This can happen if the
+                        // project system (say in ASP.NET cases) is telling us to add a file which
+                        // actually isn't a normal text file at all.
+                        return null;
+                    }
 
-                if (!canUseTextBuffer(openTextBuffer))
-                {
-                    return null;
+                    if (!canUseTextBuffer(openTextBuffer))
+                    {
+                        return null;
+                    }
                 }
             }
 
-            // If this is being added through a public call to Workspace.AddDocument (say, ApplyChanges) then we might
-            // already have a document ID that we should be using here.
-            DocumentId id = null;
-            _documentIdHints.TryGetValue(filePath, out id);
-
-            document = new StandardTextDocument(
-                this,
-                hostProject,
-                documentKey,
-                folderNames,
-                sourceCodeKind,
-                _textUndoHistoryRegistry,
-                _fileChangeService,
-                openTextBuffer,
-                id);
-
-            // Add this to our document map
-            _documentMap.Add(documentKey, document);
-
-            if (openTextBuffer != null)
+            lock (_gate)
             {
-                AddCookieOpenDocumentPair(foundCookie, documentKey);
+                // If this is being added through a public call to Workspace.AddDocument (say, ApplyChanges) then we might
+                // already have a document ID that we should be using here.
+                DocumentId id = null;
+                _documentIdHints.TryGetValue(filePath, out id);
+
+                document = new StandardTextDocument(
+                    this,
+                    hostProject,
+                    documentKey,
+                    getFolderNames,
+                    sourceCodeKind,
+                    _textUndoHistoryRegistry,
+                    _fileChangeService,
+                    openTextBuffer,
+                    id,
+                    updatedOnDiskHandler,
+                    openedHandler,
+                    closingHandler);
+
+                // Add this to our document map
+                _documentMap.Add(documentKey, document);
+
+                if (openTextBuffer != null)
+                {
+                    AddCookieOpenDocumentPair_NoLock(foundCookie, documentKey);
+                }
             }
 
             return document;
@@ -163,6 +192,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
         private ITextBuffer TryGetTextBufferFromDocData(object docData)
         {
+            AssertIsForeground();
+
             var shimTextBuffer = docData as IVsTextBuffer;
 
             if (shimTextBuffer != null)
@@ -177,20 +208,96 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void NewBufferOpened(uint docCookie, ITextBuffer textBuffer, DocumentKey documentKey, bool isCurrentContext)
         {
+            AssertIsForeground();
+
+            lock (_gate)
+            {
+                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext);
+            }
+        }
+
+        private void NewBufferOpened_NoLock(uint docCookie, ITextBuffer textBuffer, DocumentKey documentKey, bool isCurrentContext)
+        {
             StandardTextDocument document;
 
             if (_documentMap.TryGetValue(documentKey, out document))
             {
                 document.ProcessOpen(textBuffer, isCurrentContext);
-                AddCookieOpenDocumentPair(docCookie, documentKey);
+                AddCookieOpenDocumentPair_NoLock(docCookie, documentKey);
             }
         }
 
         /// <summary>
         /// Notifies the document provider that this document is now registered in a project.
+        /// If we are on a foregroud thread, then this is done right away.
+        /// Otherwise, we schedule a task on foreground task scheduler.
         /// </summary>
-        public void NotifyDocumentRegisteredToProject(IVisualStudioHostDocument document)
+        public void NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(IVisualStudioHostDocument document)
         {
+            if (IsForeground())
+            {
+                NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cancellationToken: CancellationToken.None);
+            }
+            else
+            {
+                var cts = new CancellationTokenSource();
+                var task = InvokeBelowInputPriority(() => NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(document, cts.Token), cts.Token);
+                AddPendingDocumentInitializationTask(document, task, cts);
+            }
+        }
+
+        private void AddPendingDocumentInitializationTask(IVisualStudioHostDocument document, Task task, CancellationTokenSource cts)
+        {
+            var taskAndTokenSource = new TaskAndTokenSource() { Task = task, CancellationTokenSource = cts };
+            lock (_gate)
+            {
+                // Add taskAndTokenSource to the pending document initialization tasks.
+                // Check for cancellation before adding as the task might already have been completed/cancelled/faulted before we reached here.
+                if (!cts.IsCancellationRequested && !task.IsCompleted)
+                {
+                    _pendingDocumentInitializationTasks.Add(document.Id, taskAndTokenSource);
+                }
+            }
+        }
+
+        private void CancelPendingDocumentInitializationTasks_NoLock(IEnumerable<DocumentKey> documentKeys)
+        {
+            foreach (var documentKey in documentKeys)
+            {
+                StandardTextDocument document;
+                if (_documentMap.TryGetValue(documentKey, out document))
+                {
+                    CancelPendingDocumentInitializationTask_NoLock(document);
+                }
+            }
+        }
+
+        private void CancelPendingDocumentInitializationTask(IVisualStudioHostDocument document)
+        {
+            lock (_gate)
+            {
+                CancelPendingDocumentInitializationTask_NoLock(document);
+            }
+        }
+
+        private void CancelPendingDocumentInitializationTask_NoLock(IVisualStudioHostDocument document)
+        {
+            // Remove pending initialization task for the document, if any, and dispose the cancellation token source.
+            TaskAndTokenSource taskAndTokenSource;
+            if (_pendingDocumentInitializationTasks.TryGetValue(document.Id, out taskAndTokenSource))
+            {
+                taskAndTokenSource.CancellationTokenSource.Cancel();
+                taskAndTokenSource.CancellationTokenSource.Dispose();
+                _pendingDocumentInitializationTasks.Remove(document.Id);
+            }
+        }
+
+        private void NotifyDocumentRegisteredToProjectAndStartToRaiseEvents_Core(IVisualStudioHostDocument document, CancellationToken cancellationToken)
+        {
+            AssertIsForeground();
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Ignore any other unknown kinds of documents
             var standardDocument = document as StandardTextDocument;
             if (standardDocument == null)
@@ -207,11 +314,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint docCookie;
             if (RunningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
             {
-                TryProcessOpenForDocCookie(docCookie);
+                TryProcessOpenForDocCookie(docCookie, cancellationToken);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            CancelPendingDocumentInitializationTask(document);
+        }
+
+        private void TryProcessOpenForDocCookie(uint docCookie, CancellationToken cancellationToken)
+        {
+            AssertIsForeground();
+
+            lock (_gate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                TryProcessOpenForDocCookie_NoLock(docCookie);
             }
         }
 
-        private void TryProcessOpenForDocCookie(uint docCookie)
+        private void TryProcessOpenForDocCookie_NoLock(uint docCookie)
         {
             string moniker = RunningDocumentTable.GetDocumentMoniker(docCookie);
 
@@ -240,18 +362,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // another listener for RDT events got it
                             if (_docCookiesToOpenDocumentKeys.ContainsKey(docCookie))
                             {
-                                CloseDocuments(docCookie, monikerToKeep: moniker);
+                                CloseDocuments_NoLock(docCookie, monikerToKeep: moniker);
                             }
 
                             if (hierarchy == project.Hierarchy)
                             {
                                 // This is the current context
-                                NewBufferOpened(docCookie, textBuffer, documentKey, isCurrentContext: true);
+                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: true);
                             }
                             else
                             {
                                 // This is a non-current linked context
-                                NewBufferOpened(docCookie, textBuffer, documentKey, isCurrentContext: false);
+                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: false);
                             }
                         }
                         else
@@ -277,6 +399,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnBeforeDocumentWindowShow(IVsWindowFrame frame, uint docCookie, bool firstShow)
         {
+            AssertIsForeground();
+
             var ids = GetDocumentIdsFromDocCookie(docCookie);
             foreach (var id in ids)
             {
@@ -300,6 +424,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private IList<DocumentId> GetDocumentIdsFromDocCookie(uint docCookie)
         {
+            lock (_gate)
+            {
+                return GetDocumentIdsFromDocCookie_NoLock(docCookie);
+            }
+        }
+
+        private IList<DocumentId> GetDocumentIdsFromDocCookie_NoLock(uint docCookie)
+        {
+            AssertIsForeground();
+
             List<DocumentKey> documentKeys;
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
             {
@@ -325,6 +459,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// we only want to close anything that doesn't match the new name. Can be null to close everything.</param>
         private void CloseDocuments(uint docCookie, string monikerToKeep)
         {
+            AssertIsForeground();
+
+            lock (_gate)
+            {
+                CloseDocuments_NoLock(docCookie, monikerToKeep);
+            }
+        }
+
+        private void CloseDocuments_NoLock(uint docCookie, string monikerToKeep)
+        {
             List<DocumentKey> documentKeys;
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
             {
@@ -334,6 +478,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We will remove from documentKeys the things we successfully closed,
             // so clone the list so we can mutate while enumerating
             var documentsToClose = documentKeys.Where(key => !StringComparer.OrdinalIgnoreCase.Equals(key.Moniker, monikerToKeep)).ToList();
+
+            // Cancel any pending scheduled tasks to register document opened for the documents we are closing.
+            CancelPendingDocumentInitializationTasks_NoLock(documentsToClose);
 
             // For a given set of open linked or shared files, we may be closing one of the
             // documents (e.g. excluding a linked file from one of its owning projects or
@@ -364,7 +511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
             {
-                TryProcessOpenForDocCookie(docCookie);
+                TryProcessOpenForDocCookie(docCookie, CancellationToken.None);
             }
 
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
@@ -381,17 +528,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected virtual void OnHierarchyChanged(uint docCookie, IVsHierarchy pHierOld, uint itemidOld, IVsHierarchy pHierNew, uint itemidNew, bool itemidChanged)
         {
-            List<DocumentKey> documentKeys;
-            if (_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
-            {
-                foreach (var documentKey in documentKeys)
-                {
-                    var document = _documentMap[documentKey];
-                    var currDocHier = document.Project.Hierarchy;
+            AssertIsForeground();
 
-                    if (currDocHier == pHierNew)
+            lock (_gate)
+            {
+                List<DocumentKey> documentKeys;
+                if (_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+                {
+                    foreach (var documentKey in documentKeys)
                     {
-                        documentKey.HostProject.Workspace.OnDocumentContextUpdated(document.Id, document.GetOpenTextContainer());
+                        var document = _documentMap[documentKey];
+                        var currDocHier = document.Project.Hierarchy;
+
+                        if (currDocHier == pHierNew)
+                        {
+                            documentKey.HostProject.Workspace.OnDocumentContextUpdated(document.Id, document.GetOpenTextContainer());
+                        }
                     }
                 }
             }
@@ -399,6 +551,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected virtual void OnDocumentMonikerChanged(uint docCookie, string oldMoniker, string newMoniker)
         {
+            AssertIsForeground();
+
             // If the moniker change only involves casing differences then the project system will
             // not remove & add the file again with the new name, so we should not clear any state.
             // Leaving the old casing in the DocumentKey is safe because DocumentKey equality 
@@ -430,23 +584,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void RenameFileCodeModelInstances(uint docCookie, string oldMoniker, string newMoniker)
         {
-            List<DocumentKey> documentKeys;
-            if (_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+            AssertIsForeground();
+
+            List<StandardTextDocument> documents;
+            lock (_gate)
             {
+                List<DocumentKey> documentKeys;
+                if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+                {
+                    return;
+                }
+
                 // We will remove from documentKeys the things we successfully closed,
                 // so clone the list so we can mutate while enumerating
-                var documents = documentKeys
+                documents = documentKeys
                     .Where(key => StringComparer.OrdinalIgnoreCase.Equals(key.Moniker, oldMoniker))
                     .Select(key => _documentMap[key])
                     .ToList();
+            }
 
-                foreach (var document in documents)
+            foreach (var document in documents)
+            {
+                var workspace = document.Project.Workspace as VisualStudioWorkspace;
+                if (workspace != null)
                 {
-                    var workspace = document.Project.Workspace as VisualStudioWorkspace;
-                    if (workspace != null)
-                    {
-                        workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
-                    }
+                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
                 }
             }
         }
@@ -456,6 +618,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="document">The document to stop tracking.</param>
         private void StopTrackingDocument(StandardTextDocument document)
+        {
+            CancelPendingDocumentInitializationTask(document);
+
+            if (IsForeground())
+            {
+                StopTrackingDocument_Core(document);
+            }
+            else
+            {
+                InvokeBelowInputPriority(() => StopTrackingDocument_Core(document), CancellationToken.None);
+            }
+        }
+
+        private void StopTrackingDocument_Core(StandardTextDocument document)
+        {
+            AssertIsForeground();
+
+            lock (_gate)
+            {
+                StopTrackingDocument_Core_NoLock(document);
+            }
+        }
+
+        private void StopTrackingDocument_Core_NoLock(StandardTextDocument document)
         {
             if (document.IsOpen)
             {
@@ -481,7 +667,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _documentMap.Remove(document.Key);
         }
 
-        private void AddCookieOpenDocumentPair(uint foundCookie, DocumentKey documentKey)
+        private void AddCookieOpenDocumentPair_NoLock(uint foundCookie, DocumentKey documentKey)
         {
             List<DocumentKey> documentKeys;
             if (_docCookiesToOpenDocumentKeys.TryGetValue(foundCookie, out documentKeys))
@@ -499,6 +685,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void DocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKey)
         {
+            AssertIsForeground();
+
             // This is called when IVsTextBufferDataEvents.OnLoadComplete() has been triggered for a
             // newly-created buffer.
 
@@ -519,6 +707,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool IsCurrentContext(uint docCookie, DocumentKey documentKey)
         {
+            AssertIsForeground();
+
             IVsHierarchy hierarchy;
             uint itemid;
             RunningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
@@ -531,9 +721,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IDisposable ProvideDocumentIdHint(string filePath, DocumentId documentId)
         {
-            _documentIdHints[filePath] = documentId;
-
-            return new DocumentIdHint(this, filePath);
+            lock (_gate)
+            {
+                _documentIdHints[filePath] = documentId;
+                return new DocumentIdHint(this, filePath);
+            }
         }
 
         /// <summary>
@@ -552,8 +744,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public void Dispose()
             {
-                _documentProvider._documentIdHints.Remove(_filePath);
+                lock (_documentProvider._gate)
+                {
+                    _documentProvider._documentIdHints.Remove(_filePath);
+                }
             }
+        }
+
+        private struct TaskAndTokenSource
+        {
+            public Task Task { get; set; }
+            public CancellationTokenSource CancellationTokenSource { get; set; }
         }
     }
 }

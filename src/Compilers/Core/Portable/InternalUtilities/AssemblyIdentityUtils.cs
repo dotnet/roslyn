@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (var stream = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWriteBitwiseOrDelete))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 using (var peReader = new PEReader(stream))
                 {
                     var metadataReader = peReader.GetMetadataReader();

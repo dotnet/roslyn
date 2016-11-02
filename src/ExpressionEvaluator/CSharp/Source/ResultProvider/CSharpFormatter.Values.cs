@@ -20,8 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // We're showing the type of a value, so "dynamic" does not apply.
                 bool unused;
-                int index = 0;
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, default(DynamicFlagsCustomTypeInfo), ref index, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
+                int index1 = 0;
+                int index2 = 0;
+                AppendQualifiedTypeName(
+                    builder,
+                    typeToDisplayOpt,
+                    null,
+                    ref index1,
+                    null,
+                    ref index2,
+                    escapeKeywordIdentifiers: true,
+                    sawInvalidIdentifier: out unused);
                 builder.Append('.');
                 AppendIdentifierEscapingPotentialKeywords(builder, name, sawInvalidIdentifier: out unused);
             }

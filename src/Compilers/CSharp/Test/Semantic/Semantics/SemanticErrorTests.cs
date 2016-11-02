@@ -4039,9 +4039,14 @@ public class iii
    }
 }";
             var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
-            DiagnosticsUtils.VerifyErrorCodes(
-                comp,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+            comp.VerifyDiagnostics(
+                // (18,15): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
+                //       switch (a)   // CS0151, compiler cannot choose between int and long
+                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(18, 15),
+                // (20,15): error CS0029: Cannot implicitly convert type 'int' to 'iii'
+                //          case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "iii").WithLocation(20, 15)
+                );
         }
 
         [Fact]
@@ -7713,11 +7718,18 @@ class Test
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "w"),
+                //       using (StreamWriter w) // CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
                 // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x"),
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
                 // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y"));
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
+                // (9,10): error CS0165: Use of unassigned local variable 'w'
+                //          w.WriteLine("Hello there");
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(9, 10)
+                );
         }
 
         [Fact]
@@ -19939,11 +19951,6 @@ class MyClass
         table[p] = o;
     }
 }
-
-abstract class Foo
-{
-    public int x; // no diagnostic when in abstract class (for no apparent reason except that's the way Dev10 does it)
-}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
@@ -23108,7 +23115,20 @@ namespace System
         public T2 Item2;
         public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
     }
-}";
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Indicates that the use of <see cref=""System.ValueTuple""/> on a member is meant to be treated as a tuple with element names.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct )]
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.

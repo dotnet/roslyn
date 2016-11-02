@@ -77,6 +77,7 @@ var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Ne
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
+    "Microsoft.Codeanalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
@@ -86,6 +87,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.EditorFeatures",
     "Microsoft.CodeAnalysis.EditorFeatures.Text",
     "Microsoft.CodeAnalysis.Features",
+    "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Scripting.Common",
     "Microsoft.CodeAnalysis.Scripting",
@@ -114,9 +116,11 @@ string[] TestPackageNames = {
 // or they will not be published anywhere at all
 var PreReleaseOnlyPackages = new HashSet<string>
 {
+    "Microsoft.CodeAnalysis.Build.Tasks",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
     "Microsoft.VisualStudio.LanguageServices.Next",

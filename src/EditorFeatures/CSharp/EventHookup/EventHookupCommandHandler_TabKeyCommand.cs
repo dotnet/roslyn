@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 nextHandler();
                 return;

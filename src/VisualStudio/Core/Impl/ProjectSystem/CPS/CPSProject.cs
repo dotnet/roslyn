@@ -13,8 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : AbstractProject
     {
-        private bool _lastDesignTimeBuildSucceeded;
-
         public CPSProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -23,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             IVsHierarchy hierarchy,
             string language,
             Guid projectGuid,
-            string commandLineForOptions,
+            string binOutputPath,
             IServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
@@ -31,43 +29,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath,
                    hierarchy, language, projectGuid, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
         {
-            // Initialize the options.
-            SetCommandLineArguments(commandLineForOptions);
-
-            // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
-            // If we were unable to set the output path from SetCommandLineArguments (due to null output file name or directory in the given commandLineForOptions),
-            // we set a default unique output path.
-            if (this.TryGetBinOutputPath() == null)
+            if (binOutputPath != null)
             {
-                var uniqueDefaultOutputPath = PathUtilities.CombinePathsUnchecked(Path.GetTempPath(), projectDisplayName + projectGuid.GetHashCode().ToString());
-                SetOutputPathAndRelatedData(objOutputPath: uniqueDefaultOutputPath, hasSameBinAndObjOutputPaths: true);
+                // Ensure that binOutputPath is either null or a rooted path.
+                // CPS might provide such invalid paths during initialization or when project is in unrestored state.
+                if (binOutputPath == String.Empty)
+                {
+                    binOutputPath = null;
+                }
+                else if (!PathUtilities.IsAbsolute(binOutputPath))
+                {
+                    // Make it a rooted path.
+                    var basePath = PathUtilities.IsAbsolute(projectFilePath) ? PathUtilities.GetDirectoryName(projectFilePath) : Path.GetTempPath();
+                    binOutputPath = PathUtilities.CombineAbsoluteAndRelativePaths(basePath, binOutputPath);
+                }
             }
 
-            Contract.ThrowIfNull(this.TryGetBinOutputPath());
+            // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
+            SetBinOutputPathAndRelatedData(binOutputPath);
 
             // Now hook up the project to the project tracker.
             projectTracker.AddProject(this);
-
-            _lastDesignTimeBuildSucceeded = true;
         }
-
-        protected sealed override bool TryGetOutputPathFromHierarchy(out string binOutputPath)
-        {
-            throw new NotSupportedException();
-        }
-
-        protected sealed override bool LastDesignTimeBuildSucceeded => _lastDesignTimeBuildSucceeded;
 
         // We might we invoked from a background thread, so schedule the disconnect on foreground task scheduler.
         public sealed override void Disconnect()
         {
-            InvokeBelowInputPriority(() =>
+            if (IsForeground())
             {
-                // clear code model cache and shutdown instances, if any exists.
-                _projectCodeModel?.OnProjectClosed();
+                DisconnectCore();
+            }
+            else
+            {
+                InvokeBelowInputPriority(DisconnectCore);
+            }
+        }
 
-                base.Disconnect();
-            });
+        private void DisconnectCore()
+        {
+            // clear code model cache and shutdown instances, if any exists.
+            _projectCodeModel?.OnProjectClosed();
+
+            base.Disconnect();
         }
     }
 }

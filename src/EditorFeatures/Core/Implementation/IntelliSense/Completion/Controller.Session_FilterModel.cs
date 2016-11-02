@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -131,13 +132,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var filterResults = new List<FilterResult>();
 
-                var filterText = model.GetCurrentTextInSnapshot(model.OriginalList.Span, textSnapshot, textSpanToText);
+                var filterText = model.GetCurrentTextInSnapshot(
+                    model.OriginalList.Span, textSnapshot, textSpanToText);
 
-                // If the user was typing a number, then immediately dismiss completion.
+                // Check if the user is typing a number.  If so, only proceed if it's a number
+                // directly after a <dot>.  That's because it is actually reasonable for completion
+                // to be brought up after a <dot> and for the user to want to filter completion
+                // items based on a number that exists in the name of the item.  However, when 
+                // we are not after a dot (i.e. we're being brought up after <space> is typed)
+                // then we don't want to filter things.  Consider the user writing:
+                //
+                //      dim i =<space>
+                //
+                // We'll bring up the completion list here (as VB has completion on <space>). 
+                // If the user then types '3', we don't want to match against Int32.
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    return null;
+                    if (!IsAfterDot(model, textSnapshot, textSpanToText))
+                    {
+                        return null;
+                    }
                 }
 
                 foreach (var currentItem in model.TotalItems)
@@ -150,13 +165,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem.Item, filterState))
+                    if (ItemIsFilteredOut(currentItem, filterState))
                     {
                         continue;
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = MatchesFilterText(helper, currentItem, filterText, model.Trigger, filterReason, recentItems);
 
                     if (matchesFilterText)
                     {
@@ -196,6 +211,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     helper, recentItems, filterText, filterResults);
             }
 
+            private Boolean IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            {
+                var span = model.OriginalList.Span;
+
+                // Move the span back one character if possible.
+                span = TextSpan.FromBounds(Math.Max(0, span.Start - 1), span.End);
+
+                var text = model.GetCurrentTextInSnapshot(span, textSnapshot, textSpanToText);
+                return text.Length > 0 && text[0] == '.';
+            }
+
             private Model HandleNormalFiltering(
                 Model model,
                 Document document,
@@ -211,9 +237,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Ask the language to determine which of the *matched* items it wants to select.
                 var service = this.Controller.GetCompletionService();
+                if (service == null)
+                {
+                    return null;
+                }
 
                 var matchingCompletionItems = filterResults.Where(r => r.MatchedFilterText)
-                                                           .Select(t => t.PresentationItem.Item)
+                                                           .Select(t => t.CompletionItem)
                                                            .AsImmutable();
                 var chosenItems = service.FilterItems(
                     document, matchingCompletionItems, filterText);
@@ -222,12 +252,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var bestCompletionItem = GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
 
                 // If we don't have a best completion item yet, then pick the first item from the list.
-                var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().PresentationItem.Item;
-                var bestOrFirstPresentationItem = filterResults.Where(
-                    r => r.PresentationItem.Item == bestOrFirstCompletionItem).First().PresentationItem;
+                var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
 
                 var hardSelection = IsHardSelection(
-                    model, bestOrFirstPresentationItem, textSnapshot, helper, filterReason);
+                    model, bestOrFirstCompletionItem, textSnapshot, helper, filterReason);
 
                 // Determine if we should consider this item 'unique' or not.  A unique item
                 // will be automatically committed if the user hits the 'invoke completion' 
@@ -241,8 +269,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     matchingItemCount == 1 &&
                     filterText.Length > 0;
 
-                var result = model.WithFilteredItems(filterResults.Select(r => r.PresentationItem).AsImmutable())
-                                  .WithSelectedItem(bestOrFirstPresentationItem)
+                var result = model.WithFilteredItems(filterResults.Select(r => r.CompletionItem).AsImmutable())
+                                  .WithSelectedItem(bestOrFirstCompletionItem)
                                   .WithHardSelection(hardSelection)
                                   .WithIsUnique(isUnique);
 
@@ -256,14 +284,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             private CompletionItem GetBestCompletionItemBasedOnMRU(
                 ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
             {
+                if (chosenItems.Length == 0)
+                {
+                    return null;
+                }
+
+                // Try to find the chosen item has been most
+                // recently used.
                 var bestItem = chosenItems.FirstOrDefault();
-                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                for (int i = 0, n = chosenItems.Length; i < n; i++)
                 {
                     var chosenItem = chosenItems[i];
                     var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
                     var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
 
                     if (mruIndex2 < mruIndex1)
+                    {
+                        bestItem = chosenItem;
+                    }
+                }
+
+                // If our best item appeared in the MRU list, use it
+                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
+                {
+                    return bestItem;
+                }
+
+                // Otherwise use the chosen item that has the highest
+                // matchPriority.
+                for (int i = 1, n = chosenItems.Length; i < n; i++)
+                {
+                    var chosenItem = chosenItems[i];
+                    var bestItemPriority = bestItem.Rules.MatchPriority;
+                    var currentItemPriority = chosenItem.Rules.MatchPriority;
+
+                    if (currentItemPriority > bestItemPriority)
                     {
                         bestItem = chosenItem;
                     }
@@ -292,12 +347,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // (which can happen if the user deletes down to a single character and we
                 // include everything), then we just soft select the first item.
 
-                var filteredItems = filterResults.Select(r => r.PresentationItem).AsImmutable();
+                var filteredItems = filterResults.Select(r => r.CompletionItem).AsImmutable();
                 model = model.WithFilteredItems(filteredItems);
 
                 if (bestFilterResult != null)
                 {
-                    return model.WithSelectedItem(bestFilterResult.Value.PresentationItem)
+                    return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
                                 .WithHardSelection(true)
                                 .WithIsUnique(matchCount == 1);
                 }
@@ -310,8 +365,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
             {
-                var item1 = result1.PresentationItem.Item;
-                var item2 = result2.PresentationItem.Item;
+                var item1 = result1.CompletionItem;
+                var item2 = result2.CompletionItem;
 
                 var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(result1.FilterText);
                 var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(result2.FilterText);
@@ -340,13 +395,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private struct FilterResult
             {
-                public readonly PresentationItem PresentationItem;
+                public readonly CompletionItem CompletionItem;
                 public readonly bool MatchedFilterText;
                 public readonly string FilterText;
 
-                public FilterResult(PresentationItem presentationItem, string filterText, bool matchedFilterText)
+                public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
                 {
-                    PresentationItem = presentationItem;
+                    CompletionItem = completionItem;
                     MatchedFilterText = matchedFilterText;
                     FilterText = filterText;
                 }
@@ -372,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // If the user has turned on some filtering states, and we filtered down to 
                     // nothing, then we do want the UI to show that to them.  That way the user
                     // can turn off filters they don't want and get the right set of items.
-                    return model.WithFilteredItems(ImmutableArray<PresentationItem>.Empty)
+                    return model.WithFilteredItems(ImmutableArray<CompletionItem>.Empty)
                                 .WithFilterText("")
                                 .WithHardSelection(false)
                                 .WithIsUnique(false);
@@ -414,17 +469,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return true;
                     }
 
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0)
+                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
                     {
                         return true;
                     }
-                }
-
-                if (filterText.Length > 0 && IsAllDigits(filterText))
-                {
-                    // The user is just typing a number.  We never want this to match against
-                    // anything we would put in a completion list.
-                    return false;
                 }
 
                 return helper.MatchesFilterText(item, filterText, CultureInfo.CurrentCulture);
@@ -480,16 +528,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsHardSelection(
                 Model model,
-                PresentationItem bestFilterMatch,
+                CompletionItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
-                if (model.SuggestionModeItem != null)
-                {
-                    return bestFilterMatch != null && bestFilterMatch.Item.DisplayText == model.SuggestionModeItem.Item.DisplayText;
-                }
-
                 if (bestFilterMatch == null || model.UseSuggestionMode)
                 {
                     return false;
@@ -506,11 +549,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Item.Span);
+                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
                 var trigger = model.Trigger;
-                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
+                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -518,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(completionHelper, bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -40,9 +42,16 @@ namespace Microsoft.CodeAnalysis.Options
             // Can be null during testing.
             private readonly IWorkspaceTaskScheduler _taskQueue;
 
+            /// <summary>
+            /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
+            /// </summary>
             private readonly object _gate = new object();
+
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
+
+            private ImmutableArray<IDocumentOptionsProvider> _documentOptionsProviders =
+                ImmutableArray<IDocumentOptionsProvider>.Empty;
 
             public OptionService(
                 IGlobalOptionService globalOptionService,
@@ -65,17 +74,16 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                var eventHandlers = GetEventHandlers();
-                if (eventHandlers.Length > 0)
+                _taskQueue?.ScheduleTask(() =>
                 {
-                    _taskQueue?.ScheduleTask(() =>
+                    // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
+                    // but getting the event later on the UI thread
+                    var eventHandlers = GetEventHandlers();
+                    foreach (var handler in eventHandlers)
                     {
-                        foreach (var handler in eventHandlers)
-                        {
-                            handler(this, e);
-                        }
-                    }, "OptionsService.SetOptions");
-                }
+                        handler(this, e);
+                    }
+                }, "OptionsService.SetOptions");
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
@@ -98,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 remove
                 {
-                    lock(_gate)
+                    lock (_gate)
                     {
                         _eventHandlers = _eventHandlers.Remove(value);
                     }
@@ -116,6 +124,101 @@ namespace Microsoft.CodeAnalysis.Options
             public T GetOption<T>(PerLanguageOption<T> option, string languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+
+            public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
+            {
+                lock (_gate)
+                {
+                    _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
+                }
+            }
+
+            public async Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+            {
+                ImmutableArray<IDocumentOptionsProvider> documentOptionsProviders;
+
+                lock (_gate)
+                {
+                    documentOptionsProviders = _documentOptionsProviders;
+                }
+
+                var realizedDocumentOptions = new List<IDocumentOptions>();
+
+                foreach (var provider in documentOptionsProviders)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var documentOption = await provider.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+                    if (documentOption != null)
+                    {
+                        realizedDocumentOptions.Add(documentOption);
+                    }
+                }
+
+                return new DocumentSpecificOptionSet(document, realizedDocumentOptions, optionSet);
+            }
+
+            private class DocumentSpecificOptionSet : OptionSet
+            {
+                private readonly Document _document;
+                private readonly OptionSet _underlyingOptions;
+                private readonly List<IDocumentOptions> _documentOptions;
+                private readonly object _gate = new object();
+                private ImmutableDictionary<OptionKey, object> _values;
+
+                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
+                    : this(document, documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object>.Empty)
+                {
+                }
+
+                public DocumentSpecificOptionSet(Document document, List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object> values)
+                {
+                    _document = document;
+                    _documentOptions = documentOptions;
+                    _underlyingOptions = underlyingOptions;
+                    _values = values;
+                }
+
+                public override object GetOption(OptionKey optionKey)
+                {
+                    // If we already know the document specific value, we're done
+                    object value;
+                    if (_values.TryGetValue(optionKey, out value))
+                    {
+                        return value;
+                    }
+
+                    foreach (var documentOptionSource in _documentOptions)
+                    {
+                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, out value))
+                        {
+                            // Cache and return
+                            lock (_gate)
+                            {
+                                _values = _values.Add(optionKey, value);
+                            }
+
+                            return value;
+                        }
+                    }
+
+                    // We don't have a document specific value, so forward
+                    return _underlyingOptions.GetOption(optionKey);
+                }
+
+                public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+                {
+                    return new DocumentSpecificOptionSet(_document, _documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
+                }
+
+                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
+                {
+                    // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
+                    // but that's already enforced it must be a full WorkspaceOptionSet.
+                    throw new NotSupportedException();
+                }
+            }
         }
     }
 }

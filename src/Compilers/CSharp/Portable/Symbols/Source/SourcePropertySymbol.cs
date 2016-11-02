@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (accessor.Body != null)
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         notRegularProperty = false;
                     }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
                     if (_lazyType.Equals(overriddenPropertyType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
+                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, this.ContainingAssembly);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -1047,13 +1047,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length, _refKind));
             }
 
-            if (Type.ContainsTuple())
+            if (Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 

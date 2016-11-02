@@ -12,12 +12,15 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
     internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
     {
+        private const int MetadataFailed = int.MaxValue;
+
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
         private readonly ITemporaryStorageService _storageService;
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(reference, writer, cancellationToken);
 
@@ -92,6 +95,14 @@ namespace Microsoft.CodeAnalysis.Execution
             var file = reference as AnalyzerFileReference;
             if (file != null)
             {
+                // fail to load analyzer assembly
+                var assemblyPath = TryGetAnalyzerAssemblyPath(file);
+                if (assemblyPath == null)
+                {
+                    WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                    return;
+                }
+
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteInt32((int)SerializationKinds.FilePath);
 
@@ -104,7 +115,14 @@ namespace Microsoft.CodeAnalysis.Execution
                 // snapshot version for analyzer (since it is based on shadow copy)
                 // we can't send over bits and load analyer from memory (image) due to CLR not being able
                 // to find satellite dlls for analyzers.
-                writer.WriteString(GetAnalyzerAssemblyPath(file));
+                writer.WriteString(assemblyPath);
+                return;
+            }
+
+            var unresolved = reference as UnresolvedAnalyzerReference;
+            if (unresolved != null)
+            {
+                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
                 return;
             }
 
@@ -113,14 +131,6 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // TODO: think a way to support this or a way to deal with this kind of situation.
                 throw new NotSupportedException(nameof(AnalyzerImageReference));
-            }
-
-            var unresolved = reference as UnresolvedAnalyzerReference;
-            if (unresolved != null)
-            {
-                writer.WriteString(nameof(UnresolvedAnalyzerReference));
-                writer.WriteString(reference.FullPath);
-                return;
             }
 
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
@@ -158,6 +168,11 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(nameof(PortableExecutableReference));
             writer.WriteInt32((int)kind);
 
+            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+        }
+
+        private void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
             WriteTo(reference.Properties, writer, cancellationToken);
             writer.WriteString(reference.FilePath);
         }
@@ -165,18 +180,24 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                WriteMvidsTo(reference, writer, cancellationToken);
+                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+                WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
 
                 stream.Position = 0;
                 return Checksum.Create(stream);
             }
         }
 
-        private void WriteMvidsTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteMvidsTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var metadata = GetMetadata(reference);
+            if (metadata == null)
+            {
+                // handle error case where we couldn't load metadata of the reference.
+                // this basically won't write anything to writer
+                return;
+            }
 
             var assemblyMetadata = metadata as AssemblyMetadata;
             if (assemblyMetadata != null)
@@ -203,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             writer.WriteInt32((int)metadata.Kind);
 
-            var metadataReader = GetMetadataReader(metadata);
+            var metadataReader = metadata.GetMetadataReader();
 
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
@@ -215,16 +236,10 @@ namespace Microsoft.CodeAnalysis.Execution
             PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
-            WritePortableExecutableReferenceMetadataTo(reference, writer, cancellationToken);
+
+            WriteTo(TryGetMetadata(reference), writer, cancellationToken);
 
             // TODO: what I should do with documentation provider? it is not exposed outside
-        }
-
-        private void WritePortableExecutableReferenceMetadataTo(
-            PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            var metadata = GetMetadata(reference);
-            WriteTo(metadata, writer, cancellationToken);
         }
 
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -236,11 +251,19 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 var filePath = reader.ReadString();
 
-                var tuple = ReadMetadataFrom(reader, kind, cancellationToken);
+                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
+                if (tuple == null)
+                {
+                    // TODO: deal with xml document provider properly
+                    //       should we shadow copy xml doc comment?
+
+                    // image doesn't exist
+                    return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
+                }
 
                 // TODO: deal with xml document provider properly
-                //       should be shadow copy xml doc comment?
-                return new SerializedMetadataReference(properties, filePath, tuple.Item1, tuple.Item2, XmlDocumentationProvider.Default);
+                //       should we shadow copy xml doc comment?
+                return new SerializedMetadataReference(properties, filePath, tuple.Value.Item1, tuple.Value.Item2, XmlDocumentationProvider.Default);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -268,6 +291,13 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private void WriteTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            if (metadata == null)
+            {
+                // handle error case where metadata failed to load
+                writer.WriteInt32(MetadataFailed);
+                return;
+            }
+
             var assemblyMetadata = metadata as AssemblyMetadata;
             if (assemblyMetadata != null)
             {
@@ -325,10 +355,17 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        private ValueTuple<Metadata, ImmutableArray<ITemporaryStreamStorage>> ReadMetadataFrom(
+        private ValueTuple<Metadata, ImmutableArray<ITemporaryStreamStorage>>? TryReadMetadataFrom(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
-            var metadataKind = (MetadataImageKind)reader.ReadInt32();
+            var imageKind = reader.ReadInt32();
+            if (imageKind == MetadataFailed)
+            {
+                // error case
+                return null;
+            }
+
+            var metadataKind = (MetadataImageKind)imageKind;
             if (metadataKind == MetadataImageKind.Assembly)
             {
                 using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
@@ -427,10 +464,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             PinnedObject pinnedObject;
+            ArraySegment<byte> buffer;
             var memory = stream as MemoryStream;
-            if (memory != null && PortableShim.MemoryStream.GetBuffer != null)
+            if (memory != null &&
+                memory.TryGetBuffer(out buffer) &&
+                buffer.Offset == 0)
             {
-                pinnedObject = new PinnedObject((byte[])PortableShim.MemoryStream.GetBuffer.Invoke(memory, null), length);
+                pinnedObject = new PinnedObject(buffer.Array, buffer.Count);
             }
             else
             {
@@ -456,37 +496,55 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             writer.WriteInt32((int)metadata.Kind);
 
-            var metadataReader = GetMetadataReader(metadata);
-            WriteTo(metadataReader, writer, cancellationToken);
+            WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
         }
 
-        private void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
+        private unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var blockFieldInfo = reader.GetType().GetTypeInfo().GetDeclaredField("Block");
-            var block = blockFieldInfo.GetValue(reader);
+            var length = reader.MetadataLength;
 
-            // TODO: once things become public API, change it to copy stream over byte* and length from metadata reader
-            var toArrayFieldInfo = block.GetType().GetTypeInfo().GetDeclaredMethod("ToArray");
-            var array = (byte[])toArrayFieldInfo.Invoke(block, null);
+            // TODO: any way to avoid allocating byte array here?
+            var bytes = new byte[length];
+            Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
-            writer.WriteValue(array);
+            writer.WriteValue(bytes);
         }
 
-        private MetadataReader GetMetadataReader(ModuleMetadata metadata)
+        private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
         {
-            // TODO: right now, use reflection, but this API will be added as public API soon. when that happen, remove reflection
-            var metadataReaderPropertyInfo = metadata.GetType().GetTypeInfo().GetDeclaredProperty("MetadataReader");
-            var metadataReader = (MetadataReader)metadataReaderPropertyInfo.GetValue(metadata);
-            return metadataReader;
+            writer.WriteString(nameof(UnresolvedAnalyzerReference));
+            writer.WriteString(reference.FullPath);
         }
 
-        private Metadata GetMetadata(PortableExecutableReference reference)
+        private static Metadata TryGetMetadata(PortableExecutableReference reference)
         {
-            // TODO: right now, use reflection, but this API will be added as public API soon. when that happen, remove reflection
-            var methodInfo = reference.GetType().GetTypeInfo().GetDeclaredMethod("GetMetadataImpl");
-            return (Metadata)methodInfo.Invoke(reference, null);
+            try
+            {
+                return reference.GetMetadata();
+            }
+            catch
+            {
+                // we have a reference but the file the reference is pointing to
+                // might not actually exist on disk.
+                // in that case, rather than crashing, we will handle it gracefully.
+                return null;
+            }
+        }
+
+        private string TryGetAnalyzerAssemblyPath(AnalyzerFileReference file)
+        {
+            try
+            {
+                return GetAnalyzerAssemblyPath(file);
+            }
+            catch
+            {
+                // we can't load the assembly analyzer file reference is pointing to.
+                // rather than crashing, handle it gracefully
+                return null;
+            }
         }
 
         private sealed class PinnedObject : IDisposable
@@ -520,6 +578,41 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 GC.SuppressFinalize(this);
                 OnDispose();
+            }
+        }
+
+        private sealed class MissingMetadataReference : PortableExecutableReference
+        {
+            private readonly DocumentationProvider _provider;
+
+            public MissingMetadataReference(
+                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation) :
+                base(properties, fullPath, initialDocumentation)
+            {
+                // TODO: doc comment provider is a bit wierd.
+                _provider = initialDocumentation;
+            }
+
+            protected override DocumentationProvider CreateDocumentationProvider()
+            {
+                // TODO: properly implement this
+                return null;
+            }
+
+            protected override Metadata GetMetadataImpl()
+            {
+                // we just throw "FileNotFoundException" even if it might not be actual reason
+                // why metadata has failed to load. in this context, we don't care much on actual
+                // reason. we just need to maintain failure when re-constructing solution to maintain
+                // snapshot integrity. 
+                //
+                // if anyone care actual reason, he should get that info from original Solution.
+                throw new FileNotFoundException(FilePath);
+            }
+
+            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+            {
+                return new MissingMetadataReference(properties, FilePath, _provider);
             }
         }
 

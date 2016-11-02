@@ -143,6 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // x ?? (throw ...) -> x ?? throw ...
+            if (expression.IsKind(SyntaxKind.ThrowExpression) &&
+                node.IsParentKind(SyntaxKind.CoalesceExpression) &&
+                ((BinaryExpressionSyntax)node.Parent).Right == node)
+            {
+                return true;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.

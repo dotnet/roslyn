@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, node.BreakLabel, node);
 
-            // Create the sequence point if generating debug info and
-            // node is not compiler generated
+            // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
                 rewrittenStatement = _instrumenter.InstrumentSwitchStatement(node, rewrittenStatement);
@@ -184,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax,
                 locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: statementBuilder.ToImmutableAndFree());
         }
 

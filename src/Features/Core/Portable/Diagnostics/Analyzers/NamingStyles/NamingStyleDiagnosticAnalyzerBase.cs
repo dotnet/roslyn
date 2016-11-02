@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -12,6 +11,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+
+        // Individual diagnostics have their own descriptors, so this is just used to satisfy the
+        // SupportedDiagnostics API. The DiagnosticSeverity must be "Hidden" to avoid running on closed
+        // documents.
         private static readonly DiagnosticDescriptor s_descriptorNamingStyle = new DiagnosticDescriptor(
             IDEDiagnosticIds.NamingRuleId,
             s_localizableTitleNamingStyle,
@@ -33,18 +36,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }.ToImmutableArray();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorNamingStyle);
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.RegisterCompilationStartAction(CompilationStartAction);
         }
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
             var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Workspace;
-            var categorizationService = workspace.Services.GetService<ISymbolCategorizationService>();
-
             var optionSet = (context.Options as WorkspaceAnalyzerOptions)?.Workspace.Options;
             var currentValue = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
 
@@ -58,15 +60,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 var viewModel = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(currentValue));
                 var preferencesInfo = viewModel.GetPreferencesInfo();
                 context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo, categorizationService),
+                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
                     _symbolKinds);
             }
         }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences, ISymbolCategorizationService categorizationService)
+        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
         {
             NamingRule applicableRule;
-            if (preferences.TryGetApplicableRule(context.Symbol, categorizationService, out applicableRule))
+            if (preferences.TryGetApplicableRule(context.Symbol, out applicableRule))
             {
                 string failureReason;
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
+                         string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);

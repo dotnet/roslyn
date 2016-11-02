@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -10,7 +11,8 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveDocCommentNode), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpRemoveDocCommentNodeCodeFixProvider : AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax>
+    internal class CSharpRemoveDocCommentNodeCodeFixProvider : 
+        AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax, XmlTextSyntax>
     {
         /// <summary>
         /// Duplicate param tag
@@ -33,5 +35,27 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         protected override SyntaxTriviaList GetRevisedDocCommentTrivia(string docCommentText)
             => SyntaxFactory.ParseLeadingTrivia(docCommentText);
+
+        protected override SyntaxTokenList GetTextTokens(XmlTextSyntax xmlText)
+            => xmlText.TextTokens;
+
+        protected override bool IsXmlWhitespaceToken(SyntaxToken token)
+            => token.Kind() == SyntaxKind.XmlTextLiteralToken && IsWhitespace(token.Text);
+
+        protected override bool IsXmlNewLineToken(SyntaxToken token)
+            => token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+
+        private bool IsWhitespace(string text)
+        {
+            foreach (var c in text)
+            {
+                if (!SyntaxFacts.IsWhitespace(c))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

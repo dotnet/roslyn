@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,6 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 @"using System . Collections . Generic ; class Z { [|int a ;|] } ",
 @"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) { this . a = a ; } } ",
 index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestSingleFieldWithCodeStyle()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Z { [|int a ;|] } ",
+@"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) => this . a = a ; } ",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -191,6 +201,25 @@ index: 1);
 index: 0,
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
+        }
+
+        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUnderscoreInName1()
+        {
+            await TestAsync(
+@"class Program { [|int _field ;|] } ",
+@"class Program { int _field ; public Program ( int field ) { _field = field ; } } ");
+        }
+
+        [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUnderscoreInName_PreferThis()
+        {
+            await TestAsync(
+@"class Program { [|int _field ;|] } ",
+@"class Program { int _field ; public Program ( int field ) { this._field = field ; } } ",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
     }
 }

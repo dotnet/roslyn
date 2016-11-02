@@ -422,31 +422,55 @@ a.vb
             Dim args As VisualBasicCommandLineArguments
 
             args = DefaultParse({}, _baseDirectory)
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
             args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
             args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.Equal("", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
-            args = DefaultParse({"/instrument:Test.Flag.Name", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test.Flag.Name", args.EmitOptions.Instrument)
+            args = DefaultParse({"/instrument:InvalidOption", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
 
-            args = DefaultParse({"/instrument:""Test Flag.Name""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/instrument:None", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("None").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
+
+            args = DefaultParse({"/instrument:""TestCoverage,InvalidOption""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test Flag.Name", args.EmitOptions.Instrument)
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:""TestCoverage""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:""TESTCOVERAGE""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage,TestCoverage", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+
+            args = DefaultParse({"/instrument:TestCoverage", "/instrument:TestCoverage", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
         End Sub
 
         <Fact>
@@ -929,6 +953,17 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version", "c"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(True, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version:something"}, _baseDirectory)
+            Assert.Equal(True, parsedArgs.Errors.Any())
+            Assert.False(parsedArgs.DisplayVersion)
             parsedArgs = InteractiveParse({"/?"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
@@ -7890,6 +7925,25 @@ End Class
                 New String() {"a,s.dll", "b,s.dll"},
                 args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
+
+        <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
+        <Fact()>
+        Public Sub Version()
+            Dim folderName = Temp.CreateDirectory().ToString()
+            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+
+            Dim argss = {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help"}
+
+            For Each args In argss
+                Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
+                Assert.Equal(expected, output.Trim())
+            Next
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

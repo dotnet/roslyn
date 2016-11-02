@@ -103,14 +103,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 int cardinality;
-                if (lmrType.IsTupleCompatible(out cardinality))
+                if (lmrType.IsTupleCompatible(out cardinality) && (cardinality > 1))
                 {
                     var values = ArrayBuilder<string>.GetInstance();
-                    value.GetTupleFieldValues(cardinality, values, inspectionContext);
-                    return IncludeObjectId(
-                        value,
-                        GetTupleExpression(values.ToArrayAndFree()),
-                        flags);
+                    if (value.TryGetTupleFieldValues(cardinality, values, inspectionContext))
+                    {
+                        return IncludeObjectId(
+                            value,
+                            GetTupleExpression(values.ToArrayAndFree()),
+                            flags);
+                    }
+                    values.Free();
                 }
             }
 

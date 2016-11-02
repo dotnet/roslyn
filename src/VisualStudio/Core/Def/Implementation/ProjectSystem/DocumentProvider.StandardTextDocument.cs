@@ -45,28 +45,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
 
+            /// <summary>
+            /// Creates a <see cref="StandardTextDocument"/>.
+            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
+            /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
                 IVisualStudioHostProject project,
                 DocumentKey documentKey,
-                IReadOnlyList<string> folderNames,
+                Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
-                DocumentId id)
+                DocumentId id,
+                EventHandler updatedOnDiskHandler,
+                EventHandler<bool> openedHandler,
+                EventHandler<bool> closingHandler)
             {
                 Contract.ThrowIfNull(documentProvider);
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
-                this.Folders = folderNames;
+                _itemMoniker = documentKey.Moniker;
+
+                var itemid = this.GetItemId();
+                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
+                    ? SpecializedCollections.EmptyReadOnlyList<string>()
+                    : getFolderNames(itemid);
 
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _itemMoniker = documentKey.Moniker;
                 _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
@@ -82,6 +93,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (openTextBuffer == null)
                 {
                     _fileChangeTracker.StartFileChangeListeningAsync();
+                }
+
+                if (updatedOnDiskHandler != null)
+                {
+                    UpdatedOnDisk += updatedOnDiskHandler;
+                }
+
+                if (openedHandler != null)
+                {
+                    Opened += openedHandler;
+                }
+
+                if (closingHandler != null)
+                {
+                    Closing += closingHandler;
                 }
             }
 
@@ -233,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssertIsForeground();
 
-                if (_itemMoniker == null)
+                if (_itemMoniker == null || Project.Hierarchy == null)
                 {
                     return (uint)VSConstants.VSITEMID.Nil;
                 }

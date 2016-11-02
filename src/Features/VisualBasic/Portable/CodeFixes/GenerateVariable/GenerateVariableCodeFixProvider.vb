@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateVariableService)()
             Return service.GenerateVariableAsync(document, node, cancellationToken)
         End Function
