@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            var interpolatedString = CreateInterpolatedString(firstStringToken, pieces);
+            var interpolatedString = CreateInterpolatedString(document, firstStringToken, pieces);
             context.RegisterRefactoring(new MyCodeAction(
                 c => UpdateDocumentAsync(document, root, top, interpolatedString, c)));
         }
@@ -91,8 +92,39 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
-        protected abstract SyntaxNode CreateInterpolatedString(
-            SyntaxToken firstStringToken, List<SyntaxNode> pieces);
+        protected SyntaxNode CreateInterpolatedString(
+            Document document, SyntaxToken firstStringToken, List<SyntaxNode> pieces)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = SyntaxGenerator.GetGenerator(document);
+
+            var startToken = CreateInterpolatedStringStartToken(firstStringToken)
+                                .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
+            var endToken = CreateInterpolatedStringEndToken()
+                                .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
+
+            var content = new List<SyntaxNode>();
+            foreach (var piece in pieces)
+            {
+                if (syntaxFacts.IsStringLiteralExpression(piece))
+                {
+                    var text = piece.GetFirstToken().Text;
+                    var textWithoutQuotes = GetTextWithoutQuotes(text, firstStringToken);
+                    content.Add(generator.InterpolatedStringText(
+                        generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                }
+                else
+                {
+                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                }
+            }
+
+            return generator.InterpolatedStringExpression(startToken, content, endToken);
+        }
+
+        protected abstract string GetTextWithoutQuotes(string text, SyntaxToken firstStringToken);
+        protected abstract SyntaxToken CreateInterpolatedStringStartToken(SyntaxToken firstStringToken);
+        protected abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         private bool SameLiteralKind(SyntaxNode literal1, SyntaxToken firstStringToken)
         {
