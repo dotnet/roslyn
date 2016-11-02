@@ -807,4 +807,7 @@ Additional information: {1}</value>
   <data name="Prefer_coalesce_expression" xml:space="preserve">
     <value>Prefer coalesce expression</value>
   </data>
+  <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
+    <value>Collapse #regions when collapsing to definitions</value>
+  </data>
 </root>
