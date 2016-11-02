@@ -111,30 +111,46 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
                 source, name, arity).ConfigureAwait(false);
 
-            var typesFromPackagesUsedInOtherProjects = new List<PackageWithTypeResult>();
-            var typesFromPackagesNotUsedInOtherProjects = new List<PackageWithTypeResult>();
+            return FilterAndOrderPackages(allPackagesWithType);
+        }
 
-            foreach (var packageWithType in allPackagesWithType)
+        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            string source, string assemblyName, CancellationToken cancellationToken)
+        {
+            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
+            var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
+                source, assemblyName).ConfigureAwait(false);
+
+            return FilterAndOrderPackages(allPackagesWithAssembly);
+        }
+
+        private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
+            ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
+        {
+            var packagesUsedInOtherProjects = new List<TPackageResult>();
+            var packagesNotUsedInOtherProjects = new List<TPackageResult>();
+
+            foreach (var package in allPackages)
             {
-                var resultList = _installerService.GetInstalledVersions(packageWithType.PackageName).Any()
-                    ? typesFromPackagesUsedInOtherProjects
-                    : typesFromPackagesNotUsedInOtherProjects;
+                var resultList = _installerService.GetInstalledVersions(package.PackageName).Any()
+                    ? packagesUsedInOtherProjects
+                    : packagesNotUsedInOtherProjects;
 
-                resultList.Add(packageWithType);
+                resultList.Add(package);
             }
 
-            var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
+            var result = ArrayBuilder<TPackageResult>.GetInstance();
 
             // We always returm types from packages that we've use elsewhere in the project.
-            result.AddRange(typesFromPackagesUsedInOtherProjects);
+            result.AddRange(packagesUsedInOtherProjects);
 
             // For all other hits include as long as the popularity is high enough.  
             // Popularity ranks are in powers of two.  So if two packages differ by 
             // one rank, then one is at least twice as popular as the next.  Two 
             // ranks would be four times as popular.  Three ranks = 8 times,  etc. 
             // etc.  We keep packages that within 1 rank of the best package we find.
-            int? bestRank = null;
-            foreach (var packageWithType in typesFromPackagesNotUsedInOtherProjects)
+            int? bestRank = packagesUsedInOtherProjects.LastOrDefault()?.Rank;
+            foreach (var packageWithType in packagesNotUsedInOtherProjects)
             {
                 var rank = packageWithType.Rank;
                 bestRank = bestRank == null ? rank : Math.Max(bestRank.Value, rank);
