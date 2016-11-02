@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             var formatMethods = stringType
-                .GetMembers("Format")
+                .GetMembers(nameof(string.Format))
                 .OfType<IMethodSymbol>()
                 .Where(ShouldIncludeFormatMethod)
                 .ToImmutableArray();
