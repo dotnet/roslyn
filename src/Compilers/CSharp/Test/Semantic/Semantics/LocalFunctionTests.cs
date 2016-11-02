@@ -79,6 +79,32 @@ class C
             }
             Local1<int>();
         }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Conflicts with method type parameter
+                    int T() => 0;
+                    return T();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Shadows M.2<T>
+                    int Local3<T>() => 0;
+                    return Local3<int>();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
     }
     public void V<V>() { }
 }";
@@ -104,7 +130,13 @@ class C
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
                 // (43,21): error CS0412: 'V': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                 int V() => 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21));
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21),
+                // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                     int T() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
+                // (67,32): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                //                     int Local3<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
         }
 
         [Fact]
