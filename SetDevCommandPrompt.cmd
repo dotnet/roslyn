@@ -8,5 +8,9 @@ if not exist "%CommonToolsDir%" for /f "usebackq delims=" %%v in (`powershell -n
 if not exist "%CommonToolsDir%" set CommonToolsDir=%VS140COMNTOOLS%
 if not exist "%CommonToolsDir%" exit /b 1
 
+:: VsDevCmd.bat has new behavior where it will change your working directory to a special folder if you have ever cloned from the VsDevCmd window, push and pop the current directory to workaround this
+pushd %~dp0
 call "%CommonToolsDir%\VsDevCmd.bat"
+popd
+
 exit /b 0
