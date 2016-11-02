@@ -233,8 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     addToMap = _enclosing;
                 }
 
-                AddToMap(node, addToMap);
-
                 if (body != null)
                 {
                     Visit(body, new InMethodBinder(match, addToMap));

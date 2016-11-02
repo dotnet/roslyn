@@ -451,8 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 
-            var binder = localSymbol.ScopeBinder;
-            var hasErrors = binder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            var hasErrors = localSymbol.ScopeBinder
+                .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             BoundBlock block;
             if (node.Body != null)
