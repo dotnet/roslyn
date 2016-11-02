@@ -99,7 +99,7 @@ if defined TestPerfRun (
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
-
+            mkdir ".\Binaries\%BuildConfiguration%\tools\"
             REM Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
             call "%RoslynRoot%\build\scripts\install_benchview_tools.cmd" ".\Binaries\%BuildConfiguration%\" || goto :BuildFailed
             dir ".\Binaries\%BuildConfiguration%\"
