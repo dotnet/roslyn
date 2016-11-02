@@ -1,5 +1,5 @@
 @echo off
-@setlocal
+@setlocal enabledelayedexpansion
 
 set RoslynRoot=%~dp0
 set DevDivPackages=%RoslynRoot%src\Setup\DevDivPackages
@@ -46,6 +46,14 @@ call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15Willow.project
 
 echo Restoring packages: Roslyn SDK
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\roslynsdk.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
+echo Locating MSBuild for Solution restore
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :RestoreFailed
+
+REM If we have an applocal copy of MSBuild, pass it to NuGet.  Otherwise, assume NuGet knows how to find it.
+if exist "%DevenvDir%\..\..\MSBuild\15.0\Bin\MSBuild.exe" (
+    set NuGetAdditionalCommandLineArgs=%NuGetAdditionalCommandLineArgs% -msbuildpath "%DevenvDir%\..\..\MSBuild\15.0\Bin"
+)
 
 echo Restoring packages: Samples
 call "%NugetExe%" restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
