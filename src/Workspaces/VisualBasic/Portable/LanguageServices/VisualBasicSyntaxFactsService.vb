@@ -1365,8 +1365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
-            Return TypeOf node Is LiteralExpressionSyntax AndAlso
-                IsStringLiteral(DirectCast(node, LiteralExpressionSyntax).Token)
+            Return node.Kind() = SyntaxKind.StringLiteralExpression
         End Function
 
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral

@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => token.IsKind(SyntaxKind.StringLiteralToken);
 
         public bool IsStringLiteralExpression(SyntaxNode node)
-            => node is LiteralExpressionSyntax && IsStringLiteral(((LiteralExpressionSyntax)node).Token);
+            => node.Kind() == SyntaxKind.StringLiteralExpression;
 
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
