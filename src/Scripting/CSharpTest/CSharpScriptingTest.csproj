@@ -72,7 +72,6 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
