@@ -125,8 +125,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var method = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol as IMethodSymbol;
             return method?.MethodKind == MethodKind.BuiltinOperator &&
-                   method.MetadataName == WellKnownMemberNames.AdditionOperatorName &&
-                   method.ContainingType.SpecialType == SpecialType.System_String;
+                   method.ContainingType.SpecialType == SpecialType.System_String &&
+                   (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
+                    method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
