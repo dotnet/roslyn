@@ -18,23 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
             SyntaxToken firstStringToken,
             List<SyntaxNode> pieces)
         {
-            //InterpolatedStringContentSyntax
-            //return SyntaxFactory.InterpolatedStringExpression()
-
             var isVerbatim = firstStringToken.IsVerbatimStringLiteral();
-            var firstTokenText = isVerbatim ? "$@\"" : "$\"";
 
-            var startToken = SyntaxFactory.Token(
-                pieces.First().GetLeadingTrivia(),
-                SyntaxKind.InterpolatedStringStartToken,
-                firstTokenText,
-                "",
-                SyntaxFactory.TriviaList());
+            var startToken = SyntaxFactory.Token(isVerbatim
+                ? SyntaxKind.InterpolatedVerbatimStringStartToken
+                : SyntaxKind.InterpolatedStringStartToken).WithLeadingTrivia(pieces.First().GetLeadingTrivia());
 
-            var endToken = SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(),
-                SyntaxKind.InterpolatedStringEndToken,
-                pieces.Last().GetTrailingTrivia());
+            var endToken = SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
+                                        .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
 
             var content = new List<InterpolatedStringContentSyntax>();
             foreach (var piece in pieces)
