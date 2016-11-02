@@ -97,6 +97,7 @@
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -213,7 +214,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
-    <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholdToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />

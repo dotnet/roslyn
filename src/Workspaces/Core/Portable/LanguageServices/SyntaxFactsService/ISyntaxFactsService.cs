@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsHashToken(SyntaxToken token);
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
+
         bool IsStringLiteral(SyntaxToken token);
+        bool IsStringLiteralExpression(SyntaxNode node);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
@@ -41,7 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
-
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpression(SyntaxNode node);
         SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
 
+        bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
