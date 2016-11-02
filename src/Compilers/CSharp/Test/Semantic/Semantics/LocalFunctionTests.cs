@@ -30,6 +30,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void TypeParameterBindingScope()
+        {
+            var src = @"
+class C
+{
+    public void M()
+    {
+        {
+            int T = 0; // Should not have error
+
+            int Local<T>() => 0; // Should conflict with above
+            Local<int>();
+            T++;
+        }
+        {
+            int T<T>() => 0;
+            T<int>();
+        }
+        {
+            int Local<T, T>() => 0;
+            Local<int, int>();
+        }
+    }
+    public void V<V>() { }
+}";
+            CreateCompilationWithMscorlib(src)
+                .VerifyDiagnostics(
+                // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int Local<T>() => 0; // Should conflict with above
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 23),
+                // (14,19): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int T<T>() => 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(14, 19),
+                // (18,26): error CS0692: Duplicate type parameter 'T'
+                //             int Local<T, T>() => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26));
+        }
+
+        [Fact]
         public void RefArgsInIteratorLocalFuncs()
         {
             var src = @"
