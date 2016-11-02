@@ -171,15 +171,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add qualification..
-        /// </summary>
-        internal static string Add_qualification {
-            get {
-                return ResourceManager.GetString("Add_qualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Add_reference_to_0 {

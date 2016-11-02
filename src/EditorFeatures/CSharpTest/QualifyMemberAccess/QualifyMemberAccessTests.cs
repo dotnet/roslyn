@@ -4,20 +4,22 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.QualifyMemberAccess;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.QualifyMemberAccess;
+using Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.QualifyMemberAccess
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
 {
     public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
+            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
+                new CSharpQualifyMemberAccessDiagnosticAnalyzer(),
+                new CSharpQualifyMemberAccessCodeFixProvider());
         }
 
         private Task TestAsyncWithOption(string code, string expected, PerLanguageOption<CodeStyleOption<bool>> option)

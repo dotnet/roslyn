@@ -170,8 +170,8 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
