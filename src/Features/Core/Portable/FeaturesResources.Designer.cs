@@ -3120,6 +3120,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use null propagation.
+        /// </summary>
+        internal static string Use_null_propagation {
+            get {
+                return ResourceManager.GetString("Use_null_propagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use pattern matching.
         /// </summary>
         internal static string Use_pattern_matching {

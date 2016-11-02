@@ -3549,6 +3549,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 (SimpleNameSyntax)simpleName);
         }
 
+        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+            => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+
+        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+            => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
+
+        internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
+            => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
+
         // parenthesize the left hand size of a member access, invocation or element access expression
         private ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {

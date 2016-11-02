@@ -105,7 +105,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
+
+        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
+        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
@@ -120,7 +124,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression);
         bool IsUsingDirectiveName(SyntaxNode node);
-
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
 

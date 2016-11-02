@@ -807,4 +807,7 @@ Additional information: {1}</value>
   <data name="Prefer_coalesce_expression" xml:space="preserve">
     <value>Prefer coalesce expression</value>
   </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
+  </data>
 </root>

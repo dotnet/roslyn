@@ -1151,4 +1151,7 @@ This version used in: {2}</value>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
   </data>
+  <data name="Use_null_propagation" xml:space="preserve">
+    <value>Use null propagation</value>
+  </data>
 </root>

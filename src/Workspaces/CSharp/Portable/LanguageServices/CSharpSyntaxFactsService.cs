@@ -567,19 +567,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.MemberBindingExpression)
-                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression())
+                ? GetExpressionOfConditionalAccessExpression(node.GetParentConditionalAccessExpression())
                 : (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
-        public SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node)
-        {
-            return (node as ConditionalAccessExpressionSyntax)?.Expression;
-        }
+        public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
+            => (node as ConditionalAccessExpressionSyntax)?.Expression;
+
+        public SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node)
+            => (node as ElementAccessExpressionSyntax)?.Expression;
+
+        public SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node)
+            => (node as ElementAccessExpressionSyntax)?.ArgumentList;
 
         public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
-        {
-            return (node as InterpolationSyntax)?.Expression;
-        }
+            => (node as InterpolationSyntax)?.Expression;
 
         public bool IsInStaticContext(SyntaxNode node)
         {
