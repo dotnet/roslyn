@@ -6,7 +6,8 @@ set NuGetExeVersion=3.6.0-beta1
 set NuGetExeFolder=%~dp0..\..
 set NuGetExe=%NuGetExeFolder%\NuGet.exe
 
-if "%VisualStudioVersion%" == "15.0" (
+REM If we have an applocal copy of MSBuild, pass it to NuGet.  Otherwise, assume NuGet knows how to find it.
+if exist "%DevenvDir%\..\..\MSBuild\15.0\Bin\MSBuild.exe" (
     set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%NuGetExeFolder%\nuget.config" -Project2ProjectTimeOut 1200 -msbuildpath "%DevenvDir%\..\..\MSBuild\15.0\Bin"
 ) else (
     set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%NuGetExeFolder%\nuget.config" -Project2ProjectTimeOut 1200
