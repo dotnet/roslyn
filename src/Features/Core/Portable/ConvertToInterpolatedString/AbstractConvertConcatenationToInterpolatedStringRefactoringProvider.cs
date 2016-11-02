@@ -13,10 +13,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
+    /// <summary>
+    /// Code refactoring that converts expresions of the form:  a + b + " str " + d + e
+    /// into:
+    ///     $"{a + b} str {d}{e}".
+    /// </summary>
     internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // Currently only supported if there is no selection.  We could consider relaxing
+            // this if the selection is of a string concatenation expression.
             if (context.Span.Length > 0)
             {
                 return;
@@ -25,45 +32,47 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var cancellationToken = context.CancellationToken;
 
             var document = context.Document;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var stringType = semanticModel.Compilation.GetSpecialType(SpecialType.System_String);
-            if (stringType == null)
-            {
-                return;
-            }
-
             var position = context.Span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            if (!token.Span.IntersectsWith(position))
+            // Cursor has to at least be touching a string token.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (!token.Span.IntersectsWith(position) || 
+                !syntaxFacts.IsStringLiteral(token))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsStringLiteral(token))
-            {
-                return;
-            }
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // The string literal has to at least be contained in a concatenation of some form.
+            // i.e.  "foo" + a      or     a + "foo".  However, those concats could be in larger
+            // concats as well.  Walk to the top of that entire chain.
 
             var literalExpression = token.Parent;
-            var literalParent = literalExpression.Parent;
-            if (!IsStringConcat(syntaxFacts, literalParent, semanticModel, cancellationToken))
-            {
-                return;
-            }
-
-            var top = literalParent;
+            var top = literalExpression;
             while (IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
                 top = top.Parent;
             }
 
+            if (top == literalExpression)
+            {
+                // We weren't in a concatenation at all.
+                return;
+            }
+
+            // Now walk down the concatenation collecting all the pieces that we are 
+            // concatenating.
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
+            // Make sure that all the string tokens we're concatenating are the same type
+            // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
+            // then we don't merge this.  We don't want to be munging differnet types of
+            // escape sequences in these strings, so we only support combining the string
+            // tokens if they're all teh same type.
             var firstStringToken = pieces.First(syntaxFacts.IsStringLiteralExpression).GetFirstToken();
             if (!pieces.Where(syntaxFacts.IsStringLiteralExpression).All(
                     lit => SameLiteralKind(lit, firstStringToken)))
