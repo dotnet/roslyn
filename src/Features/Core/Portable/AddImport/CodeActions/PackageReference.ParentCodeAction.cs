@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
                     // followed by an option to "Find and install latest version."
-                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName);
+                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName).NullToEmpty();
                     var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // First add the actions to install a specific version.
