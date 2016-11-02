@@ -9026,4 +9026,100 @@ Else 2
 Then 3
 Else 3")
     End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_13()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Test1()
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1, b1 = 0
+
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 2, b2 = 0
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1, b1 = 0
+                                   ~
+BC33104: 'If' operator requires either two or three operands.
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 2, b2 = 0
+                                                   ~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_14()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1 Else Return 2, b1 = 3
+
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 3 Else Return 4, b2 = 5
+    End Sub
+
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        Dim d1 = Function(val1) If val1 Is Nothing Then Return 1 Else Return 2, b1 = 3
+                                   ~
+BC33104: 'If' operator requires either two or three operands.
+        Dim d2 = Function(val2) If (val2 Is Nothing) Then Return 3 Else Return 4, b2 = 5
+                                                   ~
+</expected>)
+    End Sub
+
+    <Fact>
+    <WorkItem(14761, "https://github.com/dotnet/roslyn/issues/14761")>
+    Public Sub ParseLineIfFollwedByAnotherStatement_15()
+        Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Function Test1(val1) As System.Func(Of Object)
+        If val1 Is Nothing Then Return Function(val2) If val2 Is Nothing Then Return 1 Else Return 2 Else Return Nothing
+    End Function
+
+    Function Test2(val1) As System.Func(Of Object)
+        If val1 Is Nothing Then Return Function(val2) If (val2 Is Nothing) Then Return 1 Else Return 2 Else Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>
+
+        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30199: '(' expected.
+        If val1 Is Nothing Then Return Function(val2) If val2 Is Nothing Then Return 1 Else Return 2 Else Return Nothing
+                                                         ~
+BC42105: Function 'Test1' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+    End Function
+    ~~~~~~~~~~~~
+BC33104: 'If' operator requires either two or three operands.
+        If val1 Is Nothing Then Return Function(val2) If (val2 Is Nothing) Then Return 1 Else Return 2 Else Return Nothing
+                                                                         ~
+BC42105: Function 'Test2' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+    End Function
+    ~~~~~~~~~~~~
+</expected>)
+    End Sub
 End Class
