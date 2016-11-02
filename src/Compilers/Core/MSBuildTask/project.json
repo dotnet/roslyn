@@ -1,7 +1,7 @@
 ﻿{
     "dependencies": {
-        "Microsoft.Build": "14.3.0-prerelease01",
-        "Microsoft.Build.Tasks.Core": "14.3.0-prerelease01",
+        "Microsoft.Build": "14.3.0",
+        "Microsoft.Build.Tasks.Core": "14.3.0",
         "Microsoft.NETCore.Platforms": "1.0.1",
         "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
         "Microsoft.Win32.Primitives": "4.0.1",

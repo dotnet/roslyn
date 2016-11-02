@@ -91,9 +91,11 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
+    <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddMissingReference\InstallPackageParentCodeAction.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -101,9 +103,10 @@
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
     <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />
@@ -212,7 +215,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\AbstractConvertToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholdToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />

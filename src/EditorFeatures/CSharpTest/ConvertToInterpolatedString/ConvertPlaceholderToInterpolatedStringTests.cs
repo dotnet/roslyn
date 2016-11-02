@@ -1,16 +1,18 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertToInterpolatedString
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
-    public class ConvertToInterpolatedStringTests : AbstractCSharpCodeActionTest
+    public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace) =>
-            new ConvertToInterpolatedStringRefactoringProvider();
+            new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestSingleItemSubstitution()

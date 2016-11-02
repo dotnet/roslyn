@@ -139,7 +139,7 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
-    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />

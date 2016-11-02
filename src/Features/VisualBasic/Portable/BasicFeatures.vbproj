@@ -87,7 +87,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\AddMissingReference\VisualBasicAddMissingReferenceCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicAddAwaitCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
@@ -123,7 +123,7 @@
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
+    <Compile Include="ConvertToInterpolatedString\VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />

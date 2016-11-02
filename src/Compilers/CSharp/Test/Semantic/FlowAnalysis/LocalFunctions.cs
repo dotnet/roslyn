@@ -8,6 +8,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
+        public void AssignInsideCallToLocalFunc()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x;
+        int Local(int p1) => x++;
+
+        Local(x = 0);
+
+        int z;
+        int Local2(int p1, int p2) => z++;
+        Local2(z = 0, z++);
+    }
+
+    public void M2()
+    {
+        int x;
+        int Local(int p1) => x++;
+        int Local2(int p1) => Local(p1);
+        int Local3(int p1) => x + Local2(p1);
+
+        Local3(x = 0);
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
         public void UnreachableAfterThrow()
         {
