@@ -1,0 +1,1 @@
+static Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices.DefaultAssemblies.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>
