@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,10 +12,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
-    internal abstract class AbstractConvertToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TArgumentSyntax : SyntaxNode
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             var formatMethods = stringType
-                .GetMembers("Format")
+                .GetMembers(nameof(string.Format))
                 .OfType<IMethodSymbol>()
                 .Where(ShouldIncludeFormatMethod)
                 .ToImmutableArray();

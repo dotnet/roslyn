@@ -112,7 +112,7 @@
     <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />

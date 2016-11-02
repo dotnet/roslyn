@@ -120,7 +120,7 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.vb" />
+    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
