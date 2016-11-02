@@ -82,6 +82,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferCoalesceExpression),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCoalesceExpression"));
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
             nameof(PreferInlinedVariableDeclaration),

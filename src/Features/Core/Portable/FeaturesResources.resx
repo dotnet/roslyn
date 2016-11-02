@@ -1154,4 +1154,7 @@ This version used in: {2}</value>
   <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
     <value>Collection initialization can be simplified</value>
   </data>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
+  </data>
 </root>

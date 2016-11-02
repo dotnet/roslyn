@@ -3047,6 +3047,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use coalesce expression.
+        /// </summary>
+        internal static string Use_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {

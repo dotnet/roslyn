@@ -87,7 +87,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\AddMissingReference\VisualBasicAddMissingReferenceCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicAddAwaitCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
@@ -432,6 +432,8 @@
     <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
     <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
     <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
+    <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />

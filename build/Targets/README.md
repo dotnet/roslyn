@@ -6,17 +6,17 @@ The goal of our targets files is to be the container of all of our build logic. 
 
 To accomplish this all of the build logic is contained in our central targets files.  This includes logic around packaging, deployment, nuget targeting, signing, etc...  The preference is to contain logic in XML when reasonable but a custom build task is used when appropriate. 
 
-The individual project files contain declaritive information only.  They inherit their build logic by importing [Settings.targets](Settings.targets) at the start and [Imports.targets](Imports.targets) at the conclusion.  
+The individual project files contain declaritive information only.  They inherit their build logic by importing [Settings.props](Settings.props) at the start and [Imports.targets](Imports.targets) at the conclusion.  
 
 ## Files
 
 This section describes the purpose and layout of the important files here.
 
-### Settings.targets
+### Settings.props
 
 This file is importanted at the start of projects.  There are two primary purposes of this file:
 
-- Import standard targets files. 
+- Import standard props files. 
 - Define the set of properties which ...
     - Projects reasonably need to ready, modify or evaluate.
     - Are necessary for importing standard target files.
@@ -42,7 +42,8 @@ This file is imported at the end of projects.  The primary purposes of this file
 - Define all properties which are necessary to build the product. 
 - Use Import and custom Targets to define the necessary build logic.
 
-Properties which are central to our build should be defined here.  For example $(Deterministic) is unconditionally defined in this file.  No project should be able to override it because it's important to the correctness of our build.  
+Properties which are central to our build should be defined here.  For example $(Deterministic) is unconditionally defined in this file.  No project should be able to override it because it's important to the correctness of our build.  To protect against accidentally setting this property and having it silently ignored, such properties should also be banned in BuildBoss.
+
 
 The general structure of this file is:
 

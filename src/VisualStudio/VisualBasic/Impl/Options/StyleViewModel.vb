@@ -166,7 +166,6 @@ Class Customer
 End Class"
 
         Private Shared ReadOnly s_preferCollectionInitializer As String = "
-Imports System.Collections.Generic
 
 Class Customer
     Private Age As Integer
@@ -185,6 +184,24 @@ Class Customer
         list.Add(1)
         list.Add(2)
         list.Add(3)
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferCoalesceExpression As String = "
+Imports System
+
+Class Customer
+    Private Age As Integer
+
+    Sub New()
+//[
+        ' Prefer:
+        Dim v = If(x, y)
+
+        ' Over:
+        Dim v = If(x Is Nothing, y, x)    ' or
+        Dim v = If(x IsNot Nothing, x, y)
 //]
     End Sub
 End Class"
@@ -212,7 +229,7 @@ End Class"
             }
 
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
-
+            Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -228,6 +245,8 @@ End Class"
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
 
+            ' nothing preferences
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace

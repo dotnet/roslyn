@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity);
+        Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            string source, string assemblyName);
         Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity);
     }

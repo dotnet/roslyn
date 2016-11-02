@@ -1556,6 +1556,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
+        Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression
+            Return node.Kind() = SyntaxKind.NothingLiteralExpression
+        End Function
+
+        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
+            Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
+            left = binaryExpression.Left
+            right = binaryExpression.Right
+        End Sub
+
+        Public Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalExpression
+            Dim conditionalExpression = DirectCast(node, TernaryConditionalExpressionSyntax)
+            condition = conditionalExpression.Condition
+            whenTrue = conditionalExpression.WhenTrue
+            whenFalse = conditionalExpression.WhenFalse
+        End Sub
+
+        Public Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.WalkDownParentheses
+            Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
+        End Function
+
+        Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
+            Return node.IsKind(SyntaxKind.NotExpression)
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
+            Return DirectCast(node, UnaryExpressionSyntax).Operand
+        End Function
+
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
             Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
             expression = memberAccess.Expression

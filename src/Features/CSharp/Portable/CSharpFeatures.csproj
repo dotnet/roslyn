@@ -55,6 +55,8 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersCodeFixProvider.cs" />
@@ -85,7 +87,7 @@
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
     <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\AddMissingReference\CSharpAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />

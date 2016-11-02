@@ -22,7 +22,6 @@ Param(
     [string]$binariesPath = $null,
     [string]$branchName = $null,
     [string]$apiKey = $null,
-    [string]$apiKey2 = $null,
     [switch]$test
 
 )
@@ -62,34 +61,22 @@ try
 
     $exitCode = 0
 
-    $sourceUrl = "https://devdiv.pkgs.visualstudio.com/_packaging/VS/nuget/v3/index.json";
-    Write-Host "Uploading DevDiv packages..."
+    Write-Host "Uploading CoreXT packages..."
 
     try
     {
         $packagesDropDir = (Join-Path $binariesPath "DevDivPackages")
-        $files = gci -re -in *.nupkg (Join-Path $packagesDropDir "Roslyn")
-        $files += gci -re -in "VS.ExternalAPIs.*.nupkg" (Join-Path $packagesDropDir "ManagedDependencies")
-        $files += gci -re -in *.nupkg (Join-Path $packagesDropDir "ManagedDependencies")
-        $files += gci -re -in *.nupkg (Join-Path $packagesDropDir "NativeDependencies")
+        $coreXTRoot = "\\cpvsbuild\drops\dd\NuGet"
 
-        foreach ($package in $files) 
+        if (-not $test) 
         {
-            Write-Host "  Uploading $package"
+            <# Do not overwrite existing packages. #>
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "Roslyn") $coreXTRoot "*.nupkg"
 
-            if (-not $test)
-            {
-                & "$NuGetExe" push "$package" `
-                    -Source $sourceUrl `
-                    -ApiKey $apiKey2 `
-                    -NonInteractive `
-                    -Verbosity quiet
-                if ($LastExitCode -ne 0)
-                {
-                    Write-Error "Failed to upload NuGet package: $nupkg"
-                    $exitCode = 3
-                }
-            }
+            <# TODO: Once all dependencies are available on NuGet we can merge the following two commands. #>
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") $coreXTRoot "VS.ExternalAPIs.*.nupkg"
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "ManagedDependencies") (Join-Path $coreXTRoot "nugetorg") "Microsoft.*.nupkg" "System.*.nupkg" "ManagedEsent.*.nupkg"
+            robocopy /xo /xn /xc (Join-Path $packagesDropDir "NativeDependencies") (Join-Path $coreXTRoot "nugetorg") "Microsoft.*.nupkg" "System.*.nupkg" "ManagedEsent.*.nupkg"
         }
     }
     catch [exception]

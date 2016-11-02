@@ -807,4 +807,7 @@ Additional information: {1}</value>
   <data name="Prefer_collection_initializer" xml:space="preserve">
     <value>Prefer collection initializer</value>
   </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
 </root>
