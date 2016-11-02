@@ -75,13 +75,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             // escape sequences in these strings, so we only support combining the string
             // tokens if they're all teh same type.
             var firstStringToken = pieces.First(syntaxFacts.IsStringLiteralExpression).GetFirstToken();
-            if (!pieces.Where(syntaxFacts.IsStringLiteralExpression).All(
-                    lit => SameLiteralKind(lit, firstStringToken)))
+            var isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
+            if (pieces.Where(syntaxFacts.IsStringLiteralExpression).Any(
+                    lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
             {
                 return;
             }
 
-            var interpolatedString = CreateInterpolatedString(document, firstStringToken, pieces);
+            var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(new MyCodeAction(
                 c => UpdateDocumentAsync(document, root, top, interpolatedString, c)));
         }
@@ -93,12 +94,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         protected SyntaxNode CreateInterpolatedString(
-            Document document, SyntaxToken firstStringToken, List<SyntaxNode> pieces)
+            Document document, bool isVerbatimStringLiteral, List<SyntaxNode> pieces)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var startToken = CreateInterpolatedStringStartToken(firstStringToken)
+            var startToken = CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
                                 .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
             var endToken = CreateInterpolatedStringEndToken()
                                 .WithTrailingTrivia(pieces.Last().GetTrailingTrivia());
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (syntaxFacts.IsStringLiteralExpression(piece))
                 {
                     var text = piece.GetFirstToken().Text;
-                    var textWithoutQuotes = GetTextWithoutQuotes(text, firstStringToken);
+                    var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
                     content.Add(generator.InterpolatedStringText(
                         generator.InterpolatedStringTextToken(textWithoutQuotes)));
                 }
@@ -122,18 +123,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringExpression(startToken, content, endToken);
         }
 
-        protected abstract string GetTextWithoutQuotes(string text, SyntaxToken firstStringToken);
-        protected abstract SyntaxToken CreateInterpolatedStringStartToken(SyntaxToken firstStringToken);
+        protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral);
+        protected abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatimStringLiteral);
         protected abstract SyntaxToken CreateInterpolatedStringEndToken();
-
-        private bool SameLiteralKind(SyntaxNode literal1, SyntaxToken firstStringToken)
-        {
-            var token1 = literal1.GetFirstToken();
-
-            var text1 = token1.Text;
-            var text2 = firstStringToken.Text;
-            return text1.Length > 0 && text2.Length > 0 && text1[0] == text2[0];
-        }
 
         private void CollectPiecesDown(
             ISyntaxFactsService syntaxFacts,

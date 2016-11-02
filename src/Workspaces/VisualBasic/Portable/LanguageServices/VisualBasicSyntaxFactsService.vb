@@ -1369,6 +1369,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 IsStringLiteral(DirectCast(node, LiteralExpressionSyntax).Token)
         End Function
 
+        Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
+            ' VB does not have verbatim strings
+            Return False
+        End Function
+
         Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
             Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
             Return If(arguments.HasValue, arguments.Value, Nothing)

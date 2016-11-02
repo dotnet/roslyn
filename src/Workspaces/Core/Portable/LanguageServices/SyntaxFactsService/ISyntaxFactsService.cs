@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsStringLiteral(SyntaxToken token);
         bool IsStringLiteralExpression(SyntaxNode node);
+        bool IsVerbatimStringLiteral(SyntaxToken token);
 
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);

@@ -10,24 +10,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     internal class CSharpConvertConcatenationToInterpolatedStringRefactoringProvider :
         AbstractConvertConcatenationToInterpolatedStringRefactoringProvider
     {
-        protected override SyntaxToken CreateInterpolatedStringStartToken(SyntaxToken firstStringToken)
-        {
-            var isVerbatim = firstStringToken.IsVerbatimStringLiteral();
-            return SyntaxFactory.Token(isVerbatim
+        protected override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+            => SyntaxFactory.Token(isVerbatim
                 ? SyntaxKind.InterpolatedVerbatimStringStartToken
                 : SyntaxKind.InterpolatedStringStartToken);
-        }
 
         protected override SyntaxToken CreateInterpolatedStringEndToken()
             => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
 
-        protected override string GetTextWithoutQuotes(string text, SyntaxToken firstStringToken)
-        {
-            var isVerbatim = firstStringToken.IsVerbatimStringLiteral();
-
-            return isVerbatim
+        protected override string GetTextWithoutQuotes(string text, bool isVerbatim)
+            => isVerbatim
                 ? text.Substring("@'".Length, text.Length - "@''".Length)
                 : text.Substring("'".Length, text.Length - "''".Length);
-        }
     }
 }

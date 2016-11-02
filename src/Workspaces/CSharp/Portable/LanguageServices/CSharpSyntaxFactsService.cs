@@ -1693,6 +1693,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node is LiteralExpressionSyntax && IsStringLiteral(((LiteralExpressionSyntax)node).Token);
 
+        public bool IsVerbatimStringLiteral(SyntaxToken token)
+            => token.IsVerbatimStringLiteral();
+
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
         {
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
