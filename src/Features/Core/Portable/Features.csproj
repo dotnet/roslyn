@@ -213,7 +213,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\AbstractConvertToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\AbstractConvertPlaceholdToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
