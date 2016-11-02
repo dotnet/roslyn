@@ -84,6 +84,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateExpression(value)
         End Function
 
+        Friend Overrides Function InterpolatedStringExpression(startToken As SyntaxToken, content As IEnumerable(Of SyntaxNode), endToken As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.InterpolatedStringExpression(
+                startToken, SyntaxFactory.List(content.Cast(Of InterpolatedStringContentSyntax)), endToken)
+        End Function
+
+        Friend Overrides Function InterpolatedStringText(textToken As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.InterpolatedStringText(textToken)
+        End Function
+
+        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        End Function
+
+        Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
+        End Function
+
         Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
             Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
         End Function

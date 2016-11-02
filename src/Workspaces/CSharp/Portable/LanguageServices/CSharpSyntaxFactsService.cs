@@ -1688,9 +1688,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsStringLiteral(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
-        }
+            => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public bool IsStringLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.StringLiteralExpression;
+
+        public bool IsVerbatimStringLiteral(SyntaxToken token)
+            => token.IsVerbatimStringLiteral();
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
         {
@@ -1873,6 +1877,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsNullLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.NullLiteralExpression;
+
+        public bool IsBinaryExpression(SyntaxNode node)
+            => node is BinaryExpressionSyntax;
 
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
         {

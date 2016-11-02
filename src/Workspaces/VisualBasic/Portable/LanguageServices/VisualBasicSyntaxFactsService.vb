@@ -1364,6 +1364,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsKind(SyntaxKind.StringLiteralToken)
         End Function
 
+        Public Function IsStringLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStringLiteralExpression
+            Return node.Kind() = SyntaxKind.StringLiteralExpression
+        End Function
+
+        Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsVerbatimStringLiteral
+            ' VB does not have verbatim strings
+            Return False
+        End Function
+
         Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
             Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
             Return If(arguments.HasValue, arguments.Value, Nothing)
@@ -1549,6 +1558,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression
             Return node.Kind() = SyntaxKind.NothingLiteralExpression
+        End Function
+
+        Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
+            Return TypeOf node Is BinaryExpressionSyntax
         End Function
 
         Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression

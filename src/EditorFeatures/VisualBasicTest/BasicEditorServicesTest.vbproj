@@ -623,6 +623,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
