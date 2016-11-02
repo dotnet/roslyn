@@ -68,5 +68,6 @@ Supported Platforms:
     <file src="System.Xml.XmlDocument.dll" target="tools" />
     <file src="System.Xml.XPath.dll" target="tools" />
     <file src="System.Xml.XPath.XDocument.dll" target="tools" />
+    <file src="System.ValueTuple.dll" target="tools" />
   </files>
 </package>
