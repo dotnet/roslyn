@@ -143,43 +143,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     }
                 }
             }
-            // database.Index.TryGetMatchesInRange()
-#if false
-            var root = database.QueryRoot;
-
-            for (var child = root.FirstChild(); child.IsValid; child = child.NextSibling())
-            {
-                if (child.Type == SymbolType.Package)
-                {
-                    var rankChild = child.FirstChild();
-                    var assemblyChild = rankChild.FirstChild();
-                    if (assemblyChild.Type == SymbolType.Assembly)
-                    {
-                        if (assemblyChild.Name.Equals(assemblyName))
-                        {
-
-                        }
-                    }
-                }
-            }
-            var query = new MemberQuery(assemblyName, isFullSuffix: true, isFullNamespace: false);
-            var symbols = new PartialArray<Symbol>(100);
-
-            var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
-            if (query.TryFindMembers(database, ref symbols))
-            {
-                foreach (var symbol in symbols)
-                {
-                    if (symbol.Type == SymbolType.Assembly)
-                    {
-                        result.Add(new PackageWithAssemblyResult(
-                            symbol.PackageName.ToString(),
-                            database.GetPackageVersion(symbol.Index).ToString(),
-                            GetRank(symbol)));
-                    }
-                }
-            }
-#endif
 
             return Task.FromResult(result.ToImmutableAndFree());
         }
