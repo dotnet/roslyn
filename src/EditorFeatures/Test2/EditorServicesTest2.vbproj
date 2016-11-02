@@ -37,6 +37,10 @@
       <Project>{d49439d7-56d2-450f-a4f0-74cb95d620e6}</Project>
       <Name>BasicVisualStudio</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
+      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
+      <Name>WorkspacesTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -44,10 +48,6 @@
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
       <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTest\ServicesTest.csproj">
-      <Project>{C50166F1-BABC-40A9-95EB-8200080CD701}</Project>
-      <Name>ServicesTest</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
