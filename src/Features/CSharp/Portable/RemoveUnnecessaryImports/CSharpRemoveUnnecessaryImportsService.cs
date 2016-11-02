@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -9,23 +11,25 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpRemoveUnnecessaryImportsService :
-        AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>, IRemoveUnnecessaryImportsService
+        AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
-        public static IEnumerable<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
+        public static ImmutableArray<UsingDirectiveSyntax> GetUnnecessaryImportsShared(
+            SemanticModel semanticModel, SyntaxNode root, 
+            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
             var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
             if (!diagnostics.Any())
             {
-                return null;
+                return ImmutableArray<UsingDirectiveSyntax>.Empty;
             }
 
             var unnecessaryImports = new HashSet<UsingDirectiveSyntax>();
@@ -36,26 +40,26 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 {
                     var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null)
+                    if (node != null && predicate(node))
                     {
                         unnecessaryImports.Add(node);
                     }
                 }
             }
 
-            if (cancellationToken.IsCancellationRequested || !unnecessaryImports.Any())
-            {
-                return null;
-            }
-
-            return unnecessaryImports;
+            return unnecessaryImports.ToImmutableArray();
         }
 
-        public async Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document, 
+            Func<SyntaxNode, bool> predicate,
+            CancellationToken cancellationToken)
         {
+            predicate = predicate ?? Functions<SyntaxNode>.True;
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
-                var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(document, cancellationToken).ConfigureAwait(false);
+                var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(
+                    document, predicate, cancellationToken).ConfigureAwait(false);
                 if (unnecessaryImports == null || unnecessaryImports.Any(import => import.OverlapsHiddenPosition(cancellationToken)))
                 {
                     return document;
@@ -66,18 +70,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var oldRoot = (CompilationUnitSyntax)root;
                 var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return null;
-                }
-
+                cancellationToken.ThrowIfCancellationRequested();
                 return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
             }
         }
 
-        protected override IEnumerable<UsingDirectiveSyntax> GetUnusedUsings(SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
+        protected override ImmutableArray<UsingDirectiveSyntax> GetUnnecessaryImports(
+            SemanticModel model, SyntaxNode root,
+            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
-            return GetUnnecessaryImports(model, root, cancellationToken) as IEnumerable<UsingDirectiveSyntax>;
+            return GetUnnecessaryImportsShared(model, root, predicate, cancellationToken);
         }
 
         private async Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)

@@ -20,13 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImport
 
         Protected Overrides Function GetUnnecessaryImports(
                 semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Return VisualBasicRemoveUnnecessaryImportsService.GetUnnecessaryImports(semanticModel, root, cancellationToken)
+            Return VisualBasicRemoveUnnecessaryImportsService.GetUnnecessaryImportsShared(
+                semanticModel, root, predicate:=Nothing, cancellationToken:=cancellationToken)
         End Function
 
         Protected Overrides Function GetFixableDiagnosticSpans(
                 nodes As IEnumerable(Of SyntaxNode), tree As SyntaxTree, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
             ' Create one fixable diagnostic that contains the entire Imports list.
-            Return SpecializedCollections.SingletonEnumerable(Of TextSpan)(tree.GetCompilationUnitRoot().Imports.GetContainedSpan())
+            Return SpecializedCollections.SingletonEnumerable(tree.GetCompilationUnitRoot().Imports.GetContainedSpan())
         End Function
 
         Protected Overrides Function GetLastTokenDelegateForContiguousSpans() As Func(Of SyntaxNode, SyntaxToken)

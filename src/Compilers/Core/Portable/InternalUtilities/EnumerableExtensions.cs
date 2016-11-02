@@ -9,6 +9,12 @@ using System.Linq;
 
 namespace Roslyn.Utilities
 {
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> True = t => true;
+    }
+
     internal static partial class EnumerableExtensions
     {
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
@@ -305,11 +311,6 @@ namespace Roslyn.Utilities
             public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
 
             public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
-        }
-
-        private static class Functions<T>
-        {
-            public static readonly Func<T, T> Identity = t => t;
         }
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
