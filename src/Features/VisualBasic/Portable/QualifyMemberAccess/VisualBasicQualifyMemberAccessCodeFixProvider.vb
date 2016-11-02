@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
         Inherits AbstractQualifyMemberAccessCodeFixprovider(Of SimpleNameSyntax)
 
         Protected Overrides Function GetTitle() As String
-            Return VBFeaturesResources.Add_me
+            Return VBFeaturesResources.Add_Me
         End Function
     End Class
 End Namespace

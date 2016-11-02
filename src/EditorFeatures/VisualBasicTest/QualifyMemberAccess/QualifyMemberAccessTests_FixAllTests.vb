@@ -80,7 +80,7 @@ End Class]]>
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
                 compareTokens:=False,
-                fixAllActionEquivalenceKey:=VBFeaturesResources.Add_me)
+                fixAllActionEquivalenceKey:=VBFeaturesResources.Add_Me)
         End Function
     End Class
 End Namespace
