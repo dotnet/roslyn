@@ -1,8 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.QualifyMemberAccess
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -79,9 +80,7 @@ End Class]]>
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
                 compareTokens:=False,
-                fixAllActionEquivalenceKey:=FeaturesResources.Add_qualification)
+                fixAllActionEquivalenceKey:=VBFeaturesResources.Add_me)
         End Function
-
     End Class
-
 End Namespace

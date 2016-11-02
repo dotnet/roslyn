@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.Qualify
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.QualifyMemberAccess
+Imports Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.QualifyMemberAccess
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
