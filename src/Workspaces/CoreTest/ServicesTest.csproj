@@ -111,7 +111,6 @@
     <Compile Include="SyntaxReferenceTests.cs" />
     <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestOptionService.cs" />
-    <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="Host\TestHost.cs" />

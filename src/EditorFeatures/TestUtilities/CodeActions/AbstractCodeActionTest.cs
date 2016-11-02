@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {

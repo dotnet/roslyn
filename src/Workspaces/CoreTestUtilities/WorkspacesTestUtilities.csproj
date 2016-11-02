@@ -58,6 +58,7 @@
     <Compile Include="FileSet.cs" />
     <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="SolutionUtilities.cs" />
+    <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceExtensions.cs" />
     <Compile Include="WorkspaceTestBase.cs" />
     <None Include="project.json" />
