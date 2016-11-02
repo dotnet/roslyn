@@ -326,6 +326,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;nothing&apos; checking:.
+        '''</summary>
+        Friend Shared ReadOnly Property nothing_checking_colon() As String
+            Get
+                Return ResourceManager.GetString("nothing_checking_colon", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
         '''</summary>
         Friend Shared ReadOnly Property Only_add_new_line_on_enter_after_end_of_fully_typed_word() As String

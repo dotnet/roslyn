@@ -125,10 +125,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: GetCompletionItemRules(symbols, context));
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -311,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItem == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
@@ -322,9 +320,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
             return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItem.Item, ch, textTypedSoFar);
+                completionService.GetRules(), model.SelectedItem, ch, textTypedSoFar);
         }
 
         /// <summary>
@@ -378,13 +376,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItem == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem.Item);
-            return IsFilterCharacter(model.SelectedItem.Item, ch, textTypedSoFar);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
+            return IsFilterCharacter(model.SelectedItem, ch, textTypedSoFar);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)

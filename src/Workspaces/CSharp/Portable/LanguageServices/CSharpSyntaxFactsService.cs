@@ -1688,9 +1688,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsStringLiteral(SyntaxToken token)
-        {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
-        }
+            => token.IsKind(SyntaxKind.StringLiteralToken);
+
+        public bool IsStringLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.StringLiteralExpression;
+
+        public bool IsVerbatimStringLiteral(SyntaxToken token)
+            => token.IsVerbatimStringLiteral();
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
         {
@@ -1869,6 +1873,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             return syntaxTree.IsPossibleTupleContext(token, position);
+        }
+
+        public bool IsNullLiteralExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.NullLiteralExpression;
+
+        public bool IsBinaryExpression(SyntaxNode node)
+            => node is BinaryExpressionSyntax;
+
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+        {
+            var binaryExpression = (BinaryExpressionSyntax)node;
+            left = binaryExpression.Left;
+            right = binaryExpression.Right;
+        }
+
+        public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
+        {
+            var conditionalExpression = (ConditionalExpressionSyntax)node;
+            condition = conditionalExpression.Condition;
+            whenTrue = conditionalExpression.WhenTrue;
+            whenFalse = conditionalExpression.WhenFalse;
+        }
+
+        public SyntaxNode WalkDownParentheses(SyntaxNode node)
+            => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
+
+        public bool IsLogicalNotExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalNotExpression;
+
+        public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
+            => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+        {
+            var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+            expression = memberAccessExpression.Expression;
+            name = memberAccessExpression.Name;
         }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(experr.Column == acterr.Column, String.Format("Col {0}!={1}", experr.Column, acterr.Column));
                 }
 
-                Assert.Equal(experr.IsWarning, acterr.IsWarning);
+                Assert.True(experr.IsWarning == acterr.IsWarning, String.Format("IsWarning {0}!={1}", experr.IsWarning, acterr.IsWarning));
 
                 //if the expected contains parameters, validate those too.
                 if (experr.Parameters != null)

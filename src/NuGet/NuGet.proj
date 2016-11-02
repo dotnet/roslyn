@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\build\Targets\Settings.props" />
 
   <Target Name="Build">
     <!-- NuGetPerBuildPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
 
     <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
 
     <!-- NuGetReleaseVersion -->
-    <Exec Command="$(OutDir)csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
   </Target>
 
   <Target Name="Clean">

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -86,17 +86,15 @@
   </ItemGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
@@ -139,7 +137,8 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
-    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
@@ -280,6 +279,12 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
@@ -310,6 +315,13 @@
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
     <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
     <Compile Include="Structure\SwitchStatementStructureTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForIndexerTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForPropertiesTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConversionOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
     <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
@@ -532,6 +544,6 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
   <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

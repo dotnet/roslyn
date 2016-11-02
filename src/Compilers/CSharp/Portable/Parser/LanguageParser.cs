@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    // comma is optional, but if it is here it should be followed by another attribute
+                    // comma is optional, but if it is present it may be followed by another attribute
                     nodes.AddSeparator(this.EatToken());
 
                     // check for legal trailing comma
@@ -1058,7 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (this.IsPossibleAttribute())
                 {
-                    nodes.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    // report missing comma
+                    nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     nodes.Add(this.ParseAttribute());
                 }
                 else if (this.SkipBadAttributeListTokens(nodes, SyntaxKind.IdentifierToken) == PostSkipAction.Abort)
@@ -5587,12 +5588,14 @@ tryAgain:
                                 // These tokens are from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
-                            case SyntaxKind.AmpersandAmpersandToken:
-                            case SyntaxKind.BarBarToken:
-                            case SyntaxKind.CaretToken:
-                            case SyntaxKind.BarToken:
-                            case SyntaxKind.CloseBraceToken:
-                            case SyntaxKind.EndOfFileToken:
+                            case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
+                            case SyntaxKind.BarBarToken:             // e.g. `e is A<B> || e`
+                            case SyntaxKind.CaretToken:              // e.g. `e is A<B> ^ e`
+                            case SyntaxKind.BarToken:                // e.g. `e is A<B> | e`
+                            case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
+                            case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
+                            case SyntaxKind.CloseBraceToken:         // e.g. `new { X = e is A<B> }`
+                            case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>` in isolation
                                 // These tokens are not from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 

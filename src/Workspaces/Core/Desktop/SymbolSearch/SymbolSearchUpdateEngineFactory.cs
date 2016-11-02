@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
+            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+                string source, string assemblyName)
+            {
+                var results = await _session.InvokeAsync<SerializablePackageWithAssemblyResult[]>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
+                    source, assemblyName).ConfigureAwait(false);
+
+                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+            }
+
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {

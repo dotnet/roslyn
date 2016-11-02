@@ -22,6 +22,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseThrowExpressionDiagnosticId = "IDE0016";
         public const string UseObjectInitializerDiagnosticId = "IDE0017";
         public const string InlineDeclarationDiagnosticId = "IDE0018";
+        public const string InlineAsTypeCheckId = "IDE0019";
+        public const string InlineIsTypeCheckId = "IDE0020";
+
+        public const string UseExpressionBodyForConstructorsDiagnosticId = "IDE0020";
+        public const string UseExpressionBodyForMethodsDiagnosticId = "IDE0021";
+        public const string UseExpressionBodyForConversionOperatorsDiagnosticId = "IDE0022";
+        public const string UseExpressionBodyForOperatorsDiagnosticId = "IDE0023";
+        public const string UseExpressionBodyForPropertiesDiagnosticId = "IDE0024";
+        public const string UseExpressionBodyForIndexersDiagnosticId = "IDE0025";
+        public const string UseExpressionBodyForAccessorsDiagnosticId = "IDE0026";
+
+        public const string UseCoalesceExpressionDiagnosticId = "IDE0028";
+        public const string UseCoalesceExpressionForNullableDiagnosticId = "IDE0029";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = await WorkspaceFixture.GetWorkspaceAsync();
+            SetWorkspaceOptions(workspace);
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
@@ -317,6 +318,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
+        }
+
+        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        {
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(
@@ -425,8 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (commitChar == '\t' ||
                 Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
             {
-                var textChange = await DescriptionModifyingPresentationItem.GetTextChangeAsync(
-                    service, document, firstItem, commitChar);
+                var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')

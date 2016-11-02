@@ -3,9 +3,8 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -54,6 +53,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -62,16 +62,17 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.cs" />
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.Dev15ItemDisplayFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
-    <Compile Include="NavigateTo\Dev15NavigateToOptionsService.cs" />
     <Compile Include="Structure\BlockContextProvider.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

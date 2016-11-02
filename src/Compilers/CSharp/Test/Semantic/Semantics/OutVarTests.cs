@@ -27139,5 +27139,148 @@ class Program
                 }
             }
         }
+
+        [Fact]
+        public void MethodTypeArgumentInference_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out int a);
+        TakeOutParam(out long b);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int64");
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        TakeOutParam(out var a);
+    }
+
+    static void TakeOutParam<T>(out T x) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out var a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        long a = 0;
+        TakeOutParam(out int b, a);
+        int c;
+        TakeOutParam(out c, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out int b, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(7, 9),
+                // (9,9): error CS0411: The type arguments for method 'X.TakeOutParam<T>(out T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         TakeOutParam(out c, a);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "TakeOutParam").WithArguments("X.TakeOutParam<T>(out T, T)").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodTypeArgumentInference_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        byte a = 0;
+        int b = 0;
+        TakeOutParam(out int c, a);
+        TakeOutParam(out b, a);
+    }
+
+    static void TakeOutParam<T>(out T x, T y) 
+    {
+        x = default(T);
+        System.Console.WriteLine(typeof(T));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"System.Int32
+System.Int32");
+        }
+
+        [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
+        public void OutVarDeclaredInReceiverUsedInArgument()
+        {
+            var source =
+@"using System.Linq;
+
+public class C
+{
+    public string[] Foo2(out string x) { x = """"; return null; }
+    public string[] Foo3(bool b) { return null; }
+
+    public string[] Foo5(string u) { return null; }
+    
+    public void Test()
+    {
+        var t1 = Foo2(out var x1).Concat(Foo5(x1));
+        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+        }
     }
 }

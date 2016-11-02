@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,11 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// may be less helpful than would be optimal. If two code actions that should be treated as distinct have
         /// equal <see cref="EquivalenceKey"/> values, Visual Studio behavior may appear incorrect.
         /// </remarks>
-        public virtual string EquivalenceKey { get { return null; } }
+        public virtual string EquivalenceKey => null;
 
-        internal virtual bool HasCodeActions => false;
-
-        internal virtual bool IsInvokable => true;
+        internal virtual bool IsInlinable => false;
 
         internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
 
@@ -56,10 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal virtual int? Glyph => null;
 
-        internal virtual ImmutableArray<CodeAction> GetCodeActions()
-        {
-            return ImmutableArray<CodeAction>.Empty;
-        }
+        internal virtual ImmutableArray<CodeAction> NestedCodeActions
+            => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
         /// The sequence of operations that define the code action.
@@ -120,10 +117,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
-        internal virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        internal virtual async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return ComputeOperationsAsync(cancellationToken);
+            var operations = await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            return operations.ToImmutableArrayOrEmpty();
         }
 
         /// <summary>
@@ -259,7 +257,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A document with the post processing changes applied.</returns>
-        protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+        protected virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+            => CleanupDocumentAsync(document, cancellationToken);
+
+        internal static async Task<Document> CleanupDocumentAsync(
+            Document document, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
             {
@@ -336,49 +338,40 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
         }
 
-        internal class SimpleCodeAction : CodeAction
+        internal abstract class SimpleCodeAction : CodeAction
         {
-            private readonly string _title;
-            private readonly string _equivalenceKey;
-            private readonly ImmutableArray<CodeAction> _nestedActions;
-
-            public SimpleCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-            {
-                _title = title;
-                _nestedActions = nestedActions;
-                _equivalenceKey = ComputeEquivalenceKey(nestedActions);
-            }
-
             public SimpleCodeAction(string title, string equivalenceKey)
             {
-                _title = title;
-                _equivalenceKey = equivalenceKey;
-                _nestedActions = ImmutableArray<CodeAction>.Empty;
+                Title = title;
+                EquivalenceKey = equivalenceKey;
             }
 
-            public sealed override string Title => _title;
-            public sealed override string EquivalenceKey => _equivalenceKey;
-
-            internal override bool IsInvokable => false;
-            internal override bool HasCodeActions => _nestedActions.Length > 0;
-
-            internal override ImmutableArray<CodeAction> GetCodeActions()
-            {
-                return _nestedActions;
-            }
+            public sealed override string Title { get; }
+            public sealed override string EquivalenceKey { get; }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 return Task.FromResult<Document>(null);
             }
+        }
+
+        internal class CodeActionWithNestedActions : SimpleCodeAction
+        {
+            public CodeActionWithNestedActions(
+                string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+                : base(title, ComputeEquivalenceKey(nestedActions))
+            {
+                Debug.Assert(nestedActions.Length > 0);
+                NestedCodeActions = nestedActions;
+                IsInlinable = isInlinable;
+            }
+
+            internal sealed override bool IsInlinable { get; }
+
+            internal sealed override ImmutableArray<CodeAction> NestedCodeActions { get; }
 
             private static string ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {
-                if (nestedActions.IsDefault)
-                {
-                    return null;
-                }
-
                 var equivalenceKey = StringBuilderPool.Allocate();
                 try
                 {
@@ -406,8 +399,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 _createChangedDocument = createChangedDocument;
             }
 
-            internal override bool IsInvokable => true;
-
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 return _createChangedDocument(cancellationToken);
@@ -423,8 +414,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 _createChangedSolution = createChangedSolution;
             }
-
-            internal override bool IsInvokable => true;
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

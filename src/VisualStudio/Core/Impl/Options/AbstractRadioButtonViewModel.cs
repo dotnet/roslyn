@@ -13,7 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly AbstractOptionPreviewViewModel _info;
         internal readonly string Preview;
         private bool _isChecked;
-        private string _groupName;
 
         public string Description { get; }
         public string GroupName { get; }

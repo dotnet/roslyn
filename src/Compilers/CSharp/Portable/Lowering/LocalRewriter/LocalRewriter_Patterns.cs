@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,21 +10,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            var expression = VisitExpression(node.Expression);
-            var result = LowerPattern(node.Pattern, expression);
-            return result;
+            var loweredExpression = VisitExpression(node.Expression);
+            var loweredPattern = LowerPattern(node.Pattern);
+            return MakeIsPattern(loweredPattern, loweredExpression);
         }
 
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
-        BoundExpression LowerPattern(BoundPattern pattern, BoundExpression input)
+        BoundExpression MakeIsPattern(BoundPattern loweredPattern, BoundExpression loweredInput)
         {
-            var syntax = _factory.Syntax = pattern.Syntax;
-            switch (pattern.Kind)
+            var syntax = _factory.Syntax = loweredPattern.Syntax;
+            switch (loweredPattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
                     {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        return LowerDeclarationPattern(declPattern, input);
+                        var declPattern = (BoundDeclarationPattern)loweredPattern;
+                        return MakeIsDeclarationPattern(declPattern, loweredInput);
                     }
 
                 case BoundKind.WildcardPattern:
@@ -36,34 +32,52 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ConstantPattern:
                     {
-                        var constantPattern = (BoundConstantPattern)pattern;
-                        return LowerConstantPattern(constantPattern, input);
+                        var constantPattern = (BoundConstantPattern)loweredPattern;
+                        return MakeIsConstantPattern(constantPattern, loweredInput);
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(loweredPattern.Kind);
             }
         }
 
-        private BoundExpression LowerConstantPattern(BoundConstantPattern pattern, BoundExpression input)
+        BoundPattern LowerPattern(BoundPattern pattern)
         {
-            return CompareWithConstant(input, VisitExpression(pattern.Value));
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        return declPattern.Update(declPattern.Variable, VisitExpression(declPattern.VariableAccess), declPattern.DeclaredType, declPattern.IsVar);
+                    }
+                case BoundKind.ConstantPattern:
+                    {
+                        var constantPattern = (BoundConstantPattern)pattern;
+                        return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue);
+                    }
+                default:
+                    return pattern;
+            }
         }
 
-        private BoundExpression LowerDeclarationPattern(BoundDeclarationPattern pattern, BoundExpression input)
+        private BoundExpression MakeIsConstantPattern(BoundConstantPattern loweredPattern, BoundExpression loweredInput)
         {
-            Debug.Assert(pattern.Variable.GetTypeOrReturnType() == pattern.DeclaredType.Type);
-            var variableAccess = VisitExpression(pattern.VariableAccess);
+            return CompareWithConstant(loweredInput, loweredPattern.Value);
+        }
 
-            if (pattern.IsVar)
+        private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
+        {
+            Debug.Assert(loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+
+            if (loweredPattern.IsVar)
             {
-                Debug.Assert(input.Type == pattern.Variable.GetTypeOrReturnType());
-                var assignment = _factory.AssignmentExpression(variableAccess, input);
+                Debug.Assert(loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 var result = _factory.Literal(true);
                 return _factory.MakeSequence(assignment, result);
             }
 
-            return MakeDeclarationPattern(pattern.Syntax, input, variableAccess, requiresNullTest: true);
+            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);
         }
 
         /// <summary>
@@ -108,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression MakeDeclarationPattern(SyntaxNode syntax, BoundExpression input, BoundExpression target, bool requiresNullTest)
+        BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
-            var type = target.Type;
+            var type = loweredTarget.Type;
 
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
@@ -121,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T;
                 //     return t != null;
                 // }
-                if (input.Type == type)
+                if (loweredInput.Type == type)
                 {
                     // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
-                    var assignment = _factory.AssignmentExpression(target, input);
+                    var assignment = _factory.AssignmentExpression(loweredTarget, loweredInput);
                     return requiresNullTest
                         ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
                         : _factory.MakeSequence(assignment, _factory.Literal(true));
@@ -132,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     return _factory.ObjectNotEqual(
-                        _factory.AssignmentExpression(target, _factory.As(input, type)),
+                        _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
                         _factory.Null(type));
                 }
             }
@@ -147,17 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return t.HasValue;
                 // }
                 return _factory.Call(
-                    _factory.AssignmentExpression(target, _factory.As(input, type)),
+                    _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
                     GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
             }
             else if (type.IsValueType)
             {
                 // It is possible that the input value is already of the correct type, in which case the pattern
                 // is irrefutable, and we can just do the assignment and return true.
-                if (input.Type == type)
+                if (loweredInput.Type == type)
                 {
                     return _factory.MakeSequence(
-                        _factory.AssignmentExpression(target, input),
+                        _factory.AssignmentExpression(loweredTarget, loweredInput),
                         _factory.Literal(true));
                 }
 
@@ -170,23 +184,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                if (tmpType == input.Type)
+                if (tmpType == loweredInput.Type)
                 {
                     var value = _factory.Call(
-                        input,
+                        loweredInput,
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(target, value);
-                    var result = requiresNullTest ? MakeNullableHasValue(syntax, input) : _factory.Literal(true);
+                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
+                    var result = requiresNullTest ? MakeNullableHasValue(syntax, loweredInput) : _factory.Literal(true);
                     return _factory.MakeSequence(asg2, result);
                 }
                 else
                 {
                     var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
+                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(loweredInput, tmpType));
                     var value = _factory.Call(
                         _factory.Local(tmp),
                         GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(target, value);
+                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
                     var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
                     return _factory.MakeSequence(tmp, asg1, asg2, result);
                 }
@@ -201,10 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     if (s) o = (T)i;
                 //     return s;
                 // }
-                return _factory.Conditional(_factory.Is(input, type),
+                return _factory.Conditional(_factory.Is(loweredInput, type),
                     _factory.MakeSequence(_factory.AssignmentExpression(
-                        target,
-                        _factory.Convert(type, input)),
+                        loweredTarget,
+                        _factory.Convert(type, loweredInput)),
                         _factory.Literal(true)),
                     _factory.Literal(false),
                     _factory.SpecialType(SpecialType.System_Boolean));

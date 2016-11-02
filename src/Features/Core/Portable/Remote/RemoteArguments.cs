@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public NavigateToMatchKind MatchKind;
         public bool IsCaseSensitive;
         public string Name;
+        public SerializableTextSpan[] NameMatchSpans;
         public string SecondarySort;
         public string Summary;
 
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 MatchKind = result.MatchKind,
                 IsCaseSensitive = result.IsCaseSensitive,
                 Name = result.Name,
+                NameMatchSpans = result.NameMatchSpans.Select(SerializableTextSpan.Dehydrate).ToArray(),
                 SecondarySort = result.SecondarySort,
                 Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
-                Name, SecondarySort, Summary, NavigableItem.Rehydrate(solution));
+                Name, NameMatchSpans.Select(s => s.Rehydrate()).ToImmutableArray(),
+                SecondarySort, Summary, NavigableItem.Rehydrate(solution));
         }
 
         private class NavigateToSearchResult : INavigateToSearchResult
@@ -73,18 +76,23 @@ namespace Microsoft.CodeAnalysis.Remote
             public NavigateToMatchKind MatchKind { get; }
             public bool IsCaseSensitive { get; }
             public string Name { get; }
+            public ImmutableArray<TextSpan> NameMatchSpans { get; }
             public string SecondarySort { get; }
             public string Summary { get; }
 
             public INavigableItem NavigableItem { get; }
 
-            public NavigateToSearchResult(string additionalInformation, string kind, NavigateToMatchKind matchKind, bool isCaseSensitive, string name, string secondarySort, string summary, INavigableItem navigableItem)
+            public NavigateToSearchResult(
+                string additionalInformation, string kind, NavigateToMatchKind matchKind, 
+                bool isCaseSensitive, string name, ImmutableArray<TextSpan> nameMatchSpans,
+                string secondarySort, string summary, INavigableItem navigableItem)
             {
                 AdditionalInformation = additionalInformation;
                 Kind = kind;
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;
                 Name = name;
+                NameMatchSpans = nameMatchSpans;
                 SecondarySort = secondarySort;
                 Summary = summary;
                 NavigableItem = navigableItem;

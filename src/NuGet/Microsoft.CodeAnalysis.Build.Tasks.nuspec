@@ -24,6 +24,8 @@
         <dependency id="System.Security.AccessControl"                      version="$SystemSecurityAccessControlVersion$" />
         <dependency id="System.Security.Cryptography.Algorithms"            version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
         <dependency id="System.Security.Principal.Windows"                  version="$SystemSecurityPrincipalWindowsVersion$" />
+        <dependency id="System.Text.Encoding"                               version="$SystemTextEncodingVersion$"/>
+        <dependency id="System.Text.Encoding.Extensions"                    version="$SystemTextEncodingExtensionsVersion$"/>
         <dependency id="System.Text.RegularExpressions"                     version="$SystemTextRegularExpressionsVersion$"/>
         <dependency id="System.Threading.Thread"                            version="$SystemThreadingThreadVersion$" />
       </group>
@@ -44,9 +46,9 @@
     </contentFiles>
   </metadata>
   <files>
-    <file src="Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib\netstandard1.3" />
-    <file src="Microsoft.CSharp.Core.targets" target="contentFiles\any\any" />
-    <file src="Microsoft.VisualBasic.Core.targets" target="contentFiles\any\any" />
+    <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\MSBuildTask\Microsoft.CSharp.Core.targets" target="contentFiles\any\any" />
+    <file src="Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets" target="contentFiles\any\any" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

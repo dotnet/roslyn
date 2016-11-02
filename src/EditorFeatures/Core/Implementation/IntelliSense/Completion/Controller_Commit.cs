@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private void CommitOnNonTypeChar(
-            PresentationItem item, Model model)
+            CompletionItem item, Model model)
         {
             Commit(item, model, commitChar: null, initialTextSnapshot: null, nextHandler: null);
         }
 
         private void Commit(
-            PresentationItem item, Model model, char? commitChar,
+            CompletionItem item, Model model, char? commitChar,
             ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                var provider = GetCompletionProvider(item.Item) as ICustomCommitCompletionProvider;
+                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
                 if (provider != null)
                 {
-                    provider.Commit(item.Item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
+                    provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }
                 else
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     Contract.ThrowIfNull(completionService, nameof(completionService));
 
                     completionChange = completionService.GetChangeAsync(
-                        triggerDocument, item.Item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        triggerDocument, item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var textChange = completionChange.TextChange;
 
                     var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // Let the completion rules know that this item was committed.
-            this.MakeMostRecentItem(item.Item.DisplayText);
+            this.MakeMostRecentItem(item.DisplayText);
         }
 
         private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)

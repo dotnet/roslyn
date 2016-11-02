@@ -1578,12 +1578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
-        protected override void VisitGuardedPattern(DecisionTree.Guarded guarded)
-        {
-            AssignPatternVariables(guarded.Label.Pattern);
-            base.VisitGuardedPattern(guarded);
-        }
-
         private void CreateSlots(BoundPattern pattern)
         {
             if (pattern.Kind == BoundKind.DeclarationPattern)
@@ -1767,12 +1761,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
+            // Always visit the arguments first
+            var result = base.VisitCall(node);
+
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)node.Method.OriginalDefinition;
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
-            return base.VisitCall(node);
+
+            return result;
         }
 
         public override BoundNode VisitConversion(BoundConversion node)

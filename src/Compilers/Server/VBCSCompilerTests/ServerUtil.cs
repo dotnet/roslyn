@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverStatsSource = new TaskCompletionSource<ServerStats>();
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
-            var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var thread = new Thread(_ =>
             {
                 var listener = new TestableDiagnosticListener();
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
-            while (DesktopBuildClient.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
             {
                 Thread.Yield();
             }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var thread = new Thread(_ =>
                 {
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool holdsMutex;
                     using (var serverMutex = new Mutex(initiallyOwned: true,
                                                        name: mutexName,

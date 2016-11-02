@@ -28,8 +28,8 @@ Supported Platforms:
     <serviceable>true</serviceable>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Remote.Workspaces.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
+    <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.dll" target="lib\net46" />
+    <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

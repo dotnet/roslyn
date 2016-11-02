@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 publicKey = ImmutableArray<byte>.Empty;
-                publicKeyToken = publicKeyOrToken.IsDefault ? ImmutableArray<byte>.Empty : publicKeyOrToken;
+                publicKeyToken = publicKeyOrToken.NullToEmpty();
             }
         }
 

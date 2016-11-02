@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -21,6 +24,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public INavigableItem NavigableItem { get; }
             public string SecondarySort { get; }
             public bool IsCaseSensitive { get; }
+            public ImmutableArray<TextSpan> NameMatchSpans { get; }
 
             private readonly Document _document;
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
@@ -29,7 +33,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             public SearchResult(
                 Document document, DeclaredSymbolInfo declaredSymbolInfo, string kind,
-                NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem)
+                NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem,
+                ImmutableArray<TextSpan> nameMatchSpans)
             {
                 _document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
@@ -37,7 +42,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
-                SecondarySort = ConstructSecondarySortString(declaredSymbolInfo);
+                NameMatchSpans = nameMatchSpans;
+                SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
 
                 var declaredNavigableItem = navigableItem as NavigableItemFactory.DeclaredSymbolNavigableItem;
                 Debug.Assert(declaredNavigableItem != null);
@@ -59,13 +65,32 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 });
             }
 
-            private static string ConstructSecondarySortString(DeclaredSymbolInfo declaredSymbolInfo)
+            private static readonly char[] s_dotArray = { '.' };
+
+            private static string ConstructSecondarySortString(
+                Document document,
+                DeclaredSymbolInfo declaredSymbolInfo)
             {
-                var secondarySortString = string.Concat(
-                    declaredSymbolInfo.ParameterCount.ToString("X4"),
-                    declaredSymbolInfo.TypeParameterCount.ToString("X4"),
-                    declaredSymbolInfo.Name);
-                return secondarySortString;
+                var parts = ArrayBuilder<string>.GetInstance();
+                try
+                {
+                    parts.Add(declaredSymbolInfo.ParameterCount.ToString("X4"));
+                    parts.Add(declaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                    parts.Add(declaredSymbolInfo.Name);
+
+                    // For partial types, we break up the file name into pieces.  i.e. If we have
+                    // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
+                    // the secondary sort string.  That way "Outer.cs" will be weighted above
+                    // "Outer.Inner.cs"
+                    var fileName = Path.GetFileNameWithoutExtension(document.FilePath ?? "");
+                    parts.AddRange(fileName.Split(s_dotArray));
+
+                    return string.Join(" ", parts);
+                }
+                finally
+                {
+                    parts.Free();
+                }
             }
         }
     }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new NavigationOperation(changedSuppressionDocument.Id, position: 0)
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0)
                 };
             }
 

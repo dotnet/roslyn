@@ -483,14 +483,20 @@ class G<T>
   void Foo() { };
 }";
             await TestAsync(text, "Foo;", "C.Foo()");
-            await TestAsync(text, "Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
             await TestAsync(text, "  Foo;", "C.Foo()");
             await TestAsync(text, "  Foo;;");
             await TestAsync(text, "  Foo; ;");
-            await TestAsync(text, "Foo(); ", "C.Foo()");
-            await TestAsync(text, " Foo (  )  ; ", "C.Foo()");
-            await TestAsync(text, "Foo(); // comment", "C.Foo()");
-            await TestAsync(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo();", "C.Foo()");
+            await TestAsync(text, 
+@"Foo(); // comment", "C.Foo()");
+            await TestAsync(text, 
+@"/*comment*/
+           Foo(/* params */); /* comment", "C.Foo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]

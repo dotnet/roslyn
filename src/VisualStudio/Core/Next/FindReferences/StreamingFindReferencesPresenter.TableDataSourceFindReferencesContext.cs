@@ -346,20 +346,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             {
                 var document = documentSpan.Document;
 
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from.  So we only support this for documents from a VSWorkspace.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return null;
-                }
-
-                var projectGuid = workspace.GetHostProject(document.Project.Id)?.Guid;
-                if (projectGuid == null)
-                {
-                    return null;
-                }
-
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
                 var referenceSpan = documentSpan.SourceSpan;
@@ -368,8 +354,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, workspace, definitionBucket, documentSpan, 
-                    isDefinitionLocation, projectGuid.Value, sourceText, taggedLineParts);
+                    this, definitionBucket, documentSpan, 
+                    isDefinitionLocation, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)

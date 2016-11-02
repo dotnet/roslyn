@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         public async Task TestPascalCaseClass_CorrectName()
         {
             await TestMissingAsync(
-                @"class [|C|] { }",
+@"class [|C|]
+{
+}",
                 options: ClassNamesArePascalCase);
         }
 
@@ -28,8 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         public async Task TestPascalCaseClass_NameGetsCapitalized()
         {
             await TestAsync(
-                @"class [|c|] { }",
-                @"class C { }",
+@"class [|c|]
+{
+}",
+@"class C
+{
+}",
                 options: ClassNamesArePascalCase);
         }
 
@@ -37,9 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         public async Task TestPascalCaseMethod_CorrectName()
         {
             await TestMissingAsync(
-@"class C 
+@"class C
 {
-    void [|M|]() { }
+    void [|M|]()
+    {
+    }
 }",
                 options: MethodNamesArePascalCase);
         }
@@ -48,13 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         public async Task TestPascalCaseMethod_NameGetsCapitalized()
         {
             await TestAsync(
-@"class C 
+@"class C
 {
-    void [|m|]() { }
+    void [|m|]()
+    {
+    }
 }",
-@"class C 
+@"class C
 {
-    void M() { }
+    void M()
+    {
+    }
 }",
                 options: MethodNamesArePascalCase);
         }
@@ -65,7 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             await TestMissingAsync(
 @"class c
 {
-    public [|c|]() { }
+    public [|c|]()
+    {
+    }
 }",
                 options: MethodNamesArePascalCase);
         }
@@ -89,7 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public int [|this|][int index]
     {
-        get { return 1; }
+        get
+        {
+            return 1;
+        }
     }
 }",
                 options: MethodNamesArePascalCase);

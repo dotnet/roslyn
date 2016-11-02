@@ -2537,5 +2537,46 @@ class Program
             }
         }
 
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const (int x, int y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const (int x, int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "(int x, int y)").WithArguments("const").WithLocation(6, 15)
+                );
+        }
+
+        [Fact, WorkItem(14287, "https://github.com/dotnet/roslyn/issues/14287")]
+        public void TupleDeconstructionStatementWithoutTypesCannotBeConst()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        const var (x, y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "var (x, y)").WithArguments("const").WithLocation(6, 15)
+                );
+        }
     }
 }

@@ -66,7 +66,7 @@ namespace RepoUtil
             parsedArgs = new ParsedArgs();
 
             // Setup the default values
-            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory)));
+            var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory))));
             parsedArgs.SourcesPath = Path.GetDirectoryName(binariesPath);
             parsedArgs.RepoDataPath = Path.Combine(AppContext.BaseDirectory, "RepoData.json");
 

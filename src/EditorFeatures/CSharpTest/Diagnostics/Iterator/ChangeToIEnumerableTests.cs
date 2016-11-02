@@ -194,8 +194,78 @@ class Program
         public async Task TestChangeToIEnumerableProperty()
         {
             await TestAsync(
- @"using System ; using System . Collections . Generic ; namespace Asdf { public class Test { public ISet < IMyInterface > Test { [|get|] { yield return TestFactory . Create < float > ( ""yada yada yada"" ) ; } ; } } public static class TestFactory { public static IMyInterface Create < T > ( string someIdentifier ) { return new MyClass < T > ( ) ; } } public interface IMyInterface : IEquatable < IMyInterface > { } public class MyClass < T > : IMyInterface { public bool Equals ( IMyInterface other ) { throw new NotImplementedException ( ) ; } } } ",
- @"using System ; using System . Collections . Generic ; namespace Asdf { public class Test { public IEnumerable < IMyInterface > Test { get { yield return TestFactory . Create < float > ( ""yada yada yada"" ) ; } ; } } public static class TestFactory { public static IMyInterface Create < T > ( string someIdentifier ) { return new MyClass < T > ( ) ; } } public interface IMyInterface : IEquatable < IMyInterface > { } public class MyClass < T > : IMyInterface { public bool Equals ( IMyInterface other ) { throw new NotImplementedException ( ) ; } } } ");
+@"using System;
+using System.Collections.Generic;
+
+namespace Asdf
+{
+    public class Test
+    {
+        public ISet<IMyInterface> Test
+        {
+            [|get|]
+            {
+                yield return TestFactory.Create<float>(""yada yada yada"");
+            } ;
+        }
+    }
+
+    public static class TestFactory
+    {
+        public static IMyInterface Create<T>(string someIdentifier)
+        {
+            return new MyClass<T>();
+        }
+    }
+
+    public interface IMyInterface : IEquatable<IMyInterface>
+    {
+    }
+
+    public class MyClass<T> : IMyInterface
+    {
+        public bool Equals(IMyInterface other)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+namespace Asdf
+{
+    public class Test
+    {
+        public IEnumerable<IMyInterface> Test
+        {
+            get
+            {
+                yield return TestFactory.Create<float>(""yada yada yada"");
+            } ;
+        }
+    }
+
+    public static class TestFactory
+    {
+        public static IMyInterface Create<T>(string someIdentifier)
+        {
+            return new MyClass<T>();
+        }
+    }
+
+    public interface IMyInterface : IEquatable<IMyInterface>
+    {
+    }
+
+    public class MyClass<T> : IMyInterface
+    {
+        public bool Equals(IMyInterface other)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}");
         }
 
         [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
@@ -203,8 +273,34 @@ class Program
         public async Task TestChangeToIEnumerableOperator()
         {
             await TestAsync(
-@"using System ; using System . Collections ; using System . Collections . Generic ; namespace Asdf { public class T { public static ISet < int > operator [|=|] ( T left , T right ) { yield return 0 ; } } } ",
-@"using System ; using System . Collections ; using System . Collections . Generic ; namespace Asdf { public class T { public static IEnumerable < int > operator = ( T left , T right ) { yield return 0 ; } } } ");
+@"using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Asdf
+{
+    public class T
+    {
+        public static ISet<int> operator [|=|] (T left, T right)
+        {
+            yield return 0;
+        }
+    }
+}",
+@"using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Asdf
+{
+    public class T
+    {
+        public static IEnumerable<int> operator = (T left, T right)
+        {
+            yield return 0;
+        }
+    }
+}");
         }
 
         [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
@@ -212,8 +308,36 @@ class Program
         public async Task TestChangeToIEnumerableIndexer()
         {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class T { public T [ ] this [ int i ] { [|get|] { yield return new T ( ) ; } } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class T { public IEnumerable < T > this [ int i ] { get { yield return new T ( ) ; } } } ");
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class T
+{
+    public T[] this[int i]
+    {
+        [|get|]
+        {
+            yield return new T();
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class T
+{
+    public IEnumerable<T> this[int i]
+    {
+        get
+        {
+            yield return new T();
+        }
+    }
+}");
         }
     }
 }

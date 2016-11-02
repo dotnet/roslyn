@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
@@ -112,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
+            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
+                WorkspaceChangeKind.SolutionAdded, null, null));
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -153,11 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     var description = string.Format(ServicesVSResources.Install_0, packageName);
 
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    var textBuffer = textSnapshot?.TextBuffer;
-                    var undoManager = GetUndoManager(textBuffer);
+                    var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
+                        workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
                 }
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 installedPackages.ContainsKey(packageName);
         }
 
-        public IEnumerable<string> GetInstalledVersions(string packageName)
+        public ImmutableArray<string> GetInstalledVersions(string packageName)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
             });
 
-            return versionsAndSplits.Select(v => v.Version).ToList();
+            return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
         private int CompareSplit(string[] split1, string[] split2)

@@ -29,32 +29,28 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     {
         private class DocumentSpanEntry : Entry
         {
+            private static readonly object s_boxedProjectGuid = Guid.Empty;
+
             private readonly TableDataSourceFindReferencesContext _context;
-            private readonly VisualStudioWorkspaceImpl _workspace;
 
             private readonly DocumentSpan _documentSpan;
             private readonly bool _isDefinitionLocation;
-            private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
 
             public DocumentSpanEntry(
                 TableDataSourceFindReferencesContext context,
-                VisualStudioWorkspaceImpl workspace,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
-                Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
                 : base(definitionBucket)
             {
                 _context = context;
 
-                _workspace = workspace;
                 _documentSpan = documentSpan;
                 _isDefinitionLocation = isDefinitionLocation;
-                _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
                 _classifiedSpans = classifiedSpans;
             }
@@ -77,7 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 case StandardTableKeyNames.ProjectName:
                     return Document.Project.Name;
                 case StandardTableKeyNames.ProjectGuid:
-                    return _boxedProjectGuid;
+                    // This keyname is part of the standard table control. However, according
+                    // to the editor team, it is never used for FindReferences purposes.  
+                    // I'm including this here just so it is clear that we were not unintentionally
+                    // forgetting about it.
+                    return s_boxedProjectGuid;
                 case StandardTableKeyNames.Text:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
                 }

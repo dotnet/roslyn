@@ -1455,6 +1455,12 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Expressions
+
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
+        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
+        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+
         /// <summary>
         /// An expression that represents the default value of a type.
         /// This is typically a null value for reference types or a zero-filled value for value types.

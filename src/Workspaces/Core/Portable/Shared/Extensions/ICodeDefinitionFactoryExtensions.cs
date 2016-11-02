@@ -197,9 +197,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
+                        var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
+                                                 .WithAdditionalAnnotations(Simplifier.Annotation);
                         var assignExpression = factory.AssignmentStatement(
-                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName)),
-                            factory.IdentifierName(parameterName));
+                            fieldAccess, factory.IdentifierName(parameterName));
                         var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;
                     }

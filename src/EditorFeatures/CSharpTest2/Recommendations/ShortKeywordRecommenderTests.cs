@@ -617,5 +617,30 @@ class Program
 }
 ", matchPriority: SymbolMatchPriority.Keyword);
         }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTupleWithinType()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    ($$
+}");
+        }
+
+        [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTupleWithinMember()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void Method()
+    {
+        ($$
+    }
+}");
+        }
     }
 }

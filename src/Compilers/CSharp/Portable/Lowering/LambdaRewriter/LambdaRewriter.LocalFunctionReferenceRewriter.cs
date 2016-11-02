@@ -206,9 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(frameType is LambdaFrame);
 
-                    if (frameType.IsGenericType)
+                    if (frameType.Arity > 0)
                     {
                         var typeParameters = ((LambdaFrame)frameType).ConstructedFromTypeParameters;
+                        Debug.Assert(typeParameters.Length == frameType.Arity);
                         var subst = this.TypeMap.SubstituteTypeParameters(typeParameters);
                         frameType = frameType.Construct(subst);
                     }

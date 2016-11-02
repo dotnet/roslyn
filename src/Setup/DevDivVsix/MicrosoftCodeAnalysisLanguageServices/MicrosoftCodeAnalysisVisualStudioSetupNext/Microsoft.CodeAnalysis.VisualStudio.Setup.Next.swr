@@ -12,7 +12,7 @@ vs.localizedResources
                        description="C# and VB.NET language services for Visual Studio.Next"
 
 vs.payloads
-  vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.Next.vsix
+  vs.payload source=$(OutputPath)Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix
 
 vs.dependencies
   vs.dependency id=Microsoft.Net.4.6.1.FullRedist 

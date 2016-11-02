@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-        private object p;
 
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {

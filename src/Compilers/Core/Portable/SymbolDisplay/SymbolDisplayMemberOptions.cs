@@ -65,5 +65,10 @@ namespace Microsoft.CodeAnalysis
         /// Includes the value of the member if is a constant.
         /// </summary>
         IncludeConstantValue = 1 << 6,
+
+        /// <summary>
+        /// Includes the <c>ref</c> keyword for ref-returning methods and properties/indexers. C# only.
+        /// </summary>
+        IncludeRef = 1 << 7,
     }
 }

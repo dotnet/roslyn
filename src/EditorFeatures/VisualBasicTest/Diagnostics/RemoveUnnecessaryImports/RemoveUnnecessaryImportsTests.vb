@@ -18,8 +18,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestProjectLevelMemberImport1() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Module Program \n Sub Main(args As DateTime()) \n End Sub \n End Module|]"),
-NewLines("Module Program \n Sub Main(args As DateTime()) \n End Sub \n End Module"),
+"[|Imports System
+Module Program
+    Sub Main(args As DateTime())
+    End Sub
+End Module|]",
+"Module Program
+    Sub Main(args As DateTime())
+    End Sub
+End Module",
 parseOptions:=TestOptions.Regular,
 compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")}))
         End Function
@@ -27,70 +34,195 @@ compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestProjectLevelMemberImport2() As Task
             Await TestMissingAsync(
-NewLines("[|Imports System \n Module Program \n Sub Main(args As DateTime()) \n End Sub \n End Module|]"))
+"[|Imports System
+Module Program
+    Sub Main(args As DateTime())
+    End Sub
+End Module|]")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestNoImports() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module|]"),
-NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module|]",
+"Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestSimpleTypeName() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As DateTime \n End Sub \n End Module|]"),
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim s As DateTime \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim s As DateTime
+    End Sub
+End Module|]",
+"Imports System
+Module Program
+    Sub Main(args As String())
+        Dim s As DateTime
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestGenericTypeName() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As List(Of Integer) \n End Sub \n End Module|]"),
-NewLines("Imports System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As List(Of Integer) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim s As List(Of Integer)
+    End Sub
+End Module|]",
+"Imports System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Dim s As List(Of Integer)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestNamespaceName() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As Collections.Generic.List(Of Integer) \n End Sub \n End Module|]"),
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim s As Collections.Generic.List(Of Integer) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim s As Collections.Generic.List(Of Integer)
+    End Sub
+End Module|]",
+"Imports System
+Module Program
+    Sub Main(args As String())
+        Dim s As Collections.Generic.List(Of Integer)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAliasName() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports G = System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As G.List(Of Integer) \n End Sub \n End Module|]"),
-NewLines("Imports G = System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As G.List(Of Integer) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports G = System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Dim s As G.List(Of Integer)
+    End Sub
+End Module|]",
+"Imports G = System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Dim s As G.List(Of Integer)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExtensionMethod() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n args.Where(Function(a) a.Length > 21) \n End Sub \n End Module|]"),
-NewLines("Imports System.Linq \n Module Program \n Sub Main(args As String()) \n args.Where(Function(a) a.Length > 21) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        args.Where(Function(a) a.Length > 21)
+    End Sub
+End Module|]",
+"Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        args.Where(Function(a) a.Length > 21)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestModuleMember() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports Foo \n Namespace Foo \n Public Module M \n Public Sub Bar(i As Integer) \n End Sub \n End Module \n End Namespace \n Module Program \n Sub Main(args As String()) \n Bar(0) \n End Sub \n End Module|]"),
-NewLines("Imports Foo \n Namespace Foo \n Public Module M \n Public Sub Bar(i As Integer) \n End Sub \n End Module \n End Namespace \n Module Program \n Sub Main(args As String()) \n Bar(0) \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports Foo
+Namespace Foo
+    Public Module M
+        Public Sub Bar(i As Integer)
+        End Sub
+    End Module
+End Namespace
+Module Program
+    Sub Main(args As String())
+        Bar(0)
+    End Sub
+End Module|]",
+"Imports Foo
+Namespace Foo
+    Public Module M
+        Public Sub Bar(i As Integer)
+        End Sub
+    End Module
+End Namespace
+Module Program
+    Sub Main(args As String())
+        Bar(0)
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestInvalidCodeRemovesImports() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Imports System.Collections.Generic \n Module Program \n Sub Main() \n gibberish Dim lst As List(Of String) \n Console.WriteLine(""TEST"") \n End Sub \n End Module|]"),
-NewLines("Imports System \n Module Program \n Sub Main() \n gibberish Dim lst As List(Of String) \n Console.WriteLine(""TEST"") \n End Sub \n End Module"))
+"[|Imports System
+Imports System.Collections.Generic
+Module Program
+    Sub Main()
+        gibberish Dim lst As List(Of String) 
+ Console.WriteLine(""TEST"")
+    End Sub
+End Module|]",
+"Imports System
+Module Program
+    Sub Main()
+        gibberish Dim lst As List(Of String) 
+ Console.WriteLine(""TEST"")
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestExcludedCodeIsIgnored() As Task
             Await TestAsync(
-NewLines("[|Imports System \n Module Program \n Sub Main() \n #If False Then \n Console.WriteLine(""TEST"") \n #End If \n End Sub \n End Module|]"),
-NewLines("Module Program \n Sub Main() \n #If False Then \n Console.WriteLine(""TEST"") \n #End If \n End Sub \n End Module"))
+"[|Imports System
+Module Program
+    Sub Main()
+#If False Then
+ Console.WriteLine(""TEST"") 
+#End If
+    End Sub
+End Module|]",
+"Module Program
+    Sub Main()
+#If False Then
+ Console.WriteLine(""TEST"") 
+#End If
+    End Sub
+End Module")
         End Function
 
         <WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
@@ -123,29 +255,65 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttribute() As Task
             Await TestMissingAsync(
-NewLines("[|Imports SomeNamespace \n <SomeAttr> \n Class Foo \n End Class \n Namespace SomeNamespace \n Public Class SomeAttrAttribute \n Inherits Attribute \n End Class \n End Namespace|]"))
+"[|Imports SomeNamespace
+<SomeAttr>
+Class Foo
+End Class
+Namespace SomeNamespace
+    Public Class SomeAttrAttribute
+        Inherits Attribute
+    End Class
+End Namespace|]")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestAttributeArgument() As Task
             Await TestMissingAsync(
-NewLines("[|Imports System \n Imports SomeNamespace \n <SomeAttribute(Foo.C)> \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n Namespace SomeNamespace \n Public Enum Foo \n A \n B \n C \n End Enum \n End Namespace \n Public Class SomeAttribute \n Inherits Attribute \n Public Sub New(x As SomeNamespace.Foo) \n End Sub \n End Class|]"))
+"[|Imports System
+Imports SomeNamespace
+<SomeAttribute(Foo.C)>
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+Namespace SomeNamespace
+    Public Enum Foo
+        A
+        B
+        C
+    End Enum
+End Namespace
+Public Class SomeAttribute
+    Inherits Attribute
+    Public Sub New(x As SomeNamespace.Foo)
+    End Sub
+End Class|]")
         End Function
 
         <WorkItem(541757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541757")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsSurroundedByDirectives() As Task
             Await TestAsync(
-NewLines("#If True Then \n [|Imports System.Collections.Generic \n #End If \n Module Program \n End Module|]"),
-NewLines("#If True Then \n #End If \n Module Program \n End Module"))
+"#If True Then
+[|Imports System.Collections.Generic
+#End If
+Module Program
+End Module|]",
+"#If True Then
+#End If
+Module Program
+End Module")
         End Function
 
         <WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemovingUnbindableImports() As Task
             Await TestAsync(
-NewLines("[|Imports gibberish \n Module Program \n End Module|]"),
-NewLines("Module Program \n End Module"))
+"[|Imports gibberish
+Module Program
+End Module|]",
+"Module Program
+End Module")
         End Function
 
         <WorkItem(541744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541744")>
@@ -210,55 +378,192 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval1() As Task
             Await TestAsync(
-NewLines("[|Imports System, foo, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
-NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace"))
+"[|Imports System, foo, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace|]",
+"Imports System, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval2() As Task
             Await TestAsync(
-NewLines("[|Imports System, System.Collections.Generic, foo \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
-NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace"))
+"[|Imports System, System.Collections.Generic, foo
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace|]",
+"Imports System, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(541932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541932")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestImportsClauseRemoval3() As Task
             Await TestAsync(
-NewLines("[|Imports foo, System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
-NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace"))
+"[|Imports foo, System, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace|]",
+"Imports System, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(541758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestUnbindableNamespace() As Task
             Await TestAsync(
-NewLines("[|Imports gibberish \n Module Program \n End Module|]"),
-NewLines("Module Program \n End Module"))
+"[|Imports gibberish
+Module Program
+End Module|]",
+"Module Program
+End Module")
         End Function
 
         <WorkItem(541780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541780")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClause() As Task
             Await TestAsync(
-NewLines("[|Imports System, foo, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
-NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace"))
+"[|Imports System, foo, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace|]",
+"Imports System, System.Collections.Generic
+Module Program
+    Sub Main(args As String())
+        Console.WriteLine(""TEST"")
+        Dim q As List(Of Integer)
+    End Sub
+End Module
+Namespace foo
+    Class bar
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClauseWithExplicitLC1() As Task
             Await TestAsync(
-NewLines("[|Imports A _ \n , B \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace|]"),
-NewLines("Imports A \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace"))
+"[|Imports A _
+ , B
+Module Program
+    Sub Main(args As String())
+        Dim q As CA
+    End Sub
+End Module
+Namespace A
+    Public Class CA
+    End Class
+End Namespace
+Namespace B
+    Public Class CB
+    End Class
+End Namespace|]",
+"Imports A
+Module Program
+    Sub Main(args As String())
+        Dim q As CA
+    End Sub
+End Module
+Namespace A
+    Public Class CA
+    End Class
+End Namespace
+Namespace B
+    Public Class CB
+    End Class
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRemoveClauseWithExplicitLC2() As Task
             Await TestAsync(
-NewLines("[|Imports B _ \n , A \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace|]"),
-NewLines("Imports A \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace"))
+"[|Imports B _
+ , A
+Module Program
+    Sub Main(args As String())
+        Dim q As CA
+    End Sub
+End Module
+Namespace A
+    Public Class CA
+    End Class
+End Namespace
+Namespace B
+    Public Class CB
+    End Class
+End Namespace|]",
+"Imports A
+Module Program
+    Sub Main(args As String())
+        Dim q As CA
+    End Sub
+End Module
+Namespace A
+    Public Class CA
+    End Class
+End Namespace
+Namespace B
+    Public Class CB
+    End Class
+End Namespace")
         End Function
 
         <WorkItem(528603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528603")>
@@ -505,14 +810,32 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestTypeImport1() As Task
             Await TestMissingAsync(
-NewLines("[|Imports Foo \n Module Program \n Sub Main() \n Bar() \n End Sub \n End Module \n Public Class Foo \n Shared Sub Bar() \n End Sub \n End Class|]"),
+"[|Imports Foo
+Module Program
+    Sub Main()
+        Bar()
+    End Sub
+End Module
+Public Class Foo
+    Shared Sub Bar()
+    End Sub
+End Class|]",
 parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestTypeImport2() As Task
             Await TestMissingAsync(
-NewLines("[|Imports Foo \n Module Program \n Sub Main() \n Dim q As Integer = Bar \n End Sub \n End Module \n Public Class Foo \n Public Shared Bar As Integer \n End Sub \n End Class|]"),
+"[|Imports Foo
+Module Program
+    Sub Main()
+        Dim q As Integer = Bar
+    End Sub
+End Module
+Public Class Foo
+    Public Shared Bar As Integer
+    End Sub
+End Class|]",
 parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
         End Function
 
@@ -671,8 +994,13 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestRegressionFor10326() As Task
             Await TestAsync(
-NewLines("[|Imports System.ComponentModel \n <Foo(GetType(Category))> \n Class Category \n End Class|]"),
-NewLines("<Foo(GetType(Category))> \n Class Category \n End Class"))
+"[|Imports System.ComponentModel
+<Foo(GetType(Category))>
+Class Category
+End Class|]",
+"<Foo(GetType(Category))>
+Class Category
+End Class")
         End Function
 
         <WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")>
@@ -798,7 +1126,9 @@ End Namespace]]></Text>.NormalizedValue)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestMissingOnSynthesizedEventType() As Task
             Await TestMissingAsync(
-NewLines("[|Class C \n Event E() \n End Class|]"))
+"[|Class C
+    Event E()
+End Class|]")
         End Function
     End Class
 End Namespace

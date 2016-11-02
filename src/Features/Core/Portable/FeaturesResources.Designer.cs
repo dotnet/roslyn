@@ -1072,15 +1072,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fix spelling.
-        /// </summary>
-        internal static string Fix_spelling {
-            get {
-                return ResourceManager.GetString("Fix_spelling", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to from {0}.
         /// </summary>
         internal static string from_0 {
@@ -1095,15 +1086,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Fully_qualify_0 {
             get {
                 return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fully qualify name.
-        /// </summary>
-        internal static string Fully_qualify_name {
-            get {
-                return ResourceManager.GetString("Fully_qualify_name", resourceCulture);
             }
         }
         
@@ -3056,6 +3038,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use coalesce expression.
+        /// </summary>
+        internal static string Use_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {
@@ -3134,6 +3125,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
                 return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
             }
         }
         

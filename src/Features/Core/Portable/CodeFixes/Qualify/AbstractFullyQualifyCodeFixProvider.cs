@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private class GroupingCodeAction : CodeAction.SimpleCodeAction
+        private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
         {
             public GroupingCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
-                : base(title, nestedActions)
+                : base(title, nestedActions, isInlinable: true)
             {
             }
         }

@@ -759,6 +759,27 @@ Additional information: {1}</value>
   <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
     <value>Prefer inlined variable declaration</value>
   </data>
+  <data name="For_methods" xml:space="preserve">
+    <value>For methods</value>
+  </data>
+  <data name="Code_block_preferences_colon" xml:space="preserve">
+    <value>Code block preferences:</value>
+  </data>
+  <data name="For_accessors" xml:space="preserve">
+    <value>For accessors</value>
+  </data>
+  <data name="For_constructors" xml:space="preserve">
+    <value>For constructors</value>
+  </data>
+  <data name="For_indexers" xml:space="preserve">
+    <value>For indexers</value>
+  </data>
+  <data name="For_operators" xml:space="preserve">
+    <value>For operators</value>
+  </data>
+  <data name="For_properties" xml:space="preserve">
+    <value>For properties</value>
+  </data>
   <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
     <value>Some naming rules are incomplete. Please complete or remove them.</value>
   </data>
@@ -782,5 +803,8 @@ Additional information: {1}</value>
   </data>
   <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
     <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
+  </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
   </data>
 </root>
