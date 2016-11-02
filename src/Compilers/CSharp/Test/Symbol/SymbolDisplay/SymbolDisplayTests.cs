@@ -4675,25 +4675,27 @@ class C
         }
 
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        public void TupleFullyQualified()
+        public void TupleQualifiedNames()
         {
             var text =
-@"using N;
+@"using NAB = N.A.B;
 namespace N
 {
     class A
     {
-        internal class B { }
+        internal class B {}
     }
     class C<T>
     {
+        // offset 1
     }
 }
 class C
 {
 #pragma warning disable CS0169
-   (int One, C<(object[], A.B Two)>, int, object Four, int, object, int, object, A Nine) f;
+   (int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f;
 #pragma warning restore CS0169
+    // offset 2
 }";
             var format = new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -4704,9 +4706,25 @@ class C
             var comp = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef });
             comp.VerifyDiagnostics();
             var symbol = comp.GetMember("C.f");
+
+            // Fully qualified format.
             Verify(
                 SymbolDisplay.ToDisplayParts(symbol, format),
                 "(int One, global::N.C<(object[], global::N.A.B Two)>, int, object Four, int, object, int, object, global::N.A Nine) f");
+
+            // Minimally qualified format.
+            Verify(
+                SymbolDisplay.ToDisplayParts(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "(int One, C<(object[], B Two)>, int, object Four, int, object, int, object, A Nine) C.f");
+
+            // ToMinimalDisplayParts.
+            var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
+                "(int One, C<(object[], NAB Two)>, int, object Four, int, object, int, object, A Nine) f");
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 2"), format),
+                "(int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f");
         }
 
         /// <summary>
