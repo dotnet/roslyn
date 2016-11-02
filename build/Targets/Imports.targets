@@ -322,8 +322,13 @@
                        XmlInputPaths="source.extension.vsixmanifest"
                        OutputPaths="$(IntermediateOutputPath)source.extension.vsixmanifest" />
     <ItemGroup>
+      <!-- Note that `FindSourceVsixManifest` finds the first item in @None that matches the name.
+           Our template projects include other manifests as content that are in @None, so make
+           sure we put our tranformed item back at the beginning of the list. -->
       <None Remove="source.extension.vsixmanifest" />
-      <None Include="$(IntermediateOutputPath)source.extension.vsixmanifest" />
+      <_TempNoneForReordering Include="@(None)" />
+      <None Remove="@(None)" />
+      <None Include="source.extension.vsixmanifest;@(_TempNoneForReordering)" />
     </ItemGroup>
   </Target>
 
