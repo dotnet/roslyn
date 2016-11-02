@@ -4,17 +4,19 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
 
-Public Class ConvertPlaceholderToInterpolatedStringTests
-    Inherits AbstractVisualBasicCodeActionTest
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpolatedString
+    Public Class ConvertPlaceholderToInterpolatedStringTests
+        Inherits AbstractVisualBasicCodeActionTest
 
-    Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
-        Return New VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider()
-    End Function
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+            Return New VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider()
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestSingleItemSubstitution() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestSingleItemSubstitution() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -22,7 +24,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -30,12 +32,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemOrdering() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemOrdering() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -43,7 +45,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -51,12 +53,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemOrdering2() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemOrdering2() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -64,7 +66,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -72,12 +74,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemOrdering3() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemOrdering3() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -85,7 +87,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -93,12 +95,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemOutsideRange() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemOutsideRange() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -106,7 +108,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -114,12 +116,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemDoNotHaveCast() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemDoNotHaveCast() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -127,7 +129,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -135,12 +137,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestItemWithoutSyntaxErrorDoesNotHaveCast() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestItemWithoutSyntaxErrorDoesNotHaveCast() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -148,7 +150,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -156,12 +158,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestPreserveParenthesis() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestPreserveParenthesis() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -169,7 +171,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -177,12 +179,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestMultiLineExpression() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMultiLineExpression() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -192,7 +194,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -202,12 +204,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -217,7 +219,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -226,12 +228,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers2() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers2() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -239,7 +241,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -247,12 +249,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers3() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers3() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -266,7 +268,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -279,12 +281,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers4() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers4() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -292,7 +294,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -300,12 +302,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers5() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers5() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -327,7 +329,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -347,12 +349,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestFormatSpecifiers6() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestFormatSpecifiers6() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -363,7 +365,7 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -374,12 +376,12 @@ Module T
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestMultilineStringLiteral2() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMultilineStringLiteral2() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M()
@@ -393,7 +395,7 @@ And {1,10} ({1,8:X8})
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Dim expected = <File>
+            Dim expected = <File>
 Imports System
 Module T
     Sub M()
@@ -406,30 +408,31 @@ And {value2,10} ({value2,8:X8})
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
-        Await TestAsync(text, expected)
-    End Function
+            Await TestAsync(text, expected)
+        End Function
 
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestParamsArray() As Task
-        Dim text = <File>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestParamsArray() As Task
+            Dim text = <File>
 Imports System
 Module T
     Sub M(args As String())
         Dim s = [|String.Format("{0}", args)|]
     End Sub
 End Module</File>.ConvertTestSourceTag()
-        Await TestMissingAsync(text)
-    End Function
+            Await TestMissingAsync(text)
+        End Function
 
-    <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestInvocationWithNullArguments() As Task
-        Dim text =
+        <WorkItem(13605, "https://github.com/dotnet/roslyn/issues/13605")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestInvocationWithNullArguments() As Task
+            Dim text =
 "Module Module1
     Sub Main()
         [|TaskAwaiter|]
     End Sub
 End Module"
-        Await TestMissingAsync(text)
-    End Function
-End Class
+            Await TestMissingAsync(text)
+        End Function
+    End Class
+End Namespace
