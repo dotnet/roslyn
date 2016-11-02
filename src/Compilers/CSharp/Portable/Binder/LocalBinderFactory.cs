@@ -223,19 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
-                Binder addToMap;
-                if (match.IsGenericMethod)
-                {
-                    addToMap = new WithMethodTypeParametersBinder(match, _enclosing);
-                }
-                else
-                {
-                    addToMap = _enclosing;
-                }
 
                 if (body != null)
                 {
-                    Visit(body, new InMethodBinder(match, addToMap));
+                    Binder binder = match.IsGenericMethod
+                        ? new WithMethodTypeParametersBinder(match, _enclosing)
+                        : _enclosing;
+
+                    Visit(body, new InMethodBinder(match, binder));
                 }
 
                 _containingMemberOrLambda = oldMethod;
