@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     newDocument = await CleanupDocumentAsync(
                         newDocument, cancellationToken).ConfigureAwait(false);
 
-                    var installOperation = new InstallPackageCodeActionOperation(
+                    var installOperation = new InstallPackageDirectlyCodeActionOperation(
                         reference._installerService, document, reference._source, 
                         reference._packageName, versionOpt, isLocal);
 

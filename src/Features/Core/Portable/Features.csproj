@@ -91,7 +91,9 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
-    <Compile Include="AddPackage\InstallPackageCodeActionOperation.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
+    <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddMissingReference\InstallPackageParentCodeAction.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
@@ -101,7 +103,7 @@
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
-    <Compile Include="AddPackage\InstallPackageCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />

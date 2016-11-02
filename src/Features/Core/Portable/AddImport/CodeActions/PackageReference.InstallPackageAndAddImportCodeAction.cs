@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
-                public readonly InstallPackageCodeActionOperation InstallOperation;
+                public readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
 
                 public InstallPackageAndAddImportData(
                     Document oldDocument, Document newDocument,
-                    InstallPackageCodeActionOperation installOperation)
+                    InstallPackageDirectlyCodeActionOperation installOperation)
                 {
                     OldDocument = oldDocument;
                     NewDocument = newDocument;
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly DocumentId _changedDocumentId;
                 private readonly SourceText _oldText;
                 private readonly SourceText _newText;
-                private readonly InstallPackageCodeActionOperation _installPackageOperation;
+                private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
 
                 public InstallPackageAndAddImportOperation(
                     DocumentId changedDocumentId, 
                     SourceText oldText,
                     SourceText newText,
-                    InstallPackageCodeActionOperation item2)
+                    InstallPackageDirectlyCodeActionOperation item2)
                 {
                     _changedDocumentId = changedDocumentId;
                     _oldText = oldText;

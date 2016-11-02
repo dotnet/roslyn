@@ -119,8 +119,49 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
             }
 
-            var database = databaseWrapper.Database;
+            var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
 
+            var database = databaseWrapper.Database;
+            var index = database.Index;
+            var stringStore = database.StringStore;
+
+            Range range;
+            int[] matches;
+            int startIndex, count;
+            if (stringStore.TryFindString(assemblyName, out range) &&
+                index.TryGetMatchesInRange(range, out matches, out startIndex, out count))
+            {
+                for (var i = startIndex; i < (startIndex + count); i++)
+                {
+                    var symbol = new Symbol(database, matches[i]);
+                    if (symbol.Type == SymbolType.Assembly)
+                    {
+                        result.Add(new PackageWithAssemblyResult(
+                            symbol.PackageName.ToString(),
+                            database.GetPackageVersion(symbol.Index).ToString(),
+                            GetRank(symbol)));
+                    }
+                }
+            }
+            // database.Index.TryGetMatchesInRange()
+#if false
+            var root = database.QueryRoot;
+
+            for (var child = root.FirstChild(); child.IsValid; child = child.NextSibling())
+            {
+                if (child.Type == SymbolType.Package)
+                {
+                    var rankChild = child.FirstChild();
+                    var assemblyChild = rankChild.FirstChild();
+                    if (assemblyChild.Type == SymbolType.Assembly)
+                    {
+                        if (assemblyChild.Name.Equals(assemblyName))
+                        {
+
+                        }
+                    }
+                }
+            }
             var query = new MemberQuery(assemblyName, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
@@ -138,6 +179,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     }
                 }
             }
+#endif
 
             return Task.FromResult(result.ToImmutableAndFree());
         }

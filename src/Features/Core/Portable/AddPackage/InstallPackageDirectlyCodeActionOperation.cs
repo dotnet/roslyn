@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// version, or a the latest version of a nuget package.  Is not responsible
     /// for adding an import to user code.
     /// </summary>
-    internal class InstallPackageCodeActionOperation : CodeActionOperation
+    internal class InstallPackageDirectlyCodeActionOperation : CodeActionOperation
     {
         private readonly Document _document;
         private readonly IPackageInstallerService _installerService;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         private readonly bool _isLocal;
         private readonly List<string> _projectsWithMatchingVersion;
 
-        public InstallPackageCodeActionOperation(
+        public InstallPackageDirectlyCodeActionOperation(
             IPackageInstallerService installerService,
             Document document,
             string source,

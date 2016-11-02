@@ -78,11 +78,10 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                     foreach (var package in sortedPackages)
                     {
                         var installedVersions = installerService.GetInstalledVersions(package.PackageName);
-                        foreach (var version in installedVersions)
+                        if (installedVersions.Any())
                         {
-                            codeActions.Add(new InstallPackageCodeAction(
-                                installerService, document, packageSource.Source,
-                                package.PackageName, version, isLocal: true));
+                            codeActions.Add(new InstallPackageParentCodeAction(
+                                installerService, packageSource.Source, package.PackageName, document));
                         }
                     }
                 }

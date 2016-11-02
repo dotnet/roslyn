@@ -113,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
+            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
+                WorkspaceChangeKind.SolutionAdded, null, null));
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
