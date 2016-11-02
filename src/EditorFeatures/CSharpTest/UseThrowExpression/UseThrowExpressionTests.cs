@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseThrowExpression
         public async Task WithoutBraces()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        if (s == null) [|throw|] new ArgumentNullException(nameof(s));
+        if (s == null)
+            [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -52,14 +52,14 @@ class C
         public async Task TestOnIf()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        [|if|] (s == null) throw new ArgumentNullException(nameof(s));
+        [|if|] (s == null)
+            throw new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -78,14 +78,17 @@ class C
         public async Task WithBraces()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)); }
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s));
+        }
+
         _s = s;
     }
 }",
@@ -104,14 +107,14 @@ class C
         public async Task TestNotOnAssign()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        if (s == null) throw new ArgumentNullException(nameof(s));
+        if (s == null)
+            throw new ArgumentNullException(nameof(s));
         _s = [|s|];
     }
 }");
@@ -121,14 +124,15 @@ class C
         public async Task OnlyInCSharp7AndHigher()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)) };
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s)) };
         _s = s;
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -138,15 +142,22 @@ class C
         public async Task WithIntermediaryStatements()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s, string t)
     {
-        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)); }
-        if (t == null) { throw new ArgumentNullException(nameof(t)); }
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s));
+        }
+
+        if (t == null)
+        {
+            throw new ArgumentNullException(nameof(t));
+        }
+
         _s = s;
     }
 }",
@@ -156,7 +167,11 @@ class C
 {
     void M(string s, string t)
     {
-        if (t == null) { throw new ArgumentNullException(nameof(t)); }
+        if (t == null)
+        {
+            throw new ArgumentNullException(nameof(t));
+        }
+
         _s = s ?? throw new ArgumentNullException(nameof(s));
     }
 }");
@@ -166,14 +181,15 @@ class C
         public async Task NotWithIntermediaryWrite()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s, string t)
     {
-        if (s == null) { [|throw|] new ArgumentNullException(nameof(s)) };
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s)) };
         s = ""something"";
         _s = s;
     }
@@ -184,14 +200,14 @@ class C
         public async Task TestNullCheckOnLeft()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
-        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
+        if (null == s)
+            [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -210,15 +226,15 @@ class C
         public async Task TestWithLocal()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M()
     {
         string s = null;
-        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
+        if (null == s)
+            [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }",
@@ -238,8 +254,7 @@ class C
         public async Task TestNotOnField()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -247,7 +262,8 @@ class C
 
     void M()
     {
-        if (null == s) [|throw|] new ArgumentNullException(nameof(s));
+        if (null == s)
+            [|throw|] new ArgumentNullException(nameof(s));
         _s = s;
     }
 }");
@@ -257,15 +273,15 @@ class C
         public async Task TestAssignBeforeCheck()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     void M(string s)
     {
         _s = s;
-        if (s == null) [|throw|] new ArgumentNullException(nameof(s));
+        if (s == null)
+            [|throw|] new ArgumentNullException(nameof(s));
     }
 }");
         }

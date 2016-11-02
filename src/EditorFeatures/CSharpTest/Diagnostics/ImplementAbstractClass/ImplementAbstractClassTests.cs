@@ -60,7 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         public async Task TestNotAvailableForStruct()
         {
             await TestMissingAsync(
-@"abstract class Foo { public abstract void Bar ( ) ; } struct [|Program|] : Foo { } ");
+@"abstract class Foo
+{
+    public abstract void Bar();
+}
+
+struct [|Program|] : Foo
+{
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -216,7 +223,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
             await TestMissingAsync(
 @"using System;
 
-abstract class Foo { public abstract void F(); }
+abstract class Foo
+{
+    public abstract void F();
+}
 
 class [|Program|] : Foo
 {
@@ -480,8 +490,9 @@ partial class A : Base { }
     public abstract void M(int x);
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -492,8 +503,7 @@ abstract class A
 class T : A
 {
     public override void M(int x) => throw new NotImplementedException();
-}
-", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -506,8 +516,9 @@ class T : A
     public abstract int M { get; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -518,8 +529,7 @@ abstract class A
 class T : A
 {
     public override int M => throw new NotImplementedException();
-}
-", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -532,8 +542,9 @@ class T : A
     public abstract int M { set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -543,9 +554,14 @@ abstract class A
 
 class T : A
 {
-    public override int M { set { throw new NotImplementedException(); } }
-}
-", options: OptionsSet(
+    public override int M
+    {
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: OptionsSet(
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
@@ -560,8 +576,9 @@ class T : A
     public abstract int M { get; set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -571,12 +588,19 @@ abstract class A
 
 class T : A
 {
-    public override int M { 
-        get { throw new NotImplementedException(); }
-        set { throw new NotImplementedException(); }
+    public override int M
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
     }
-}
-", options: OptionsSet(
+}", options: OptionsSet(
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
@@ -591,8 +615,9 @@ class T : A
     public abstract int this[int i] { get; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -603,8 +628,7 @@ abstract class A
 class T : A
 {
     public override int this[int i] => throw new NotImplementedException();
-}
-", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -617,8 +641,9 @@ class T : A
     public abstract int this[int i] { set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -628,9 +653,14 @@ abstract class A
 
 class T : A
 {
-    public override int this[int i] { set { throw new NotImplementedException(); } }
-}
-", options: OptionsSet(
+    public override int this[int i]
+    {
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: OptionsSet(
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
@@ -645,8 +675,9 @@ class T : A
     public abstract int this[int i] { get; set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -656,12 +687,19 @@ abstract class A
 
 class T : A
 {
-    public override int this[int i] { 
-        get { throw new NotImplementedException(); }
-        set { throw new NotImplementedException(); }
+    public override int this[int i]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        set
+        {
+            throw new NotImplementedException();
+        }
     }
-}
-", options: OptionsSet(
+}", options: OptionsSet(
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
@@ -676,8 +714,9 @@ class T : A
     public abstract int M { get; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -687,9 +726,11 @@ abstract class A
 
 class T : A
 {
-    public override int M { get => throw new NotImplementedException(); }
-}
-", options: OptionsSet(
+    public override int M
+    {
+        get => throw new NotImplementedException();
+        }
+    }", options: OptionsSet(
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
     Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
         }
@@ -704,8 +745,9 @@ class T : A
     public abstract int M { set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -715,9 +757,11 @@ abstract class A
 
 class T : A
 {
-    public override int M { set => throw new NotImplementedException(); }
-}
-", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override int M
+    {
+        set => throw new NotImplementedException();
+        }
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -730,8 +774,9 @@ class T : A
     public abstract int M { get; set; }
 }
 
-class [|T|] : A { }
-",
+class [|T|] : A
+{
+}",
 @"using System;
 
 abstract class A
@@ -741,12 +786,12 @@ abstract class A
 
 class T : A
 {
-    public override int M { 
-        get => throw new NotImplementedException(); 
+    public override int M
+    {
+        get => throw new NotImplementedException();
         set => throw new NotImplementedException();
-    }
-}
-", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+        }
+    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -316,7 +316,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         protected override Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            return TestAsync("class C {" + code + "}", expectedContent, expectedDocumentationComment);
+            return TestAsync(
+@"class C
+{" + code + "}", expectedContent, expectedDocumentationComment);
         }
 
         protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)

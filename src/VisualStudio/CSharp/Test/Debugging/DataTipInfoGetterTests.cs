@@ -56,11 +56,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
         {
-            await TestAsync("class [|C$$|] { }");
-            await TestAsync("struct [|C$$|] { }");
-            await TestAsync("interface [|C$$|] { }");
-            await TestAsync("enum [|C$$|] { }");
-            await TestAsync("delegate void [|C$$|] ();"); // Without the space, that position is actually on the open paren.
+            await TestAsync(
+@"class [|C$$|]
+{
+}");
+            await TestAsync(
+@"struct [|C$$|]
+{
+}");
+            await TestAsync(
+@"interface [|C$$|]
+{
+}");
+            await TestAsync(
+@"enum [|C$$|]
+{
+}");
+            await TestAsync(
+@"delegate void [|C$$|]();"); // Without the space, that position is actually on the open paren.
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
@@ -69,10 +82,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|Sys$$tem|].Console.WriteLine(args);
-  }
+    void Foo()
+    {
+        [|Sys$$tem|].Console.WriteLine(args);
+    }
 }");
         }
 
@@ -82,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System$$.Console|].WriteLine(args);
-  }
+    void Foo()
+    {
+        [|System$$.Console|].WriteLine(args);
+    }
 }");
         }
 
@@ -95,10 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System.$$Console|].WriteLine(args);
-  }
+    void Foo()
+    {
+        [|System.$$Console|].WriteLine(args);
+    }
 }");
         }
 
@@ -108,10 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System.Con$$sole|].WriteLine(args);
-  }
+    void Foo()
+    {
+        [|System.Con$$sole|].WriteLine(args);
+    }
 }");
         }
 
@@ -121,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System.Console.Wri$$teLine|](args);
-  }
+    void Foo()
+    {
+        [|System.Console.Wri$$teLine|](args);
+    }
 }");
         }
 
@@ -147,10 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    System.Console.WriteLine($$[|args|]);
-  }
+    void Foo()
+    {
+        System.Console.WriteLine($$[|args|]);
+    }
 }");
         }
 
@@ -173,10 +186,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|va$$r|] v = 0;
-  }
+    void Foo()
+    {
+        [|va$$r|] v = 0;
+    }
 }", "int");
         }
 
@@ -186,10 +199,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|in$$t|] i = 0;
-  }
+    void Foo()
+    {
+        [|in$$t|] i = 0;
+    }
 }");
         }
 
@@ -199,10 +212,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    int [|$$i|] = 0;
-  }
+    void Foo()
+    {
+        int $$[|i|] = 0;
+    }
 }");
         }
 
@@ -213,10 +226,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
-  {
-    int i = [|4$$2|];
-  }
+    void Foo()
+    {
+        int i = [|4$$2|];
+    }
 }", "int");
         }
 
@@ -239,9 +252,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo(int [|$$i|])
-  {
-  }
+    void Foo(int $$[|i|])
+    {
+    }
 }");
         }
 
@@ -257,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         try
         {
         }
-        catch (System.Exception [|$$e|])
+        catch (System.Exception $$[|e|])
         {
         }
     }
@@ -270,16 +283,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-    event System.Action [|$$E|];
+    event System.Action $$[|E|];
 }");
 
             await TestAsync(
 @"class C
 {
-    event System.Action [|$$E|]
+    event System.Action $$[|E|]
     {
-        add { }
-        remove { }
+        add
+        {
+        }
+
+        remove
+        {
+        }
     }
 }");
         }
@@ -290,18 +308,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-    int [|$$M|]() { }
+    int $$[|M|]()
+    {
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public async Task TestTypeParameter()
         {
-            await TestAsync("class C<T, [|$$U|], V> { }");
+            await TestAsync(
+@"class C<T, $$[|U|], V>
+{
+}");
             await TestAsync(
 @"class C
 {
-    void M<T, [|$$U|]>() { }
+    void M<T, $$[|U|]>()
+    {
+    }
 }");
         }
 
@@ -309,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         public async Task UsingAlias()
         {
             await TestAsync(
-@"using [|$$S|] = Static;
+@"using $$[|S|] = Static;
 
 static class Static
 {
@@ -323,12 +348,12 @@ static class Static
             await TestAsync(
 @"class C
 {
-  void Foo(string[] args)
-  {
-    foreach (string [|$$s|] in args)
+    void Foo(string[] args)
     {
+        foreach (string $$[|s|] in args)
+        {
+        }
     }
-  }
 }");
         }
 
@@ -341,16 +366,19 @@ static class Static
 {
     class C
     {
-        public int [|$$foo|] { get; private set; } // hover over me
+        public int $$[|foo|] { get; private set; } // hover over me
+
         public C()
         {
             this.foo = 1;
         }
+
         public int Foo()
         {
             return 2; // breakpoint here
         }
     }
+
     class Program
     {
         static void Main(string[] args)
@@ -358,8 +386,7 @@ static class Static
             new C().Foo();
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
@@ -370,7 +397,8 @@ static class Static
 {
     object Foo(string[] args)
     {
-        return from [|$$a|] in args select a;
+        return from $$[|a|] in args
+               select a;
     }
 }");
             await TestAsync( // Let
@@ -378,7 +406,9 @@ static class Static
 {
     object Foo(string[] args)
     {
-        return from a in args let [|$$b|] = ""END"" select a + b;
+        return from a in args
+               let $$[|b|] = ""END""
+               select a + b;
     }
 }");
             await TestAsync( // Join
@@ -386,7 +416,8 @@ static class Static
 {
     object Foo(string[] args)
     {
-        return from a in args join [|$$b|] in args on a equals b;
+        return from a in args
+               join $$[|b|] in args on a equals b;
     }
 }");
             await TestAsync( // Join Into
@@ -394,7 +425,8 @@ static class Static
 {
     object Foo(string[] args)
     {
-        return from a in args join b in args on a equals b into [|$$c|];
+        return from a in args
+               join b in args on a equals b into $$[|c|];
     }
 }");
             await TestAsync( // Continuation
@@ -402,7 +434,10 @@ static class Static
 {
     object Foo(string[] args)
     {
-        return from a in args select a into [|$$b|] from c in b select c;
+        return from a in args
+               select a into $$[|b|]
+               from c in b
+               select c;
     }
 }");
         }

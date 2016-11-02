@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAtTypeMemberLevel()
         {
-            await TestAsync(@"class C { var foo }",
+            await TestAsync(
+@"class C
+{
+    var foo }",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -88,7 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAsMethodParameter()
         {
-            await TestAsync(@"class C { void M(var v) { } }",
+            await TestAsync(
+@"class C
+{
+    void M(var v)
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -106,11 +115,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldYield()
         {
-            await TestAsync(@"using System.Collections.Generic;
-class yield { 
-    IEnumerable<yield> M() { 
-        yield yield = new yield(); 
-        yield return yield; } }",
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class yield
+{
+    IEnumerable<yield> M()
+    {
+        yield yield = new yield();
+        yield return yield;
+    }
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Operators.Dot,
@@ -224,9 +239,18 @@ class yield {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialClassStructInterface()
         {
-            await TestAsync(@"partial class T1 { }
-partial struct T2 { }
-partial interface T3 { }",
+            await TestAsync(
+@"partial class T1
+{
+}
+
+partial struct T2
+{
+}
+
+partial interface T3
+{
+}",
                 Keyword("partial"),
                 Keyword("class"),
                 Class("T1"),
@@ -325,7 +349,8 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral6()
         {
-            await TestAsync(@"string s = @""""""/*"";",
+            await TestAsync(
+@"string s = @""""""/*"";",
                 Keyword("string"),
                 Identifier("s"),
                 Operators.Equals,
@@ -449,16 +474,14 @@ on a new line """),
         public async Task LinqKeywordsAtNamespaceLevel()
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error
-            await TestAsync(@"object foo = from foo in foo 
-join foo in foo 
-on foo equals foo 
-group foo by foo 
-into foo 
-let foo = foo 
-where foo 
-orderby foo ascending, 
-foo descending 
-select foo;",
+            await TestAsync(
+@"object foo = from foo in foo
+             join foo in foo on foo equals foo
+             group foo by foo into foo
+             let foo = foo
+             where foo
+             orderby foo ascending, foo descending
+             select foo;",
                 Keyword("object"),
                 Identifier("foo"),
                 Operators.Equals,
@@ -500,7 +523,11 @@ select foo;",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ContextualKeywordsAsFieldName()
         {
-            await TestAsync(@"class C { int yield, get, set, value, add, remove, global, partial, where, alias; }",
+            await TestAsync(
+@"class C
+{
+    int yield, get, set, value, add, remove, global, partial, where, alias;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -531,16 +558,17 @@ select foo;",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInFieldInitializer()
         {
-            await TestAsync(@"class C { int a = from a in a 
-join a in a 
-on a equals a 
-group a by a 
-into a 
-let a = a 
-where a 
-orderby a ascending, 
-a descending 
-select a; }",
+            await TestAsync(
+@"class C
+{
+    int a = from a in a
+            join a in a on a equals a
+            group a by a into a
+            let a = a
+            where a
+            orderby a ascending, a descending
+            select a;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -586,20 +614,59 @@ select a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsTypeName()
         {
-            await TestAsync(@"class var { }
-struct from { }
-interface join { }
-enum on { }
+            await TestAsync(
+@"class var
+{
+}
+
+struct from
+{
+}
+
+interface join
+{
+}
+
+enum on
+{
+}
+
 delegate equals { }
-class group { }
-class by { }
-class into { }
-class let { }
-class where { }
-class orderby { }
-class ascending { }
-class descending { }
-class select { }",
+class group
+{
+}
+
+class by
+{
+}
+
+class into
+{
+}
+
+class let
+{
+}
+
+class where
+{
+}
+
+class orderby
+{
+}
+
+class ascending
+{
+}
+
+class descending
+{
+}
+
+class select
+{
+}",
                 Keyword("class"),
                 Class("var"),
                 Punctuation.OpenCurly,
@@ -661,7 +728,13 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsMethodParameters()
         {
-            await TestAsync(@"class C { orderby M(var foo, from foo, join foo, on foo, equals foo, group foo, by foo, into foo, let foo, where foo, orderby foo, ascending foo, descending foo, select foo) { } }",
+            await TestAsync(
+@"class C
+{
+    orderby M(var foo, from foo, join foo, on foo, equals foo, group foo, by foo, into foo, let foo, where foo, orderby foo, ascending foo, descending foo, select foo)
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -718,20 +791,25 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInLocalVariableDeclarations()
         {
-            await TestAsync(@"class C { void M() {
-    var foo = (var)foo as var;
-    from foo = (from)foo as from;
-    join foo = (join)foo as join;
-    on foo = (on)foo as on;
-    equals foo = (equals)foo as equals;
-    group foo = (group)foo as group;
-    by foo = (by)foo as by;
-    into foo = (into)foo as into;
-    orderby foo = (orderby)foo as orderby;
-    ascending foo = (ascending)foo as ascending;
-    descending foo = (descending)foo as descending;
-    select foo = (select)foo as select;
-} }",
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var foo = (var)foo as var;
+        from foo = (from)foo as from;
+        join foo = (join)foo as join;
+        on foo = (on)foo as on;
+        equals foo = (equals)foo as equals;
+        group foo = (group)foo as group;
+        by foo = (by)foo as by;
+        into foo = (into)foo as into;
+        orderby foo = (orderby)foo as orderby;
+        ascending foo = (ascending)foo as ascending;
+        descending foo = (descending)foo as descending;
+        select foo = (select)foo as select;
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -867,7 +945,11 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsFieldNames()
         {
-            await TestAsync(@"class C { int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial; }",
+            await TestAsync(
+@"class C
+{
+    int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -906,16 +988,12 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAtFieldLevelInvalid()
         {
-            await TestAsync(@"class C { string Property { from a in a 
-join a in a 
-on a equals a 
-group a by a 
-into a 
-let a = a 
-where a 
-orderby a ascending, 
-a descending 
-select a; } }",
+            await TestAsync(
+@"class C
+{
+    string Property { from a in a join a in a on a equals a group a by a into a let a = a where a orderby a ascending, 
+a descending select a; }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -1089,8 +1167,11 @@ class Bar {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix1()
         {
-            await TestAsync(@"// comment1 /*
-class cl { }
+            await TestAsync(
+@"// comment1 /*
+class cl
+{
+}
 //comment2 */",
                 Comment("// comment1 /*"),
                 Keyword("class"),
@@ -1502,13 +1583,15 @@ class Bar { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ProcessingDirective()
         {
-            await TestAsync(@"/// <summary><?foo
+            await TestAsync(
+@"/// <summary><?foo
 /// ?></summary>
 public class Program
 {
-    static void Main() { }
-}
-",
+    static void Main()
+    {
+    }
+}",
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
@@ -1776,7 +1859,10 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task BaseClass()
         {
-            await TestAsync("class C : B { }",
+            await TestAsync(
+@"class C : B
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.Colon,
@@ -1796,7 +1882,8 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Attribute()
         {
-            await TestAsync("[assembly: Foo]",
+            await TestAsync(
+@"[assembly: Foo]",
                 Punctuation.OpenBracket,
                 Keyword("assembly"),
                 Punctuation.Colon,
@@ -1807,7 +1894,10 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAngleBracketsOnGenericConstraints_Bug932262()
         {
-            await TestAsync(@"class C<T> where T : A<T> { }",
+            await TestAsync(
+@"class C<T> where T : A<T>
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -1873,7 +1963,8 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersModule()
         {
-            await TestAsync(@"[module: Obsolete]",
+            await TestAsync(
+@"[module: Obsolete]",
                 Punctuation.OpenBracket,
                 Keyword("module"),
                 Punctuation.Colon,
@@ -1884,7 +1975,8 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersAssembly()
         {
-            await TestAsync(@"[assembly: Obsolete]",
+            await TestAsync(
+@"[assembly: Obsolete]",
                 Punctuation.OpenBracket,
                 Keyword("assembly"),
                 Punctuation.Colon,
@@ -1939,7 +2031,14 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnCtor()
         {
-            await TestAsync(@"class C { [method: A] C() { } }",
+            await TestAsync(
+@"class C
+{
+    [method: A]
+    C()
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -1959,7 +2058,14 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDtor()
         {
-            await TestAsync(@"class C {  [method: A] ~C() { } }",
+            await TestAsync(
+@"class C
+{
+    [method: A]
+    ~C()
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -2187,7 +2293,8 @@ const int a = 0;",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllKeywords()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 #region TaoRegion
 namespace MyNamespace
 {
@@ -2198,10 +2305,20 @@ namespace MyNamespace
         char foo2;
         const int foo3 = 999;
         decimal foo4;
+
         delegate void D();
+
         double foo5;
-        enum MyEnum { one, two, three };
+
+        enum MyEnum
+        {
+            one,
+            two,
+            three
+        };
+
         event D MyEvent;
+
         float foo6;
         static int x;
         long foo7;
@@ -2212,8 +2329,15 @@ namespace MyNamespace
         uint foo12;
         ulong foo13;
         volatile ushort foo14;
-        struct SomeStruct { }
-        protected virtual void someMethod() { }
+
+        struct SomeStruct
+        {
+        }
+
+        protected virtual void someMethod()
+        {
+        }
+
         public Foo(int i)
         {
             bool var = i is int;
@@ -2224,6 +2348,7 @@ namespace MyNamespace
                     continue;
                     break;
                 }
+
                 switch (foo)
                 {
                     case true:
@@ -2232,44 +2357,72 @@ namespace MyNamespace
                         break;
                 }
             }
-            catch (System.Exception) { }
-            finally { }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
             checked
             {
                 int i2 = 10000;
                 i2++;
             }
-            do { } while (true);
-            if (false) { }
-            else { }
+
+            do
+            {
+            }
+            while (true);
+            if (false)
+            {
+            }
+            else
+            {
+            }
+
             unsafe
             {
-                fixed (int* p = &x) { }
+                fixed (int* p = &x)
+                {
+                }
+
                 char* buffer = stackalloc char[16];
             }
+
             for (int i1 = 0; i1 < 10; i1++)
-            { }
+            {
+            }
+
             System.Collections.ArrayList al = new System.Collections.ArrayList();
             foreach (object o in al)
             {
                 object o1 = o;
             }
-            lock (this) { }
+
+            lock (this)
+            {
+            }
         }
+
         Foo method(Bar i, out int z)
         {
             z = 5;
             return i as Foo;
         }
+
         public static explicit operator Foo(int i)
         {
             return new Baz(1);
         }
+
         public static implicit operator Foo(double x)
         {
             return new Baz(1);
         }
+
         public extern void doSomething();
+
         internal void method2(object o)
         {
             if (o == null)
@@ -2278,20 +2431,25 @@ namespace MyNamespace
                 return;
             else
                 throw new System.Exception();
-        Output:
+            Output:
             Console.WriteLine(""Finished"");
         }
     }
+
     sealed class Baz : Foo
     {
         readonly int field;
-        public Baz(int i)
-            : base(i) { }
+
+        public Baz(int i) : base(i)
+        {
+        }
+
         public void someOtherMethod(ref int i, System.Type c)
         {
             int f = 1;
             someOtherMethod(ref f, typeof(int));
         }
+
         protected override void someMethod()
         {
             unchecked
@@ -2300,9 +2458,15 @@ namespace MyNamespace
                 i++;
             }
         }
-        private void method(params object[] args) { }
+
+        private void method(params object[] args)
+        {
+        }
     }
-    interface Bar { }
+
+    interface Bar
+    {
+    }
 }
 #endregion TaoRegion",
                 Keyword("using"),
@@ -2781,13 +2945,21 @@ namespace MyNamespace
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllOperators()
         {
-            await TestAsync(@"using IO = System.IO;
+            await TestAsync(
+@"using IO = System.IO;
+
 public class Foo<T>
 {
     public void method()
     {
         int[] a = new int[5];
-        int[] var = { 1, 2, 3, 4, 5 };
+        int[] var = {
+            1,
+            2,
+            3,
+            4,
+            5
+        };
         int i = a[i];
         Foo<T> f = new Foo<int>();
         f.method();
@@ -2821,6 +2993,7 @@ public class Foo<T>
             Point* p = &point;
             p->x = 10;
         }
+
         IO::BinaryReader br = null;
     }
 }",
@@ -3088,16 +3261,23 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestPartialMethodWithNamePartial()
         {
-            await TestAsync(@"partial class C
+            await TestAsync(
+@"partial class C
 {
     partial void partial(string bar);
-    partial void partial(string baz) {}
+
+    partial void partial(string baz)
+    {
+    }
+
     partial int Foo();
-    partial int Foo() {}
-    public partial void 
-    partial void
-}
-",
+
+    partial int Foo()
+    {
+    }
+
+    public partial void partial void
+}",
                 Keyword("partial"),
                 Keyword("class"),
                 Class("C"),
@@ -3143,7 +3323,17 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ValueInSetterAndAnonymousTypePropertyName()
         {
-            await TestAsync(@"class C { int P { set { var t = new { value = value }; } } }",
+            await TestAsync(
+@"class C
+{
+    int P
+    {
+        set
+        {
+            var t = new { value = value };
+        }
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -3171,14 +3361,18 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestValueInLabel()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     int X
     {
-        set { value:; }
+        set
+        {
+        value:
+            ;
+        }
     }
-}
-",
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -3199,8 +3393,9 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGenericVar()
         {
-            await TestAsync(@"using System;
- 
+            await TestAsync(
+@"using System;
+
 static class Program
 {
     static void Main()
@@ -3208,9 +3403,10 @@ static class Program
         var x = 1;
     }
 }
- 
-class var<T> { }
-",
+
+class var<T>
+{
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -3244,21 +3440,23 @@ class var<T> { }
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestInaccessibleVar()
         {
-            await TestAsync(@"using System;
- 
+            await TestAsync(
+@"using System;
+
 class A
 {
-    private class var { }
+    private class var
+    {
+    }
 }
- 
+
 class B : A
 {
     static void Main()
     {
         var x = 1;
     }
-}
-",
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -3295,7 +3493,8 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestEscapedVar()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -3328,10 +3527,18 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
-    class var<T> { }
-    static var<int> GetVarT() { return null; }
+    class var<T>
+    {
+    }
+
+    static var<int> GetVarT()
+    {
+        return null;
+    }
+
     static void Main()
     {
         var x = GetVarT();
@@ -3393,14 +3600,16 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar2()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     void Main(string[] args)
     {
-        foreach (var v in args) { }
+        foreach (var v in args)
+        {
+        }
     }
-}
-",
+}",
                 Keyword("class"),
                 Class("Program"),
                 Punctuation.OpenCurly,

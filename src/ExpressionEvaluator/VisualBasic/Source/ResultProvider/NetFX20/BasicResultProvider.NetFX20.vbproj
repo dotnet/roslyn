@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Settings.targets" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</ProjectGuid>
@@ -61,5 +61,5 @@
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
   <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
-  <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

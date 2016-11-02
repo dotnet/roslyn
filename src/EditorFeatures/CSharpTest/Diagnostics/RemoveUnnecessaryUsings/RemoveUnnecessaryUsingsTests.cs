@@ -24,40 +24,129 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         public async Task TestNoReferences()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { } } |]",
-@"class Program { static void Main ( string [ ] args ) { } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } |]",
-@"using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}|]",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DateTime d;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestGenericReferenceInTypeContext()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { List < int > list ; } } |]",
-@"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        List<int> list;
+    }
+}|]",
+@"using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        List<int> list;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestMultipleReferences()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { List < int > list ; DateTime d ; } } |]",
-@"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; DateTime d ; } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        List<int> list;
+        DateTime d;
+    }
+}|]",
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        List<int> list;
+        DateTime d;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestExtensionMethodReference()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { args . Where ( a => a . Length > 10 ) ; } } |]",
-@"using System . Linq ; class Program { static void Main ( string [ ] args ) { args . Where ( a => a . Length > 10 ) ; } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args.Where(a => a.Length > 10);
+    }
+}|]",
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args.Where(a => a.Length > 10);
+    }
+}");
         }
 
         [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
@@ -77,7 +166,8 @@ class Program
     static void Main()
     {
         Foo qq = new Foo();
-        IEnumerable x = from q in qq select q;
+        IEnumerable x = from q in qq
+                        select q;
     }
 }
 
@@ -104,32 +194,131 @@ namespace SomeNS
         public async Task TestAliasQualifiedAliasReference()
         {
             await TestAsync(
-@"[|using System ; using G = System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { G :: List < int > list ; } } |]",
-@"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G :: List < int > list ; } } ");
+@"[|using System;
+using G = System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        G::List<int> list;
+    }
+}|]",
+@"using G = System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        G::List<int> list;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestQualifiedAliasReference()
         {
             await TestAsync(
-@"[|using System ; using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G . List < int > list ; } } |]",
-@"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G . List < int > list ; } } ");
+@"[|using System;
+using G = System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        G.List<int> list;
+    }
+}|]",
+@"using G = System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        G.List<int> list;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUnusedUsings()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } |]",
-@"namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}|]",
+@"namespace N
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestNestedUsedUsings()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } |]",
-@"using System ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}
+
+class F
+{
+    DateTime d;
+}|]",
+@"using System;
+
+namespace N
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}
+
+class F
+{
+    DateTime d;
+}");
         }
 
         [WorkItem(712656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712656")]
@@ -137,22 +326,95 @@ namespace SomeNS
         public async Task TestNestedUsedUsings2()
         {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; namespace N { [|using System ;|] using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ",
-@"using System ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ");
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    [|using System;|]
+    using System.Collections.Generic;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}
+
+class F
+{
+    DateTime d;
+}",
+@"using System;
+
+namespace N
+{
+    using System;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            DateTime d;
+        }
+    }
+}
+
+class F
+{
+    DateTime d;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttribute()
         {
             await TestMissingAsync(
-@"[|using SomeNamespace ; [ SomeAttr ] class Foo { } namespace SomeNamespace { public class SomeAttrAttribute : System . Attribute { } } |]");
+@"[|using SomeNamespace;
+
+[SomeAttr]
+class Foo
+{
+}
+
+namespace SomeNamespace
+{
+    public class SomeAttrAttribute : System.Attribute
+    {
+    }
+}|]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestAttributeArgument()
         {
             await TestMissingAsync(
-@"[|using foo ; [ SomeAttribute ( typeof ( SomeClass ) ) ] class Program { static void Main ( ) { } } public class SomeAttribute : System . Attribute { public SomeAttribute ( object f ) { } } namespace foo { public class SomeClass { } } |]");
+@"[|using foo;
+
+[SomeAttribute(typeof(SomeClass))]
+class Program
+{
+    static void Main()
+    {
+    }
+}
+
+public class SomeAttribute : System.Attribute
+{
+    public SomeAttribute(object f)
+    {
+    }
+}
+
+namespace foo
+{
+    public class SomeClass
+    {
+    }
+}|]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -405,16 +667,68 @@ compareTokens: false);
         public async Task TestSimpleQuery()
         {
             await TestAsync(
-@"[|using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = from a in args where a . Length > 21 select a ; } } |]",
-@"using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = from a in args where a . Length > 21 select a ; } } ");
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var q = from a in args
+                where a.Length > 21
+                select a;
+    }
+}|]",
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var q = from a in args
+                where a.Length > 21
+                select a;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessField1()
         {
             await TestAsync(
-@"[|using SomeNS . Foo ; class Program { static void Main ( ) { var q = x ; } } namespace SomeNS { static class Foo { public static int x ; } } |]",
-@"class Program { static void Main ( ) { var q = x ; } } namespace SomeNS { static class Foo { public static int x ; } } ",
+@"[|using SomeNS.Foo;
+
+class Program
+{
+    static void Main()
+    {
+        var q = x;
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int x;
+    }
+}|]",
+@"class Program
+{
+    static void Main()
+    {
+        var q = x;
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int x;
+    }
+}",
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
@@ -422,15 +736,67 @@ compareTokens: false);
         public async Task TestUsingStaticClassAccessField2()
         {
             await TestMissingAsync(
-@"[|using static SomeNS . Foo ; class Program { static void Main ( ) { var q = x ; } } namespace SomeNS { static class Foo { public static int x ; } } |]");
+@"[|using static SomeNS.Foo;
+
+class Program
+{
+    static void Main()
+    {
+        var q = x;
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int x;
+    }
+}|]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestUsingStaticClassAccessMethod1()
         {
             await TestAsync(
-@"[|using SomeNS . Foo ; class Program { static void Main ( ) { var q = X ( ) ; } } namespace SomeNS { static class Foo { public static int X ( ) { return 42 ; } } } |]",
-@"[|class Program { static void Main ( ) { var q = X ( ) ; } } namespace SomeNS { static class Foo { public static int X ( ) { return 42 ; } } } |]",
+@"[|using SomeNS.Foo;
+
+class Program
+{
+    static void Main()
+    {
+        var q = X();
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int X()
+        {
+            return 42;
+        }
+    }
+}|]",
+@"[|class Program
+{
+    static void Main()
+    {
+        var q = X();
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int X()
+        {
+            return 42;
+        }
+    }
+}|]",
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
@@ -438,7 +804,26 @@ compareTokens: false);
         public async Task TestUsingStaticClassAccessMethod2()
         {
             await TestMissingAsync(
-@"[|using static SomeNS . Foo ; class Program { static void Main ( ) { var q = X ( ) ; } } namespace SomeNS { static class Foo { public static int X ( ) { return 42 ; } } } |]");
+@"[|using static SomeNS.Foo;
+
+class Program
+{
+    static void Main()
+    {
+        var q = X();
+    }
+}
+
+namespace SomeNS
+{
+    static class Foo
+    {
+        public static int X()
+        {
+            return 42;
+        }
+    }
+}|]");
         }
 
         [WorkItem(8846, "DevDiv_Projects/Roslyn")]
@@ -461,8 +846,7 @@ namespace SomeNS
     {
     }
 }|]",
-@"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -508,8 +892,14 @@ compareTokens: false);
         public async Task TestRemovingUnbindableUsing()
         {
             await TestAsync(
-@"[|using gibberish ; public static class Program { } |]",
-@"public static class Program { } ");
+@"[|using gibberish;
+
+public static class Program
+{
+}|]",
+@"public static class Program
+{
+}");
         }
 
         [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
@@ -540,8 +930,14 @@ namespace Foo
         public async Task TestRemoveUnboundUsing()
         {
             await TestAsync(
-@"[|using gibberish; public static class Program { }|]",
-@"public static class Program { }");
+@"[|using gibberish;
+
+public static class Program
+{
+}|]",
+@"public static class Program
+{
+}");
         }
 
         [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
@@ -616,7 +1012,8 @@ public class GenericType<T>
 namespace GenericThingie
 {
     public class Something
-    { }
+    {
+    }
 }
 
 public class Program
@@ -633,8 +1030,17 @@ public class Program
         public async Task TestRemoveCorrectUsing1()
         {
             await TestAsync(
-@"[|using System . Collections . Generic ; namespace Foo { using Bar = Dictionary < string , string > ; } |]",
-@"using System . Collections . Generic ; namespace Foo { } ",
+@"[|using System.Collections.Generic;
+
+namespace Foo
+{
+    using Bar = Dictionary<string, string>;
+}|]",
+@"using System.Collections.Generic;
+
+namespace Foo
+{
+}",
 parseOptions: null);
         }
 
@@ -643,7 +1049,17 @@ parseOptions: null);
         public async Task TestRemoveCorrectUsing2()
         {
             await TestMissingAsync(
-@"[|using System . Collections . Generic ; namespace Foo { using Bar = Dictionary < string , string > ; class C { Bar b; } } |]",
+@"[|using System.Collections.Generic;
+
+namespace Foo
+{
+    using Bar = Dictionary<string, string>;
+
+    class C
+    {
+        Bar b;
+    }
+}|]",
 parseOptions: null);
         }
 
@@ -666,7 +1082,49 @@ parseOptions: null);
         public async Task TestMissingWhenErrorsWouldBeGenerated()
         {
             await TestMissingAsync(
-@"[|using System ; using X ; using Y ; class B { static void Main ( ) { Bar ( x => x . Foo ( ) ) ; } static void Bar ( Action < int > x ) { } static void Bar ( Action < string > x ) { } } namespace X { public static class A { public static void Foo ( this int x ) { } public static void Foo ( this string x ) { } } } namespace Y { public static class B { public static void Foo ( this int x ) { } } } |]");
+@"[|using System;
+using X;
+using Y;
+
+class B
+{
+    static void Main()
+    {
+        Bar(x => x.Foo());
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+}
+
+namespace X
+{
+    public static class A
+    {
+        public static void Foo(this int x)
+        {
+        }
+
+        public static void Foo(this string x)
+        {
+        }
+    }
+}
+
+namespace Y
+{
+    public static class B
+    {
+        public static void Foo(this int x)
+        {
+        }
+    }
+}|]");
         }
 
         [WorkItem(544976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544976")]
@@ -677,33 +1135,46 @@ parseOptions: null);
 @"[|using System;
 using X;
 using Y;
- 
+
 class B
 {
     static void Main()
     {
         Bar(x => x.Foo(), null); // Prints 1
     }
- 
-    static void Bar(Action<string> x, object y) { Console.WriteLine(1); }
-    static void Bar(Action<int> x, string y) { Console.WriteLine(2); }
+
+    static void Bar(Action<string> x, object y)
+    {
+        Console.WriteLine(1);
+    }
+
+    static void Bar(Action<int> x, string y)
+    {
+        Console.WriteLine(2);
+    }
 }
- 
+
 namespace X
 {
     public static class A
     {
-        public static void Foo(this int x) { }
-        public static void Foo(this string x) { }
+        public static void Foo(this int x)
+        {
+        }
+
+        public static void Foo(this string x)
+        {
+        }
     }
- 
 }
- 
+
 namespace Y
 {
     public static class B
     {
-        public static void Foo(this int x) { }
+        public static void Foo(this int x)
+        {
+        }
     }
 }|]");
         }
@@ -728,14 +1199,18 @@ class B
         Bar(x => x.Foo(), null); // Prints 1
     }
 
-    static void Bar(Action<string> x, object y) { }
+    static void Bar(Action<string> x, object y)
+    {
+    }
 }
 
 namespace X
 {
     public static class A
     {
-        public static void Foo(this string x) { }
+        public static void Foo(this string x)
+        {
+        }
     }
 }
 
@@ -743,7 +1218,9 @@ namespace Y
 {
     public static class B
     {
-        public static void Foo(this int x) { }
+        public static void Foo(this int x)
+        {
+        }
     }
 }|]");
         }
@@ -755,17 +1232,34 @@ namespace Y
             await TestMissingAsync(
 @"[|using System;
 using N; // Falsely claimed as unnecessary
- 
-static class C
-    {
-    static void Ex(this string x) { }
- 
-    static void Inner(Action<string> x, string y) { }
-    static void Inner(Action<string> x, int y) { }
-    static void Inner(Action<int> x, int y) { }
 
-    static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
-    static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
+static class C
+{
+    static void Ex(this string x)
+    {
+    }
+
+    static void Inner(Action<string> x, string y)
+    {
+    }
+
+    static void Inner(Action<string> x, int y)
+    {
+    }
+
+    static void Inner(Action<int> x, int y)
+    {
+    }
+
+    static void Outer(Action<string> x, object y)
+    {
+        Console.WriteLine(1);
+    }
+
+    static void Outer(Action<int> x, string y)
+    {
+        Console.WriteLine(2);
+    }
 
     static void Main()
     {
@@ -777,7 +1271,9 @@ namespace N
 {
     static class E
     {
-        public static void Ex(this int x) { }
+        public static void Ex(this int x)
+        {
+        }
     }
 }|]");
         }
@@ -787,7 +1283,19 @@ namespace N
         public async Task TestMissingOnAliasedVar()
         {
             await TestMissingAsync(
-@"[|using var = var ; class var { } class B { static void Main ( ) { var a = 1 ; } }|] ");
+@"[|using var = var;
+
+class var
+{
+}
+
+class B
+{
+    static void Main()
+    {
+        var a = 1;
+    }
+}|]");
         }
 
         [WorkItem(546115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546115")]
@@ -796,14 +1304,18 @@ namespace N
         {
             await TestMissingAsync(
 @"[|using System.Linq;
+
 public class QueryExpressionTest
 {
-  public static void Main()
-  {
-    var expr1 = new[] { };
-    var expr2 = new[] { };
-    var query8 = from int i in expr1 join int fixed in expr2 on i equals fixed select new { i, fixed };
-    var query9 = from object i in expr1 join object fixed in expr2 on i equals fixed select new { i, fixed };
+    public static void Main()
+    {
+        var expr1 = new[] { };
+        var expr2 = new[] { };
+        var query8 = from int i in expr1
+                     join int fixed in expr2 on i equals fixed select new { i, fixed };
+
+    var query9 = from object i in expr1
+                 join object fixed in expr2 on i equals fixed select new { i, fixed };
   }
 }|]");
         }
@@ -813,17 +1325,24 @@ public class QueryExpressionTest
         public async Task TestReferenceInCref()
         {
             // parsing doc comments as simple trivia; System is unnecessary
-            await TestAsync(@"[|using System ;
+            await TestAsync(
+@"[|using System;
 /// <summary><see cref=""String"" /></summary>
- class C { }|] ",
- @"/// <summary><see cref=""String"" /></summary>
- class C { } ");
+class C
+{
+}|]",
+@"/// <summary><see cref=""String"" /></summary>
+class C
+{
+}");
 
             // fully parsing doc comments; System is necessary
             await TestMissingAsync(
-@"[|using System ;
+@"[|using System;
 /// <summary><see cref=""String"" /></summary>
- class C { }|] ", Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+class C
+{
+}|]", Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
         }
 
         [WorkItem(751283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751283")]
@@ -831,8 +1350,26 @@ public class QueryExpressionTest
         public async Task TestUnusedUsingOverLinq()
         {
             await TestAsync(
-@"using System ; [|using System . Linq ; using System . Threading . Tasks ;|] class Program { static void Main ( string [ ] args ) { Console . WriteLine ( ) ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Console . WriteLine ( ) ; } } ");
+@"using System;
+[|using System.Linq;
+using System.Threading.Tasks;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();
+    }
+}");
         }
     }
 }

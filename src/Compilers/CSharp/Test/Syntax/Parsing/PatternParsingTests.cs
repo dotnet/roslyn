@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -147,7 +148,7 @@ class C
         [Fact]
         public void ThrowExpression()
         {
-            var tree = UsingTree(@"
+            UsingTree(@"
 class C
 {
     int x = y ?? throw null;
@@ -199,6 +200,97 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
+        public void IsPatternPrecedence_1()
+        {
+            UsingNode(SyntaxFactory.ParseExpression("A is B < C, D > [ ]"));
+            N(SyntaxKind.IsExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "D");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
+        public void IsPatternPrecedence_2()
+        {
+            UsingNode(SyntaxFactory.ParseExpression("A < B > C"));
+            N(SyntaxKind.GreaterThanExpression);
+            {
+                N(SyntaxKind.LessThanExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                    }
+
+                }
+                N(SyntaxKind.GreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(14785, "https://github.com/dotnet/roslyn/issues/14785")]
+        public void IsPatternPrecedence_3()
+        {
+            SyntaxFactory.ParseExpression("e is A<B> && e").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B> || e").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B> ^ e").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B> | e").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B> & e").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B>[]").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("new { X = e is A<B> }").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("e is A<B>").GetDiagnostics().Verify();
+
+            SyntaxFactory.ParseExpression("(item is Dictionary<string, object>[])").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A is B < C, D > [ ]").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A is B < C, D > [ ] E").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("A < B > C").GetDiagnostics().Verify();
         }
     }
 }

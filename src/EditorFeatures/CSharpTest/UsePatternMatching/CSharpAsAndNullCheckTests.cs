@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if (x != null)
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (o is string x)
         {
-        } 
+        }
     }
 }");
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if (null != x)
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (o is string x)
         {
-        } 
+        }
     }
 }");
         }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if (x != null)
         {
-        } 
+        }
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] y = o as string;
         if (x != null)
         {
-        } 
+        }
     }
 }");
         }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|y|] = o as string;
         if (x != null)
         {
-        } 
+        }
     }
 }");
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o is string;
         if (x != null)
         {
-        } 
+        }
     }
 }");
         }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = (o ? z : w) as string;
         if (x != null)
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if ((o ? z : w) is string x)
         {
-        } 
+        }
     }
 }");
         }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o is string;
         if (x == null)
         {
-        } 
+        }
     }
 }");
         }
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if (x != null ? 0 : 1)
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (o is string x ? 0 : 1)
         {
-        } 
+        }
     }
 }");
         }
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if ((x != null))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if ((o is string x))
         {
-        } 
+        }
     }
 }");
         }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [|var|] x = o as string;
         if (x != null && x.Length > 0)
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (o is string x && x.Length > 0)
         {
-        } 
+        }
     }
 }");
         }
