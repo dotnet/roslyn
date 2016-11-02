@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>VB</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</ProjectGuid>

@@ -111,6 +111,7 @@
         <OptionStrict>On</OptionStrict>
         <VBRuntime>Embed</VBRuntime>
         <RemoveIntegerChecks>true</RemoveIntegerChecks>
+        <RootNamespace></RootNamespace>
         <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
       </PropertyGroup>
       <ItemGroup>
