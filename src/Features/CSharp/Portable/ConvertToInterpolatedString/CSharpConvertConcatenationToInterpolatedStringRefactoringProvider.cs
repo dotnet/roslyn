@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
                         SyntaxFactory.Token(
                             SyntaxFactory.TriviaList(),
                             SyntaxKind.InterpolatedStringTextToken,
-                            textWithoutQuotes,
-                            "",
+                            textWithoutQuotes, "",
                             SyntaxFactory.TriviaList())));
                 }
                 else
@@ -50,10 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
                 }
             }
 
-            var expression = SyntaxFactory.InterpolatedStringExpression(
+            return SyntaxFactory.InterpolatedStringExpression(
                 startToken, SyntaxFactory.List(content), endToken);
-
-            return expression;
         }
     }
 }
