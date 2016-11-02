@@ -1434,7 +1434,7 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ForEachComponentStatement);
+                            N(SyntaxKind.ForEachVariableStatement);
                             {
                                 N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
@@ -1527,7 +1527,7 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ForEachComponentStatement);
+                            N(SyntaxKind.ForEachVariableStatement);
                             {
                                 N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
@@ -1659,7 +1659,7 @@ class C
             {
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ForEachComponentStatement);
+                    N(SyntaxKind.ForEachVariableStatement);
                     {
                         N(SyntaxKind.ForEachKeyword);
                         N(SyntaxKind.OpenParenToken);

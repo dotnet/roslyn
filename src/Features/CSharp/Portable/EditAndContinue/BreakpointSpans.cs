@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     // Note: if the user was in the body of the foreach, then we would have hit its
                     // nested statement on the way up.  If they were in the expression then we would
                     // have hit that on the way up as well. In "foreach(var f in expr)" we allow a
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         forStatement.Incrementors.Contains(expression);
 
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     var forEachStatement = (CommonForEachStatementSyntax)parent;
                     return forEachStatement.Expression == expression;
 

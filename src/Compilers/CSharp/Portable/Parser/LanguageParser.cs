@@ -7849,6 +7849,7 @@ tryAgain:
                 AssignmentExpressionSyntax deconstruction = null;
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
+                bool isDeconstruction = false;
                 if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     isDeclaration = true;
@@ -7868,6 +7869,7 @@ tryAgain:
                     else
                     {
                         initializers.Add(deconstruction);
+                        isDeconstruction = true;
                     }
                 }
 
@@ -7875,7 +7877,7 @@ tryAgain:
                 {
                     decl = ParseVariableDeclaration();
                 }
-                else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken && !isDeconstruction)
                 {
                     // Not a type followed by an identifier, and not a deconstruction-declaration, so it must be an expression list.
                     this.ParseForStatementExpressionList(ref openParen, initializers);
@@ -8011,7 +8013,7 @@ tryAgain:
 
             return (deconstruction == null)
                 ? (CommonForEachStatementSyntax)_syntaxFactory.ForEachStatement(@foreach, openParen, type, name, @in, expression, closeParen, statement)
-                : (CommonForEachStatementSyntax)_syntaxFactory.ForEachComponentStatement(@foreach, openParen, deconstruction, @in, expression, closeParen, statement);
+                : (CommonForEachStatementSyntax)_syntaxFactory.ForEachVariableStatement(@foreach, openParen, deconstruction, @in, expression, closeParen, statement);
         }
 
         private GotoStatementSyntax ParseGotoStatement()
@@ -8408,17 +8410,16 @@ tryAgain:
         /// </summary>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
-            var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods);
-
             var deconstruction = TryParseDeconstructionDeclarationAssignment();
             if (deconstruction != null)
             {
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 var result = _syntaxFactory.ExpressionStatement(deconstruction, semicolon);
-                _pool.Free(mods);
                 return result;
             }
+
+            var mods = _pool.Allocate();
+            this.ParseDeclarationModifiers(mods);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -8618,7 +8619,9 @@ tryAgain:
                 topLevel ? (TypeFoundInDeconstructionDeclarationVariables(result) ? CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples) : null) : result;
         }
 
-        // Check if we can find at least one type in the deconstruction variables
+        /// <summary>
+        /// Checks if we can find at least one type in the deconstruction variables
+        /// </summary>
         private static bool TypeFoundInDeconstructionDeclarationVariables(ExpressionSyntax node)
         {
             switch (node.Kind)

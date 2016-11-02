@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return ((ForEachComponentStatementSyntax)node).VariableComponent.Span;
 
                 case SyntaxKind.IsPatternExpression:
@@ -1608,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.is_pattern;
 
                 case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.ParenthesizedVariableComponent:
                 case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.VariableComponentAssignment:
@@ -3108,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.IsPatternExpression:
                 case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.VariableComponentAssignment:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.ParenthesizedVariableComponent:
                 case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:

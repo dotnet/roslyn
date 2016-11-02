@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside &&
                 !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
-                ((DeclarationExpressionSyntax)node.Syntax).Identifier() == node.LocalSymbol.IdentifierToken)
+                ((SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)node.Syntax).Designation).Identifier == node.LocalSymbol.IdentifierToken)
             {
                 _variablesDeclared.Add(node.LocalSymbol);
             }

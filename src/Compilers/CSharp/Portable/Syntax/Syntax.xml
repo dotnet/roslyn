@@ -1134,11 +1134,11 @@
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <PropertyComment>
-        <summary>Declaration representing the variable declared in an out parameter.</summary>
+        <summary>Declaration representing the variable declared in an out parameter or deconstruction.</summary>
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents the syntax node for the variable declaration in an out var declaration.</summary>
+      <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates a DeclarationExpression node.</summary>
@@ -1860,14 +1860,6 @@
       <Kind Name="CloseParenToken"/>
     </Field>
   </Node>
-  <!--
-  <Node Name="WildcardVariableDesignationSyntax" Base="VariableDesignationSyntax">
-    <Kind Name="WildcardVariableDesignation"/>
-    <Field Name="AsteriskToken" Type="SyntaxToken">
-      <Kind Name="AsteriskToken"/>
-    </Field>
-  </Node>
-  -->
 
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
@@ -2110,15 +2102,15 @@
   <!-- We name this "DeclarationForEachStatementSyntax" because it can express existing foreach
        loops. We may elect to represent all foreach loops using this node and deprecate (stop parsing
        into) the old one. -->
-  <Node Name="ForEachComponentStatementSyntax" Base="CommonForEachStatementSyntax"> <!-- Change name TODO REVIEW -->
-    <Kind Name="ForEachComponentStatement"/>
+  <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
+    <Kind Name="ForEachVariableStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="VariableComponent" Type="ExpressionSyntax"/> <!-- Should this be something more specific? TODO REVIEW -->
+    <Field Name="Variable" Type="ExpressionSyntax"/>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
     </Field>

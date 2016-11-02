@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (_syntax.Kind())
             {
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     {
-                        var syntax = (ForEachComponentStatementSyntax)_syntax;
+                        var syntax = (ForEachVariableStatementSyntax)_syntax;
                         var locals = ArrayBuilder<LocalSymbol>.GetInstance();
                         CollectLocalsFromDeconstruction(
-                            syntax.VariableComponent,
+                            syntax.Variable,
                             LocalDeclarationKind.ForEachIterationVariable,
                             locals,
                             syntax);
@@ -66,6 +66,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
+            }
+        }
+
+        internal void CollectLocalsFromDeconstruction(
+            ExpressionSyntax declaration,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt = null)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.TupleExpression:
+                    {
+                        var tuple = (TupleExpressionSyntax)declaration;
+                        foreach (var arg in tuple.Arguments)
+                        {
+                            CollectLocalsFromDeconstruction(arg.Expression, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                case SyntaxKind.DeclarationExpression:
+                    {
+                        var declarationExpression = (DeclarationExpressionSyntax)declaration;
+                        CollectLocalsFromDeconstruction(
+                            declarationExpression.Designation, declarationExpression.Type,
+                            kind, locals, deconstructionStatement, enclosingBinderOpt);
+
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+            }
+        }
+
+        internal void CollectLocalsFromDeconstruction(
+            VariableDesignationSyntax designation,
+            TypeSyntax closestTypeSyntax,
+            LocalDeclarationKind kind,
+            ArrayBuilder<LocalSymbol> locals,
+            SyntaxNode deconstructionStatement,
+            Binder enclosingBinderOpt)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    enclosingBinderOpt ?? this,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind,
+                                                                    deconstructionStatement);
+                        locals.Add(localSymbol);
+                        break;
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
         }
 
@@ -90,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
-            VariableComponentSyntax variables = ((ForEachComponentStatementSyntax)_syntax).VariableComponent;
+            ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
                                                                     variables,
@@ -151,12 +221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.IterationVariable.SetType(iterationVariableType);
                         break;
                     }
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     {
-                        var node = (ForEachComponentStatementSyntax)_syntax;
+                        var node = (ForEachVariableStatementSyntax)_syntax;
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
-                        var variables = node.VariableComponent;
+                        var variables = node.Variable;
                         var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
                         BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
                                                                                 variables,

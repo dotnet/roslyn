@@ -68,31 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the type syntax of an out declaration argument expression.
-        /// </summary>
-        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return component.Type;
-        }
-
-        /// <summary>
-        /// Return the variable designation of an out declaration argument expression.
-        /// </summary>
-        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return (SingleVariableDesignationSyntax)component.Designation;
-        }
-
-        /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            var designation = (SingleVariableDesignationSyntax)component.Designation;
-            return designation.Identifier;
+            return ((SingleVariableDesignationSyntax)self.Designation).Identifier;
         }
 
         /// <summary>
@@ -224,6 +204,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expression;
+        }
+
+        private static bool IsDeconstructionDeclaration(this ExpressionSyntax self)
+        {
+            switch (self.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                case SyntaxKind.TupleExpression:
+                    var tuple = (TupleExpressionSyntax)self;
+                    return tuple.Arguments.All(a => IsDeconstructionDeclaration(a.Expression));
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
+        {
+            return self.Left.IsDeconstructionDeclaration(); 
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)

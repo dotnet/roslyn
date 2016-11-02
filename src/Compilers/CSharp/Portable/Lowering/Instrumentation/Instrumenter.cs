@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
             Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachComponentStatement);
+            Debug.Assert(original.Syntax.Kind() == SyntaxKind.ForEachVariableStatement);
             return iterationVarDecl;
         }
 

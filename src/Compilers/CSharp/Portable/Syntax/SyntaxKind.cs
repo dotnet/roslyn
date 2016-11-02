@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleExpression = 8927,
         SingleVariableDesignation = 8930,
         ParenthesizedVariableDesignation = 8931,
-        ForEachComponentStatement = 8934,
+        ForEachVariableStatement = 8934,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,
