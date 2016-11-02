@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
         protected override void CollectBlockSpans(
             RegionDirectiveTriviaSyntax regionDirective,
             ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Structure
                 return;
             }
 
-            CollectBlockSpans(node, spans, cancellationToken);
+            var options = document.Project.Solution.Options;
+            CollectBlockSpans(node, spans, options, cancellationToken);
         }
 
         public sealed override void CollectBlockSpans(
@@ -35,11 +36,12 @@ namespace Microsoft.CodeAnalysis.Structure
         private void CollectBlockSpans(
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             if (node is TSyntaxNode)
             {
-                CollectBlockSpans((TSyntaxNode)node, spans, cancellationToken);
+                CollectBlockSpans((TSyntaxNode)node, spans, options, cancellationToken);
             }
         }
 
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         protected abstract void CollectBlockSpans(
-            TSyntaxNode node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken);
+            TSyntaxNode node, ArrayBuilder<BlockSpan> spans,
+            OptionSet options, CancellationToken cancellationToken);
     }
 }
