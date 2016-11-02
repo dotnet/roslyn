@@ -41,8 +41,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix1()
         {
             await TestAsync(
-                @"class C { void Foo() { Bar([|1 + 1|]); Bar(1 + 1); } }",
-                @"class C { void Foo() { const int {|Rename:V|} = 1 + 1; Bar(V); Bar(1 + 1); } }",
+@"class C
+{
+    void Foo()
+    {
+        Bar([|1 + 1|]);
+        Bar(1 + 1);
+    }
+}",
+@"class C
+{
+    void Foo()
+    {
+        const int {|Rename:V|} = 1 + 1;
+        Bar(V);
+        Bar(1 + 1);
+    }
+}",
                 index: 2);
         }
 
@@ -50,8 +65,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix2()
         {
             await TestAsync(
-                @"class C { void Foo() { Bar([|1 + 1|]); Bar(1 + 1); } }",
-                @"class C { void Foo() { const int {|Rename:V|} = 1 + 1; Bar(V); Bar(V); } }",
+@"class C
+{
+    void Foo()
+    {
+        Bar([|1 + 1|]);
+        Bar(1 + 1);
+    }
+}",
+@"class C
+{
+    void Foo()
+    {
+        const int {|Rename:V|} = 1 + 1;
+        Bar(V);
+        Bar(V);
+    }
+}",
                 index: 3);
         }
 
@@ -189,8 +219,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestConstructorFix1()
         {
             await TestAsync(
-                @"class C { public C() : this([|1 + 1|], 1 + 1) { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; public C() : this(V, 1 + 1) { } }",
+@"class C
+{
+    public C() : this([|1 + 1|], 1 + 1)
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    public C() : this(V, 1 + 1)
+    {
+    }
+}",
                 index: 0);
         }
 
@@ -198,8 +240,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestConstructorFix2()
         {
             await TestAsync(
-                @"class C { public C() : this([|1 + 1|], 1 + 1) { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; public C() : this(V, V) { } }",
+@"class C
+{
+    public C() : this([|1 + 1|], 1 + 1)
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    public C() : this(V, V)
+    {
+    }
+}",
                 index: 1);
         }
 
@@ -207,8 +261,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestParameterFix1()
         {
             await TestAsync(
-                @"class C { void Bar(int i = [|1 + 1|], int j = 1 + 1) { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; void Bar(int i = V, int j = 1 + 1) { } }",
+@"class C
+{
+    void Bar(int i = [|1 + 1|], int j = 1 + 1)
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    void Bar(int i = V, int j = 1 + 1)
+    {
+    }
+}",
                 index: 0);
         }
 
@@ -216,8 +282,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestParameterFix2()
         {
             await TestAsync(
-                @"class C { void Bar(int i = [|1 + 1|], int j = 1 + 1) { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; void Bar(int i = V, int j = V) { } }",
+@"class C
+{
+    void Bar(int i = [|1 + 1|], int j = 1 + 1)
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    void Bar(int i = V, int j = V)
+    {
+    }
+}",
                 index: 1);
         }
 
@@ -225,8 +303,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestAttributeFix1()
         {
             await TestAsync(
-                @"class C { [Foo([|1 + 1|], 1 + 1)]void Bar() { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; [Foo(V, 1 + 1)]void Bar() { } }",
+@"class C
+{
+    [Foo([|1 + 1|], 1 + 1)]
+    void Bar()
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    [Foo(V, 1 + 1)]
+    void Bar()
+    {
+    }
+}",
                 index: 0);
         }
 
@@ -234,8 +326,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestAttributeFix2()
         {
             await TestAsync(
-                @"class C { [Foo([|1 + 1|], 1 + 1)]void Bar() { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; [Foo(V, V)]void Bar() { } }",
+@"class C
+{
+    [Foo([|1 + 1|], 1 + 1)]
+    void Bar()
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    [Foo(V, V)]
+    void Bar()
+    {
+    }
+}",
                 index: 1);
         }
 
@@ -243,8 +349,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFixExistingName1()
         {
             await TestAsync(
-                @"class C { void Foo() { int V = 0; Bar([|1 + 1|]); Bar(1 + 1); } }",
-                @"class C { void Foo() { int V = 0; const int {|Rename:V1|} = 1 + 1; Bar(V1); Bar(1 + 1); } }",
+@"class C
+{
+    void Foo()
+    {
+        int V = 0;
+        Bar([|1 + 1|]);
+        Bar(1 + 1);
+    }
+}",
+@"class C
+{
+    void Foo()
+    {
+        int V = 0;
+        const int {|Rename:V1|} = 1 + 1;
+        Bar(V1);
+        Bar(1 + 1);
+    }
+}",
                 index: 2);
         }
 
@@ -279,8 +402,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFixComplexName1()
         {
             await TestAsync(
-                @"class C { static int Baz; void Foo() { Bar([|C.Baz|]); Bar(1 + 1); } }",
-                @"class C { static int Baz; void Foo() { var {|Rename:baz|} = C.Baz; Bar(baz); Bar(1 + 1); } }",
+@"class C
+{
+    static int Baz;
+
+    void Foo()
+    {
+        Bar([|C.Baz|]);
+        Bar(1 + 1);
+    }
+}",
+@"class C
+{
+    static int Baz;
+
+    void Foo()
+    {
+        var {|Rename:baz|} = C.Baz;
+        Bar(baz);
+        Bar(1 + 1);
+    }
+}",
                 index: 0,
                 options: ImplicitTypingEverywhere());
         }
@@ -289,8 +431,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFixComplexName1NotVar()
         {
             await TestAsync(
-                @"class C { static int Baz; void Foo() { Bar([|C.Baz|]); Bar(1 + 1); } }",
-                @"class C { static int Baz; void Foo() { int {|Rename:baz|} = C.Baz; Bar(baz); Bar(1 + 1); } }",
+@"class C
+{
+    static int Baz;
+
+    void Foo()
+    {
+        Bar([|C.Baz|]);
+        Bar(1 + 1);
+    }
+}",
+@"class C
+{
+    static int Baz;
+
+    void Foo()
+    {
+        int {|Rename:baz|} = C.Baz;
+        Bar(baz);
+        Bar(1 + 1);
+    }
+}",
                 index: 0,
                 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
@@ -299,8 +460,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestNameConflict1()
         {
             await TestAsync(
-                @"class C { public C(int V) : this([|1 + 1|]) { } }",
-                @"class C { private const int {|Rename:V|} = 1 + 1; public C(int V) : this(C.V) { } }",
+@"class C
+{
+    public C(int V) : this([|1 + 1|])
+    {
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+
+    public C(int V) : this(C.V)
+    {
+    }
+}",
                 index: 0);
         }
 
@@ -308,8 +481,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestNameConflict2()
         {
             await TestAsync(
-@"using System ; class Program { private static int v = 5 ; static void Main ( string [ ] args ) { Func < int , int > d = ( x ) => { return [|x * v|] ; } ; d . Invoke ( v ) ; } } ",
-@"using System ; class Program { private static int v = 5 ; static void Main ( string [ ] args ) { Func < int , int > d = ( x ) => { var {|Rename:v1|} = x * v; return v1 ; } ; d . Invoke ( v ) ; } } ",
+@"using System;
+
+class Program
+{
+    private static int v = 5;
+
+    static void Main(string[] args)
+    {
+        Func<int, int> d = (x) =>
+        {
+            return [|x * v|];
+        };
+        d.Invoke(v);
+    }
+}",
+@"using System;
+
+class Program
+{
+    private static int v = 5;
+
+    static void Main(string[] args)
+    {
+        Func<int, int> d = (x) =>
+        {
+            var {|Rename:v1|} = x * v;
+            return v1;
+        };
+        d.Invoke(v);
+    }
+}",
 index: 0,
 options: ImplicitTypingEverywhere());
         }
@@ -318,8 +520,37 @@ options: ImplicitTypingEverywhere());
         public async Task TestNameConflict2NotVar()
         {
             await TestAsync(
-@"using System ; class Program { private static int v = 5 ; static void Main ( string [ ] args ) { Func < int , int > d = ( x ) => { return [|x * v|] ; } ; d . Invoke ( v ) ; } } ",
-@"using System ; class Program { private static int v = 5 ; static void Main ( string [ ] args ) { Func < int , int > d = ( x ) => { int {|Rename:v1|} = x * v; return v1 ; } ; d . Invoke ( v ) ; } } ",
+@"using System;
+
+class Program
+{
+    private static int v = 5;
+
+    static void Main(string[] args)
+    {
+        Func<int, int> d = (x) =>
+        {
+            return [|x * v|];
+        };
+        d.Invoke(v);
+    }
+}",
+@"using System;
+
+class Program
+{
+    private static int v = 5;
+
+    static void Main(string[] args)
+    {
+        Func<int, int> d = (x) =>
+        {
+            int {|Rename:v1|} = x * v;
+            return v1;
+        };
+        d.Invoke(v);
+    }
+}",
 index: 0,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
@@ -328,8 +559,43 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         public async Task TestNameVerbatimIdentifier1()
         {
             await TestAsync(
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { var {|Rename:@class|} = new G<int>.@class(); G<int>.Add(@class); } }",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        G<int>.Add([|new G<int>.@class()|]);
+    }
+}",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
+    }
+}",
 index: 0,
 options: ImplicitTypingEverywhere());
         }
@@ -338,8 +604,43 @@ options: ImplicitTypingEverywhere());
         public async Task TestNameVerbatimIdentifier1NoVar()
         {
             await TestAsync(
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.@class {|Rename:@class|} = new G<int>.@class(); G<int>.Add(@class); } }",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        G<int>.Add([|new G<int>.@class()|]);
+    }
+}",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        G<int>.@class {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
+    }
+}",
 index: 0,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
@@ -348,8 +649,37 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         public async Task TestNameVerbatimIdentifier2()
         {
             await TestAsync(
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { var {|Rename:class1|} = new G<int>.@class(); G<int>.Add(class1); } }",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+
+    static void Main()
+    {
+        G<int>.Add([|new G<int>.@class()|]);
+    }
+}",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+
+    static void Main()
+    {
+        var {|Rename:class1|} = new G<int>.@class();
+        G<int>.Add(class1);
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -357,8 +687,37 @@ options: ImplicitTypingEverywhere());
         public async Task TestNameVerbatimIdentifier2NoVar()
         {
             await TestAsync(
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.@class {|Rename:class1|} = new G<int>.@class(); G<int>.Add(class1); } }",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+
+    static void Main()
+    {
+        G<int>.Add([|new G<int>.@class()|]);
+    }
+}",
+@"static class G<T>
+{
+    public class @class
+    {
+    }
+
+    public static void Add(object t)
+    {
+    }
+
+    static void Main()
+    {
+        G<int>.@class {|Rename:class1|} = new G<int>.@class();
+        G<int>.Add(class1);
+    }
+}",
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
@@ -367,8 +726,15 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         public async Task TestConstantField1()
         {
             await TestAsync(
-@"class C { int [ ] array = new int [ [|10|] ] ; } ",
-@"class C { private const int {|Rename:V|} = 10 ; int [ ] array = new int [ V ] ; } ");
+@"class C
+{
+    int[] array = new int[[|10|]];
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 10;
+    int[] array = new int[V];
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -400,8 +766,29 @@ compareTokens: false);
         public async Task TestCantExtractMethodTypeParameterToField()
         {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main < T > ( string [ ] args ) { Foo ( [|( T ) 2 . ToString ( )|] ) ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main < T > ( string [ ] args ) { var {|Rename:t|} = ( T ) 2 . ToString ( ) ; Foo ( t ) ; } } ",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main<T>(string[] args)
+    {
+        Foo([|(T)2.ToString()|]);
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main<T>(string[] args)
+    {
+        var {|Rename:t|} = (T)2.ToString();
+        Foo(t);
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -420,8 +807,15 @@ count: 2);
         public async Task TestConstantForFixedBufferInitializer()
         {
             await TestAsync(
-@"unsafe struct S { fixed int buffer [ [|10|] ] ; } ",
-@"unsafe struct S { private const int p = 10 ; fixed int buffer [ p ] ; } ",
+@"unsafe struct S
+{
+    fixed int buffer[[|10|]];
+}",
+@"unsafe struct S
+{
+    private const int p = 10;
+    fixed int buffer[p];
+}",
 index: 0);
         }
 
@@ -453,8 +847,21 @@ compareTokens: false);
         public async Task TestLocalConstant()
         {
             await TestAsync(
-@"class Program { static void Main ( string [ ] args ) { const int i = [|1|] + 1 ; } } ",
-@"class Program { static void Main ( string [ ] args ) { const int {|Rename:V|} = 1 ; const int i = V + 1 ; } } ",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        const int i = [|1|] + 1;
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        const int {|Rename:V|} = 1;
+        const int i = V + 1;
+    }
+}",
 index: 2);
         }
 
@@ -463,8 +870,31 @@ index: 2);
         public async Task TestFieldConstant()
         {
             await TestAsync(
-@"[ Foo ( 2 + 3 + 4 ) ] class Program { int x = [|2 + 3|] + 4 ; } internal class FooAttribute : System . Attribute { public FooAttribute ( int x ) { } } ",
-@"[ Foo ( V + 4 ) ] class Program { private const int {|Rename:V|} = 2 + 3 ; int x = V + 4 ; } internal class FooAttribute : System . Attribute { public FooAttribute ( int x ) { } } ",
+@"[Foo(2 + 3 + 4)]
+class Program
+{
+    int x = [|2 + 3|] + 4;
+}
+
+internal class FooAttribute : System.Attribute
+{
+    public FooAttribute(int x)
+    {
+    }
+}",
+@"[Foo(V + 4)]
+class Program
+{
+    private const int {|Rename:V|} = 2 + 3;
+    int x = V + 4;
+}
+
+internal class FooAttribute : System.Attribute
+{
+    public FooAttribute(int x)
+    {
+    }
+}",
 index: 1);
         }
 
@@ -477,10 +907,11 @@ index: 1);
 {
     static void Main(string[] args)
     {
-        int i; [|i = 2|]; i = 3;
+        int i;
+        [|i = 2|];
+        i = 3;
     }
-}
-");
+}");
         }
 
         [WorkItem(542780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542780")]
@@ -488,8 +919,33 @@ index: 1);
         public async Task TestSingleQueryClause()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } select [|i + j|] ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j select v ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    select [|i + j|];
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    select v;
+    }
+}",
 index: 0);
         }
 
@@ -498,8 +954,35 @@ index: 0);
         public async Task TestSingleQuerySelectOrGroupByClause()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where [|i + j|] > 5 select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j where v > 5 select i + j ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where [|i + j|] > 5
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    where v > 5
+                    select i + j;
+    }
+}",
 index: 0);
         }
 
@@ -507,8 +990,37 @@ index: 0);
         public async Task TestLinqQuery()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where [|i + j|] > 5 let x = j + i select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j where v > 5 let x = j + i select v ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where [|i + j|] > 5
+                    let x = j + i
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    where v > 5
+                    let x = j + i
+                    select v;
+    }
+}",
 index: 1);
         }
 
@@ -516,8 +1028,37 @@ index: 1);
         public async Task TestSingleQueryReplaceAll()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i + j > 5 let x = j + i select [|i + j|] ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j where v > 5 let x = j + i select v ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i + j > 5
+                    let x = j + i
+                    select [|i + j|];
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    where v > 5
+                    let x = j + i
+                    select v;
+    }
+}",
 index: 1);
         }
 
@@ -525,8 +1066,47 @@ index: 1);
         public async Task TestNestedQueryReplaceOne1()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } select [|i + j|] ) . Max ( ) where j > ( from m in new int [ ] { 4 } select i + j ) . Max ( ) let x = j + i select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } let {|Rename:v|} = i + j select v ) . Max ( ) where j > ( from m in new int [ ] { 4 } select i + j ) . Max ( ) let x = j + i select i + j ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               select [|i + j|]).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select i + j).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               let {|Rename:v|} = i + j
+                               select v).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select i + j).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
 index: 0);
         }
 
@@ -534,8 +1114,47 @@ index: 0);
         public async Task TestNestedQueryReplaceAll1()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } select [|i + j|] ) . Max ( ) where j > ( from m in new int [ ] { 4 } select i + j ) . Max ( ) let x = j + i select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j where i > ( from k in new int [ ] { 3 } select v ) . Max ( ) where j > ( from m in new int [ ] { 4 } select v ) . Max ( ) let x = j + i select v ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               select [|i + j|]).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select i + j).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    where i > (from k in new int[] { 3 }
+
+                               select v).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select v).Max()
+                    let x = j + i
+                    select v;
+    }
+}",
 index: 1);
         }
 
@@ -543,8 +1162,47 @@ index: 1);
         public async Task TestNestedQueryReplaceOne2()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } select i + j ) . Max ( ) where j > ( from m in new int [ ] { 4 } select [|i + j|] ) . Max ( ) let x = j + i select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } select i + j ) . Max ( ) where j > ( from m in new int [ ] { 4 } let {|Rename:v|} = i + j select v ) . Max ( ) let x = j + i select i + j ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               select i + j).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select [|i + j|]).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               select i + j).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               let {|Rename:v|} = i + j
+                               select v).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
 index: 0);
         }
 
@@ -552,8 +1210,47 @@ index: 0);
         public async Task TestNestedQueryReplaceAll2()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } where i > ( from k in new int [ ] { 3 } select i + j ) . Max ( ) where j > ( from m in new int [ ] { 4 } select [|i + j|] ) . Max ( ) let x = j + i select i + j ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { var query = from i in new int [ ] { 1 } from j in new int [ ] { 2 } let {|Rename:v|} = i + j where i > ( from k in new int [ ] { 3 } select v ) . Max ( ) where j > ( from m in new int [ ] { 4 } select v ) . Max ( ) let x = j + i select v ; } } ",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    where i > (from k in new int[] { 3 }
+
+                               select i + j).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select [|i + j|]).Max()
+                    let x = j + i
+                    select i + j;
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var query = from i in new int[] { 1 }
+
+                    from j in new int[] { 2 }
+
+                    let {|Rename:v|} = i + j
+                    where i > (from k in new int[] { 3 }
+
+                               select v).Max()
+                    where j > (from m in new int[] { 4 }
+
+                               select v).Max()
+                    let x = j + i
+                    select v;
+    }
+}",
 index: 1);
         }
 
@@ -562,7 +1259,13 @@ index: 1);
         public async Task TestAnonymousTypeMemberAssignment()
         {
             await TestMissingAsync(
-@"class C { void M ( ) { var a = new { [|A = 0|] } ; } } ");
+@"class C
+{
+    void M()
+    {
+        var a = new { [|A = 0|] };
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -570,7 +1273,13 @@ index: 1);
         public async Task TestAnonymousTypeBody()
         {
             await TestMissingAsync(
-@"class C { void M ( ) { var a = new [|{ A = 0 }|] ; } } ");
+@"class C
+{
+    void M()
+    {
+        var a = new [|{ A = 0 }|];
+    }
+}");
         }
 
         [WorkItem(543477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543477")]
@@ -578,8 +1287,23 @@ index: 1);
         public async Task TestImplicitlyTypedArraysUsedInCheckedExpression()
         {
             await TestAsync(
-@"class Program { static void Main ( string [ ] args ) { int [ ] a = null ; int [ ] temp = checked ( [|a = new [ ] { 1 , 2 , 3 }|] ) ; } } ",
-@"class Program { static void Main ( string [ ] args ) { int [ ] a = null ; var {|Rename:v|} = a = new [ ] { 1 , 2 , 3 } ; int [ ] temp = checked ( v ) ; } } ",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        int[] a = null;
+        int[] temp = checked([|a = new[] { 1, 2, 3 }|]);
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        int[] a = null;
+        var {|Rename:v|} = a = new[] { 1, 2, 3 };
+        int[] temp = checked(v);
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -588,7 +1312,18 @@ options: ImplicitTypingEverywhere());
         public async Task TestMissingOnGenericTypeParameter()
         {
             await TestMissingAsync(
-@"class C { void M() { F<[|int?|], int?>(3); } R F<T, R>(T arg1) { return default(R); } }");
+@"class C
+{
+    void M()
+    {
+        F<[|int?|], int?>(3);
+    }
+
+    R F<T, R>(T arg1)
+    {
+        return default(R);
+    }
+}");
         }
 
         [WorkItem(543941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543941")]
@@ -596,8 +1331,21 @@ options: ImplicitTypingEverywhere());
         public async Task TestAnonymousType1()
         {
             await TestAsync(
-@"class Program { void Main ( ) { WriteLine ( [|new { X = 1 }|] ) ; } } ",
-@"class Program { void Main ( ) { var {|Rename:p|} = new { X = 1 }; WriteLine(p); } } ");
+@"class Program
+{
+    void Main()
+    {
+        WriteLine([|new { X = 1 }|]);
+    }
+}",
+@"class Program
+{
+    void Main()
+    {
+        var {|Rename:p|} = new { X = 1 };
+        WriteLine(p);
+    }
+}");
         }
 
         [WorkItem(544099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544099")]
@@ -606,7 +1354,7 @@ options: ImplicitTypingEverywhere());
         {
             await TestMissingAsync(
 @"using System;
-using System.Runtime.InteropServices; 
+using System.Runtime.InteropServices;
 
 class M
 {
@@ -620,7 +1368,14 @@ class M
         public async Task TestMissingOnRightOfDot()
         {
             await TestMissingAsync(
-@"using System ; using System . Runtime . InteropServices ; class M { [ DllImport ( ""user32.dll"" , CharSet = CharSet . [|Auto|] ) ] public static extern IntPtr FindWindow ( string className , string windowTitle ) ; } ");
+@"using System;
+using System.Runtime.InteropServices;
+
+class M
+{
+    [DllImport(""user32.dll"", CharSet = CharSet.[|Auto|])]
+    public static extern IntPtr FindWindow(string className, string windowTitle);
+}");
         }
 
         [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
@@ -628,7 +1383,19 @@ class M
         public async Task TestMissingOnAttributeNamedParameter()
         {
             await TestMissingAsync(
-@"using System ; class TestAttribute : Attribute { public TestAttribute ( int a = 42 ) { } } [ Test ( [|a|] : 1 ) ] class Foo { } ");
+@"using System;
+
+class TestAttribute : Attribute
+{
+    public TestAttribute(int a = 42)
+    {
+    }
+}
+
+[Test([|a|]: 1)]
+class Foo
+{
+}");
         }
 
         [WorkItem(544264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544264")]
@@ -636,7 +1403,14 @@ class M
         public async Task TestMissingOnVariableWrite()
         {
             await TestMissingAsync(
-@"class Program { void Main ( ) { var x = new int [ 3 ] ; [|x [ 1 ]|] = 2 ; } } ");
+@"class Program
+{
+    void Main()
+    {
+        var x = new int[3];
+        [|x[1]|] = 2;
+    }
+}");
         }
 
         [WorkItem(544577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544577")]
@@ -645,7 +1419,13 @@ class M
         public async Task TestExpressionTLambda()
         {
             await TestMissingAsync(
-@"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ");
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static Expression<Func<int?, char?>> e1 = c => [|null|];
+}");
         }
 
         [WorkItem(544915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544915")]
@@ -653,7 +1433,15 @@ class M
         public async Task TestMissingOnTypeSyntax()
         {
             await TestMissingAsync(
-@"using System ; class Program { void Main ( ) { int [ , ] array2Da = new [|int [ 1 , 2 ]|] { { 1 , 2 } } ; } } ");
+@"using System;
+
+class Program
+{
+    void Main()
+    {
+        int[,] array2Da = new [|int[1, 2]|] { { 1, 2 } };
+    }
+}");
         }
 
         [WorkItem(544610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544610")]
@@ -788,17 +1576,16 @@ class Program
         public async Task TestMissingInQueryInPartiallyHiddenType()
         {
             await TestMissingAsync(
-@"
-using System.Linq;
+@"using System.Linq;
 
 class Program
 {
     public Program(string[] args)
     {
         var q = from x in args
-                #line hidden
+#line hidden
                 let z = 1
-                #line default
+#line default
                 select [|x + x|];
     }
 }", parseOptions: Options.Regular);
@@ -849,31 +1636,48 @@ parseOptions: Options.Regular);
         public async Task TestMissingOnNamespace()
         {
             await TestMissingAsync(
-@"class Program { void Main ( ) { [|System|] . Console . WriteLine ( 4 ) ; } } ");
+@"class Program
+{
+    void Main()
+    {
+        [|System|].Console.WriteLine(4);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnType()
         {
             await TestMissingAsync(
-@"class Program { void Main ( ) { [|System . Console|] . WriteLine ( 4 ) ; } } ");
+@"class Program
+{
+    void Main()
+    {
+        [|System.Console|].WriteLine(4);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMissingOnBase()
         {
             await TestMissingAsync(
-@"class Program { void Main ( ) { [|base|] . ToString ( ) ; } } ");
+@"class Program
+{
+    void Main()
+    {
+        [|base|].ToString();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestVenusGeneration1()
         {
             await TestMissingAsync(
-@"
-class Program
+@"class Program
 {
-    void Main ( )
+    void Main()
     {
 #line 1 ""foo""
         Console.WriteLine([|5|]);
@@ -950,7 +1754,13 @@ class Program
         public async Task TestMissingOnNegatedLiteral()
         {
             await TestMissingAsync(
-@"class A { void Main ( ) { long x = - [|9223372036854775808|] ; } } ");
+@"class A
+{
+    void Main()
+    {
+        long x = -[|9223372036854775808|];
+    }
+}");
         }
 
         [WorkItem(546091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546091")]
@@ -958,7 +1768,10 @@ class Program
         public async Task TestNotOnInterfaceAttribute()
         {
             await TestMissingAsync(
-@"[ GuidAttribute ( [|""1A585C4D-3371-48dc-AF8A-AFFECC1B0967""|] ) ] public interface I { } ");
+@"[GuidAttribute([|""1A585C4D-3371-48dc-AF8A-AFFECC1B0967""|])]
+public interface I
+{
+}");
         }
 
         [WorkItem(546095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546095")]
@@ -966,7 +1779,12 @@ class Program
         public async Task TestNotOnTypeOfInAttribute()
         {
             await TestMissingAsync(
-@"using System . Runtime . InteropServices ; [ ComSourceInterfaces ( [|typeof ( GuidAttribute )|] ) ] public class Button { } ");
+@"using System.Runtime.InteropServices;
+
+[ComSourceInterfaces([|typeof(GuidAttribute)|])]
+public class Button
+{
+}");
         }
 
         [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
@@ -974,8 +1792,22 @@ class Program
         public async Task TestPreferGenerateConstantField1()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { var s2 = [|""Hello""|] + ""World"" ; } } ",
-@"class C { private const string {|Rename:V|} = ""Hello"" ; void foo ( string s = ""Hello"" ) { var s2 = V + ""World"" ; } } ");
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello""|] + ""World"";
+    }
+}",
+@"class C
+{
+    private const string {|Rename:V|} = ""Hello"";
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = V + ""World"";
+    }
+}");
         }
 
         [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
@@ -983,8 +1815,22 @@ class Program
         public async Task TestPreferGenerateConstantField2()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { var s2 = [|""Hello""|] + ""World"" ; } } ",
-@"class C { private const string {|Rename:V|} = ""Hello"" ; void foo ( string s = V ) { var s2 = V + ""World"" ; } } ",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello""|] + ""World"";
+    }
+}",
+@"class C
+{
+    private const string {|Rename:V|} = ""Hello"";
+
+    void foo(string s = V)
+    {
+        var s2 = V + ""World"";
+    }
+}",
 index: 1);
         }
 
@@ -993,8 +1839,21 @@ index: 1);
         public async Task TestPreferGenerateConstantField3()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { var s2 = [|""Hello""|] + ""World"" ; } } ",
-@"class C { void foo ( string s = ""Hello"" ) { const string {|Rename:V|} = ""Hello"" ; var s2 = V + ""World"" ; } } ",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello""|] + ""World"";
+    }
+}",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string {|Rename:V|} = ""Hello"";
+        var s2 = V + ""World"";
+    }
+}",
 index: 2);
         }
 
@@ -1003,8 +1862,21 @@ index: 2);
         public async Task TestPreferGenerateConstantField4()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { var s2 = [|""Hello""|] + ""World"" ; } } ",
-@"class C { void foo ( string s = ""Hello"" ) { const string {|Rename:V|} = ""Hello"" ; var s2 = V + ""World"" ; } } ",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello""|] + ""World"";
+    }
+}",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string {|Rename:V|} = ""Hello"";
+        var s2 = V + ""World"";
+    }
+}",
 index: 3);
         }
 
@@ -1013,8 +1885,23 @@ index: 3);
         public async Task TestNoGenerateConstantFieldIfAccessingLocal1()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { const string s1 = ""World"" ; var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { void foo ( string s = ""Hello"" ) { const string s1 = ""World"" ; const string {|Rename:V|} = ""Hello"" + s1 ; var s2 = V ; } } ",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string s1 = ""World"";
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string s1 = ""World"";
+        const string {|Rename:V|} = ""Hello"" + s1;
+        var s2 = V;
+    }
+}",
 index: 0);
         }
 
@@ -1023,8 +1910,23 @@ index: 0);
         public async Task TestNoGenerateConstantFieldIfAccessingLocal2()
         {
             await TestAsync(
-@"class C { void foo ( string s = ""Hello"" ) { const string s1 = ""World"" ; var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { void foo ( string s = ""Hello"" ) { const string s1 = ""World"" ; const string {|Rename:V|} = ""Hello"" + s1 ; var s2 = V ; } } ",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string s1 = ""World"";
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    void foo(string s = ""Hello"")
+    {
+        const string s1 = ""World"";
+        const string {|Rename:V|} = ""Hello"" + s1;
+        var s2 = V;
+    }
+}",
 index: 1);
         }
 
@@ -1033,8 +1935,25 @@ index: 1);
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal1()
         {
             await TestAsync(
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { const string s1 = ""World"" ; private const string {|Rename:V|} = ""Hello"" + s1 ; void foo ( string s = ""Hello"" ) { var s2 = V ; } } ");
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    const string s1 = ""World"";
+    private const string {|Rename:V|} = ""Hello"" + s1;
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = V;
+    }
+}");
         }
 
         [WorkItem(530109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530109")]
@@ -1042,8 +1961,25 @@ index: 1);
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal2()
         {
             await TestAsync(
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { const string s1 = ""World"" ; private const string {|Rename:V|} = ""Hello"" + s1 ; void foo ( string s = ""Hello"" ) { var s2 = V ; } } ",
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    const string s1 = ""World"";
+    private const string {|Rename:V|} = ""Hello"" + s1;
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = V;
+    }
+}",
 index: 1);
         }
 
@@ -1052,8 +1988,25 @@ index: 1);
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal3()
         {
             await TestAsync(
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { const string {|Rename:V|} = ""Hello"" + s1 ; var s2 = V ; } } ",
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        const string {|Rename:V|} = ""Hello"" + s1;
+        var s2 = V;
+    }
+}",
 index: 2);
         }
 
@@ -1062,8 +2015,25 @@ index: 2);
         public async Task TestNoGenerateConstantFieldIfNotAccessingLocal4()
         {
             await TestAsync(
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { var s2 = [|""Hello"" + s1|] ; } } ",
-@"class C { const string s1 = ""World"" ; void foo ( string s = ""Hello"" ) { const string {|Rename:V|} = ""Hello"" + s1 ; var s2 = V ; } } ",
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        var s2 = [|""Hello"" + s1|];
+    }
+}",
+@"class C
+{
+    const string s1 = ""World"";
+
+    void foo(string s = ""Hello"")
+    {
+        const string {|Rename:V|} = ""Hello"" + s1;
+        var s2 = V;
+    }
+}",
 index: 3);
         }
 
@@ -1201,8 +2171,31 @@ compareTokens: false);
         public async Task TestInSwitchSection()
         {
             await TestAsync(
-@"class Program { int Main ( int i ) { switch ( 1 ) { case 0 : var f = Main ( [|1 + 1|] ) ; Console . WriteLine ( f ) ; } } } ",
-@"class Program { int Main ( int i ) { switch ( 1 ) { case 0 : const int {|Rename:V|} = 1 + 1 ; var f = Main ( V ) ; Console . WriteLine ( f ) ; } } } ",
+@"class Program
+{
+    int Main(int i)
+    {
+        switch (1)
+        {
+            case 0:
+                var f = Main([|1 + 1|]);
+                Console.WriteLine(f);
+        }
+    }
+}",
+@"class Program
+{
+    int Main(int i)
+    {
+        switch (1)
+        {
+            case 0:
+                const int {|Rename:V|} = 1 + 1;
+                var f = Main(V);
+                Console.WriteLine(f);
+        }
+    }
+}",
 index: 2);
         }
 
@@ -1211,8 +2204,28 @@ index: 2);
         public async Task TestLambdaParameter1()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > f = x => [|x + 1|] ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > f = x => { var {|Rename:v|} = x + 1 ; return v; }; } } ",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, int> f = x => [|x + 1|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, int> f = x =>
+        {
+            var {|Rename:v|} = x + 1;
+            return v;
+        };
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -1221,8 +2234,28 @@ options: ImplicitTypingEverywhere());
         public async Task TestLambdaParameter2()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => y => [|x + 1|] ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => { var {|Rename:v|} = x + 1 ; return y => v; }; } } ",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x => y => [|x + 1|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x =>
+        {
+            var {|Rename:v|} = x + 1;
+            return y => v;
+        };
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -1231,8 +2264,28 @@ options: ImplicitTypingEverywhere());
         public async Task TestLambdaParameter3()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => y => [|y + 1|] ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => y =>{ var {|Rename:v|} =  y + 1 ; return v; }; } } ",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x => y => [|y + 1|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x => y =>
+        {
+            var {|Rename:v|} = y + 1;
+            return v;
+        };
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -1241,8 +2294,25 @@ options: ImplicitTypingEverywhere());
         public async Task TestLambdaParameter4()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => [|y => y + 1|] ; } } ",
-            @"using System ; class Program { static void Main ( string [ ] args ) { Func < int , int > {|Rename:p|} = y => y + 1; Func < int , Func < int , int > > f = x => p ; } } ");
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x => [|y => y + 1|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, int> {|Rename:p|} = y => y + 1;
+        Func<int, Func<int, int>> f = x => p;
+    }
+}");
         }
 
         [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
@@ -1250,8 +2320,28 @@ options: ImplicitTypingEverywhere());
         public async Task TestLambdaParameter5()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => [|y => x + 1|] ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Func < int , Func < int , int > > f = x => { Func<int,int> {|Rename:p|} = y => x + 1 ; return p; }; } } ");
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x => [|y => x + 1|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Func<int, Func<int, int>> f = x =>
+        {
+            Func<int, int> {|Rename:p|} = y => x + 1;
+            return p;
+        };
+    }
+}");
         }
 
         [WorkItem(530721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530721")]
@@ -1259,8 +2349,27 @@ options: ImplicitTypingEverywhere());
         public async Task TestIntroVarInAction1()
         {
             await TestAsync(
-@"using System ; class Program { void M ( ) { Action < int > foo = x => [|x . Foo|] ; } } ",
-@"using System ; class Program { void M ( ) { Action < int > foo = x => { object {|Rename:foo1|} = x . Foo ; } ; } } ");
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> foo = x => [|x.Foo|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> foo = x =>
+        {
+            object {|Rename:foo1|} = x.Foo;
+        };
+    }
+}");
         }
 
         [WorkItem(530919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530919")]
@@ -1268,8 +2377,25 @@ options: ImplicitTypingEverywhere());
         public async Task TestNullableOfPointerType()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( ) { [|new Nullable < int * > ( )|] . GetValueOrDefault ( ) ; } } ",
-@"using System ; class Program { static void Main ( ) { var {|Rename:v|} = new Nullable < int * > ( ) ; v . GetValueOrDefault ( ) ; } } ",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        [|new Nullable<int*>()|].GetValueOrDefault();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var {|Rename:v|} = new Nullable<int*>();
+        v.GetValueOrDefault();
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -1278,8 +2404,25 @@ options: ImplicitTypingEverywhere());
         public async Task TestNullableOfPointerTypeNotVar()
         {
             await TestAsync(
-@"using System ; class Program { static void Main ( ) { [|new Nullable < int * > ( )|] . GetValueOrDefault ( ) ; } } ",
-@"using System ; class Program { static void Main ( ) { Nullable < int * > {|Rename:v|} = new Nullable < int * > ( ) ; v . GetValueOrDefault ( ) ; } } ",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        [|new Nullable<int*>()|].GetValueOrDefault();
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        Nullable<int*> {|Rename:v|} = new Nullable<int*>();
+        v.GetValueOrDefault();
+    }
+}",
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
@@ -1288,8 +2431,27 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         public async Task TestIntroduceLocalRemovesUnnecessaryCast()
         {
             await TestAsync(
-@"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); set.Add([|set.ToString()|]); } } ",
-@"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); var {|Rename:v|} = set.ToString(); set.Add(v); } } ",
+@"using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        var set = new HashSet<string>();
+        set.Add([|set.ToString()|]);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        var set = new HashSet<string>();
+        var {|Rename:v|} = set.ToString();
+        set.Add(v);
+    }
+}",
 options: ImplicitTypingEverywhere());
         }
 
@@ -2455,8 +3617,14 @@ class TestClass
         public async Task TestMissingOnNullLiteral()
         {
             await TestMissingAsync(
-@"class C1 { }
-class C2 { }
+@"class C1
+{
+}
+
+class C2
+{
+}
+
 class Test
 {
     void M()
@@ -2464,8 +3632,7 @@ class Test
         C1 c1 = [|null|];
         C2 c2 = null;
     }
-}
-");
+}");
         }
 
         [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
@@ -2534,7 +3701,8 @@ class C
         public async Task MissingAcrossMultipleParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
-    @"using System;
+@"using System;
+
 class C
 {
     public T F<T>(T x)
@@ -2550,7 +3718,8 @@ class C
         public async Task MissingOnInvocationExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
-    @"using System;
+@"using System;
+
 class C
 {
     public T F<T>(T x)
@@ -2566,7 +3735,8 @@ class C
         public async Task MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
         {
             await TestMissingAsync(
-    @"using System;
+@"using System;
+
 class C
 {
     static void Test(string s)
@@ -2834,7 +4004,14 @@ var expected =
             // Cannot refactor tuple as local constant
             await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
              TestAsync(
-                @"class C { void Foo() { Bar([|(1, ""hello"")|]); Bar((1, ""hello""); } }",
+@"class C
+{
+    void Foo()
+    {
+        Bar([|(1, ""hello"")|]);
+        Bar((1, ""hello"");
+    }
+}",
                 @"",
                 index: 3,
                 parseOptions: TestOptions.Regular,

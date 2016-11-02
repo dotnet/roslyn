@@ -294,35 +294,40 @@ using System.Linq;
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective()
         {
-            await TestAsync("using $$System;",
+            await TestAsync(
+@"using $$System;",
                 MainDescription("namespace System"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective2()
         {
-            await TestAsync("using System.Coll$$ections.Generic;",
+            await TestAsync(
+@"using System.Coll$$ections.Generic;",
                 MainDescription("namespace System.Collections"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirective3()
         {
-            await TestAsync("using System.L$$inq;",
+            await TestAsync(
+@"using System.L$$inq;",
                 MainDescription("namespace System.Linq"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNamespaceInUsingDirectiveWithAlias()
         {
-            await TestAsync("using Foo = Sys$$tem.Console;",
+            await TestAsync(
+@"using Foo = Sys$$tem.Console;",
                 MainDescription("namespace System"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeInUsingDirectiveWithAlias()
         {
-            await TestAsync("using Foo = System.Con$$sole;",
+            await TestAsync(
+@"using Foo = System.Con$$sole;",
                 MainDescription("class System.Console"));
         }
 
@@ -405,32 +410,56 @@ class C { void M() { $$C obj; } }";
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedSingleLineComment
 
             // SingleLine doc comment with leading whitespace
-            await TestAsync(@"
-    ///<summary>Hello!</summary>
-    class C { void M() { $$C obj; } }",
+            await TestAsync(
+@"///<summary>Hello!</summary>
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // SingleLine doc comment with space before opening tag
-            await TestAsync(@"
-/// <summary>Hello!</summary>
-class C { void M() { $$C obj; } }",
+            await TestAsync(
+@"/// <summary>Hello!</summary>
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // SingleLine doc comment with space before opening tag and leading whitespace
-            await TestAsync(@"
-    /// <summary>Hello!</summary>
-    class C { void M() { $$C obj; } }",
+            await TestAsync(
+@"/// <summary>Hello!</summary>
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // SingleLine doc comment with leading whitespace and blank line
-            await TestAsync(@"
-    ///<summary>Hello!
-    ///</summary>
+            await TestAsync(
+@"///<summary>Hello!
+///</summary>
 
-    class C { void M() { $$C obj; } }",
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
@@ -446,57 +475,93 @@ class C { void M() { $$C obj; } }",
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedMultiLineComment
 
             // Multiline doc comment with leading whitespace
-            await TestAsync(@"
-    /**<summary>Hello!</summary>*/
-    class C { void M() { $$C obj; } }",
+            await TestAsync(
+@"/**<summary>Hello!</summary>*/
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // Multiline doc comment with space before opening tag
-            await TestAsync(@"
-/** <summary>Hello!</summary>
+            await TestAsync(
+@"/** <summary>Hello!</summary>
  **/
-class C { void M() { $$C obj; } }",
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // Multiline doc comment with space before opening tag and leading whitespace
-            await TestAsync(@"
-    /**
-     ** <summary>Hello!</summary>
-     **/
-    class C { void M() { $$C obj; } }",
+            await TestAsync(
+@"/**
+ ** <summary>Hello!</summary>
+ **/
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // Multiline doc comment with no per-line prefix
-            await TestAsync(@"
-/**
+            await TestAsync(
+@"/**
   <summary>
   Hello!
   </summary>
 */
-    class C { void M() { $$C obj; } }",
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // Multiline doc comment with inconsistent per-line prefix
-            await TestAsync(@"
-/**
+            await TestAsync(
+@"/**
  ** <summary>
     Hello!</summary>
  **
  **/
-    class C { void M() { $$C obj; } }",
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
             // Multiline doc comment with closing comment on final line
-            await TestAsync(@"
-/**
+            await TestAsync(
+@"/**
 <summary>Hello!
 </summary>*/
-    class C { void M() { $$C obj; } }",
+class C
+{
+    void M()
+    {
+        $$C obj;
+    }
+}",
                 MainDescription("class C"),
                 Documentation("Hello!"));
 
@@ -673,7 +738,11 @@ public class GenericList<T> { Generic$$List<int> t; }";
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter()
         {
-            await TestAsync(@"class C<T> { $$T t; }",
+            await TestAsync(
+@"class C<T>
+{
+    $$T t;
+}",
                 MainDescription($"T {FeaturesResources.in_} C<T>"));
         }
 
@@ -695,28 +764,44 @@ class C<T> { $$T t; }";
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter1_Bug931949()
         {
-            await TestAsync(@"class T1<T11> { $$T11 t; }",
+            await TestAsync(
+@"class T1<T11>
+{
+    $$T11 t;
+}",
                 MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter2_Bug931949()
         {
-            await TestAsync(@"class T1<T11> { T$$11 t; }",
+            await TestAsync(
+@"class T1<T11>
+{
+    T$$11 t;
+}",
                 MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter3_Bug931949()
         {
-            await TestAsync(@"class T1<T11> { T1$$1 t; }",
+            await TestAsync(
+@"class T1<T11>
+{
+    T1$$1 t;
+}",
                 MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTypeParameter4_Bug931949()
         {
-            await TestAsync(@"class T1<T11> { T11$$ t; }",
+            await TestAsync(
+@"class T1<T11>
+{
+    T11$$ t;
+}",
                 MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
         }
 
@@ -731,49 +816,80 @@ class C<T> { $$T t; }";
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod1_Bug1946()
         {
-            await TestAsync(@"class C { static void Meth1<T1>($$T1 i) where T1 : struct { T1 i; } }",
+            await TestAsync(
+@"class C
+{
+    static void Meth1<T1>($$T1 i) where T1 : struct
+    {
+        T1 i;
+    }
+}",
                 MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod2_Bug1946()
         {
-            await TestAsync(@"class C { static void Meth1<T1>(T1 i) where $$T1 : struct { T1 i; } }",
+            await TestAsync(
+@"class C
+{
+    static void Meth1<T1>(T1 i) where $$T1 : struct
+    {
+        T1 i;
+    }
+}",
                 MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeDeclaredOnMethod3_Bug1946()
         {
-            await TestAsync(@"class C { static void Meth1<T1>(T1 i) where T1 : struct { $$T1 i; } }",
+            await TestAsync(
+@"class C
+{
+    static void Meth1<T1>(T1 i) where T1 : struct
+    {
+        $$T1 i;
+    }
+}",
                 MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Class()
         {
-            await TestAsync(@"class C<T> where $$T : class { }",
+            await TestAsync(
+@"class C<T> where $$T : class
+{
+}",
                 MainDescription($"T {FeaturesResources.in_} C<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Struct()
         {
-            await TestAsync(@"struct S<T> where $$T : class { }",
+            await TestAsync(
+@"struct S<T> where $$T : class
+{
+}",
                 MainDescription($"T {FeaturesResources.in_} S<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Interface()
         {
-            await TestAsync(@"interface I<T> where $$T : class { }",
+            await TestAsync(
+@"interface I<T> where $$T : class
+{
+}",
                 MainDescription($"T {FeaturesResources.in_} I<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestGenericTypeParameterConstraint_Delegate()
         {
-            await TestAsync(@"delegate void D<T>() where $$T : class;",
+            await TestAsync(
+@"delegate void D<T>() where $$T : class;",
                 MainDescription($"T {FeaturesResources.in_} D<T> where T : class"));
         }
 
@@ -794,7 +910,14 @@ class C<T> { $$T t; }";
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMethodReferenceInSameMethod()
         {
-            await TestAsync("class C { void M() { M$$(); } }",
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        M$$();
+    }
+}",
                 MainDescription("void C.M()"));
         }
 
@@ -1009,8 +1132,9 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldQualified2()
         {
-            await TestAsync(@"
-class C {
+            await TestAsync(
+@"class C
+{
     void M()
     {
         DateTime dt = System.DateTime.MaxValue$$
@@ -1022,9 +1146,11 @@ class C {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldQualified3()
         {
-            await TestAsync(@"
-using System;
-class C {
+            await TestAsync(
+@"using System;
+
+class C
+{
     void M()
     {
         DateTime dt = System.DateTime.MaxValue$$
@@ -1036,10 +1162,16 @@ class C {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ConstructedGenericField()
         {
-            await TestAsync(@"class C<T> { public T Field; }
+            await TestAsync(
+@"class C<T>
+{
+    public T Field;
+}
 
-class D {
-    void M() {
+class D
+{
+    void M()
+    {
         new C<int>().Fi$$eld.ToString();
     }
 }",
@@ -1049,11 +1181,13 @@ class D {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnconstructedGenericField()
         {
-            await TestAsync(@"
-class C<T> {
+            await TestAsync(
+@"class C<T>
+{
     public T Field;
 
-    void M() {
+    void M()
+    {
         Fi$$eld.ToString();
     }
 }",
@@ -1397,13 +1531,16 @@ void M()
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ConstructedGenericProperty()
         {
-            await TestAsync(@"
-class C<T> {
-    public T Property{ get; set }
+            await TestAsync(
+@"class C<T>
+{
+    public T Property { get; set }
 }
 
-class D {
-    void M() {
+class D
+{
+    void M()
+    {
         new C<int>().Pro$$perty.ToString();
     }
 }",
@@ -1413,11 +1550,13 @@ class D {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnconstructedGenericProperty()
         {
-            await TestAsync(@"
-class C<T> {
+            await TestAsync(
+@"class C<T>
+{
     public T Property { get; set}
 
-    void M() {
+    void M()
+    {
         Pro$$perty.ToString();
     }
 }",
@@ -1462,8 +1601,8 @@ class C<T> {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromSource1()
         {
-            await TestAsync(@"
-enum E
+            await TestAsync(
+@"enum E
 {
     A = 1 << 0,
     B = 1 << 1,
@@ -1483,8 +1622,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromSource2()
         {
-            await TestAsync(@"
-enum E
+            await TestAsync(
+@"enum E
 {
     A,
     B,
@@ -1822,13 +1961,15 @@ void M(C left, C right) { return left +$$ right; }
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericTypeWithConstraintsAtDeclaration()
         {
-            await TestAsync(@"public class Employee : IComparable<Employee>
+            await TestAsync(
+@"public class Employee : IComparable<Employee>
 {
     public int CompareTo(Employee other)
     {
         throw new NotImplementedException();
     }
 }
+
 class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<T>, new()
 {
 }",
@@ -1839,12 +1980,11 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericType()
         {
-            await TestAsync(@"
-class T1<T11>
+            await TestAsync(
+@"class T1<T11>
 {
     $$T11 i;
-}
-",
+}",
                 MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
         }
 
@@ -1883,8 +2023,8 @@ var y = $$x;
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedGenericInGeneric()
         {
-            await TestAsync(@"
-            class Outer<T>
+            await TestAsync(
+@"class Outer<T>
 {
     class Inner<U>
     {
@@ -1894,8 +2034,7 @@ var y = $$x;
     {
         Outer<int>.I$$nner<string> e;
     }
-}
-",
+}",
                 MainDescription("class Outer<T>.Inner<U>"),
                 TypeParameterMap(
                     Lines($"\r\nT {FeaturesResources.is_} int",
@@ -1943,8 +2082,8 @@ class C
         [WorkItem(537880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537880")]
         public async Task TypeArgument()
         {
-            await TestAsync(@"
-class C<T, Y>
+            await TestAsync(
+@"class C<T, Y>
 {
     void M()
     {
@@ -2047,24 +2186,24 @@ bb = bb + 21;
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task GenericVariable()
         {
-            await TestAsync(@"
-            class C<T, Y>
-            {
-                void M()
-                {
-                    C<int, DateTime> variable;
-                    var$$iable = new C<int, DateTime>();
-                }
-            }
-",
+            await TestAsync(
+@"class C<T, Y>
+{
+    void M()
+    {
+        C<int, DateTime> variable;
+        var$$iable = new C<int, DateTime>();
+    }
+}",
                 MainDescription($"({FeaturesResources.local_variable}) C<int, DateTime> variable"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInstantiation()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
+
 class Program<T>
 {
     static void Main(string[] args)
@@ -2078,12 +2217,19 @@ class Program<T>
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUsingAlias_Bug4141()
         {
-            await TestAsync(@"using X = A.C;
-class A {
-public class C { }
+            await TestAsync(
+@"using X = A.C;
+
+class A
+{
+    public class C
+    {
+    }
 }
-class D : X$$ { }
-",
+
+class D : X$$
+{
+}",
                 MainDescription(@"class A.C"));
         }
 
@@ -2120,17 +2266,17 @@ Fun$$c<int, string> field;",
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnDelegateInvocation()
         {
-            await TestAsync(@"
-class Program
+            await TestAsync(
+@"class Program
 {
     delegate void D1();
+
     static void Main()
     {
         D1 d = Main;
-        $$d(); 
+        $$d();
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.local_variable}) D1 d"));
         }
 
@@ -2138,8 +2284,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnArrayCreation1()
         {
-            await TestAsync(@"
-class Program
+            await TestAsync(
+@"class Program
 {
     static void Main()
     {
@@ -2152,8 +2298,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOnArrayCreation2()
         {
-            await TestAsync(@"
-class Program
+            await TestAsync(
+@"class Program
 {
     static void Main()
     {
@@ -2167,8 +2313,17 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestIsNamedTypeAccessibleForErrorTypes()
         {
-            await TestAsync(@"sealed class B<T1, T2> : A<B<T1, T2>>{
-    protected sealed override B<A<T>, A$$<T>> N() { }} internal class A<T>{}",
+            await TestAsync(
+@"sealed class B<T1, T2> : A<B<T1, T2>>
+{
+    protected sealed override B<A<T>, A$$<T>> N()
+    {
+    }
+}
+
+internal class A<T>
+{
+}",
                 MainDescription("class A<T>"));
         }
 
@@ -2176,7 +2331,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorType()
         {
-            await TestAsync(@"using Foo = Foo;
+            await TestAsync(
+@"using Foo = Foo;
+
 class C
 {
     void Main()
@@ -2191,18 +2348,20 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()
         {
-            await TestAsync(@"class MyClass
+            await TestAsync(
+@"class MyClass
 {
-    MyClass()
-        : this($$10)
+    MyClass() : this($$10)
     {
         intI = 2;
     }
- 
-    public MyClass(int i) { }
- 
+
+    public MyClass(int i)
+    {
+    }
+
     static int intI = 1;
- 
+
     public static int Main()
     {
         return 1;
@@ -2215,8 +2374,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorInForeach()
         {
-            await TestAsync(@"
-class C
+            await TestAsync(
+@"class C
 {
     void Main()
     {
@@ -2233,14 +2392,16 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNoQuickInfoOnAnonymousDelegate()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
 
 class Program
 {
     static void Main(string[] args)
     {
-        Action a = $$delegate { };
+        Action a = $$delegate
+        {
+        };
     }
 }");
         }
@@ -2249,26 +2410,31 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestQuickInfoOnEvent()
         {
-            await TestAsync(@"
-using System;
- 
+            await TestAsync(
+@"using System;
+
 public class SampleEventArgs
 {
-    public SampleEventArgs(string s) { Text = s; }
-    public String Text { get; private set; } 
+    public SampleEventArgs(string s)
+    {
+        Text = s;
+    }
+
+    public String Text { get; private set; }
 }
+
 public class Publisher
 {
     public delegate void SampleEventHandler(object sender, SampleEventArgs e);
+
     public event SampleEventHandler SampleEvent;
- 
+
     protected virtual void RaiseSampleEvent()
     {
         if (Sam$$pleEvent != null)
             SampleEvent(this, new SampleEventArgs(""Hello""));
     }
-}
-",
+}",
                 MainDescription("SampleEventHandler Publisher.SampleEvent"));
         }
 
@@ -2378,75 +2544,78 @@ public static class Ex
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query1()
         {
-            await TestAsync(@"
-using System.Linq;
+            await TestAsync(
+@"using System.Linq;
+
 class C
 {
     void M()
     {
-        var q = from n in new int[] { 1, 2, 3, 4, 5}
+        var q = from n in new int[] { 1, 2, 3, 4, 5 }
+
                 select $$n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query2()
         {
-            await TestAsync(@"
-using System.Linq;
+            await TestAsync(
+@"using System.Linq;
+
 class C
 {
     void M()
     {
-        var q = from n$$ in new int[] { 1, 2, 3, 4, 5}
+        var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
+
                 select n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query3()
         {
-            await TestAsync(@"
-class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
-        var q = from n in new int[] { 1, 2, 3, 4, 5}
+        var q = from n in new int[] { 1, 2, 3, 4, 5 }
+
                 select $$n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) ? n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query4()
         {
-            await TestAsync(@"
-class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
-        var q = from n$$ in new int[] { 1, 2, 3, 4, 5}
+        var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
+
                 select n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) ? n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query5()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2454,17 +2623,17 @@ class C
         var q = from n in new List<object>()
                 select $$n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) object n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query6()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2472,17 +2641,17 @@ class C
         var q = from n$$ in new List<object>()
                 select n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) object n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query7()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2490,17 +2659,17 @@ class C
         var q = from int n in new List<object>()
                 select $$n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query8()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2508,17 +2677,17 @@ class C
         var q = from int n$$ in new List<object>()
                 select n;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query9()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2527,17 +2696,17 @@ class C
                 from y in x
                 select y;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) List<int> x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query10()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2546,17 +2715,17 @@ class C
                 from y in $$x
                 select y;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) List<int> x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query11()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2565,17 +2734,17 @@ class C
                 from y$$ in x
                 select y;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Query12()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     void M()
@@ -2584,8 +2753,7 @@ class C
                 from y in x
                 select $$y;
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) int y"));
         }
 
@@ -2593,8 +2761,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestErrorGlobal()
         {
-            await TestAsync(@"extern alias global;
- 
+            await TestAsync(
+@"extern alias global;
+
 class myClass
 {
     static int Main()
@@ -2609,8 +2778,9 @@ class myClass
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
+
 class classAttribute : Attribute
 {
     private classAttribute x$$;
@@ -2622,8 +2792,9 @@ class classAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task DontRemoveAttributeSuffix2()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
+
 class class1Attribute : Attribute
 {
     private class1Attribute x$$;
@@ -2635,8 +2806,8 @@ class class1Attribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AttributeQuickInfoBindsToClassTest()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
 
 /// <summary>
 /// class comment
@@ -2650,8 +2821,7 @@ class SomeAttribute : Attribute
     public SomeAttribute()
     {
     }
-}
-",
+}",
                 Documentation("class comment"));
         }
 
@@ -2659,8 +2829,8 @@ class SomeAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task AttributeConstructorQuickInfo()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
 
 /// <summary>
 /// class comment
@@ -2674,8 +2844,7 @@ class SomeAttribute : Attribute
     {
         var s = new Some$$Attribute();
     }
-}
-",
+}",
                 Documentation("ctor comment"));
         }
 
@@ -2690,9 +2859,10 @@ class SomeAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestUnboundGeneric()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -2708,8 +2878,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAnonymousTypeNew1()
         {
-            await TestAsync(@"
-class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
@@ -2754,14 +2924,14 @@ $@"
         [WorkItem(543183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543183")]
         public async Task TestAssignmentOperatorInAnonymousType()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
         var a = new { A $$= 0 };
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2781,14 +2951,14 @@ $@"
         [WorkItem(543553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543553")]
         public async Task TestArrayAssignedToVar()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     static void M(string[] args)
     {
         v$$ar a = args;
     }
-}
-",
+}",
                 MainDescription("string[]"));
         }
 
@@ -2796,8 +2966,8 @@ $@"
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ColorColorRangeVariable()
         {
-            await TestAsync(@"
-using System.Collections.Generic;
+            await TestAsync(
+@"using System.Collections.Generic;
 using System.Linq;
 
 namespace N1
@@ -2813,8 +2983,7 @@ namespace N1
             }
         }
     }
-}
-",
+}",
                 MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
         }
 
@@ -2822,52 +2991,60 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task QuickInfoOnOperator()
         {
-            await TestAsync(@"using System.Collections.Generic;
- 
+            await TestAsync(
+@"using System.Collections.Generic;
+
 class Program
 {
     static void Main(string[] args)
     {
         var v = new Program() $$+ string.Empty;
     }
- 
+
     public static implicit operator Program(string s)
     {
         return null;
     }
- 
+
     public static IEnumerable<Program> operator +(Program p1, Program p2)
     {
         yield return p1;
         yield return p2;
     }
-}
-",
+}",
                 MainDescription("IEnumerable<Program> Program.operator +(Program p1, Program p2)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantField()
         {
-            await TestAsync("class C { const int $$F = 1;",
+            await TestAsync(
+@"class C
+{
+    const int $$F = 1;",
                 MainDescription($"({FeaturesResources.constant}) int C.F = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMultipleConstantFields()
         {
-            await TestAsync("class C { public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
+            await TestAsync(
+@"class C
+{
+    public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
                 MainDescription($"({FeaturesResources.constant}) double C.Z = 3.5"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantDependencies()
         {
-            await TestAsync(@"class A
+            await TestAsync(
+@"class A
 {
     public const int $$X = B.Z + 1;
     public const int Y = 10;
 }
+
 class B
 {
     public const int Z = A.Y + 1;
@@ -2878,10 +3055,12 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantCircularDependencies()
         {
-            await TestAsync(@"class A
+            await TestAsync(
+@"class A
 {
     public const int X = B.Z + 1;
 }
+
 class B
 {
     public const int Z$$ = A.X + 1;
@@ -2893,7 +3072,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantOverflow()
         {
-            await TestAsync(@"class B
+            await TestAsync(
+@"class B
 {
     public const int Z$$ = int.MaxValue + 1;
 }",
@@ -2904,7 +3084,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantOverflowInUncheckedContext()
         {
-            await TestAsync(@"class B
+            await TestAsync(
+@"class B
 {
     public const int Z$$ = unchecked(int.MaxValue + 1);
 }",
@@ -2914,9 +3095,20 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestEnumInConstantField()
         {
-            await TestAsync(@"public class EnumTest
+            await TestAsync(
+@"public class EnumTest
 {
-    enum Days { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
+    enum Days
+    {
+        Sun,
+        Mon,
+        Tue,
+        Wed,
+        Thu,
+        Fri,
+        Sat
+    };
+
     static void Main()
     {
         const int $$x = (int)Days.Sun;
@@ -2928,9 +3120,20 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantInDefaultExpression()
         {
-            await TestAsync(@"public class EnumTest
+            await TestAsync(
+@"public class EnumTest
 {
-    enum Days { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
+    enum Days
+    {
+        Sun,
+        Mon,
+        Tue,
+        Wed,
+        Thu,
+        Fri,
+        Sat
+    };
+
     static void Main()
     {
         const Days $$x = default(Days);
@@ -2942,14 +3145,24 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantParameter()
         {
-            await TestAsync("class C { void Bar(int $$b = 1); }",
+            await TestAsync(
+@"class C
+{
+    void Bar(int $$b = 1);
+}",
                 MainDescription($"({FeaturesResources.parameter}) int b = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantLocal()
         {
-            await TestAsync("class C { void Bar() { const int $$loc = 1; }",
+            await TestAsync(
+@"class C
+{
+    void Bar()
+    {
+        const int $$loc = 1;
+    }",
                 MainDescription($"({FeaturesResources.local_constant}) int loc = 1"));
         }
 
@@ -3021,7 +3234,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDelegateSpecialTypes()
         {
-            await TestAsync("delegate void $$F(int x);",
+            await TestAsync(
+@"delegate void $$F(int x);",
                 MainDescription("delegate void F(int x)"));
         }
 
@@ -3029,7 +3243,13 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullPointerParameter()
         {
-            await TestAsync("class C { unsafe void $$Foo(int* x = null) { } }",
+            await TestAsync(
+@"class C
+{
+    unsafe void $$Foo(int* x = null)
+    {
+    }
+}",
                 MainDescription("void C.Foo([int* x = null])"));
         }
 
@@ -3045,7 +3265,13 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullableDefaultValue()
         {
-            await TestAsync("class Test { void $$Method(int? t1 = null) { } }",
+            await TestAsync(
+@"class Test
+{
+    void $$Method(int? t1 = null)
+    {
+    }
+}",
                 MainDescription("void Test.Method([int? t1 = null])"));
         }
 
@@ -3054,9 +3280,14 @@ class B
         public async Task TestInvalidParameterInitializer()
         {
             await TestAsync(
-@"class Program { void M1(float $$j1 = ""Hello""
-        + 
-        ""World"") { } }",
+@"class Program
+{
+    void M1(float $$j1 = ""Hello""
++
+""World"")
+    {
+    }
+}",
                 MainDescription($@"({FeaturesResources.parameter}) float j1 = ""Hello"" + ""World"""));
         }
 
@@ -3073,8 +3304,7 @@ class B
             1024 + true;
         Blah($$MEGABYTE);
     }
-}
-",
+}",
                 MainDescription($@"({FeaturesResources.local_constant}) int MEGABYTE = 1024 * 1024 + true"));
         }
 
@@ -3085,9 +3315,10 @@ class B
             await TestAsync(
 @"class Program
 {
-    const int a = true 
-        - 
+    const int a = true
+        -
         false;
+
     void Main()
     {
         Foo($$a);
@@ -3228,13 +3459,17 @@ End Class";
         public async Task TestUnconstructedGeneric()
         {
             await TestAsync(
-@"class A<T> {
-    enum SortOrder {
+@"class A<T>
+{
+    enum SortOrder
+    {
         Ascending,
         Descending,
         None
     }
-    void Foo() {
+
+    void Foo()
+    {
         var b = $$SortOrder.Ascending;
     }
 }",
@@ -3246,10 +3481,10 @@ End Class";
         public async Task TestUnconstructedGenericInCRef()
         {
             await TestAsync(
-@"
-/// <see cref=""$$C{T}"" />
-class C<T> { }
-",
+@"/// <see cref=""$$C{T}"" />
+class C<T>
+{
+}",
                 MainDescription(@"class C<T>"));
         }
 
@@ -3314,8 +3549,8 @@ public class Test
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TextOnlyDocComment()
         {
-            await TestAsync(@"
-/// <summary>
+            await TestAsync(
+@"/// <summary>
 ///foo
 /// </summary>
 class C$$
@@ -3326,8 +3561,8 @@ class C$$
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestTrimConcatMultiLine()
         {
-            await TestAsync(@"
-/// <summary>
+            await TestAsync(
+@"/// <summary>
 /// foo
 /// bar
 /// </summary>
@@ -3339,8 +3574,8 @@ class C$$
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestCref()
         {
-            await TestAsync(@"
-/// <summary>
+            await TestAsync(
+@"/// <summary>
 /// <see cref=""C""/>
 /// <seealso cref=""C""/>
 /// </summary>
@@ -3352,8 +3587,8 @@ class C$$
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ExcludeTextOutsideSummaryBlock()
         {
-            await TestAsync(@"
-/// red
+            await TestAsync(
+@"/// red
 /// <summary>
 /// green
 /// </summary>
@@ -3366,8 +3601,8 @@ class C$$
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NewlineAfterPara()
         {
-            await TestAsync(@"
-/// <summary>
+            await TestAsync(
+@"/// <summary>
 /// <para>foo</para>
 /// </summary>
 class C$$
@@ -3469,8 +3704,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param()
         {
-            await TestAsync(@"
-/// <summary></summary>
+            await TestAsync(
+@"/// <summary></summary>
 public class C
 {
     /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
@@ -3511,8 +3746,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Param2()
         {
-            await TestAsync(@"
-/// <summary></summary>
+            await TestAsync(
+@"/// <summary></summary>
 public class C
 {
     /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
@@ -3553,8 +3788,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TypeParam()
         {
-            await TestAsync(@"
-/// <summary></summary>
+            await TestAsync(
+@"/// <summary></summary>
 public class C
 {
     /// <typeparam name=""T"">A type parameter of <see cref=""Foo{T} (string[], T)""/></typeparam>
@@ -3569,8 +3804,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task UnboundCref()
         {
-            await TestAsync(@"
-/// <summary></summary>
+            await TestAsync(
+@"/// <summary></summary>
 public class C
 {
     /// <typeparam name=""T"">A type parameter of <see cref=""foo{T}(string[], T)""/></typeparam>
@@ -3585,8 +3820,8 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInConstructor()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
     /// <summary> 
     /// This sample shows how to specify the <see cref=""TestClass""/> constructor as a cref attribute.
@@ -3600,8 +3835,8 @@ public class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInConstructorOverloaded()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
     /// <summary> 
     /// This sample shows how to specify the <see cref=""TestClass""/> constructor as a cref attribute.
@@ -3614,101 +3849,115 @@ public class TestClass
     /// This sample shows how to specify the <see cref=""TestClass(int)""/> constructor as a cref attribute.
     /// </summary> 
     public TestC$$lass(int value)
-    { }
-
-    }", Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
+    {
+    }
+}", Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericMethod1()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
-        /// <summary> 
-        /// The GetGenericValue method. 
-        /// <para>This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.</para>
-        /// </summary> 
-        public static T GetGenericVa$$lue<T>(T para) { return para; }
-
-    }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
+    /// <summary> 
+    /// The GetGenericValue method. 
+    /// <para>This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.</para>
+    /// </summary> 
+    public static T GetGenericVa$$lue<T>(T para)
+    {
+        return para;
+    }
+}", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericMethod2()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
-        /// <summary> 
-        /// The GetGenericValue method. 
-        /// <para>This sample shows how to specify the <see cref=""GetGenericValue{T}(T)""/> method as a cref attribute.</para>
-        /// </summary> 
-        public static T GetGenericVa$$lue<T>(T para) { return para; }
-
-    }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
+    /// <summary> 
+    /// The GetGenericValue method. 
+    /// <para>This sample shows how to specify the <see cref=""GetGenericValue{T}(T)""/> method as a cref attribute.</para>
+    /// </summary> 
+    public static T GetGenericVa$$lue<T>(T para)
+    {
+        return para;
+    }
+}", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
         [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInMethodOverloading1()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
-        public static int GetZero()
-        {
-            GetGenericValu$$e();
-            GetGenericValue(5);
-        }
+    public static int GetZero()
+    {
+        GetGenericValu$$e();
+        GetGenericValue(5);
+    }
 
-        /// <summary> 
-        /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
-        /// </summary> 
-        public static T GetGenericValue<T>(T para) { return para; }
+    /// <summary> 
+    /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
+    /// </summary> 
+    public static T GetGenericValue<T>(T para)
+    {
+        return para;
+    }
 
-        /// <summary> 
-        /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
-        /// </summary> 
-        public static void GetGenericValue() { }
-
-    }", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
+    /// <summary> 
+    /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
+    /// </summary> 
+    public static void GetGenericValue()
+    {
+    }
+}", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
         }
 
         [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInMethodOverloading2()
         {
-            await TestAsync(@"
-public class TestClass
+            await TestAsync(
+@"public class TestClass
 {
-        public static int GetZero()
-        {
-            GetGenericValue();
-            GetGenericVal$$ue(5);
-        }
+    public static int GetZero()
+    {
+        GetGenericValue();
+        GetGenericVal$$ue(5);
+    }
 
-        /// <summary> 
-        /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
-        /// </summary> 
-        public static T GetGenericValue<T>(T para) { return para; }
+    /// <summary> 
+    /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
+    /// </summary> 
+    public static T GetGenericValue<T>(T para)
+    {
+        return para;
+    }
 
-        /// <summary> 
-        /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
-        /// </summary> 
-        public static void GetGenericValue() { }
-
-    }", Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
+    /// <summary> 
+    /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
+    /// </summary> 
+    public static void GetGenericValue()
+    {
+    }
+}", Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task CrefInGenericType()
         {
-            await TestAsync(@"
-    /// <summary> 
-    /// <remarks>This example shows how to specify the <see cref=""GenericClass{T}""/> cref.</remarks>
-    /// </summary> 
-    class Generic$$Class<T> { }",
+            await TestAsync(
+@"/// <summary> 
+/// <remarks>This example shows how to specify the <see cref=""GenericClass{T}""/> cref.</remarks>
+/// </summary> 
+class Generic$$Class<T>
+{
+}",
     Documentation("This example shows how to specify the GenericClass<T> cref.",
         ExpectedClassifications(
             Text("This example shows how to specify the"),
@@ -4177,12 +4426,19 @@ public class Methods2
         [WorkItem(4868, "https://github.com/dotnet/roslyn/issues/4868")]
         public async Task QuickInfoExceptions()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
+
 namespace MyNs
 {
-    class MyException1 : Exception { }
-    class MyException2 : Exception { }
+    class MyException1 : Exception
+    {
+    }
+
+    class MyException2 : Exception
+    {
+    }
+
     class TestClass
     {
         /// <exception cref=""MyException1""></exception>
@@ -4195,8 +4451,7 @@ namespace MyNs
             M$$();
         }
     }
-}
-",
+}",
                 Exceptions($"\r\n{WorkspacesResources.Exceptions_colon}\r\n  MyException1\r\n  MyException2\r\n  int\r\n  double\r\n  Not_A_Class_But_Still_Displayed"));
         }
 
@@ -4204,8 +4459,8 @@ namespace MyNs
         [WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")]
         public async Task QuickInfoWithNonStandardSeeAttributesAppear()
         {
-            await TestAsync(@"
-class C
+            await TestAsync(
+@"class C
 {
     /// <summary>
     /// <see cref=""System.String"" />
@@ -4217,8 +4472,7 @@ class C
     {
         M$$();
     }
-}
-",
+}",
                 Documentation(@"string http://microsoft.com null cat"));
         }
 

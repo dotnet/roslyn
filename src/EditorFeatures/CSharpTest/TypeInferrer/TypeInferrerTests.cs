@@ -173,12 +173,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
         [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestOverloadedConditionalLogicalOperatorsInferBool()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
+
 class C
 {
-    public static C operator &(C c, C d) { return null; }
-    public static bool operator true(C c) { return true; }
-    public static bool operator false(C c) { return false; }
+    public static C operator &(C c, C d)
+    {
+        return null;
+    }
+
+    public static bool operator true(C c)
+    {
+        return true;
+    }
+
+    public static bool operator false(C c)
+    {
+        return false;
+    }
 
     static void Main(string[] args)
     {
@@ -883,21 +896,46 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer1()
         {
-            await TestAsync(@"class MyClass { public MyClass(int x) : this([|test|]) { } }", "global::System.Int32");
+            await TestAsync(
+@"class MyClass
+{
+    public MyClass(int x) : this([|test|])
+    {
+    }
+}", "global::System.Int32");
         }
 
         [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer2()
         {
-            await TestAsync(@"class MyClass { public MyClass(int x, string y) : this(5, [|test|]) { } }", "global::System.String");
+            await TestAsync(
+@"class MyClass
+{
+    public MyClass(int x, string y) : this(5, [|test|])
+    {
+    }
+}", "global::System.String");
         }
 
         [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBaseConstructorInitializer()
         {
-            await TestAsync(@"class B { public B(int x) { } } class D : B { public D() : base([|test|]) { } }", "global::System.Int32");
+            await TestAsync(
+@"class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D() : base([|test|])
+    {
+    }
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

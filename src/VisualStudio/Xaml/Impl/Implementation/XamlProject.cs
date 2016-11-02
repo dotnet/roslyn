@@ -24,6 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 hostDiagnosticUpdateSourceOpt: null)
         {
             projectTracker.AddProject(this);
+
+            // Make sure the solution crawler is running in this workspace
+            visualStudioWorkspace.StartSolutionCrawler();
         }
 
         private static string GetProjectName(IVsHierarchy hierarchy)

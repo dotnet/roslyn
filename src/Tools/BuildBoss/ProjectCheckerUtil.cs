@@ -40,6 +40,8 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
                 allGood &= CheckForProperty(textWriter, "SchemaVersion");
                 allGood &= CheckForProperty(textWriter, "Configuration");
+                allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
+                allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
             }

@@ -27,16 +27,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
         public async Task TestTypeFromMultipleNamespaces1()
         {
             await TestAsync(
-@"class Class { [|IDictionary|] Method() { Foo(); } }",
-@"class Class { System.Collections.IDictionary Method() { Foo(); } }");
+@"class Class
+{
+    [|IDictionary|] Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    System.Collections.IDictionary Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestTypeFromMultipleNamespaces2()
         {
             await TestAsync(
-@"class Class { [|IDictionary|] Method() { Foo(); } }",
-@"class Class { System.Collections.Generic.IDictionary Method() { Foo(); } }",
+@"class Class
+{
+    [|IDictionary|] Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    System.Collections.Generic.IDictionary Method()
+    {
+        Foo();
+    }
+}",
 index: 1);
         }
 
@@ -44,16 +68,40 @@ index: 1);
         public async Task TestGenericWithNoArgs()
         {
             await TestAsync(
-@"class Class { [|List|] Method() { Foo(); } }",
-@"class Class { System.Collections.Generic.List Method() { Foo(); } }");
+@"class Class
+{
+    [|List|] Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    System.Collections.Generic.List Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericWithCorrectArgs()
         {
             await TestAsync(
-@"class Class { [|List<int>|] Method() { Foo(); } }",
-@"class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
+@"class Class
+{
+    [|List<int>|] Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    System.Collections.Generic.List<int> Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
@@ -68,47 +116,131 @@ index: 1);
         public async Task TestGenericWithWrongArgs()
         {
             await TestMissingAsync(
-@"class Class { [|List<int,string>|] Method() { Foo(); } }");
+@"class Class
+{
+    [|List<int, string>|] Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericInLocalDeclaration()
         {
             await TestAsync(
-@"class Class { void Foo() { [|List<int>|] a = new List<int>(); } }",
-@"class Class { void Foo() { System.Collections.Generic.List<int> a = new List<int>(); } }");
+@"class Class
+{
+    void Foo()
+    {
+        [|List<int>|] a = new List<int>();
+    }
+}",
+@"class Class
+{
+    void Foo()
+    {
+        System.Collections.Generic.List<int> a = new List<int>();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericItemType()
         {
             await TestAsync(
-@"using System.Collections.Generic; class Class { List<[|Int32|]> l; }",
-@"using System.Collections.Generic; class Class { List<System.Int32> l; }");
+@"using System.Collections.Generic;
+
+class Class
+{
+    List<[|Int32|]> l;
+}",
+@"using System.Collections.Generic;
+
+class Class
+{
+    List<System.Int32> l;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateWithExistingUsings()
         {
             await TestAsync(
-@"using System; class Class { [|List<int>|] Method() { Foo(); } }",
-@"using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
+@"using System;
+
+class Class
+{
+    [|List<int>|] Method()
+    {
+        Foo();
+    }
+}",
+@"using System;
+
+class Class
+{
+    System.Collections.Generic.List<int> Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespace()
         {
             await TestAsync(
-@"namespace N { class Class { [|List<int>|] Method() { Foo(); } } }",
-@"namespace N { class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
+@"namespace N
+{
+    class Class
+    {
+        [|List<int>|] Method()
+        {
+            Foo();
+        }
+    }
+}",
+@"namespace N
+{
+    class Class
+    {
+        System.Collections.Generic.List<int> Method()
+        {
+            Foo();
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenerateInNamespaceWithUsings()
         {
             await TestAsync(
-@"namespace N { using System; class Class { [|List<int>|] Method() { Foo(); } } }",
-@"namespace N { using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
+@"namespace N
+{
+    using System;
+
+    class Class
+    {
+        [|List<int>|] Method()
+        {
+            Foo();
+        }
+    }
+}",
+@"namespace N
+{
+    using System;
+
+    class Class
+    {
+        System.Collections.Generic.List<int> Method()
+        {
+            Foo();
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
@@ -119,74 +251,250 @@ index: 1);
 count: 2);
 
             await TestAsync(
-@"using System.Collections.Generic; class Class { [|IDictionary|] Method() { Foo(); } }",
-@"using System.Collections.Generic; class Class { System.Collections.IDictionary Method() { Foo(); } }");
+@"using System.Collections.Generic;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Foo();
+    }
+}",
+@"using System.Collections.Generic;
+
+class Class
+{
+    System.Collections.IDictionary Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBound()
         {
             await TestMissingAsync(
-@"using System; class Class { [|String|] Method() { Foo(); } }");
+@"using System;
+
+class Class
+{
+    [|String|] Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingIfUniquelyBoundGeneric()
         {
             await TestMissingAsync(
-@"using System.Collections.Generic; class Class { [|List<int>|] Method() { Foo(); } }");
+@"using System.Collections.Generic;
+
+class Class
+{
+    [|List<int>|] Method()
+    {
+        Foo();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnEnum()
         {
             await TestAsync(
-@"class Class { void Foo() { var a = [|Colors|].Red; } } namespace A { enum Colors {Red, Green, Blue} }",
-@"class Class { void Foo() { var a = A.Colors.Red; } } namespace A { enum Colors {Red, Green, Blue} }");
+@"class Class
+{
+    void Foo()
+    {
+        var a = [|Colors|].Red;
+    }
+}
+
+namespace A
+{
+    enum Colors
+    {
+        Red,
+        Green,
+        Blue
+    }
+}",
+@"class Class
+{
+    void Foo()
+    {
+        var a = A.Colors.Red;
+    }
+}
+
+namespace A
+{
+    enum Colors
+    {
+        Red,
+        Green,
+        Blue
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnClassInheritance()
         {
             await TestAsync(
-@"class Class : [|Class2|] { } namespace A { class Class2 { } }",
-@"class Class : A.Class2 { } namespace A { class Class2 { } }");
+@"class Class : [|Class2|]
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}",
+@"class Class : A.Class2
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestOnImplementedInterface()
         {
             await TestAsync(
-@"class Class : [|IFoo|] { } namespace A { interface IFoo { } }",
-@"class Class : A.IFoo { } namespace A { interface IFoo { } }");
+@"class Class : [|IFoo|]
+{
+}
+
+namespace A
+{
+    interface IFoo
+    {
+    }
+}",
+@"class Class : A.IFoo
+{
+}
+
+namespace A
+{
+    interface IFoo
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAllInBaseList()
         {
             await TestAsync(
-@"class Class : [|IFoo|], Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } } ",
-@"class Class : B.IFoo, Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
+@"class Class : [|IFoo|], Class2
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}
+
+namespace B
+{
+    interface IFoo
+    {
+    }
+}",
+@"class Class : B.IFoo, Class2
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}
+
+namespace B
+{
+    interface IFoo
+    {
+    }
+}");
 
             await TestAsync(
-@"class Class : B.IFoo, [|Class2|] { } namespace A { class Class2 { } } namespace B { interface IFoo { } } ",
-@"class Class : B.IFoo, A.Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
+@"class Class : B.IFoo, [|Class2|]
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}
+
+namespace B
+{
+    interface IFoo
+    {
+    }
+}",
+@"class Class : B.IFoo, A.Class2
+{
+}
+
+namespace A
+{
+    class Class2
+    {
+    }
+}
+
+namespace B
+{
+    interface IFoo
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeUnexpanded()
         {
             await TestAsync(
-@"[[|Obsolete|]]class Class { }",
-@"[System.Obsolete]class Class { }");
+@"[[|Obsolete|]]
+class Class
+{
+}",
+@"[System.Obsolete]
+class Class
+{
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestAttributeExpanded()
         {
             await TestAsync(
-@"[[|ObsoleteAttribute|]]class Class { }",
-@"[System.ObsoleteAttribute]class Class { }");
+@"[[|ObsoleteAttribute|]]
+class Class
+{
+}",
+@"[System.ObsoleteAttribute]
+class Class
+{
+}");
         }
 
         [WorkItem(527360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
@@ -194,7 +502,16 @@ count: 2);
         public async Task TestExtensionMethods()
         {
             await TestMissingAsync(
-@"using System.Collections.Generic; class Foo { void Bar() { var values = new List<int>() { 1, 2, 3 }; values.[|Where|](i => i > 1); } }");
+@"using System.Collections.Generic;
+
+class Foo
+{
+    void Bar()
+    {
+        var values = new List<int>() { 1, 2, 3 };
+        values.[|Where|](i => i > 1);
+    }
+}");
         }
 
         [WorkItem(538018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
@@ -202,48 +519,152 @@ count: 2);
         public async Task TestAfterNew()
         {
             await TestAsync(
-@"class Class { void Foo() { List<int> l; l = new [|List<int>|](); } }",
-@"class Class { void Foo() { List<int> l; l = new System.Collections.Generic.List<int>(); } }");
+@"class Class
+{
+    void Foo()
+    {
+        List<int> l;
+        l = new [|List<int>|]();
+    }
+}",
+@"class Class
+{
+    void Foo()
+    {
+        List<int> l;
+        l = new System.Collections.Generic.List<int>();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestArgumentsInMethodCall()
         {
             await TestAsync(
-@"class Class { void Test() { Console.WriteLine([|DateTime|].Today); } }",
-@"class Class { void Test() { Console.WriteLine(System.DateTime.Today); } }");
+@"class Class
+{
+    void Test()
+    {
+        Console.WriteLine([|DateTime|].Today);
+    }
+}",
+@"class Class
+{
+    void Test()
+    {
+        Console.WriteLine(System.DateTime.Today);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestCallSiteArgs()
         {
             await TestAsync(
-@"class Class { void Test([|DateTime|] dt) { } }",
-@"class Class { void Test(System.DateTime dt) { } }");
+@"class Class
+{
+    void Test([|DateTime|] dt)
+    {
+    }
+}",
+@"class Class
+{
+    void Test(System.DateTime dt)
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestUsePartialClass()
         {
             await TestAsync(
-@"namespace A { public class Class { [|PClass|] c; } } namespace B{ public partial class PClass { } }",
-@"namespace A { public class Class { B.PClass c; } } namespace B{ public partial class PClass { } }");
+@"namespace A
+{
+    public class Class
+    {
+        [|PClass|] c;
+    }
+}
+
+namespace B
+{
+    public partial class PClass
+    {
+    }
+}",
+@"namespace A
+{
+    public class Class
+    {
+        B.PClass c;
+    }
+}
+
+namespace B
+{
+    public partial class PClass
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestGenericClassInNestedNamespace()
         {
             await TestAsync(
-@"namespace A { namespace B { class GenericClass<T> { } } } namespace C { class Class { [|GenericClass<int>|] c; } }",
-@"namespace A { namespace B { class GenericClass<T> { } } } namespace C { class Class { A.B.GenericClass<int> c; } }");
+@"namespace A
+{
+    namespace B
+    {
+        class GenericClass<T>
+        {
+        }
+    }
+}
+
+namespace C
+{
+    class Class
+    {
+        [|GenericClass<int>|] c;
+    }
+}",
+@"namespace A
+{
+    namespace B
+    {
+        class GenericClass<T>
+        {
+        }
+    }
+}
+
+namespace C
+{
+    class Class
+    {
+        A.B.GenericClass<int> c;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestBeforeStaticMethod()
         {
             await TestAsync(
-@"class Class { void Test() { [|Math|].Sqrt(); }",
-@"class Class { void Test() { System.Math.Sqrt(); }");
+@"class Class
+{
+    void Test()
+    {
+        [|Math|].Sqrt();
+    }",
+@"class Class
+{
+    void Test()
+    {
+        System.Math.Sqrt();
+    }");
         }
 
         [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
@@ -251,8 +672,40 @@ count: 2);
         public async Task TestBeforeNamespace()
         {
             await TestAsync(
-@"namespace A { class Class { [|C|].Test t; } } namespace B { namespace C { class Test { } } }",
-@"namespace A { class Class { B.C.Test t; } } namespace B { namespace C { class Test { } } }");
+@"namespace A
+{
+    class Class
+    {
+        [|C|].Test t;
+    }
+}
+
+namespace B
+{
+    namespace C
+    {
+        class Test
+        {
+        }
+    }
+}",
+@"namespace A
+{
+    class Class
+    {
+        B.C.Test t;
+    }
+}
+
+namespace B
+{
+    namespace C
+    {
+        class Test
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -280,8 +733,28 @@ compareTokens: false);
         public async Task TestFullyQualifyTypeName()
         {
             await TestAsync(
-@"public class Program { public class Inner { } } class Test { [|Inner|] i; }",
-@"public class Program { public class Inner { } } class Test { Program.Inner i; }");
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    [|Inner|] i;
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    Program.Inner i;
+}");
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
@@ -289,7 +762,17 @@ compareTokens: false);
         public async Task TestFullyQualifyTypeName_NotForGenericType()
         {
             await TestMissingAsync(
-@"class Program<T> { public class Inner { } } class Test { [|Inner|] i; }");
+@"class Program<T>
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    [|Inner|] i;
+}");
         }
 
         [WorkItem(538764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
@@ -297,8 +780,18 @@ compareTokens: false);
         public async Task TestFullyQualifyThroughAlias()
         {
             await TestAsync(
-@"using Alias = System; class C { [|Int32|] i; }",
-@"using Alias = System; class C { Alias.Int32 i; }");
+@"using Alias = System;
+
+class C
+{
+    [|Int32|] i;
+}",
+@"using Alias = System;
+
+class C
+{
+    Alias.Int32 i;
+}");
         }
 
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
@@ -306,8 +799,34 @@ compareTokens: false);
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
             await TestAsync(
-@"namespace Outer { namespace C { class C { } } } class Test { [|C|] c; }",
-@"namespace Outer { namespace C { class C { } } } class Test { Outer.C.C c; }");
+@"namespace Outer
+{
+    namespace C
+    {
+        class C
+        {
+        }
+    }
+}
+
+class Test
+{
+    [|C|] c;
+}",
+@"namespace Outer
+{
+    namespace C
+    {
+        class C
+        {
+        }
+    }
+}
+
+class Test
+{
+    Outer.C.C c;
+}");
         }
 
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
@@ -315,8 +834,34 @@ compareTokens: false);
         public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
             await TestAsync(
-@"namespace Outer { namespace C { class C { } } } class Test { [|C|] c; }",
-@"namespace Outer { namespace C { class C { } } } class Test { Outer.C c; }",
+@"namespace Outer
+{
+    namespace C
+    {
+        class C
+        {
+        }
+    }
+}
+
+class Test
+{
+    [|C|] c;
+}",
+@"namespace Outer
+{
+    namespace C
+    {
+        class C
+        {
+        }
+    }
+}
+
+class Test
+{
+    Outer.C c;
+}",
 index: 1);
         }
 
@@ -335,7 +880,17 @@ parseOptions: GetScriptOptions());
         public async Task TestAfterAlias()
         {
             await TestMissingAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { System :: [|Console|] :: WriteLine ( ""TEST"" ) ; } } ");
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System::[|Console|] :: WriteLine(""TEST"");
+    }
+}");
         }
 
         [WorkItem(540942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
@@ -343,7 +898,15 @@ parseOptions: GetScriptOptions());
         public async Task TestMissingOnIncompleteStatement()
         {
             await TestMissingAsync(
-@"using System ; using System . IO ; class C { static void Main ( string [ ] args ) { [|Path|] } } ");
+@"using System;
+using System.IO;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        [|Path|] }
+}");
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
@@ -351,8 +914,8 @@ parseOptions: GetScriptOptions());
         public async Task TestAssemblyAttribute()
         {
             await TestAsync(
-@"[ assembly : [|InternalsVisibleTo|] ( ""Project"" ) ] ",
-@"[ assembly : System . Runtime . CompilerServices . InternalsVisibleTo ( ""Project"" ) ] ");
+@"[assembly: [|InternalsVisibleTo|](""Project"")]",
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]");
         }
 
         [WorkItem(543388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
@@ -360,14 +923,35 @@ parseOptions: GetScriptOptions());
         public async Task TestMissingOnAliasName()
         {
             await TestMissingAsync(
-@"using [|GIBBERISH|] = Foo . GIBBERISH ; class Program { static void Main ( string [ ] args ) { GIBBERISH x ; } } namespace Foo { public class GIBBERISH { } } ");
+@"using [|GIBBERISH|] = Foo.GIBBERISH;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        GIBBERISH x;
+    }
+}
+
+namespace Foo
+{
+    public class GIBBERISH
+    {
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestMissingOnAttributeOverloadResolutionError()
         {
             await TestMissingAsync(
-@"using System . Runtime . InteropServices ; class M { [ [|DllImport|] ( ) ] static extern int ? My ( ) ; } ");
+@"using System.Runtime.InteropServices;
+
+class M
+{
+    [[|DllImport|]()]
+    static extern int? My();
+}");
         }
 
         [WorkItem(544950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
@@ -375,7 +959,15 @@ parseOptions: GetScriptOptions());
         public async Task TestNotOnAbstractConstructor()
         {
             await TestMissingAsync(
-@"using System . IO ; class Program { static void Main ( string [ ] args ) { var s = new [|Stream|] ( ) ; } } ");
+@"using System.IO;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s = new [|Stream|]();
+    }
+}");
         }
 
         [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
@@ -387,7 +979,7 @@ parseOptions: GetScriptOptions());
 
             await TestAsync(
 input,
-@"[ assembly : System . Runtime . InteropServices . Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
+@"[assembly: System.Runtime.InteropServices.Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -395,7 +987,17 @@ input,
         public async Task TestGeneratePropertyFromAttribute()
         {
             await TestMissingAsync(
-@"using System ; [ AttributeUsage ( AttributeTargets . Class ) ] class MyAttrAttribute : Attribute { } [ MyAttr ( 123 , [|Version|] = 1 ) ] class D { } ");
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttrAttribute : Attribute
+{
+}
+
+[MyAttr(123, [|Version|] = 1)]
+class D
+{
+}");
         }
 
         [WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
@@ -432,17 +1034,51 @@ class Test
 @"using n1;
 using n2;
 
-class B { void M1() { [|var a = new A();|] }}
+class B
+{
+    void M1()
+    {
+        [|var a = new A();|]
+    }
+}
 
-namespace n1 { class A { }}
-namespace n2 { class A { }}",
+namespace n1
+{
+    class A
+    {
+    }
+}
+
+namespace n2
+{
+    class A
+    {
+    }
+}",
 @"using n1;
 using n2;
 
-class B { void M1() { var a = new n1.A(); }}
+class B
+{
+    void M1()
+    {
+        var a = new n1.A();
+    }
+}
 
-namespace n1 { class A { }}
-namespace n2 { class A { }}");
+namespace n1
+{
+    class A
+    {
+    }
+}
+
+namespace n2
+{
+    class A
+    {
+    }
+}");
         }
 
         [WorkItem(995857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
@@ -450,20 +1086,88 @@ namespace n2 { class A { }}");
         public async Task NonPublicNamespaces()
         {
             await TestAsync(
-@"namespace MS.Internal.Xaml { private class A { } }
-namespace System.Xaml { public class A { } }
-public class Program { static void M() { [|Xaml|] } }",
-@"namespace MS.Internal.Xaml { private class A { } }
-namespace System.Xaml { public class A { } }
-public class Program { static void M() { System.Xaml } }");
+@"namespace MS.Internal.Xaml
+{
+    private class A
+    {
+    }
+}
+
+namespace System.Xaml
+{
+    public class A
+    {
+    }
+}
+
+public class Program
+{
+    static void M()
+    {
+        [|Xaml|] }
+}",
+@"namespace MS.Internal.Xaml
+{
+    private class A
+    {
+    }
+}
+
+namespace System.Xaml
+{
+    public class A
+    {
+    }
+}
+
+public class Program
+{
+    static void M()
+    {
+        System.Xaml }
+}");
 
             await TestAsync(
-@"namespace MS.Internal.Xaml { public class A { } }
-namespace System.Xaml { public class A { } }
-public class Program { static void M() { [|Xaml|] } }",
-@"namespace MS.Internal.Xaml { public class A { } }
-namespace System.Xaml { public class A { } }
-public class Program { static void M() { MS.Internal.Xaml } }");
+@"namespace MS.Internal.Xaml
+{
+    public class A
+    {
+    }
+}
+
+namespace System.Xaml
+{
+    public class A
+    {
+    }
+}
+
+public class Program
+{
+    static void M()
+    {
+        [|Xaml|] }
+}",
+@"namespace MS.Internal.Xaml
+{
+    public class A
+    {
+    }
+}
+
+namespace System.Xaml
+{
+    public class A
+    {
+    }
+}
+
+public class Program
+{
+    static void M()
+    {
+        MS.Internal.Xaml }
+}");
         }
 
         [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
@@ -475,26 +1179,70 @@ public class Program { static void M() { MS.Internal.Xaml } }");
 using n2;
 
 [[|Inner|].C]
-class B { }
+class B
+{
+}
 
-namespace n1 { namespace Inner { } }
-namespace n2 { namespace Inner { class CAttribute { } } }",
+namespace n1
+{
+    namespace Inner
+    {
+    }
+}
+
+namespace n2
+{
+    namespace Inner
+    {
+        class CAttribute
+        {
+        }
+    }
+}",
 @"using n1;
 using n2;
 
 [n2.Inner.C]
-class B { }
+class B
+{
+}
 
-namespace n1 { namespace Inner { } }
-namespace n2 { namespace Inner { class CAttribute { } } }");
+namespace n1
+{
+    namespace Inner
+    {
+    }
+}
+
+namespace n2
+{
+    namespace Inner
+    {
+        class CAttribute
+        {
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleTest()
         {
             await TestAsync(
-@"class Class { ([|IDictionary|], string) Method() { Foo(); } }",
-@"class Class { (System.Collections.IDictionary, string) Method() { Foo(); } }",
+@"class Class
+{
+    ([|IDictionary|], string) Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    (System.Collections.IDictionary, string) Method()
+    {
+        Foo();
+    }
+}",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
@@ -503,8 +1251,20 @@ withScriptOption: true);
         public async Task TupleWithOneName()
         {
             await TestAsync(
-@"class Class { ([|IDictionary|] a, string) Method() { Foo(); } }",
-@"class Class { (System.Collections.IDictionary a, string) Method() { Foo(); } }",
+@"class Class
+{
+    ([|IDictionary|] a, string) Method()
+    {
+        Foo();
+    }
+}",
+@"class Class
+{
+    (System.Collections.IDictionary a, string) Method()
+    {
+        Foo();
+    }
+}",
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }

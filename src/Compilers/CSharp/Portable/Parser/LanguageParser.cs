@@ -5588,12 +5588,14 @@ tryAgain:
                                 // These tokens are from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
-                            case SyntaxKind.AmpersandAmpersandToken:
-                            case SyntaxKind.BarBarToken:
-                            case SyntaxKind.CaretToken:
-                            case SyntaxKind.BarToken:
-                            case SyntaxKind.CloseBraceToken:
-                            case SyntaxKind.EndOfFileToken:
+                            case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
+                            case SyntaxKind.BarBarToken:             // e.g. `e is A<B> || e`
+                            case SyntaxKind.CaretToken:              // e.g. `e is A<B> ^ e`
+                            case SyntaxKind.BarToken:                // e.g. `e is A<B> | e`
+                            case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
+                            case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
+                            case SyntaxKind.CloseBraceToken:         // e.g. `new { X = e is A<B> }`
+                            case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>` in isolation
                                 // These tokens are not from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
