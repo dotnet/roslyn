@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")")).ToTaggedText();
             var separatorParts = GetSeparatorParts().ToTaggedText();
 
-            List<SignatureHelpItem> items = tupleTypes.Select(tupleType => Convert(
+            var items = tupleTypes.Select(tupleType => Convert(
                 tupleType, prefixParts, suffixParts, separatorParts, semanticModel, position))
                 .ToList();
 
