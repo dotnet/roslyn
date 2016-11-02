@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            if (!token.Span.Contains(position))
+            if (!token.Span.IntersectsWith(position))
             {
                 return;
             }
