@@ -2930,7 +2930,7 @@ class C1 {
             Assert.Equal(expectedText, actualParts.ToDisplayString());
             if (expectedKinds.Length > 0)
             {
-                AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"SymbolDisplayPartKind.{p}");
+                AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"                SymbolDisplayPartKind.{p}");
             }
         }
 
@@ -4674,6 +4674,41 @@ class C
                 SymbolDisplayPartKind.PropertyName);
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleFullyQualified()
+        {
+            var text =
+@"using N;
+namespace N
+{
+    class A
+    {
+        internal class B { }
+    }
+    class C<T>
+    {
+    }
+}
+class C
+{
+#pragma warning disable CS0169
+   (int One, C<(object[], A.B Two)>, int, object Four, int, object, int, object, A Nine) f;
+#pragma warning restore CS0169
+}";
+            var format = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var comp = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef });
+            comp.VerifyDiagnostics();
+            var symbol = comp.GetMember("C.f");
+            Verify(
+                SymbolDisplay.ToDisplayParts(symbol, format),
+                "(int One, global::N.C<(object[], global::N.A.B Two)>, int, object Four, int, object, int, object, global::N.A Nine) f");
+        }
+
         /// <summary>
         /// This is a type symbol that claims to be a tuple symbol, but is not TupleTypeSymbol. Yet, it can still be displayed.
         /// </summary>
@@ -5179,7 +5214,7 @@ class C
         }
 
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        public void DisplayFakeTupleTypeSymbol()
+        public void NonTupleTypeSymbol()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
