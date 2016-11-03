@@ -78,6 +78,34 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestComplexIndexAccess1()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        a.b.c = [||]new List<int>();
+        a.b.c[1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        a.b.c = new List<int>
+        {
+            [1] = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestIndexAccess2()
         {
             await TestAsync(
