@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // allocations around acquiring the task for it.  Note: once ValueTask is available
             // (and enabled in the language), we'd likely want to use it here. (Presuming 
             // the lock is not being held most of the time).
-            SymbolTreeInfo info;
-            if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
+            Task<SymbolTreeInfo> infoTask;
+            if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
             {
-                return Task.FromResult(info);
+                return infoTask;
             }
 
             return TryGetInfoForMetadataReferenceSlowAsync(
@@ -108,20 +108,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SymbolTreeInfo info;
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
+                Task<SymbolTreeInfo> infoTask;
+                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
                 {
-                    return info;
+                    return await infoTask.ConfigureAwait(false);
                 }
 
-                info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
+                var info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
                     solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
                 }
 
-                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
+                // Cache the result in our dictionary.  Store it as a completed task so that 
+                // future callers don't need to allocate to get the result back.
+                infoTask = Task.FromResult(info);
+                s_metadataIdToInfo.Add(metadata.Id, infoTask);
+
+                return info;
             }
         }
 
