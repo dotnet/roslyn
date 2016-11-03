@@ -305,13 +305,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestValueInEvent()
         {
             await TestInClassAsync(
-@"event int Bar {
-   add {
-     this.value = value;
-   }
-   remove {
-     this.value = value;
-   }
+@"event int Bar
+{
+    add
+    {
+        this.value = value;
+    }
+
+    remove
+    {
+        this.value = value;
+    }
 }",
 
                 Keyword("event"),
@@ -344,13 +348,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestValueInProperty()
         {
             await TestInClassAsync(
-@"int Foo {
-   get {
-     this.value = value;
-   }
-   set {
-     this.value = value;
-   }
+@"int Foo
+{
+    get
+    {
+        this.value = value;
+    }
+
+    set
+    {
+        this.value = value;
+    }
 }",
                 Keyword("int"),
                 Identifier("Foo"),
@@ -380,7 +388,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ValueFieldInSetterAccessedThroughThis()
         {
-            await TestInClassAsync(@"int P { set { this.value = value; } }",
+            await TestInClassAsync(
+@"int P
+{
+    set
+    {
+        this.value = value;
+    }
+}",
                 Keyword("int"),
                 Identifier("P"),
                 Punctuation.OpenCurly,
@@ -399,7 +414,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task NewOfInterface()
         {
-            await TestInMethodAsync(@"object o = new System.IDisposable();",
+            await TestInMethodAsync(
+@"object o = new System.IDisposable();",
                 Keyword("object"),
                 Identifier("o"),
                 Operators.Equals,

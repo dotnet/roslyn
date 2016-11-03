@@ -312,7 +312,15 @@ namespace N
         public async Task TestExistingUsing()
         {
             await TestActionCountAsync(
-@"using System.Collections.Generic; class Class { [|IDictionary|] Method() { Foo(); } }",
+@"using System.Collections.Generic;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Foo();
+    }
+}",
 count: 1);
 
             await TestAsync(
@@ -2274,7 +2282,7 @@ class X
 {
     void M(P p)
     {
-        [| Console |]
+        [|Console|]
     }
 
     static void Main(string[] args)
@@ -4017,8 +4025,7 @@ namespace N
             await TestAsync(
 @"class A
 {
-    System.Action a = () =>
-    {
+    System.Action a = () => {
     try
     {
     }
@@ -4027,8 +4034,7 @@ namespace N
 
 class A
 {
-    System.Action a = () =>
-    {
+    System.Action a = () => {
     try
     {
     }
@@ -4155,8 +4161,7 @@ class Test
 {
     void Foo()
     {
-        Action a = () =>
-        {
+        Action a = () => {
             [|IBindCtx|] };
         string a;
     }
@@ -4168,8 +4173,7 @@ class Test
 {
     void Foo()
     {
-        Action a = () =>
-        {
+        Action a = () => {
             IBindCtx };
         string a;
     }
@@ -4401,8 +4405,7 @@ class C
 {
     C()
     {
-        """".Select(() =>
-        {
+        """".Select(() => {
         new [|Byte|]",
 @"using System;
 using System.Linq;
@@ -4411,8 +4414,7 @@ class C
 {
     C()
     {
-        """".Select(() =>
-        {
+        """".Select(() => {
         new Byte");
             }
 
@@ -4427,8 +4429,7 @@ class C
 {
     C()
     {
-        """".Select(() =>
-        {
+        """".Select(() => {
             new [|Byte|]() }",
 @"using System;
 using System.Linq;
@@ -4437,8 +4438,7 @@ class C
 {
     C()
     {
-        """".Select(() =>
-        {
+        """".Select(() => {
             new Byte() }");
             }
 

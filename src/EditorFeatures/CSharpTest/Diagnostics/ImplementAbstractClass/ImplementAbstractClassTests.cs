@@ -51,8 +51,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         public async Task TestSimpleMethods()
         {
             await TestAllOptionsOffAsync(
-@"abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class [|Program|] : Foo { static void Main ( string [ ] args ) { } } ",
-@"using System ; abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class Program : Foo { static void Main ( string [ ] args ) { } public override void Blah ( ) { throw new NotImplementedException ( ) ; } protected override string FooMethod ( ) { throw new NotImplementedException ( ) ; } } ");
+@"abstract class Foo
+{
+    protected abstract string FooMethod();
+    public abstract void Blah();
+}
+
+abstract class Bar : Foo
+{
+    public abstract bool BarMethod();
+
+    public override void Blah()
+    {
+    }
+}
+
+class [|Program|] : Foo
+{
+    static void Main(string[] args)
+    {
+    }
+}",
+@"using System;
+
+abstract class Foo
+{
+    protected abstract string FooMethod();
+    public abstract void Blah();
+}
+
+abstract class Bar : Foo
+{
+    public abstract bool BarMethod();
+
+    public override void Blah()
+    {
+    }
+}
+
+class Program : Foo
+{
+    static void Main(string[] args)
+    {
+    }
+
+    public override void Blah()
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override string FooMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(543234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
@@ -74,96 +126,344 @@ struct [|Program|] : Foo
         public async Task TestOptionalIntParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( int x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( int x = 3 ) ; } class b : d { public override void foo ( int x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(int x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(int x = 3);
+}
+
+class b : d
+{
+    public override void foo(int x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalCharParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( char x = 'a' ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( char x = 'a' ) ; } class b : d { public override void foo ( char x = 'a' ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(char x = 'a');
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(char x = 'a');
+}
+
+class b : d
+{
+    public override void foo(char x = 'a')
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStringParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( string x = ""x"" ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( string x = ""x"" ) ; } class b : d { public override void foo ( string x = ""x"" ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(string x = ""x"");
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(string x = ""x"");
+}
+
+class b : d
+{
+    public override void foo(string x = ""x"")
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalShortParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( short x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( short x = 3 ) ; } class b : d { public override void foo ( short x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(short x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(short x = 3);
+}
+
+class b : d
+{
+    public override void foo(short x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDecimalParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( decimal x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( decimal x = 3 ) ; } class b : d { public override void foo ( decimal x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(decimal x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(decimal x = 3);
+}
+
+class b : d
+{
+    public override void foo(decimal x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalDoubleParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( double x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( double x = 3 ) ; } class b : d { public override void foo ( double x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(double x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(double x = 3);
+}
+
+class b : d
+{
+    public override void foo(double x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalLongParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( long x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( long x = 3 ) ; } class b : d { public override void foo ( long x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(long x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(long x = 3);
+}
+
+class b : d
+{
+    public override void foo(long x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalFloatParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( float x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( float x = 3 ) ; } class b : d { public override void foo ( float x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(float x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(float x = 3);
+}
+
+class b : d
+{
+    public override void foo(float x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUshortParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( ushort x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( ushort x = 3 ) ; } class b : d { public override void foo ( ushort x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(ushort x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(ushort x = 3);
+}
+
+class b : d
+{
+    public override void foo(ushort x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUintParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( uint x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( uint x = 3 ) ; } class b : d { public override void foo ( uint x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(uint x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(uint x = 3);
+}
+
+class b : d
+{
+    public override void foo(uint x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalUlongParameter()
         {
             await TestAllOptionsOffAsync(
-                @"abstract class d { public abstract void foo ( ulong x = 3 ) ; } class [|b|] : d { }",
-                @"using System ; abstract class d { public abstract void foo ( ulong x = 3 ) ; } class b : d { public override void foo ( ulong x = 3 ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void foo(ulong x = 3);
+}
+
+class [|b|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void foo(ulong x = 3);
+}
+
+class b : d
+{
+    public override void foo(ulong x = 3)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalStructParameter()
         {
             await TestAllOptionsOffAsync(
-                @"struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class [|c|] : d { }",
-                @"using System ; struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class c : d { public override void foo ( b x = default ( b ) ) { throw new NotImplementedException ( ) ; } }");
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void foo(b x = new b());
+}
+
+class [|c|] : d
+{
+}",
+@"using System;
+
+struct b
+{
+}
+
+abstract class d
+{
+    public abstract void foo(b x = new b());
+}
+
+class c : d
+{
+    public override void foo(b x = default(b))
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
@@ -171,8 +471,36 @@ struct [|Program|] : Foo
         public async Task TestOptionalNullableStructParameter()
         {
             await TestAllOptionsOffAsync(
-@"struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class [|c|] : d { }",
-@"using System ; struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class c : d { public override void m ( b? x = default(b?), b? y = default(b?) ) { throw new NotImplementedException ( ) ; } }");
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void m(b? x = null, b? y = default(b?));
+}
+
+class [|c|] : d
+{
+}",
+@"using System;
+
+struct b
+{
+}
+
+abstract class d
+{
+    public abstract void m(b? x = null, b? y = default(b?));
+}
+
+class c : d
+{
+    public override void m(b? x = default(b?), b? y = default(b?))
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
@@ -180,16 +508,64 @@ struct [|Program|] : Foo
         public async Task TestOptionalNullableIntParameter()
         {
             await TestAllOptionsOffAsync(
-@"abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class [|c|] : d { }",
-@"using System ; abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class c : d { public override void m ( int? x = 5, int? y = default(int?) ) { throw new NotImplementedException ( ) ; } }");
+@"abstract class d
+{
+    public abstract void m(int? x = 5, int? y = default(int?));
+}
+
+class [|c|] : d
+{
+}",
+@"using System;
+
+abstract class d
+{
+    public abstract void m(int? x = 5, int? y = default(int?));
+}
+
+class c : d
+{
+    public override void m(int? x = 5, int? y = default(int?))
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestOptionalObjectParameter()
         {
             await TestAllOptionsOffAsync(
-                @"class b { } abstract class d { public abstract void foo ( b x = null ) ; } class [|c|] : d { }",
-                @"using System ; class b { } abstract class d { public abstract void foo ( b x = null ) ; } class c : d { public override void foo ( b x = null ) { throw new NotImplementedException ( ) ; } }");
+@"class b
+{
+}
+
+abstract class d
+{
+    public abstract void foo(b x = null);
+}
+
+class [|c|] : d
+{
+}",
+@"using System;
+
+class b
+{
+}
+
+abstract class d
+{
+    public abstract void foo(b x = null);
+}
+
+class c : d
+{
+    public override void foo(b x = null)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(543883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543883")]
@@ -197,24 +573,119 @@ struct [|Program|] : Foo
         public async Task TestDifferentAccessorAccessibility()
         {
             await TestAllOptionsOffAsync(
-@"abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class [|c2|] : c1 { } ",
-@"using System ; abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class c2 : c1 { public override c1 this [ c1 x ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
+@"abstract class c1
+{
+    public abstract c1 this[c1 x] { get; internal set; }
+}
+
+class [|c2|] : c1
+{
+}",
+@"using System;
+
+abstract class c1
+{
+    public abstract c1 this[c1 x] { get; internal set; }
+}
+
+class c2 : c1
+{
+    public override c1 this[c1 x]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        internal set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestEvent1()
         {
             await TestAllOptionsOffAsync(
-@"using System ; abstract class C { public abstract event Action E ; } class [|D|] : C { } ",
-@"using System ; abstract class C { public abstract event Action E ; } class D : C { public override event Action E ; } ");
+@"using System;
+
+abstract class C
+{
+    public abstract event Action E;
+}
+
+class [|D|] : C
+{
+}",
+@"using System;
+
+abstract class C
+{
+    public abstract event Action E;
+}
+
+class D : C
+{
+    public override event Action E;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestIndexer1()
         {
             await TestAllOptionsOffAsync(
-@"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class [|D|] : C { } ",
-@"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class D : C { public override int this [ string s ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
+@"using System;
+
+abstract class C
+{
+    public abstract int this[string s]
+    {
+        get
+        {
+        }
+
+        internal set
+        {
+        }
+    }
+}
+
+class [|D|] : C
+{
+}",
+@"using System;
+
+abstract class C
+{
+    public abstract int this[string s]
+    {
+        get
+        {
+        }
+
+        internal set
+        {
+        }
+    }
+}
+
+class D : C
+{
+    public override int this[string s]
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+
+        internal set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -316,8 +787,55 @@ compareTokens: false);
         public async Task TestOnlyGenerateUnimplementedAccessors()
         {
             await TestAllOptionsOffAsync(
-@"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class [|C|] : B { } ",
-@"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class C : B { public override int X { set { throw new NotImplementedException ( ) ; } } } ");
+@"using System;
+
+abstract class A
+{
+    public abstract int X { get; set; }
+}
+
+abstract class B : A
+{
+    public override int X
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+
+class [|C|] : B
+{
+}",
+@"using System;
+
+abstract class A
+{
+    public abstract int X { get; set; }
+}
+
+abstract class B : A
+{
+    public override int X
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+
+class C : B
+{
+    public override int X
+    {
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+}");
         }
 
         [WorkItem(545615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
@@ -325,8 +843,42 @@ compareTokens: false);
         public async Task TestParamsArray()
         {
             await TestAllOptionsOffAsync(
-@"class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class [|C|] : B { } ",
-@"using System ; class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class C : B { public override void Foo ( int x , params int [ ] y ) { throw new NotImplementedException ( ) ; } } ");
+@"class A
+{
+    public virtual void Foo(int x, params int[] y)
+    {
+    }
+}
+
+abstract class B : A
+{
+    public abstract override void Foo(int x, int[] y = null);
+}
+
+class [|C|] : B
+{
+}",
+@"using System;
+
+class A
+{
+    public virtual void Foo(int x, params int[] y)
+    {
+    }
+}
+
+abstract class B : A
+{
+    public abstract override void Foo(int x, int[] y = null);
+}
+
+class C : B
+{
+    public override void Foo(int x, params int[] y)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(545636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
@@ -334,8 +886,28 @@ compareTokens: false);
         public async Task TestNullPointerType()
         {
             await TestAllOptionsOffAsync(
-@"abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class [|D|] : C { } ",
-@"using System ; abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class D : C { public override unsafe void Foo ( int * x = null ) { throw new NotImplementedException ( ) ; } } ");
+@"abstract class C
+{
+    unsafe public abstract void Foo(int* x = null);
+}
+
+class [|D|] : C
+{
+}",
+@"using System;
+
+abstract class C
+{
+    unsafe public abstract void Foo(int* x = null);
+}
+
+class D : C
+{
+    public override unsafe void Foo(int* x = null)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(545637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545637")]
@@ -343,8 +915,32 @@ compareTokens: false);
         public async Task TestErrorTypeCalledVar()
         {
             await TestAllOptionsOffAsync(
-@"extern alias var ; abstract class C { public abstract void Foo ( var :: X x ) ; } class [|D|] : C { } ",
-@"extern alias var ; using System ; abstract class C { public abstract void Foo ( var :: X x ) ; } class D : C { public override void Foo ( X x ) { throw new NotImplementedException ( ) ; } } ");
+@"extern alias var;
+
+abstract class C
+{
+    public abstract void Foo(var::X x);
+}
+
+class [|D|] : C
+{
+}",
+@"extern alias var;
+
+using System;
+
+abstract class C
+{
+    public abstract void Foo(var::X x);
+}
+
+class D : C
+{
+    public override void Foo(X x)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -355,17 +951,20 @@ compareTokens: false);
 @"abstract class A<T>
 {
     public abstract void M(T x);
+
     abstract class B : A<B>
     {
-        class [|T|] : A<T> { }
+        class [|T|] : A<T>
+        {
+        }
     }
-}
-",
+}",
 @"using System;
 
 abstract class A<T>
 {
     public abstract void M(T x);
+
     abstract class B : A<B>
     {
         class T : A<T>
@@ -376,8 +975,7 @@ abstract class A<T>
             }
         }
     }
-}
-");
+}");
         }
 
         [WorkItem(625442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625442")]
@@ -418,8 +1016,85 @@ abstract class A<T>
         public async Task ImplementClassWithInaccessibleMembers()
         {
             await TestAllOptionsOffAsync(
-@"using System ; using System . Globalization ; public class [|x|] : EastAsianLunisolarCalendar { } ",
-@"using System ; using System . Globalization ; public class x : EastAsianLunisolarCalendar { public override int [ ] Eras { get { throw new NotImplementedException ( ) ; } } internal override EraInfo [ ] CalEraInfo { get { throw new NotImplementedException ( ) ; } } internal override int MaxCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MaxDate { get { throw new NotImplementedException ( ) ; } } internal override int MinCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MinDate { get { throw new NotImplementedException ( ) ; } } public override int GetEra ( DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetGregorianYear ( int year , int era ) { throw new NotImplementedException ( ) ; } internal override int GetYear ( int year , DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetYearInfo ( int LunarYear , int Index ) { throw new NotImplementedException ( ) ; } } ");
+@"using System;
+using System.Globalization;
+
+public class [|x|] : EastAsianLunisolarCalendar
+{
+}",
+@"using System;
+using System.Globalization;
+
+public class x : EastAsianLunisolarCalendar
+{
+    public override int[] Eras
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override EraInfo[] CalEraInfo
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override int MaxCalendarYear
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override DateTime MaxDate
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override int MinCalendarYear
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override DateTime MinDate
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public override int GetEra(DateTime time)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal override int GetGregorianYear(int year, int era)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal override int GetYear(int year, DateTime time)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal override int GetYearInfo(int LunarYear, int Index)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         [WorkItem(13149, "https://github.com/dotnet/roslyn/issues/13149")]
@@ -427,28 +1102,38 @@ abstract class A<T>
         public async Task TestPartialClass1()
         {
             await TestAllOptionsOffAsync(
-@"
-using System;
+@"using System;
 
-public abstract class Base { public abstract void Dispose(); }
+public abstract class Base
+{
+    public abstract void Dispose();
+}
 
-partial class [|A|] : Base { }
+partial class [|A|] : Base
+{
+}
 
-partial class A { }
-",
-@"
-using System;
+partial class A
+{
+}",
+@"using System;
 
-public abstract class Base { public abstract void Dispose(); }
+public abstract class Base
+{
+    public abstract void Dispose();
+}
 
-partial class A : Base {
-    public override void Dispose() { 
+partial class A : Base
+{
+    public override void Dispose()
+    {
         throw new NotImplementedException();
     }
 }
 
-partial class A { }
-");
+partial class A
+{
+}");
         }
 
         [WorkItem(13149, "https://github.com/dotnet/roslyn/issues/13149")]
@@ -456,28 +1141,38 @@ partial class A { }
         public async Task TestPartialClass2()
         {
             await TestAllOptionsOffAsync(
-@"
-using System;
+@"using System;
 
-public abstract class Base { public abstract void Dispose(); }
+public abstract class Base
+{
+    public abstract void Dispose();
+}
 
-partial class [|A|] { }
+partial class [|A|]
+{
+}
 
-partial class A : Base { }
-",
-@"
-using System;
+partial class A : Base
+{
+}",
+@"using System;
 
-public abstract class Base { public abstract void Dispose(); }
+public abstract class Base
+{
+    public abstract void Dispose();
+}
 
-partial class A {
-    public override void Dispose() { 
+partial class A
+{
+    public override void Dispose()
+    {
         throw new NotImplementedException();
     }
 }
 
-partial class A : Base { }
-");
+partial class A : Base
+{
+}");
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]

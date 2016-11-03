@@ -172,7 +172,18 @@ index: 1);
         public async Task TestSmartTagDisplayText1()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 string.Format(FeaturesResources.Add_parameters_to_0_1, "Program", "bool"),
 index: 0);
         }
@@ -181,7 +192,18 @@ index: 0);
         public async Task TestSmartTagDisplayText2()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 string.Format(FeaturesResources.Add_optional_parameters_to_0_1, "Program", "bool"),
 index: 1);
         }

@@ -455,8 +455,7 @@ class Program
 {
     private async void method()
     {
-        string content = await Task<String>.Run(delegate ()
-        {
+        string content = await Task<String>.Run(delegate () {
             [|await Task.Delay(1000)|];
             return ""Test"";
         });
@@ -469,8 +468,7 @@ class Program
 {
     private async void method()
     {
-        string content = await Task<String>.Run(async delegate ()
-        {
+        string content = await Task<String>.Run(async delegate () {
             await Task.Delay(1000);
             return ""Test"";
         });
@@ -489,8 +487,7 @@ class Program
 {
     private void method()
     {
-        string content = await Task<String>.Run(delegate ()
-        {
+        string content = await Task<String>.Run(delegate () {
             [|await Task.Delay(1000)|];
             return ""Test"";
         });
@@ -503,8 +500,7 @@ class Program
 {
     private void method()
     {
-        string content = await Task<String>.Run(async delegate ()
-        {
+        string content = await Task<String>.Run(async delegate () {
             await Task.Delay(1000);
             return ""Test"";
         });
@@ -523,8 +519,7 @@ class Program
 {
     private void method()
     {
-        string content = await Task<String>.Run(delegate ()
-        {
+        string content = await Task<String>.Run(delegate () {
             [|await Task.Delay(1000)|];
             return ""Test"";
         });
@@ -537,8 +532,7 @@ class Program
 {
     private void method()
     {
-        string content = await Task<String>.Run(async delegate ()
-        {
+        string content = await Task<String>.Run(async delegate () {
             await Task.Delay(1000);
             return ""Test"";
         });

@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var conditionPartToCheck = conditionRightIsNull ? conditionLeftHigh : conditionRightHigh;
-            var whenPartToKeep = isEquals ? whenTrueNodeHigh : whenFalseNodeHigh;
+            var whenPartToCheck = isEquals ? whenTrueNodeHigh : whenFalseNodeHigh;
             var locations = ImmutableArray.Create(
                 conditionalExpression.GetLocation(),
                 conditionPartToCheck.GetLocation(),
-                whenPartToKeep.GetLocation());
+                whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
                 this.CreateDescriptor(this.DescriptorId, option.Notification.Value),
