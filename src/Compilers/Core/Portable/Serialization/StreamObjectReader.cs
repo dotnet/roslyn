@@ -1037,7 +1037,8 @@ namespace Roslyn.Utilities
         private static void Reverse(List<Variant> memberList, int index, int length)
         {
             // Note: we do not call List<T>.Reverse as that causes boxing of elements when
-            // T is a struct type.
+            // T is a struct type:
+            // https://github.com/dotnet/coreclr/issues/7986
             int i = index;
             int j = index + length - 1;
             while (i < j)
