@@ -17,8 +17,7 @@
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
+    <Compile Include="Diagnostics\SuppressMessageAttributeCompilerTests.cs" />
     <Compile Include="EmbeddedTextTests.cs" />
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />

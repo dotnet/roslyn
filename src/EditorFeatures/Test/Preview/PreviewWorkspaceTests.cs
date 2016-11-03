@@ -170,11 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // wait 20 seconds
                 taskSource.Task.Wait(20000);
-                if (!taskSource.Task.IsCompleted)
-                {
-                    // something is wrong
-                    FatalError.Report(new System.Exception("not finished after 20 seconds"));
-                }
+                Assert.True(taskSource.Task.IsCompleted);
 
                 var args = taskSource.Task.Result;
                 Assert.True(args.Diagnostics.Length > 0);

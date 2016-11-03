@@ -131,10 +131,7 @@ namespace BuildBoss
 
             var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
-
-            // Disabling this check until we have time to discuss the team implications.
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
             return allGood;

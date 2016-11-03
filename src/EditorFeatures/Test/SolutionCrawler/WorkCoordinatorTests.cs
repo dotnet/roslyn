@@ -825,7 +825,7 @@ End Class";
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using (var workspace = await TestWorkspace.CreateAsync(
-                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code))
+                SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: CreateExportProvider()))
             {
                 SetOptions(workspace);
 
@@ -902,6 +902,15 @@ End Class";
 
             var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
             await solutionCrawlerWaiter.CreateWaitTask();
+        }
+
+        private static ExportProvider CreateExportProvider()
+        {
+            var assemblies = TestExportProvider
+                .GetCSharpAndVisualBasicAssemblies()
+                .Concat(new[] { typeof(WorkCoordinatorWorkspace).Assembly });
+            var catalog = MinimalTestExportProvider.CreateAssemblyCatalog(assemblies, MinimalTestExportProvider.CreateResolver());
+            return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
         private static SolutionInfo GetInitialSolutionInfoWithP2P()
@@ -1006,7 +1015,7 @@ End Class";
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), workspaceKind, disablePartialSolutions)
+                : base(CreateExportProvider(), workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
                 _solutionCrawlerWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;

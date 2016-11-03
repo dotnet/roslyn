@@ -41,6 +41,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\LocalCouldBeConstAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\OperationTestAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\OptionsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\SuppressMessageAttributeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TestDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TrackingDiagnosticAnalyzer.cs" />

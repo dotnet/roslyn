@@ -15,10 +15,6 @@
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj">
-      <Project>{a4c99b85-765c-4c65-9c2a-bb609aab09e6}</Project>
-      <Name>CodeAnalysisTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
