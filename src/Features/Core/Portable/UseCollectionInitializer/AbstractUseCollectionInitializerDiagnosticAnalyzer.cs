@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             out SyntaxNode instance)
         {
             instance = null;
-            if (!_syntaxFacts.SupportsIndexingInitializer)
+            if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
             {
                 return false;
             }

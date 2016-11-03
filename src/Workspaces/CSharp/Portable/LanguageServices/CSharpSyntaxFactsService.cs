@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsCaseSensitive => true;
 
-        public bool SupportsIndexingInitializer => true;
+        public bool SupportsIndexingInitializer(ParseOptions options) 
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
         public bool IsAwaitKeyword(SyntaxToken token)
         {
