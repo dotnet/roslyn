@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             SemanticModel semanticModel, SyntaxNode root, 
             Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
+            predicate = predicate ?? Functions<SyntaxNode>.True;
             var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
             if (!diagnostics.Any())
             {
