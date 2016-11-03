@@ -118,37 +118,6 @@
     <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
     <Compile Include="Host\TestHost.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_AssemblyInfo.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpClass.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpClass_WithConditionalAttributes.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpConsole.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpExternAlias.cs" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadHintPath.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_DuplicateFile.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ExternAlias.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ForEmittedOutput.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ProjectReference.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithoutPrefer32Bit.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithPrefer32Bit.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithXaml.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_MainWindow.xaml">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TestFiles\CSharpProject_MainWindow.xaml.cs" />
-    <EmbeddedResource Include="TestFiles\OtherStuff_Foo.cs" />
-    <EmbeddedResource Include="TestFiles\TestLoad_SolutionFileWithEmptyLineBetweenProjectBlock.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_EmptyLines.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharpProjectReference.sln" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Resources.resx_" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicClass_WithConditionalAttributes.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_3_5.vbproj" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_Embed.vbproj" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_WithoutPrefer32Bit.vbproj" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -162,125 +131,14 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject.dll" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject.csproj">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AllOptions.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidLibrary1.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidLibrary2.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidLibrary3.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidLibrary4.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidReferenceTest.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidsBecomeCircularReferential.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_DuplicatedGuidsBecomeSelfReferential.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_WithLink.csproj" />
-    <EmbeddedResource Include="TestFiles\key.snk" />
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_DuplicatedGuids.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_DuplicatedGuidsBecomeCircularReferential.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_DuplicatedGuidsBecomeSelfReferential.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_MissingEndProject1.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_MissingEndProject2.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_MissingEndProject3.sln" />
-    <EmbeddedResource Include="TestFiles\TestSolution_VB_and_CSharp.sln" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Application.Designer.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Application.myapp" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_AssemblyInfo.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Resources.Designer.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.Designer.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.settings" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicClass.vb" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_AnalyzerReference.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AnalyzerReference.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_AnalyzerReference.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Host\Utilities\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_InvalidProjectPath.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_NonExistentProject.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath2.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuid.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuidAndUnknownExtension.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectExtension.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_InvalidProjectReference.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_NonExistentProjectReference.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\Encoding.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\EmptyLibrary.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_SolutionFolder.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Circular_Target.vbproj" />
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_Circular_Top.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithoutCSharpTargetsImported.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadLink.csproj">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ExternAlias2.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject1.csproj" />
-    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject2.csproj" />
-    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularSolution.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_ReferencesPortableProject.csproj">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_PortableProject.csproj">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
   <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />

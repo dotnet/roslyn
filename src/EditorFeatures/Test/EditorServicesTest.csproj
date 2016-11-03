@@ -214,6 +214,7 @@
     <Compile Include="TextEditor\TryGetDocumentTests.cs" />
     <Compile Include="Threading\AsynchronousWorkerTests.cs" />
     <Compile Include="Threading\ForegroundNotificationServiceTests.cs" />
+    <Compile Include="Utilities\EditorServicesUtil.cs" />
     <Compile Include="Utilities\AsynchronousOperationListenerTests.cs" />
     <Compile Include="Utilities\AsyncLazyTests.cs" />
     <Compile Include="Utilities\BloomFilterTests.cs" />
