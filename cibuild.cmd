@@ -45,8 +45,6 @@ if not "%BuildTimeLimit%" == "" (
     set RunProcessWatchdog=false
 )
 
-call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
-
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
 REM Output the commit that we're building, for reference in Jenkins logs
@@ -55,6 +53,7 @@ git show --no-patch --pretty=raw HEAD
 
 REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries
