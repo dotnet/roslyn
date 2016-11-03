@@ -123,7 +123,7 @@ namespace Root
             var source =
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     [|System.Exception|] c;
 }";
@@ -549,9 +549,9 @@ namespace Root
             var source =
 @"using System;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
