@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan1()
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;
+            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 5);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void ConvertToSnapshotSpan2()
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;
+            var snapshot = EditorFactory.CreateBuffer(EditorServicesUtil.ExportProvider, new string('a', 10)).CurrentSnapshot;
             var textSpan = new TextSpan(0, 10);
             var ss = textSpan.ToSnapshotSpan(snapshot);
             Assert.Same(snapshot, ss.Snapshot);
