@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            ImmutableArray<Match<TExpressionStatementSyntax>> matches,
+            ImmutableArray<TExpressionStatementSyntax> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
@@ -121,35 +121,28 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             foreach (var match in matches)
             {
+                var expression = syntaxFacts.GetExpressionOfExpressionStatement(match);
 
-                var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                    match.ExpressionStatement.SpanStart, match.Arguments[0].SpanStart));
+                if (syntaxFacts.IsInvocationExpression(expression))
+                {
+                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
+                    var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
+                        match.SpanStart, arguments[0].SpanStart));
 
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
 
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    Location.Create(syntaxTree, TextSpan.FromBounds(
-                        match.Arguments.Last().FullSpan.End,
-                        match.ExpressionStatement.Span.End)),
-                    additionalLocations: locations));
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        UnnecessaryWithoutSuggestionDescriptor,
+                        Location.Create(syntaxTree, TextSpan.FromBounds(
+                            arguments.Last().FullSpan.End,
+                            match.Span.End)),
+                        additionalLocations: locations));
+                }
             }
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-    }
-
-    internal struct Match<TExpressionStatementSyntax>
-    {
-        public readonly TExpressionStatementSyntax ExpressionStatement;
-        public readonly SeparatedSyntaxList<SyntaxNode> Arguments;
-
-        public Match(TExpressionStatementSyntax expressionStatement, SeparatedSyntaxList<SyntaxNode> arguments)
-        {
-            ExpressionStatement = expressionStatement;
-            Arguments = arguments;
-        }
     }
 
     internal struct Analyzer<
@@ -182,32 +175,32 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _objectCreationExpression = objectCreationExpression;
         }
 
-        internal ImmutableArray<Match<TExpressionStatementSyntax>> Analyze()
+        internal ImmutableArray<TExpressionStatementSyntax> Analyze()
         {
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
-                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
-                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
             if (!TryInitializeVariableDeclarationCase() &&
                 !TryInitializeAssignmentCase())
             {
-                return ImmutableArray<Match<TExpressionStatementSyntax>>.Empty;
+                return ImmutableArray<TExpressionStatementSyntax>.Empty;
             }
 
-            var matches = ArrayBuilder<Match<TExpressionStatementSyntax>>.GetInstance();
+            var matches = ArrayBuilder<TExpressionStatementSyntax>.GetInstance();
             AddMatches(matches);
             return matches.ToImmutableAndFree(); ;
         }
 
-        private void AddMatches(ArrayBuilder<Match<TExpressionStatementSyntax>> matches)
+        private void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
         {
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
@@ -235,47 +228,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return;
                 }
 
-                var invocationExpression = _syntaxFacts.GetExpressionOfExpressionStatement(statement) as TInvocationExpressionSyntax;
-                if (invocationExpression == null)
+                SyntaxNode instance;
+                if (!TryAnalyzeAddInvocation(statement, out instance))
                 {
                     return;
-                }
-
-                var arguments = _syntaxFacts.GetArgumentsForInvocationExpression(invocationExpression);
-                if (arguments.Count < 1)
-                {
-                    return;
-                }
-
-                foreach (var argument in arguments)
-                {
-                    if (!_syntaxFacts.IsSimpleArgument(argument))
-                    {
-                        return;
-                    }
-                }
-
-                var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
-                if (memberAccess == null)
-                {
-                    return;
-                }
-
-                if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
-                {
-                    return;
-                }
-
-                SyntaxNode instance, memberName;
-                _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out instance, out memberName);
-
-                string name;
-                int arity;
-                _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out name, out arity);
-
-                if (arity != 0 || !name.Equals(nameof(IList.Add)))
-                {
-                    break;
                 }
 
                 if (!ValuePatternMatches((TExpressionSyntax)instance))
@@ -283,8 +239,59 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     break;
                 }
 
-                matches.Add(new Match<TExpressionStatementSyntax>(statement, arguments));
+                matches.Add(statement);
             }
+        }
+
+        private bool TryAnalyzeAddInvocation(
+            TExpressionStatementSyntax statement,
+            out SyntaxNode instance)
+        {
+            instance = null;
+            var invocationExpression = _syntaxFacts.GetExpressionOfExpressionStatement(statement) as TInvocationExpressionSyntax;
+            if (invocationExpression == null)
+            {
+                return false;
+            }
+
+            var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+            if (arguments.Count < 1)
+            {
+                return false;
+            }
+
+            foreach (var argument in arguments)
+            {
+                if (!_syntaxFacts.IsSimpleArgument(argument))
+                {
+                    return false;
+                }
+            }
+
+            var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
+            if (memberAccess == null)
+            {
+                return false;
+            }
+
+            if (!_syntaxFacts.IsSimpleMemberAccessExpression(memberAccess))
+            {
+                return false;
+            }
+
+            SyntaxNode memberName;
+            _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out instance, out memberName);
+
+            string name;
+            int arity;
+            _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out name, out arity);
+
+            if (arity != 0 || !name.Equals(nameof(IList.Add)))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool ValuePatternMatches(TExpressionSyntax expression)

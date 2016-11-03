@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
     {
         protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionStatementSyntax>> matches)
+            ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                          .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ImmutableArray<Match<ExpressionStatementSyntax>> matches)
+            ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
             for (int i = 0; i < matches.Length; i++)
             {
-                var expressionStatement = matches[i].ExpressionStatement;
+                var expressionStatement = matches[i];
                 var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
 
                 var arguments = invocation.ArgumentList.Arguments;
