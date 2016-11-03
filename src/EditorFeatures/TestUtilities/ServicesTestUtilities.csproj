@@ -134,13 +134,17 @@
     <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcSession.cs">
       <Link>Remote\JsonRpcSession.cs</Link>
     </Compile>
+    <Compile Include="AbstractCommandHandlerTestState.cs" />
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
     <Compile Include="Async\Checkpoint.cs" />
     <Compile Include="Async\WaitHelper.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticLineEnderTests.cs" />
     <Compile Include="BlindAggregatorFactory.cs" />
+    <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
+    <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
+    <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureTestState.cs" />
     <Compile Include="ChangeSignature\TestChangeSignatureOptionsService.cs" />

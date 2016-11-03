@@ -63,10 +63,6 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Test\EditorServicesTest.csproj">
-      <Project>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</Project>
-      <Name>EditorServicesTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
       <Name>CSharpEditorFeatures</Name>

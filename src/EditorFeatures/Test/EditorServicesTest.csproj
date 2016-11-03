@@ -15,6 +15,10 @@
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj">
+      <Project>{a4c99b85-765c-4c65-9c2a-bb609aab09e6}</Project>
+      <Name>CodeAnalysisTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -113,10 +117,6 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj">
-      <Project>{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}</Project>
-      <Name>CodeAnalysisTest</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -142,11 +142,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractCommandHandlerTestState.cs" />
     <Compile Include="Attributes\AttributeTests.cs" />
-    <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
-    <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
-    <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />

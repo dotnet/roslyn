@@ -17,6 +17,8 @@
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
+    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
+    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
     <Compile Include="EmbeddedTextTests.cs" />
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />
@@ -107,8 +109,6 @@
     <Compile Include="CommonTypedConstantTests.cs" />
     <Compile Include="CorLibTypesTests.cs" />
     <Compile Include="DiagnosticBagTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
     <Compile Include="Diagnostics\SuppressMessageTargetSymbolResolverTests.cs" />
     <Compile Include="DiffUtilTests.cs" />
     <Compile Include="Emit\EmitBaselineTests.cs" />
