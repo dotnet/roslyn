@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note: can return <code>null</code> if we weren't able to actually load the metadata for some
         /// reason.
         /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
+        public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             bool loadOnly,
@@ -80,9 +80,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
             {
-                return null;
+                return SpecializedTasks.Default<SymbolTreeInfo>();
             }
 
+            // Try to acquire the data outside the lock.  That way 
+            SymbolTreeInfo info;
+            if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
+            {
+                return Task.FromResult(info);
+            }
+
+            return TryGetInfoForMetadataReferenceSlowAsync(
+                solution, reference, loadOnly, metadata, cancellationToken);
+        }
+
+        private static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceSlowAsync(
+            Solution solution, PortableExecutableReference reference,
+            bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
+        {
             // Find the lock associated with this piece of metadata.  This way only one thread is
             // computing a symbol tree info for a particular piece of metadata at a time.
             var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
