@@ -149,8 +149,7 @@ class Program
 {
     void Method()
     {
-        [|Func<string, bool>|] comparer = delegate (string value)
-        {
+        [|Func<string, bool>|] comparer = delegate (string value) {
             return value != ""0"";
         };
     }

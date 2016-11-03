@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         public async Task TestOnVariableDeclarator()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -35,8 +35,8 @@ class C
         c.Add(1);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -53,8 +53,8 @@ class C
         public async Task TestWithInterimStatement()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -67,8 +67,8 @@ class C
         c.Add(4);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -90,8 +90,8 @@ class C
         {
 
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -106,8 +106,8 @@ class C
         public async Task TestMissingOnNonIEnumerable()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -122,8 +122,8 @@ class C
         public async Task TestMissingOnNonIEnumerableEvenWithAdd()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -142,8 +142,8 @@ class C
         public async Task TestWithCreationArguments()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -152,8 +152,8 @@ class C
         c.Add(1);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -170,8 +170,8 @@ class C
         public async Task TestOnAssignmentExpression()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -181,8 +181,8 @@ class C
         c.Add(1);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -200,8 +200,8 @@ class C
         public async Task TestMissingOnRefAdd()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -216,27 +216,25 @@ class C
         public async Task TestComplexInitializer()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
     {
         List<int>[] array;
-
         array[0] = [||]new List<int>();
         array[0].Add(1);
         array[0].Add(2);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
     {
         List<int>[] array;
-
         array[0] = new List<int>
         {
             1,
@@ -250,8 +248,8 @@ class C
         public async Task TestNotOnNamedArg()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -266,8 +264,8 @@ class C
         public async Task TestMissingWithExistingInitializer()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -282,31 +280,28 @@ class C
         public async Task TestFixAllInDocument()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
     {
         List<int>[] array;
-
         array[0] = {|FixAllInDocument:new|} List<int>();
         array[0].Add(1);
         array[0].Add(2);
-
         array[1] = new List<int>();
         array[1].Add(3);
         array[1].Add(4);
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
     {
         List<int>[] array;
-
         array[0] = new List<int>
         {
             1,
@@ -356,8 +351,8 @@ compareTokens: false);
         public async Task TestComplexInitializer2()
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
@@ -367,16 +362,22 @@ class C
         c.Add(2, ""y"");
     }
 }",
-@"
-using System.Collections.Generic;
+@"using System.Collections.Generic;
+
 class C
 {
     void M()
     {
         var c = new Dictionary<int, string>
         {
-            { 1, ""x"" },
-            { 2, ""y"" }
+            {
+                1,
+                ""x""
+            },
+            {
+                2,
+                ""y""
+            }
         };
     }
 }");

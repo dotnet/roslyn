@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicExplicitConversion()
         {
-            await TestInMethodAsync(@"dynamic d = (dynamic)a;",
+            await TestInMethodAsync(
+@"dynamic d = (dynamic)a;",
                 Keyword("dynamic"),
                 Identifier("d"),
                 Operators.Equals,
@@ -183,7 +184,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsDelegateLocalVariable()
         {
-            await TestInMethodAsync(@"Func<string> f = delegate { int dynamic = 10; return dynamic.ToString();};",
+            await TestInMethodAsync(
+@"Func<string> f = delegate
+{
+    int dynamic = 10;
+    return dynamic.ToString();
+};",
                 Identifier("Func"),
                 Punctuation.OpenAngle,
                 Keyword("string"),
@@ -339,7 +345,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsAnonymousTypePropertyName()
         {
-            await TestInMethodAsync(@"var v = from dynamic in names select new { dynamic = dynamic};",
+            await TestInMethodAsync(
+@"var v = from dynamic in names
+        select new { dynamic = dynamic };",
                 Keyword("var"),
                 Identifier("v"),
                 Operators.Equals,
@@ -360,7 +368,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsArgumentToLambdaExpression()
         {
-            await TestInMethodAsync(@"var p = names.Select(dynamic => dynamic.Length);",
+            await TestInMethodAsync(
+@"var p = names.Select(dynamic => dynamic.Length);",
                 Keyword("var"),
                 Identifier("p"),
                 Operators.Equals,
@@ -380,7 +389,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsAnonymousMethodLocalVariable()
         {
-            await TestInMethodAsync(@"D f = delegate { string dynamic = ""a""; return dynamic.Length; };",
+            await TestInMethodAsync(
+@"D f = delegate
+{
+    string dynamic = ""a"";
+    return dynamic.Length;
+};",
                 Identifier("D"),
                 Identifier("f"),
                 Operators.Equals,
@@ -403,7 +417,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsMethodName()
         {
-            await TestInClassAsync(@"dynamic dynamic () { }",
+            await TestInClassAsync(
+@"dynamic dynamic()
+{
+}",
                 Keyword("dynamic"),
                 Identifier("dynamic"),
                 Punctuation.OpenParen,
@@ -415,7 +432,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsStaticMethodTypeAndParams()
         {
-            await TestInClassAsync(@"static dynamic dynamic(params dynamic[] dynamic){}",
+            await TestInClassAsync(
+@"static dynamic dynamic(params dynamic[] dynamic)
+{
+}",
                 Keyword("static"),
                 Keyword("dynamic"),
                 Identifier("dynamic"),
@@ -433,7 +453,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicArraysInMethodSignature()
         {
-            await TestInClassAsync(@"dynamic[] M(dynamic[] p, params dynamic[] pa) { }",
+            await TestInClassAsync(
+@"dynamic[] M(dynamic[] p, params dynamic[] pa)
+{
+}",
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
@@ -457,7 +480,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicInPartialMethods()
         {
-            await TestInClassAsync(@"partial void F(dynamic d); partial void F(dynamic d) { }",
+            await TestInClassAsync(
+@"partial void F(dynamic d);
+
+partial void F(dynamic d)
+{
+}",
                 Keyword("partial"),
                 Keyword("void"),
                 Identifier("F"),
@@ -480,7 +508,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicRefAndOutParameters()
         {
-            await TestInClassAsync(@"void F(ref dynamic r, out dynamic o) { }",
+            await TestInClassAsync(
+@"void F(ref dynamic r, out dynamic o)
+{
+}",
                 Keyword("void"),
                 Identifier("F"),
                 Punctuation.OpenParen,
@@ -499,7 +530,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicInExtensionMethod()
         {
-            await TestInClassAsync(@"dynamic F(this dynamic self, dynamic p) { }",
+            await TestInClassAsync(
+@"dynamic F(this dynamic self, dynamic p)
+{
+}",
                 Keyword("dynamic"),
                 Identifier("F"),
                 Punctuation.OpenParen,
@@ -552,7 +586,11 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicSizeOf()
         {
-            await TestInClassAsync(@"unsafe int M() { return sizeof(dynamic); }",
+            await TestInClassAsync(
+@"unsafe int M()
+{
+    return sizeof(dynamic);
+}",
                 Keyword("unsafe"),
                 Keyword("int"),
                 Identifier("M"),
@@ -621,7 +659,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsLocalVariableName()
         {
-            await TestInMethodAsync(@"dynamic dynamic;",
+            await TestInMethodAsync(
+@"dynamic dynamic;",
                 Keyword("dynamic"),
                 Identifier("dynamic"),
                 Punctuation.Semicolon);
@@ -677,7 +716,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsNamespaceAlias()
         {
-            await TestInMethodAsync(@"dynamic.FileInfo file;",
+            await TestInMethodAsync(
+@"dynamic.FileInfo file;",
                 Identifier("dynamic"),
                 Operators.Dot,
                 Identifier("FileInfo"),
@@ -688,7 +728,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGotoLabel()
         {
-            await TestInMethodAsync(@"dynamic: int i = 0;
+            await TestInMethodAsync(
+@"dynamic: int i = 0;
         goto dynamic;",
                 Identifier("dynamic"),
                 Punctuation.Colon,
@@ -705,7 +746,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsEnumField()
         {
-            await TestInMethodAsync(@"A a = A.dynamic;",
+            await TestInMethodAsync(
+@"A a = A.dynamic;",
                 Identifier("A"),
                 Identifier("a"),
                 Operators.Equals,
@@ -807,7 +849,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsLambdaParameterType()
         {
-            await TestInMethodAsync(@"var q = a.Where((dynamic d) => d == dynamic);",
+            await TestInMethodAsync(
+@"var q = a.Where((dynamic d) => d == dynamic);",
                 Keyword("var"),
                 Identifier("q"),
                 Operators.Equals,
@@ -830,7 +873,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicArray()
         {
-            await TestInMethodAsync(@"dynamic d = new dynamic[5];",
+            await TestInMethodAsync(
+@"dynamic d = new dynamic[5];",
                 Keyword("dynamic"),
                 Identifier("d"),
                 Operators.Equals,
@@ -845,7 +889,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicConstructor()
         {
-            await TestInMethodAsync(@"dynamic d = new dynamic();",
+            await TestInMethodAsync(
+@"dynamic d = new dynamic();",
                 Keyword("dynamic"),
                 Identifier("d"),
                 Operators.Equals,
@@ -882,7 +927,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsGenericTypeArgument()
         {
-            await TestInMethodAsync(@"List<dynamic> l = new List<dynamic>();",
+            await TestInMethodAsync(
+@"List<dynamic> l = new List<dynamic>();",
                 Identifier("List"),
                 Punctuation.OpenAngle,
                 Keyword("dynamic"),
@@ -902,7 +948,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsSecondGenericTypeArgument()
         {
-            await TestInMethodAsync(@"KVP<string, dynamic> kvp;",
+            await TestInMethodAsync(
+@"KVP<string, dynamic> kvp;",
                 Identifier("KVP"),
                 Punctuation.OpenAngle,
                 Keyword("string"),
@@ -956,7 +1003,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DynamicAsUndefinedGenericType()
         {
-            await TestInMethodAsync(@"dynamic<int> d;",
+            await TestInMethodAsync(
+@"dynamic<int> d;",
                 Identifier("dynamic"),
                 Punctuation.OpenAngle,
                 Keyword("int"),

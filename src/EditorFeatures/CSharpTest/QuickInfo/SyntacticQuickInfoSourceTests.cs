@@ -22,11 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_0()
         {
-            await TestInMethodAndScriptAsync(@"
-            switch (true)
+            await TestInMethodAndScriptAsync(
+@"switch (true)
             {
-            }$$
-",
+            }$$",
             "switch (true)\r\n{");
         }
 
@@ -51,11 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_4()
         {
-            await TestInMethodAndScriptAsync(@"
-            if (true)
+            await TestInMethodAndScriptAsync(
+@"if (true)
             {
-            }$$
-",
+            }$$",
             "if (true)\r\n{");
         }
 
@@ -63,13 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_0()
         {
-            await TestInMethodAndScriptAsync(@"
-            if (true)
+            await TestInMethodAndScriptAsync(
+@"if (true)
             {
                 {
                 }$$
-            }
-",
+            }",
             "{");
         }
 
@@ -77,15 +74,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_1()
         {
-            await TestInMethodAndScriptAsync(@"
-            while (true)
+            await TestInMethodAndScriptAsync(
+@"while (true)
             {
                 // some
                 // comment
                 {
                 }$$
-            }
-",
+            }",
 @"// some
 // comment
 {");
@@ -95,15 +91,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_2()
         {
-            await TestInMethodAndScriptAsync(@"
-            do
+            await TestInMethodAndScriptAsync(
+@"do
             {
                 /* comment */
                 {
                 }$$
             }
-            while (true);
-",
+            while (true);",
 @"/* comment */
 {");
         }
@@ -112,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_3()
         {
-            await TestInMethodAndScriptAsync(@"
-            if (true)
+            await TestInMethodAndScriptAsync(
+@"if (true)
             {
             }
             else
@@ -122,8 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                     // some
                     // comment
                 }$$
-            }
-",
+            }",
 @"{
     // some
     // comment");
@@ -133,14 +127,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_4()
         {
-            await TestInMethodAndScriptAsync(@"
-            using (var x = new X())
+            await TestInMethodAndScriptAsync(
+@"using (var x = new X())
             {
                 {
                     /* comment */
                 }$$
-            }
-",
+            }",
 @"{
     /* comment */");
         }
@@ -149,15 +142,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_5()
         {
-            await TestInMethodAndScriptAsync(@"
-            foreach (var x in xs)
+            await TestInMethodAndScriptAsync(
+@"foreach (var x in xs)
             {
                 // above
                 {
                     /* below */
                 }$$
-            }
-",
+            }",
 @"// above
 {");
         }
@@ -166,8 +158,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_6()
         {
-            await TestInMethodAndScriptAsync(@"
-            for (;;)
+            await TestInMethodAndScriptAsync(
+@"for (;;)
             {
                 /*************/
 
@@ -176,8 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 // part 2
                 {
                 }$$
-            }
-",
+            }",
 @"/*************/
 
 // part 1
@@ -190,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_7()
         {
-            await TestInMethodAndScriptAsync(@"
-            try
+            await TestInMethodAndScriptAsync(
+@"try
             {
                 /*************/
 
@@ -201,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 {
                 }$$
             }
-            catch { throw; }
-",
+            catch { throw; }",
 @"/*************/
 
 // part 1
@@ -215,15 +205,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_8()
         {
-            await TestInMethodAndScriptAsync(@"
-            {
+            await TestInMethodAndScriptAsync(
+@"{
                 /*************/
 
                 // part 1
 
                 // part 2
-            }$$
-",
+            }$$",
 @"{
     /*************/
 
@@ -236,16 +225,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_9()
         {
-            await TestInClassAsync(@"
-            int Property
-            {
-                set
-                {
-                    {
-                    }$$
-                }
-            }
-",
+            await TestInClassAsync(
+@"int Property
+{
+    set
+    {
+        {
+        }$$
+    }
+}",
             "{");
         }
 
@@ -253,16 +241,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task ScopeBrackets_10()
         {
-            await TestInMethodAndScriptAsync(@"
-            switch (true)
+            await TestInMethodAndScriptAsync(
+@"switch (true)
             {
                 default:
                     // comment
                     {
                     }$$
                     break;
-            }
-",
+            }",
 @"// comment
 {");
         }
@@ -311,7 +298,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            return TestInClassAsync("void M(){" + code + "}", expectedContent, expectedDocumentationComment);
+            return TestInClassAsync(
+@"void M()
+{" + code + "}", expectedContent, expectedDocumentationComment);
         }
 
         protected override Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null)

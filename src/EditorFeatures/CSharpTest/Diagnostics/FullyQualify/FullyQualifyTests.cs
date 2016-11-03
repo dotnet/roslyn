@@ -108,7 +108,13 @@ index: 1);
         public async Task TestSmartTagDisplayText()
         {
             await TestSmartTagTextAsync(
-@"class Class { [|List<int>|] Method() { Foo(); } }",
+@"class Class
+{
+    [|List<int>|] Method()
+    {
+        Foo();
+    }
+}",
 "System.Collections.Generic.List");
         }
 
@@ -247,7 +253,15 @@ class Class
         public async Task TestExistingUsing()
         {
             await TestActionCountAsync(
-@"using System.Collections.Generic; class Class { [|IDictionary|] Method() { Foo(); } }",
+@"using System.Collections.Generic;
+
+class Class
+{
+    [|IDictionary|] Method()
+    {
+        Foo();
+    }
+}",
 count: 2);
 
             await TestAsync(

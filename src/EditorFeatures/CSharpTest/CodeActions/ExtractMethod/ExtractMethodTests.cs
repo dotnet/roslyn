@@ -124,8 +124,7 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x =>
-        {
+        del q = x => {
             [|goto label2;
             return x * x;|]
         };
@@ -146,8 +145,7 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x =>
-        {
+        del q = x => {
             goto label2;
             [|return x * x;|]
         };
@@ -161,8 +159,7 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x =>
-        {
+        del q = x => {
             goto label2;
             return {|Rename:NewMethod|}(x);
         };

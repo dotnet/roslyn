@@ -66,27 +66,29 @@ class C
         {
             await TestWithPredefinedTypeOptionsAsync(
 @"using Foo = System;
-namespace Root 
+
+namespace Root
 {
-    class A 
+    class A
     {
     }
 
     class B
     {
-    public [|Foo::Int32|] a;
+        public [|Foo::Int32|] a;
     }
 }",
 @"using Foo = System;
-namespace Root 
+
+namespace Root
 {
-    class A 
+    class A
     {
     }
 
     class B
     {
-    public int a;
+        public int a;
     }
 }", index: 0);
         }
@@ -138,7 +140,7 @@ class A
             await TestSpansAsync(source,
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     [|System.Exception|] c;
 }");
@@ -569,9 +571,9 @@ namespace Root
             await TestSpansAsync(source,
 @"using System;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System|].Exception c;
     }
@@ -979,8 +981,8 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[]>|] a;
     }
-}", @"
-using System.Collections.Generic;
+}", 
+@"using System.Collections.Generic;
 
 namespace N1
 {
@@ -1025,8 +1027,8 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[][,][,,,]>|] a;
     }
-}", @"
-using System.Collections.Generic;
+}", 
+@"using System.Collections.Generic;
 
 namespace N1
 {
@@ -1185,8 +1187,8 @@ namespace N1
     class Test
     {
     }
-}", @"
-using I64 = System.Int64;
+}", 
+@"using I64 = System.Int64;
 using Foo = System.Collections.Generic.IList<long>;
 
 namespace N1
@@ -1213,8 +1215,8 @@ namespace N1
         {
         }
     }
-}", @"
-namespace Outer
+}", 
+@"namespace Outer
 {
     using I64 = System.Int64;
     using Foo = System.Collections.Generic.IList<long>;
@@ -1245,8 +1247,8 @@ namespace Outer
         {
         }
     }
-}", @"
-using I64 = System.Int64;
+}", 
+@"using I64 = System.Int64;
 
 namespace Outer
 {
@@ -1443,8 +1445,28 @@ class C
         public async Task TestGlobalAlias()
         {
             await TestWithPredefinedTypeOptionsAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { [|global :: System |]. String s ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { string s ; } } ",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|global::System|].String s;
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s;
+    }
+}",
 index: 0);
         }
 
@@ -2091,8 +2113,18 @@ index: 0);
         public async Task TestNullableSimplification4()
         {
             await TestWithPredefinedTypeOptionsAsync(
-@"class C { static void Main ([|System . Nullable < System.Int32 >|] i) { } }",
-@"class C { static void Main (int? i) { } }");
+@"class C
+{
+    static void Main([|System.Nullable<System.Int32>|] i)
+    {
+    }
+}",
+@"class C
+{
+    static void Main(int? i)
+    {
+    }
+}");
         }
 
         [WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
@@ -3172,17 +3204,18 @@ class Attribute : System.Attribute
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
             await TestWithPredefinedTypeOptionsAsync(
-@"
-class C
+@"class C
 {
     [|System.Int32|] x;
+
     public void z()
     {
     }
-}", @"
-class C
+}", 
+@"class C
 {
     int x;
+
     public void z()
     {
     }
@@ -3611,8 +3644,7 @@ class C
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
             await TestWithPredefinedTypeOptionsAsync(
-@"
-using System;
+@"using System;
 
 class Program
 {
@@ -3623,8 +3655,8 @@ class Program
         {
         }
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 class Program
 {
@@ -3649,7 +3681,8 @@ class Program
     {
         public object X => ([|System.Int32|])0;
     }
-}", @"namespace ClassLibrary2
+}", 
+@"namespace ClassLibrary2
 {
     public class Class1
     {
@@ -3666,7 +3699,8 @@ class Program
 @"class C
 {
     public string Foo() => ([|System.String|])"";
-}", @"class C
+}", 
+@"class C
 {
     public string Foo() => (string)"";
 }");
@@ -3680,7 +3714,8 @@ class Program
 @"class C
 {
     public int this[int index] => ([|System.Int32|])0;
-}", @"class C
+}", 
+@"class C
 {
     public int this[int index] => (int)0;
 }");
@@ -3715,7 +3750,15 @@ class Program
         public async Task TestAppropriateDiagnosticOnMissingQualifier()
         {
             await TestDiagnosticSeverityAndCountAsync(
-                @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
+@"class C
+{
+    int SomeProperty { get; set; }
+
+    void M()
+    {
+        [|this|].SomeProperty = 1;
+    }
+}",
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,

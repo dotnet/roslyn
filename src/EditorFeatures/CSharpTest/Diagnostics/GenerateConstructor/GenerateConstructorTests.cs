@@ -2115,8 +2115,7 @@ class MyAttrAttribute : Attribute
 {
 }
 
-[|[MyAttrAttribute(() =>
-{
+[|[MyAttrAttribute(() => {
     return;
 })]|]
 class D
@@ -2244,8 +2243,7 @@ class C
 {
     C()
     {
-        Task.Run(() =>
-        {
+        Task.Run(() => {
             new [|C|](0) });
     }
 }",
@@ -2262,8 +2260,7 @@ class C
 
     C()
     {
-        Task.Run(() =>
-        {
+        Task.Run(() => {
             new C(0) });
     }
 }");

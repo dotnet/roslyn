@@ -164,7 +164,14 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestTryDo1()
         {
-            await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
+            await TestTryDoAsync(
+@"class Class
+{
+    void Method()
+    {
+        string local;$$
+    }
+}", "local", "this");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
@@ -176,47 +183,89 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValid1()
         {
-            await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
+            await TestIsValidAsync(
+@"class Class
+{
+    void Method()
+    {
+        string local;$$
+    }
+}", "local", true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidWithDiagnostics()
         {
             // local doesn't exist in this context
-            await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", false);
+            await TestIsValidAsync(
+@"class Class
+{
+    void Method()
+    {
+        string local;
+    }
+$$}", "local", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidReferencingLocalBeforeDeclaration()
         {
-            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
+            await TestIsValidAsync(
+@"class Class
+{
+    void Method()
+    {
+        $$int i;
+        int j;
+    }
+}", "j", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidReferencingUndefinedVariable()
         {
-            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
+            await TestIsValidAsync(
+@"class Class
+{
+    void Method()
+    {
+        $$int i;
+        int j;
+    }
+}", "k", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidNoTypeSymbol()
         {
-            await TestIsValidAsync("namespace Namespace$$ { }", "foo", false);
+            await TestIsValidAsync(
+@"namespace Namespace$$
+{
+}", "foo", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidLocalAfterPosition()
         {
-            await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
+            await TestIsValidAsync(
+@"class Class
+{
+    void Method()
+    {
+$$
+        int i;
+        string local;
+    }
+}", "local", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestThis()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
-    public Class() : this(true) 
+    public Class() : this(true)
     {
         base.ToString();
         this.ToString()$$;
@@ -227,8 +276,8 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestArrayCreationExpression()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
@@ -240,8 +289,8 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestPostfixUnaryExpressionSyntax()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
@@ -254,13 +303,15 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestLabeledStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
-        label: int i = 3;
-        label2$$: i++;
+    label:
+        int i = 3;
+    label2$$:
+        i++;
     }
 }", "i", "this");
         }
@@ -268,8 +319,8 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestThrowStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
@@ -282,12 +333,15 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestDoStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
-        do$$ { } while (true);
+        do$$
+        {
+        }
+        while (true);
     }
 }");
         }
@@ -295,12 +349,14 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestLockStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
-        lock(typeof(Cl$$ass)) { };
+        lock (typeof(Cl$$ass))
+        {
+        };
     }
 }");
         }
@@ -308,12 +364,14 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestWhileStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
-        while(DateTime.Now <$$ DateTime.Now) { };
+        while (DateTime.Now <$$ DateTime.Now)
+        {
+        };
     }
 }", "DateTime", "DateTime.Now");
         }
@@ -321,12 +379,14 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestForStatementWithDeclarators()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
-        for(int i = 0; i < 10; i$$++) { }
+        for (int i = 0; i < 10; i$$++)
+        {
+        }
     }
 }", "i");
         }
@@ -334,13 +394,15 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestForStatementWithInitializers()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     static void Method()
     {
         int i = 0;
-        for(i = 1; i < 10; i$$++) { }
+        for (i = 1; i < 10; i$$++)
+        {
+        }
     }
 }", "i");
         }
@@ -348,12 +410,14 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestUsingStatement()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
-        using (FileStream fs = new FileStream($$)) { }
+        using (FileStream fs = new FileStream($$))
+        {
+        }
     }
 }", "this");
         }
@@ -362,13 +426,20 @@ class Class
         [WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
         public async Task TestValueInPropertySetter()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     string Name
     {
-        get { return """"; }
-        set { $$ }
+        get
+        {
+            return """";
+        }
+
+        set
+        {
+$$
+        }
     }
 }", "this", "value");
         }
@@ -376,13 +447,19 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestValueInEventAdd()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     event Action Event
     {
-        add { $$ }
-        set { }
+        add
+        {
+$$
+        }
+
+        set
+        {
+        }
     }
 }", "this", "value");
         }
@@ -390,13 +467,19 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestValueInEventRemove()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     event Action Event
     {
-        add { }
-        remove { $$ }
+        add
+        {
+        }
+
+        remove
+        {
+$$
+        }
     }
 }", "this", "value");
         }
@@ -405,13 +488,20 @@ class Class
         [WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
         public async Task TestValueInIndexerSetter()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     string this[int index]
     {
-        get { return """"; }
-        set { $$ }
+        get
+        {
+            return """";
+        }
+
+        set
+        {
+$$
+        }
     }
 }", "index", "this", "value");
         }
@@ -420,13 +510,17 @@ class Class
         [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
         public async Task TestCatchBlock()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
-        try { }
-        catch(Exception ex) { int $$ }
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+            int $$ }
     }
 }", "ex", "this");
         }
@@ -435,13 +529,18 @@ class Class
         [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
         public async Task TestCatchBlockEmpty_OpenBrace()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
-        try { }
-        catch(Exception ex) { $$ }
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+$$
+        }
     }
 }", "ex", "this");
         }
@@ -449,13 +548,18 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestCatchBlockEmpty_CloseBrace()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
-        try { }
-        catch(Exception ex) { } $$ 
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+        }
+$$
     }
 }", "this");
         }
@@ -464,8 +568,8 @@ class Class
         [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
         public async Task TestObjectCreation()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     void Method()
     {
@@ -478,13 +582,13 @@ class Class
         [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
         public async Task Test2()
         {
-            await TestIsValidAsync(@"
-class D
+            await TestIsValidAsync(
+@"class D
 {
-   private static int x;
+    private static int x;
 }
 
-class Class 
+class Class
 {
     void Method()
     {
@@ -497,10 +601,11 @@ class Class
         [WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
         public async Task TestArrayCreation()
         {
-            await TestTryDoAsync(@"
-class Class 
+            await TestTryDoAsync(
+@"class Class
 {
     int a;
+
     void Method()
     {
         $$new int[] { a };
@@ -512,32 +617,34 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task Bug751141()
         {
-            await TestTryDoAsync(@"
-class Program
+            await TestTryDoAsync(
+@"class Program
 {
     double m_double = 1.1;
+
     static void Main(string[] args)
     {
         new Program().M();
     }
+
     void M()
     {
         int local_int = (int)m_double;
         $$System.Diagnostics.Debugger.Break();
     }
-}
-", "System.Diagnostics.Debugger", "local_int", "m_double", "(int)m_double", "this");
+}", "System.Diagnostics.Debugger", "local_int", "m_double", "(int)m_double", "this");
         }
 
         [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForLoopExpressionsInFirstStatementOfLoop1()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
-        for(int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)
         {
             $$var x = 8;
         }
@@ -549,13 +656,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForLoopExpressionsInFirstStatementOfLoop2()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int i = 0, j = 0, k = 0, m = 0, n = 0;
-
-        for(i = 0; j < 5; k++)
+        for (i = 0; j < 5; k++)
         {
             $$m = 8;
             n = 7;
@@ -568,13 +675,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForLoopExpressionsInFirstStatementOfLoop3()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int i = 0, j = 0, k = 0, m = 0;
-
-        for(i = 0; j < 5; k++)
+        for (i = 0; j < 5; k++)
         {
             var m = 8;
             $$var n = 7;
@@ -587,13 +694,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForLoopExpressionsInFirstStatementOfLoop4()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int i = 0, j = 0, k = 0, m = 0;
-
-        for(i = 0; j < 5; k++)
+        for (i = 0; j < 5; k++)
             $$m = 8;
     }
 }", "m", "i", "j", "k");
@@ -603,7 +710,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForEachLoopExpressionsInFirstStatementOfLoop1()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -619,7 +727,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ForEachLoopExpressionsInFirstStatementOfLoop2()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -633,18 +742,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterForLoop1()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0;
-
         for (a = 5; b < 1; b++)
         {
             c = 8;
             d = 9; // included
         }
-        
+
         $$var z = 0;
     }
 }", "a", "b", "d", "z");
@@ -654,18 +763,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterForLoop2()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0;
-
         for (a = 5; b < 1; b++)
         {
             c = 8;
             int d = 9; // not included
         }
-        
+
         $$var z = 0;
     }
 }", "a", "b", "z");
@@ -675,18 +784,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterForEachLoop()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0;
-
-        foreach (var q in new int[] {1, 2, 3})
+        foreach (var q in new int[] { 1, 2, 3 })
         {
             c = 8;
             d = 9; // included
         }
-        
+
         $$var z = 0;
     }
 }", "q", "d", "z");
@@ -696,12 +805,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterNestedForLoop()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         for (a = 5; b < 1; b++)
         {
             c = 8;
@@ -712,7 +821,7 @@ class Program
                 f = 10; // included
             }
         }
-        
+
         $$var z = 0;
     }
 }", "a", "b", "f", "z");
@@ -722,18 +831,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterCheckedStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         checked
         {
             a = 7;
             b = 0; // included
         }
-        
+
         $$var z = 0;
     }
 }", "b", "z");
@@ -743,18 +852,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterUncheckedStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         unchecked
         {
             a = 7;
             b = 0; // included
         }
-        
+
         $$var z = 0;
     }
 }", "b", "z");
@@ -764,15 +873,15 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterIfStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         if (a == 0)
         {
-            c = 8; 
+            c = 8;
             d = 9; // included
         }
 
@@ -785,15 +894,15 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterIfStatementWithElse()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         if (a == 0)
         {
-            c = 8; 
+            c = 8;
             d = 9; // included
         }
         else
@@ -811,12 +920,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterLockStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
-
         lock (new object())
         {
             a = 2;
@@ -832,13 +941,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterSwitchStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
-        switch(a)
+        switch (a)
         {
             case 1:
                 b = 7;
@@ -863,12 +972,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterTryStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
         try
         {
             a = 2;
@@ -894,12 +1003,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterTryStatementWithFinally()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
         try
         {
             a = 2;
@@ -929,12 +1038,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterUsingStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
         using (null as System.IDisposable)
         {
             a = 4;
@@ -950,12 +1059,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsAfterWhileStatement()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
-
         while (a < 5)
         {
             a++;
@@ -971,16 +1080,16 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task ExpressionsInParenthesizedExpressions()
         {
-            await TestTryDoAsync(@"class Program
+            await TestTryDoAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         int i = 0, j = 0, k = 0, m = 0;
         int flags = 7;
-
-        if((flags & i) == k)
+        if ((flags & i) == k)
         {
-            $$ m = 8;
+            $$m = 8;
         }
     }
 }", "m", "flags", "i", "k");

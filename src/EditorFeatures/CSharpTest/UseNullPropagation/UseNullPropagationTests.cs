@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
         public async Task TestLeft_Equals()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -51,8 +50,7 @@ class C
         public async Task TestMissingOnCSharp5()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -67,8 +65,7 @@ class C
         public async Task TestRight_Equals()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -92,8 +89,7 @@ class C
         public async Task TestLeft_NotEquals()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -117,8 +113,7 @@ class C
         public async Task TestRight_NotEquals()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -142,8 +137,7 @@ class C
         public async Task TestIndexer()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -167,8 +161,7 @@ class C
         public async Task TestConditionalAccess()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -192,8 +185,7 @@ class C
         public async Task TestMemberAccess()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -217,8 +209,7 @@ class C
         public async Task TestMissingOnSimpleMatch()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -233,8 +224,7 @@ class C
         public async Task TestParenthesizedCondition()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -258,8 +248,7 @@ class C
         public async Task TestFixAll1()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
@@ -285,8 +274,7 @@ class C
         public async Task TestFixAll2()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
