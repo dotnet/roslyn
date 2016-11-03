@@ -1000,7 +1000,7 @@ void M()
 
 void M()
 {
-    int f = field$$;
+    int f = field $$;
 }");
         }
 

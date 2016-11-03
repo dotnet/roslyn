@@ -23,10 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         public async Task Brackets_0()
         {
             await TestInMethodAndScriptAsync(
+@"
+switch (true)
+{
+}$$
+",
 @"switch (true)
-            {
-            }$$",
-            "switch (true)\r\n{");
+{");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -51,10 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         public async Task Brackets_4()
         {
             await TestInMethodAndScriptAsync(
+@"
+if (true)
+{
+}$$
+",
 @"if (true)
-            {
-            }$$",
-            "if (true)\r\n{");
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -206,13 +212,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         public async Task ScopeBrackets_8()
         {
             await TestInMethodAndScriptAsync(
-@"{
-                /*************/
+@"
+{
+    /*************/
 
-                // part 1
+    // part 1
 
-                // part 2
-            }$$",
+    // part 2
+}$$
+",
 @"{
     /*************/
 
