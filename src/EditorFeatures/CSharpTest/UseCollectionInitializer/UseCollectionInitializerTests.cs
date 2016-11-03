@@ -49,6 +49,42 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestWithInterimStatement()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c.Add(1);
+        c.Add(2);
+        throw new Exception();
+        c.Add(3);
+        c.Add(4);
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            1,
+            2
+        };
+        throw new Exception();
+        c.Add(3);
+        c.Add(4);
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestMissingBeforeCSharp3()
         {
@@ -78,6 +114,26 @@ class C
     {
         var c = [||]new C();
         c.Add(1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingOnNonIEnumerableEvenWithAdd()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new C();
+        c.Add(1);
+    }
+
+    public void Add(int i)
+    {
     }
 }");
         }
