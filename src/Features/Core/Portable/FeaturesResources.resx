@@ -891,9 +891,6 @@ Do you want to continue?</value>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
   </data>
-  <data name="Add_qualification" xml:space="preserve">
-    <value>Add qualification.</value>
-  </data>
   <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
     <value>Fix Name Violation: {0}</value>
   </data>
@@ -1156,5 +1153,8 @@ This version used in: {2}</value>
   </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
+  </data>
+  <data name="Use_null_propagation" xml:space="preserve">
+    <value>Use null propagation</value>
   </data>
 </root>

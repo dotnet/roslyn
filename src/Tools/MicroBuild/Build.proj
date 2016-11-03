@@ -25,6 +25,7 @@
     <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
     <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
 
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-nuspec.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />

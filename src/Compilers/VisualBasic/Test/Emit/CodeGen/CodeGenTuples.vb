@@ -17423,6 +17423,222 @@ implicit operator AA
 ")
         End Sub
 
+
+        <Fact>
+        Public Sub GenericConstraintAttributes()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports ClassLibrary4
+
+Public Interface ITest(Of T)
+    ReadOnly Property [Get] As T
+End Interface
+
+Public Class Test
+    Implements ITest(Of (key As Integer, val As Integer))
+
+    Public ReadOnly Property [Get] As (key As Integer, val As Integer) Implements ITest(Of (key As Integer, val As Integer)).Get
+        Get
+            Return (0, 0)
+        End Get
+    End Property
+End Class
+
+Public Class Base(Of T) : Implements ITest(Of T)
+    Public ReadOnly Property [Get] As T Implements ITest(Of T).Get
+
+    Protected Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C(Of T As ITest(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C2(Of T As Base(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public NotInheritable Class Test2
+    Inherits Base(Of (key As Integer, val As Integer))
+
+    Sub New()
+        MyBase.New((-1, -2))
+    End Sub
+End Class
+
+Public Class C3(Of T As IEnumerable(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Structure TestEnumerable
+    Implements IEnumerable(Of (key As Integer, val As Integer))
+    Private ReadOnly _backing As (Integer, Integer)()
+
+    Public Sub New(backing As (Integer, Integer)())
+        _backing = backing
+    End Sub
+
+    Private Class Inner
+        Implements IEnumerator(Of (key As Integer, val As Integer)), IEnumerator
+
+        Private index As Integer = -1
+        Private ReadOnly _backing As (Integer, Integer)()
+
+        Public Sub New(backing As (Integer, Integer)())
+            _backing = backing
+        End Sub
+
+        Public ReadOnly Property Current As (key As Integer, val As Integer) Implements IEnumerator(Of (key As Integer, val As Integer)).Current
+            Get
+                Return _backing(index)
+            End Get
+        End Property
+
+        Public ReadOnly Property Current1 As Object Implements IEnumerator.Current
+            Get
+                Return Current
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Function MoveNext() As Boolean
+            index += 1
+            Return index &lt; _backing.Length
+        End Function
+
+        Public Sub Reset()
+            Throw New NotSupportedException()
+        End Sub
+
+        Private Function IEnumerator_MoveNext() As Boolean Implements IEnumerator.MoveNext
+            Return MoveNext()
+        End Function
+
+        Private Sub IEnumerator_Reset() Implements IEnumerator.Reset
+            Throw New NotImplementedException()
+        End Sub
+    End Class
+
+    Public Function GetEnumerator() As IEnumerator(Of (key As Integer, val As Integer)) Implements IEnumerable(Of (key As Integer, val As Integer)).GetEnumerator
+        Return New Inner(_backing)
+    End Function
+
+    Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return New Inner(_backing)
+    End Function
+    End Structure
+
+
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m)
+                                                        Dim c = m.GlobalNamespace.GetTypeMember("C")
+                                                        Assert.Equal(1, c.TypeParameters.Length)
+                                                        Dim param = c.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        Dim constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        Dim typeArg As TypeSymbol = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                        Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                        Dim c2 = m.GlobalNamespace.GetTypeMember("C2")
+                                                        Assert.Equal(1, c2.TypeParameters.Length)
+                                                        param = c2.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        typeArg = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                         Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                    End Sub
+            )
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim c = New C(Of Test)(New Test())
+        Dim temp = c.Get.Get
+        Console.WriteLine(temp)
+        Console.WriteLine("key:  " &amp; temp.key)
+        Console.WriteLine("val:  " &amp; temp.val)
+
+        Dim c2 = New C2(Of Test2)(New Test2())
+        Dim temp2 = c2.Get.Get
+        Console.WriteLine(temp2)
+        Console.WriteLine("key:  " &amp; temp2.key)
+        Console.WriteLine("val:  " &amp; temp2.val)
+
+        Dim backing = {(1, 2), (3, 4), (5, 6)}
+        Dim c3 = New C3(Of TestEnumerable)(New TestEnumerable(backing))
+        For Each kvp In c3.Get
+            Console.WriteLine($"key:    {kvp.key}, val: {kvp.val}")
+        Next
+
+        Dim c4 = New C(Of Test2)(New Test2())
+        Dim temp4 = c4.Get.Get
+        Console.WriteLine(temp4)
+        Console.WriteLine("key:  " &amp; temp4.key)
+        Console.WriteLine("val:   " &amp; temp4.val)
+    End Sub
+End Module
+
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs.Concat({comp.EmitToImageReference()}).ToArray(), expectedOutput:=<![CDATA[
+(0, 0)
+key:  0
+val:  0
+(-1, -2)
+key:  -1
+val:  -2
+key:    1, val: 2
+key:    3, val: 4
+key:    5, val: 6
+(-1, -2)
+key:  -1
+val:   -2
+]]>)
+
+        End Sub
     End Class
 
 End Namespace

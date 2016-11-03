@@ -206,6 +206,24 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferNullPropagation As String = "
+Imports System
+
+Class Customer
+    Private Age As Integer
+
+    Sub New()
+//[
+        ' Prefer:
+        Dim v = o?.ToString()
+
+        ' Over:
+        Dim v = If(o Is Nothing, Nothing, o.ToString())    ' or
+        Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
+//]
+    End Sub
+End Class"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -247,6 +265,7 @@ End Class"
 
             ' nothing preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace
