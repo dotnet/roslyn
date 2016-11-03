@@ -3755,7 +3755,8 @@ class Foo : [|IComparable|]
 
 
 #line default
-#line hidden");
+#line hidden
+// stuff");
         }
 
         [WorkItem(545476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
@@ -5409,7 +5410,7 @@ class D : I
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"" "" {
+class C : IServiceProvider @"""" {
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
@@ -5427,7 +5428,7 @@ class C : IServiceProvider @"" "" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider "" "" {
+class C : IServiceProvider """" {
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
