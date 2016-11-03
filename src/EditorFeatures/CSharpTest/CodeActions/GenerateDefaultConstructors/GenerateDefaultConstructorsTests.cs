@@ -555,7 +555,16 @@ class B
         public async Task TestFixCount1()
         {
             await TestActionCountAsync(
-@"class C : [||]B { } class B { public B(int x) { } }",
+@"class C : [||]B
+{
+}
+
+class B
+{
+    public B(int x)
+    {
+    }
+}",
 count: 1);
         }
 

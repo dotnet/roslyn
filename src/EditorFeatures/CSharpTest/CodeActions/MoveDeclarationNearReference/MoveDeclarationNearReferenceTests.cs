@@ -412,8 +412,7 @@ class Program
     void Main()
     {
         var [||]@lock = new object();
-        new[] { 1 }.AsParallel().ForAll((i) =>
-        {
+        new[] { 1 }.AsParallel().ForAll((i) => {
             lock (@lock)
             {
             }
@@ -426,8 +425,7 @@ class Program
 {
     void Main()
     {
-        new[] { 1 }.AsParallel().ForAll((i) =>
-        {
+        new[] { 1 }.AsParallel().ForAll((i) => {
             {|Warning:var @lock = new object();|}
             lock (@lock)
             {

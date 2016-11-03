@@ -489,8 +489,7 @@ class Program
 
     static void Main(string[] args)
     {
-        Func<int, int> d = (x) =>
-        {
+        Func<int, int> d = (x) => {
             return [|x * v|];
         };
         d.Invoke(v);
@@ -504,8 +503,7 @@ class Program
 
     static void Main(string[] args)
     {
-        Func<int, int> d = (x) =>
-        {
+        Func<int, int> d = (x) => {
             var {|Rename:v1|} = x * v;
             return v1;
         };
@@ -528,8 +526,7 @@ class Program
 
     static void Main(string[] args)
     {
-        Func<int, int> d = (x) =>
-        {
+        Func<int, int> d = (x) => {
             return [|x * v|];
         };
         d.Invoke(v);
@@ -543,8 +540,7 @@ class Program
 
     static void Main(string[] args)
     {
-        Func<int, int> d = (x) =>
-        {
+        Func<int, int> d = (x) => {
             int {|Rename:v1|} = x * v;
             return v1;
         };
@@ -797,7 +793,17 @@ options: ImplicitTypingEverywhere());
         public async Task TestCantExtractMethodTypeParameterToFieldCount()
         {
             await TestActionCountAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main < T > ( string [ ] args ) { Foo ( [|( T ) 2 . ToString ( )|] ) ; } } ",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main<T>(string[] args)
+    {
+        Foo([|(T)2.ToString()|]);
+    }
+}",
 count: 2);
         }
 
@@ -2219,8 +2225,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x =>
-        {
+        Func<int, int> f = x => {
             var {|Rename:v|} = x + 1;
             return v;
         };
@@ -2249,8 +2254,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x =>
-        {
+        Func<int, Func<int, int>> f = x => {
             var {|Rename:v|} = x + 1;
             return y => v;
         };
@@ -2279,8 +2283,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => y =>
-        {
+        Func<int, Func<int, int>> f = x => y => {
             var {|Rename:v|} = y + 1;
             return v;
         };
@@ -2335,8 +2338,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x =>
-        {
+        Func<int, Func<int, int>> f = x => {
             Func<int, int> {|Rename:p|} = y => x + 1;
             return p;
         };
@@ -2364,8 +2366,7 @@ class Program
 {
     void M()
     {
-        Action<int> foo = x =>
-        {
+        Action<int> foo = x => {
             object {|Rename:foo1|} = x.Foo;
         };
     }
@@ -2851,8 +2852,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines()
         {
-            await TestSmartTagTextAsync(@"
-class C
+            await TestSmartTagTextAsync(
+@"class C
 {
     void M()
     {

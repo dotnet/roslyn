@@ -207,7 +207,13 @@ index: 2);
         public async Task TestSimpleWriteCount()
         {
             await TestExactActionSetOfferedAsync(
-@"class Class { void Method(int i) { [|foo|] = 1; } }",
+@"class Class
+{
+    void Method(int i)
+    {
+        [|foo|] = 1;
+    }
+}",
 new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
@@ -260,7 +266,13 @@ index: 1);
         public async Task TestInRefCodeActionCount()
         {
             await TestExactActionSetOfferedAsync(
-@"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
+@"class Class
+{
+    void Method(ref int i)
+    {
+        Method(ref [|foo|]);
+    }
+}",
 new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
@@ -290,7 +302,13 @@ new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), 
         public async Task TestInOutCodeActionCount()
         {
             await TestExactActionSetOfferedAsync(
-@"class Class { void Method(out int i) { Method(out [|foo|]); } }",
+@"class Class
+{
+    void Method(out int i)
+    {
+        Method(out [|foo|]);
+    }
+}",
 new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
@@ -729,7 +747,17 @@ class Base
         public async Task TestGenerateIntoInterfaceFixCount()
         {
             await TestActionCountAsync(
-@"class Class { void Method(I i) { i.[|foo|]; } } interface I { }",
+@"class Class
+{
+    void Method(I i)
+    {
+        i.[|foo|];
+    }
+}
+
+interface I
+{
+}",
 count: 2);
         }
 
@@ -813,7 +841,17 @@ interface I
         public async Task TestGenerateWriteIntoInterfaceFixCount()
         {
             await TestActionCountAsync(
-@"class Class { void Method(I i) { i.[|Foo|] = 1; } } interface I { }",
+@"class Class
+{
+    void Method(I i)
+    {
+        i.[|Foo|] = 1;
+    }
+}
+
+interface I
+{
+}",
 count: 1);
         }
 
@@ -1272,32 +1310,94 @@ class Class
         public async Task TestSpansField()
         {
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] }",
-@"class C { void M() { this.[|Foo|] }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|]; }",
-@"class C { void M() { this.[|Foo|]; }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|];
+    }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|];
+    }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] = 1 }",
-@"class C { void M() { this.[|Foo|] = 1 }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] = 1 + 2 }",
-@"class C { void M() { this.[|Foo|] = 1 + 2 }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 + 2 }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 + 2 }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] = 1 + 2; }",
-@"class C { void M() { this.[|Foo|] = 1 + 2; }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 + 2;
+    }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] = 1 + 2;
+    }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] += Bar() }",
-@"class C { void M() { this.[|Foo|] += Bar() }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] += Bar() }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] += Bar() }");
 
             await TestSpansAsync(
-@"class C { void M() { this.[|Foo|] += Bar(); }",
-@"class C { void M() { this.[|Foo|] += Bar(); }");
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] += Bar();
+    }",
+@"class C
+{
+    void M()
+    {
+        this.[|Foo|] += Bar();
+    }");
         }
 
         [WorkItem(539427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539427")]
@@ -1309,8 +1409,7 @@ class Class
 {
     void Method(int i)
     {
-        [|foo|] = () =>
-        {
+        [|foo|] = () => {
             return 2 };
     }
 }",
@@ -1322,8 +1421,7 @@ class Class
 
     void Method(int i)
     {
-        foo = () =>
-        {
+        foo = () => {
             return 2 };
     }
 }");
@@ -1766,7 +1864,13 @@ compareTokens: false);
         public async Task TestIncrement()
         {
             await TestExactActionSetOfferedAsync(
-@"class Program { static void Main ( ) { [|p|] ++ ; } } ",
+@"class Program
+{
+    static void Main()
+    {
+        [|p|]++;
+    }
+}",
 new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
 
             await TestAsync(
@@ -3384,7 +3488,17 @@ index: 1);
         public async Task TestOnlyPropertyAndFieldOfferedForObjectInitializer()
         {
             await TestActionCountAsync(
-@"class Foo { } class Bar { void foo ( ) { var c = new Foo { . [|Gibberish|] = 24 } ; } } ",
+@"class Foo
+{
+}
+
+class Bar
+{
+    void foo()
+    {
+        var c = new Foo { . [|Gibberish|] = 24 };
+    }
+}",
 2);
         }
 
@@ -3760,6 +3874,7 @@ class Program
     {
 #line default
         Foo(Program.[|X|])
+
 
 #line hidden
     }
@@ -6599,8 +6714,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|foo|] = () =>
-        {
+        [|foo|] = () => {
             return 0;
         };
     }
@@ -6613,8 +6727,7 @@ class Program
 
     static void Main(string[] args)
     {
-        foo = () =>
-        {
+        foo = () => {
             return 0;
         };
     }
@@ -6631,8 +6744,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|foo|] = () =>
-        {
+        [|foo|] = () => {
             return 0;
         };
     }
@@ -6645,8 +6757,7 @@ class Program
 
     static void Main(string[] args)
     {
-        foo = () =>
-        {
+        foo = () => {
             return 0;
         };
     }
@@ -6664,8 +6775,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|foo|] = () =>
-        {
+        [|foo|] = () => {
             return 0;
         };
     }
@@ -6676,8 +6786,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int> foo = () =>
-        {
+        Func<int> foo = () => {
             return 0;
         };
     }

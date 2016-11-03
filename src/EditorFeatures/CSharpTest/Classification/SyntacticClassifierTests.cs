@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarInsideLocalAndExpressions()
         {
-            await TestInMethodAsync(@"var var = (var)var as var;",
+            await TestInMethodAsync(
+@"var var = (var)var as var;",
                 Keyword("var"),
                 Identifier("var"),
                 Operators.Equals,
@@ -172,7 +173,9 @@ class yield
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldFixed()
         {
-            await TestInMethodAsync(@"yield return this.items[0]; yield break; fixed (int* i = 0) { }",
+            await TestInMethodAsync(
+@"yield return this.items[0]; yield break; fixed (int* i = 0) {
+}",
                 Keyword("yield"),
                 Keyword("return"),
                 Keyword("this"),
@@ -210,7 +213,10 @@ class yield
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialMethod()
         {
-            await TestInClassAsync("public partial void M() { }",
+            await TestInClassAsync(
+@"public partial void M()
+{
+}",
                 Keyword("public"),
                 Keyword("partial"),
                 Keyword("void"),
@@ -228,7 +234,8 @@ class yield
         [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType()
         {
-            await TestInMethodAsync("partial p1 = 42;",
+            await TestInMethodAsync(
+@"partial p1 = 42;",
                 Identifier("partial"),
                 Identifier("p1"),
                 Operators.Equals,
@@ -1184,7 +1191,8 @@ class cl
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix2()
         {
-            await TestInMethodAsync(@"/**/int /**/i = 0;",
+            await TestInMethodAsync(
+@"/**/int /**/i = 0;",
                 Comment("/**/"),
                 Keyword("int"),
                 Comment("/**/"),
@@ -1825,7 +1833,11 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Method()
         {
-            await TestInClassAsync(@"T M<T>(T t) { return default(T); }",
+            await TestInClassAsync(
+@"T M<T>(T t)
+{
+    return default(T);
+}",
                 Identifier("T"),
                 Identifier("M"),
                 Punctuation.OpenAngle,
@@ -1987,7 +1999,10 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDelegate()
         {
-            await TestInClassAsync(@"[type: A] [return: A] delegate void M();",
+            await TestInClassAsync(
+@"[type: A]
+[return: A]
+delegate void M();",
                 Punctuation.OpenBracket,
                 Keyword("type"),
                 Punctuation.Colon,
@@ -2009,7 +2024,12 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnMethod()
         {
-            await TestInClassAsync(@"[return: A] [method: A] void M() { }",
+            await TestInClassAsync(
+@"[return: A]
+[method: A]
+void M()
+{
+}",
                 Punctuation.OpenBracket,
                 Keyword("return"),
                 Punctuation.Colon,
@@ -2086,7 +2106,12 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnOperator()
         {
-            await TestInClassAsync(@"[method: A] [return: A] static T operator +(T a, T b) { }",
+            await TestInClassAsync(
+@"[method: A]
+[return: A]
+static T operator +(T a, T b)
+{
+}",
                 Punctuation.OpenBracket,
                 Keyword("method"),
                 Punctuation.Colon,
@@ -2115,14 +2140,22 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnEventDeclaration()
         {
-            await TestInClassAsync(@"[event: A] event A E {
-[param: Test]
-[method: Test]
-add { }
-[param: Test]
-[method: Test]
-remove { } }
-",
+            await TestInClassAsync(
+@"[event: A]
+event A E
+{
+    [param: Test]
+    [method: Test]
+    add
+    {
+    }
+
+    [param: Test]
+    [method: Test]
+    remove
+    {
+    }
+}",
                 Punctuation.OpenBracket,
                 Keyword("event"),
                 Punctuation.Colon,
@@ -2164,13 +2197,21 @@ remove { } }
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnPropertyAccessors()
         {
-            await TestInClassAsync(@"int P {
-[return: T]
-[method: T]
-get { }
-[param: T]
-[method: T]
-set{ } }",
+            await TestInClassAsync(
+@"int P
+{
+    [return: T]
+    [method: T]
+    get
+    {
+    }
+
+    [param: T]
+    [method: T]
+    set
+    {
+    }
+}",
                 Keyword("int"),
                 Identifier("P"),
                 Punctuation.OpenCurly,
@@ -2206,7 +2247,9 @@ set{ } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexers()
         {
-            await TestInClassAsync(@"[property: A] int this[int i] { get; set; }",
+            await TestInClassAsync(
+@"[property: A]
+int this[int i] { get; set; }",
                 Punctuation.OpenBracket,
                 Keyword("property"),
                 Punctuation.Colon,
@@ -2229,13 +2272,21 @@ set{ } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexerAccessors()
         {
-            await TestInClassAsync(@"int this[int i] {
-[return: T] 
-[method: T]
-get { }
-[param: T]
-[method: T]
-set { } }",
+            await TestInClassAsync(
+@"int this[int i]
+{
+    [return: T]
+    [method: T]
+    get
+    {
+    }
+
+    [param: T]
+    [method: T]
+    set
+    {
+    }
+}",
                 Keyword("int"),
                 Keyword("this"),
                 Punctuation.OpenBracket,
@@ -2275,7 +2326,8 @@ set { } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnField()
         {
-            await TestInClassAsync(@"[field: A]
+            await TestInClassAsync(
+@"[field: A]
 const int a = 0;",
                 Punctuation.OpenBracket,
                 Keyword("field"),

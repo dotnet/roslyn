@@ -318,7 +318,8 @@ class C : I
 @"class C
 {
     int GetFoo()
-    {[||]
+    {
+[||]
     }
 }");
         }
@@ -415,7 +416,8 @@ class C : I
 @"class C
 {
     int GetFoo()
-    {[||]
+    {
+[||]
     }
 }");
         }

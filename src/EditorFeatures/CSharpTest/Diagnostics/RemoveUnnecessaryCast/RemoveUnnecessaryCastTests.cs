@@ -236,8 +236,7 @@ class C
 {
     static void Main()
     {
-        var x = [|(Action)delegate
-        {
+        var x = [|(Action)delegate {
         }|]
 
         as Action;
