@@ -74,5 +74,8 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

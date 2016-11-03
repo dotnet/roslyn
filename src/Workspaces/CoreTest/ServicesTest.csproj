@@ -38,6 +38,10 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CoreTestUtilities\WorkspacesTestUtilities.csproj">
+      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
+      <Name>WorkspacesTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
