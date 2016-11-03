@@ -415,21 +415,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             // First operation returns span of 'Class1'
             await TestNavigatorAsync(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfEnclosing(s), 10, 0, 6, 6);
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 10, 0, 6, 6);
 
             // Second operation returns span of 'class Class1 { }'
             await TestNavigatorAsync(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfEnclosing(s), 6, 6, 0, 16);
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 6, 6, 0, 16);
 
             // Last operation does nothing
             await TestNavigatorAsync(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
@@ -463,9 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             // Go from '{' to 'Class1'
             await TestNavigatorAsync(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfPreviousSibling(s), 13, 1, 6, 6);
+@"class Class1 { }", (n, s) => n.GetSpanOfPreviousSibling(s), 13, 1, 6, 6);
         }
     }
 }
