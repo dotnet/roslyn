@@ -389,6 +389,10 @@ namespace Roslyn.Utilities
         }
     }
 
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal static class Functions<T>
     {
         public static readonly Func<T, T> Identity = t => t;
