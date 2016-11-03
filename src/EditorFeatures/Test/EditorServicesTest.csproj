@@ -208,8 +208,6 @@
     <Compile Include="Structure\BlockSpanTests.cs" />
     <Compile Include="Structure\StructureTaggerTests.cs" />
     <Compile Include="Preview\PreviewWorkspaceTests.cs" />
-    <Compile Include="RenameTracking\MockPreviewDialogService.cs" />
-    <Compile Include="RenameTracking\MockRefactorNotifyService.cs" />
     <Compile Include="RenameTracking\RenameTrackingTaggerProviderTests.cs" />
     <Compile Include="RenameTracking\RenameTrackingTestState.cs" />
     <Compile Include="RenameTracking\RenameTrackingWaiter.cs" />
@@ -225,7 +223,6 @@
     <Compile Include="Utilities\BloomFilterTests.cs" />
     <Compile Include="Utilities\PatternMatcherTests.cs" />
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
-    <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
   </ItemGroup>

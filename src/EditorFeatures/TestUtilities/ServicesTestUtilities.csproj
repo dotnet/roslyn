@@ -201,6 +201,8 @@
     <Compile Include="OptionExtensions.cs" />
     <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
+    <Compile Include="RenameTracking\MockPreviewDialogService.cs" />
+    <Compile Include="RenameTracking\MockRefactorNotifyService.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTestsBase.cs" />
     <Compile Include="ServiceTestExportProvider.cs" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProviderTests.cs" />
@@ -224,6 +226,7 @@
     <Compile Include="Traits.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTestBase.cs" />
     <Compile Include="Utilities\TestEditorOptions.cs" />
+    <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="VisualStudioSendKeys.cs" />
     <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\MefTestWorkspace.cs" />
