@@ -107,7 +107,8 @@ class C
         }
     }
     public void V<V>() { }
-}";
+}
+";
             var comp = CreateCompilationWithMscorlib(src);
             comp.VerifyDiagnostics(
                 // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -137,6 +138,57 @@ class C
                 // (67,32): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
                 //                     int Local3<T>() => 0;
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+        }
+
+        [Fact]
+        public void LocalFuncAndTypeParameterOnType()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C2<T>
+{
+    public void M()
+    {
+        {
+            int Local1()
+            {
+                int Local2<T>() => 0;
+                return Local2<int>();
+            }
+            Local1();
+        }
+        {
+            int Local1()
+            {
+                int Local2()
+                {
+                    // Shadows type parameter
+                    int T() => 0;
+
+                    // Type parameter resolves in type only context
+                    T t = default(T); 
+
+                    // Ambiguous context chooses local
+                    T.M();
+
+                    // Call chooses local
+                    return T();
+                }
+                return Local2();
+            }
+            Local1();
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C2<T>'
+                //                 int Local2<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C2<T>").WithLocation(9, 28),
+                // (26,21): error CS0119: 'T()' is a method, which is not valid in the given context
+                //                     T.M();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T()", "method").WithLocation(26, 21),
+                // (23,23): warning CS0219: The variable 't' is assigned but its value is never used
+                //                     T t = default(T); 
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(23, 23));
         }
 
         [Fact]
