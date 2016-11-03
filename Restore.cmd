@@ -2,7 +2,6 @@
 @setlocal
 
 set RoslynRoot=%~dp0
-set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
 set DevDivPackages=%RoslynRoot%src\Setup\DevDivPackages
 
 :ParseArguments
