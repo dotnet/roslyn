@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
                     _isPatternSwitch =
                         (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false &&
-                        (parseOptions?.Features.ContainsKey("typeswitch") == true ||
-                         IsPatternSwitchSyntax(SwitchSyntax) ||
+                        (IsPatternSwitchSyntax(SwitchSyntax) ||
                          !SwitchGoverningType.IsValidV6SwitchGoverningType()));
                 }
 

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternSubsumptionTests : CSharpTestBase
     {
-        private static readonly CSharpParseOptions s_patternParseOptions = TestOptions.RegularWithPatterns;
+        private static readonly CSharpParseOptions s_patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EqualConstant()

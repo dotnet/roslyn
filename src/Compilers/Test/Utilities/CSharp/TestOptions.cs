@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
         // enable pattern-switch translation even for switches that use no new syntax.
-        public static readonly CSharpParseOptions RegularWithPatterns = Regular.WithFeatures(new Dictionary<string, string>() { { "typeswitch", "true" } });
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
