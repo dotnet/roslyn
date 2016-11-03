@@ -816,4 +816,10 @@ Additional information: {1}</value>
   <data name="Prefer_null_propagation" xml:space="preserve">
     <value>Prefer null propagation</value>
   </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Preference" xml:space="preserve">
+    <value>Preference</value>
+  </data>
 </root>

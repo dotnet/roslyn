@@ -82,7 +82,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn
                     x:Name="description" 
-                    Header="Description"
+                    Header="{x:Static local:GridOptionPreviewControl.DescriptionHeader}"
                     Binding="{Binding Description, Mode=OneWay}" 
                     Width="4.5*"
                     IsReadOnly="True">
@@ -98,7 +98,7 @@
                 </DataGridTextColumn>
                 <DataGridTemplateColumn 
                     x:Name="preference" 
-                    Header="Preference"
+                    Header="{x:Static local:GridOptionPreviewControl.PreferenceHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -113,7 +113,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="severity" 
-                    Header="Severity"
+                    Header="{x:Static local:GridOptionPreviewControl.SeverityHeader}"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
