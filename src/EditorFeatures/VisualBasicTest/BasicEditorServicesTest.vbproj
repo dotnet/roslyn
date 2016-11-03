@@ -120,6 +120,7 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
@@ -190,8 +191,7 @@
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
-    <Compile Include="Structure\ObjectCollectionInitializerStructureProviderTests.vb" />
-    <Compile Include="Structure\ObjectMemberInitializerStructureProviderTests.vb" />
+    <Compile Include="Structure\ObjectCreationInitializerStructureProviderTests.vb" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />

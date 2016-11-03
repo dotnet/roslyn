@@ -5,15 +5,31 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
-    Public Class ObjectMemberInitializerStructureProviderTests
-        Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of ObjectMemberInitializerSyntax)
+    Public Class ObjectCreationInitializerStructureProviderTests
+        Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of ObjectCreationInitializerSyntax)
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
             Return New ObjectCreationInitializerStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Async Function TestOuterInitializer() As Task
+        Public Async Function TestCollectionInitializer() As Task
+            Const code = "
+Class C
+    Sub M()
+        dim d = {|hintspan:new Dictionary(of integer, string){|textspan: $$From {
+            { 1, ""foo"" }
+        }|}|}
+    End Sub
+End Class
+"
+
+            Await VerifyBlockSpansAsync(code,
+                Region("textspan", "hintspan", bannerText:="...", autoCollapse:=False))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestMemberInitializer() As Task
             Const code = "
 Class C
     private i as integer
