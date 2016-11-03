@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -190,8 +190,8 @@
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.vb" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
@@ -504,6 +504,7 @@
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.vb" />
     <Compile Include="TodoComment\TodoCommentTests.vb" />
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
+    <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.vb" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />
@@ -603,6 +604,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
+    <Compile Include="UseNullPropagation\UseNullPropagationTests.vb" />
     <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -623,6 +625,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
+    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

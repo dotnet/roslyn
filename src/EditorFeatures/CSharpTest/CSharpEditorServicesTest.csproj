@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -93,10 +93,8 @@
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
@@ -139,6 +137,7 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
@@ -171,8 +170,8 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
@@ -280,8 +279,10 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />

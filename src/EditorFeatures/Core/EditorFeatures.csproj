@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</ProjectGuid>

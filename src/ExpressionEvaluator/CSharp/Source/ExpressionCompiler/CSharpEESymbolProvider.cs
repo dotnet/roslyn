@@ -108,11 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlagsOpt, checkLength: false);
             }
-            if (!tupleElementNamesOpt.IsDefault)
-            {
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNamesOpt);
-            }
-            return type;
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNamesOpt);
         }
     }
 }

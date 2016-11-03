@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -113,7 +112,7 @@
     <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
+    <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />
@@ -123,6 +122,7 @@
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
+    <Compile Include="ConvertToInterpolatedString\VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="ConvertToInterpolatedString\VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
@@ -430,8 +430,12 @@
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
     <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
+    <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
+    <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />

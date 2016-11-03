@@ -3,10 +3,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return null;
             }
 
-            var applicableOption = QualifyMemberAccessDiagnosticAnalyzerBase<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
+            var applicableOption = AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
             var severity = optionValue.Notification.Value;
 

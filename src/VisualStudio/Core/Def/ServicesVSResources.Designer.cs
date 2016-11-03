@@ -1375,6 +1375,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer collection initializer.
+        /// </summary>
+        internal static string Prefer_collection_initializer {
+            get {
+                return ResourceManager.GetString("Prefer_collection_initializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer framework type.
         /// </summary>
         internal static string Prefer_framework_type {
@@ -1389,6 +1398,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_inlined_variable_declaration {
             get {
                 return ResourceManager.GetString("Prefer_inlined_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer null propagation.
+        /// </summary>
+        internal static string Prefer_null_propagation {
+            get {
+                return ResourceManager.GetString("Prefer_null_propagation", resourceCulture);
             }
         }
         

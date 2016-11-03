@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</ProjectGuid>
