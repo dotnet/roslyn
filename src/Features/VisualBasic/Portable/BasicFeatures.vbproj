@@ -430,6 +430,8 @@
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
     <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
     <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
     <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />

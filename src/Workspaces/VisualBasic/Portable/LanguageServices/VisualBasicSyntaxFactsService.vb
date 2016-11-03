@@ -493,6 +493,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RefKind.None
         End Function
 
+        Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
+            Dim argument = DirectCast(node, ArgumentSyntax)
+            Return Not argument.IsNamed AndAlso Not argument.IsOmitted
+        End Function
+
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
             Return node.IsInConstantContext()
         End Function
@@ -1381,7 +1386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetArgumentsForInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsForInvocationExpression
+        Public Function GetArgumentsOfInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
             Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
             Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
@@ -1562,6 +1567,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return syntaxTree.IsPossibleTupleContext(token, position)
+        End Function
+
+        Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfExpressionStatement
+            Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
         Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression

@@ -165,6 +165,29 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferCollectionInitializer As String = "
+
+Class Customer
+    Private Age As Integer
+
+    Sub New()
+//[
+        ' Prefer:
+        Dim list = New List(Of Integer) From {
+            1,
+            2,
+            3
+        }
+
+        ' Over:
+        Dim list = New List(Of Integer)()
+        list.Add(1)
+        list.Add(2)
+        list.Add(3)
+//]
+    End Sub
+End Class"
+
         Private Shared ReadOnly s_preferCoalesceExpression As String = "
 Imports System
 
@@ -238,6 +261,7 @@ End Class"
 
             ' expression preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
 
             ' nothing preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))

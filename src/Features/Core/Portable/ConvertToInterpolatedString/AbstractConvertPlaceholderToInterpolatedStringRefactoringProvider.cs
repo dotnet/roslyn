@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             TInvocationExpressionSyntax invocation;
             ISymbol invocationSymbol;
             if (TryFindInvocation(context.Span, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out invocation, out invocationSymbol) &&
-                IsArgumentListCorrect(syntaxFactsService.GetArgumentsForInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
+                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
             {
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             invocation = root.FindNode(span, getInnermostNodeForTie: true)?.FirstAncestorOrSelf<TInvocationExpressionSyntax>();
             while (invocation != null)
             {
-                var arguments = syntaxFactsService.GetArgumentsForInvocationExpression(invocation);
+                var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
                     var firstArgumentExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var arguments = syntaxFactsService.GetArgumentsForInvocationExpression(invocation);
+            var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
             var literalExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
             var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();

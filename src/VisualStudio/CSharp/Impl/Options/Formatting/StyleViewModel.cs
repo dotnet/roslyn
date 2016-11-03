@@ -380,6 +380,34 @@ class Customer
 }
 ";
 
+        private static readonly string s_preferCollectionInitializer = @"
+using System.Collections.Generic;
+
+class Customer
+{
+    private int Age;
+
+    public Customer()
+    {
+//[
+        // Prefer:
+        var list = new List<int>
+        {
+            1,
+            2,
+            3
+        };
+
+        // Over:
+        var list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        list.Add(3);
+//]
+    }
+}
+";
+
         private static readonly string s_preferInlinedVariableDeclaration = @"
 using System;
 
@@ -629,6 +657,7 @@ class List<T>
 
             // Expression preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
 

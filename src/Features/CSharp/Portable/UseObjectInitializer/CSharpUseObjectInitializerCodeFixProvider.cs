@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
     {
         protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
-            List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
+            ImmutableArray<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
         {
             var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                          .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
@@ -34,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            List<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
+            ImmutableArray<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            for (int i = 0; i < matches.Count; i++)
+            for (int i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
                 var expressionStatement = match.Statement;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 var newAssignment = assignment.WithLeft(
                     match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
 
-                if (i < matches.Count - 1)
+                if (i < matches.Length - 1)
                 {
                     nodesAndTokens.Add(newAssignment);
                     var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken)

@@ -599,9 +599,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public RefKind GetRefKindOfArgument(SyntaxNode node)
+            => (node as ArgumentSyntax).GetRefKind();
+
+        public bool IsSimpleArgument(SyntaxNode node)
         {
-            return (node as ArgumentSyntax).GetRefKind();
+            var argument = (ArgumentSyntax)node;
+            return argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
+                   argument.NameColon == null;
         }
+
 
         public bool IsInConstantContext(SyntaxNode node)
         {
@@ -1698,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
         {
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
@@ -1801,13 +1807,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
-        {
-            return ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
-        }
+            => ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
 
         public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
+            => ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
+
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
         {
-            return ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
+            var memberAccess = (MemberAccessExpressionSyntax)node;
+            expression = memberAccess.Expression;
+            name = memberAccess.Name;
         }
 
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
@@ -1862,20 +1871,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
-        {
-            return ((InvocationExpressionSyntax)node).Expression;
-        }
+            => ((InvocationExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
-        {
-            return ((AwaitExpressionSyntax)node).Expression;
-        }
+            => ((AwaitExpressionSyntax)node).Expression;
 
         public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             return syntaxTree.IsPossibleTupleContext(token, position);
         }
+
+        public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
+            => ((ExpressionStatementSyntax)node).Expression;
 
         public bool IsNullLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.NullLiteralExpression;
@@ -1906,13 +1914,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
-
-        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
-        {
-            var memberAccessExpression = (MemberAccessExpressionSyntax)node;
-            expression = memberAccessExpression.Expression;
-            name = memberAccessExpression.Name;
-        }
 
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
