@@ -361,6 +361,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkspacesTestUtilities", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolset", "build\Toolset\Toolset.csproj", "{57557F32-0635-421A-BCF8-549AED50F764}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ServicesTestUtilities2", "src\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj", "{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
@@ -3168,6 +3170,26 @@ Global
 		{57557F32-0635-421A-BCF8-549AED50F764}.Release|x64.Build.0 = Release|Any CPU
 		{57557F32-0635-421A-BCF8-549AED50F764}.Release|x86.ActiveCfg = Release|Any CPU
 		{57557F32-0635-421A-BCF8-549AED50F764}.Release|x86.Build.0 = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|ARM.Build.0 = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|x64.Build.0 = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Debug|x86.Build.0 = Debug|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|ARM.ActiveCfg = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|ARM.Build.0 = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|x64.ActiveCfg = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|x64.Build.0 = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -3337,5 +3359,6 @@ Global
 		{21A01C2D-2501-4619-8144-48977DD22D9C} = {38940C5F-97FD-4B2A-B2CD-C4E4EF601B05}
 		{3F2FDC1C-DC6F-44CB-B4A1-A9026F25D66E} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{57557F32-0635-421A-BCF8-549AED50F764} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{3DFB4701-E3D6-4435-9F70-A6E35822C4F2} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 	EndGlobalSection
 EndGlobal

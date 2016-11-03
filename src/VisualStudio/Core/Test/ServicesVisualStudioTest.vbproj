@@ -22,9 +22,9 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Test2\EditorServicesTest2.vbproj">
-      <Project>{3cea0d69-00d3-40e5-a661-dc41ea07269b}</Project>
-      <Name>EditorServicesTest2</Name>
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj">
+      <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
+      <Name>ServicesTestUtilities2</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>

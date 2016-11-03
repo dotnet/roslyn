@@ -93,6 +93,10 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestUtilities2\ServicesTestUtilities2.vbproj">
+      <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
+      <Name>ServicesTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
@@ -148,9 +152,6 @@
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
     <Compile Include="NamingStyles\NamingStylesTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
-    <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
-    <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
-    <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
     <Compile Include="Compilation\CompilationTests.vb" />
     <Compile Include="Diagnostics\AbstractCrossLanguageUserDiagnosticTest.vb" />
@@ -204,26 +205,15 @@
     <Compile Include="FindReferences\FindReferencesTests.XmlDocSymbols.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionCommandHandlerTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionTests.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationService.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationServiceFactory.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockNavigableItemsPresenter.vb" />
-    <Compile Include="IntelliSense\CompletionWaiter.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
     <Compile Include="IntelliSense\CSharpIntelliSenseCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CSharpSignatureHelpCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\IIntelliSenseTestState.vb" />
     <Compile Include="IntelliSense\MockCompletionProvider.vb" />
     <Compile Include="IntelliSense\SessionTests.vb" />
     <Compile Include="IntelliSense\SignatureHelpControllerTests.vb" />
     <Compile Include="IntelliSense\QuickInfoControllerTests.vb" />
     <Compile Include="IntelliSense\ModelTests.vb" />
-    <Compile Include="IntelliSense\SignatureHelpWaiter.vb" />
-    <Compile Include="IntelliSense\TestCompletionPresenter.vb" />
-    <Compile Include="IntelliSense\TestCompletionPresenterSession.vb" />
-    <Compile Include="IntelliSense\TestSignatureHelpPresenter.vb" />
-    <Compile Include="IntelliSense\TestSignatureHelpPresenterSession.vb" />
-    <Compile Include="IntelliSense\TestState.vb" />
     <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests_Projections.vb" />
     <Compile Include="IntelliSense\VisualBasicSignatureHelpCommandHandlerTests.vb" />
@@ -275,8 +265,6 @@
     <Compile Include="Simplification\ParenthesisSimplificationTests.vb" />
     <Compile Include="Simplification\TypeInferenceSimplifierTests.vb" />
     <Compile Include="Simplification\TypeNameSimplifierTest.vb" />
-    <Compile Include="Utilities\AssertEx.vb" />
-    <Compile Include="Utilities\TestNotificationService.vb" />
     <Compile Include="Workspaces\SymbolDescriptionServiceTests.vb" />
     <Compile Include="Workspaces\TryFindSourceDefinitionTests.vb" />
   </ItemGroup>
