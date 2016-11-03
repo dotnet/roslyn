@@ -328,14 +328,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var reference in commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver))
             {
-                // References that don't exist on disk will come back prepended with "Unresolved: ".  We'll strip that off 
-                // and still add them, so that if they appear, we'll load them (maybe they are outputs of other parts of the build).
-                const string unresolved = "Unresolved: ";
-                var path = reference.Display;
-                if (path.StartsWith(unresolved))
-                {
-                    path = path.Substring(unresolved.Length);
-                }
+                // Some references may fail to be resolved - if they are, we'll still pass them
+                // through, in case they come into existence later (they may be built by other 
+                // parts of the build system).
+                var unresolvedReference = reference as UnresolvedMetadataReference;
+                var path = unresolvedReference == null
+                    ? ((PortableExecutableReference)reference).FilePath
+                    : unresolvedReference.Reference;
 
                 string possibleProjectReference;
                 if (targetPathsToProjectPaths.TryGetValue(path, out possibleProjectReference) &&
