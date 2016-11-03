@@ -39,10 +39,6 @@
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasicTest\BasicScriptingTest.vbproj">
-      <Project>{abc7262e-1053-49f3-b846-e3091bb92e8c}</Project>
-      <Name>BasicScriptingTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicScripting.vbproj">
       <Project>{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}</Project>
       <Name>BasicScripting</Name>

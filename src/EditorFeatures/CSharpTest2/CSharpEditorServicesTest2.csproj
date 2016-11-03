@@ -79,10 +79,6 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CSharpTest\CSharpEditorServicesTest.csproj">
-      <Project>{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}</Project>
-      <Name>CSharpEditorServicesTest</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>

@@ -225,6 +225,7 @@
     <Compile Include="Threading\WpfTestCase.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTestBase.cs" />
+    <Compile Include="Utilities\Options.cs" />
     <Compile Include="Utilities\TestEditorOptions.cs" />
     <Compile Include="Utilities\TestWaitContext.cs" />
     <Compile Include="VisualStudioSendKeys.cs" />
@@ -267,6 +268,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
