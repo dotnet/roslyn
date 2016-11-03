@@ -151,8 +151,7 @@ class C
 
                 var data = new FixProviderData(installerServiceMock.Object, packageServiceMock.Object);
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
@@ -161,8 +160,7 @@ index: 0,
 fixProviderData: data);
 
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
@@ -171,8 +169,7 @@ index: 1,
 fixProviderData: data);
 
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",

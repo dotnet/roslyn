@@ -115,28 +115,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping2()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping3()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping4()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -224,7 +236,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_NoConversion()
         {
-            await TestFixOneAsync(@"{ int [||]x = 3; x.ToString(); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 3;
+
+x.ToString(); }",
                        @"{ 3.ToString(); }");
         }
 
@@ -347,7 +362,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NoCastOnVar()
         {
-            await TestFixOneAsync(@"{ var [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ var [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -379,14 +397,18 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAnonymousType1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 42; var a = new { x }; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 42;
+var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestParenthesizedAtReference_Case3()
         {
-            await TestFixOneAsync(@"{ int [||]x = 1 + 1; int y = x * 2; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 1 + 1;
+int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
 
@@ -622,7 +644,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer()
         {
-            await TestFixOneAsync(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
+            await TestFixOneAsync(
+@"{ int[] [||]x = {
+    3,
+    4,
+    5
+};
+int a = Array.IndexOf(x, 3); }",
                        @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
         }
 

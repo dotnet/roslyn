@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     void M()
     {
 
+
         #define Debug
 #undef Trace
     class PurchaseTransaction
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
+
 
         #define Debug
 #undef Trace
@@ -83,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     void M()
     {
 
+
         #define Debug
 #undef Trace
     class PurchaseTransaction
@@ -113,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     void M()
     {
 
+
         #define Debug
 #undef Trace
     class PurchaseTransaction
@@ -142,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     void M()
     {
+
 
         #define Debug
 #undef Trace

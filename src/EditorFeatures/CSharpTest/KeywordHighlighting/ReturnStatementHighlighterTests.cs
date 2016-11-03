@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"static double CalculateArea(double radius)
 {
-    Func<double, double> f = r =>
-    {
+    Func<double, double> f = r => {
         if (Double.IsNan(r))
         {
             {|Cursor:[|return|]|} Double.NaN;
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 return {|Cursor:Double.NaN|};
@@ -67,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 [|return|] Double.NaN;{|Cursor:|}
@@ -91,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 [|return|] Double.NaN;
@@ -115,8 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 return Double.NaN;
@@ -139,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 [|return|] Double.NaN;
@@ -163,8 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 return Double.NaN;
@@ -187,8 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 return Double.NaN;
@@ -211,8 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     static double CalculateArea(double radius)
     {
-        Func<double, double> f = r =>
-        {
+        Func<double, double> f = r => {
             if (Double.IsNan(r))
             {
                 return Double.NaN;

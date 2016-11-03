@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -51,22 +51,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             await TestBraceHighlightingAsync("/// <summary>Foo</summary$$>");
             await TestBraceHighlightingAsync("/// <summary>Foo</summary>$$");
 
-            await TestBraceHighlightingAsync("public class C$$[|<|]T[|>|] { }");
-            await TestBraceHighlightingAsync("public class C<$$T> { }");
-            await TestBraceHighlightingAsync("public class C<T$$> { }");
-            await TestBraceHighlightingAsync("public class C[|<|]T[|>|]$$ { }");
+            await TestBraceHighlightingAsync(
+@"public class C$$[|<|]T[|>|]
+{
+}");
+            await TestBraceHighlightingAsync(
+@"public class C<$$T>
+{
+}");
+            await TestBraceHighlightingAsync(
+@"public class C<T$$>
+{
+}");
+            await TestBraceHighlightingAsync(
+@"public class C[|<|]T[|>$$|]
+{
+}");
 
-            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b $$< c; bool d = e > f; } }");
-            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b <$$ c; bool d = e > f; } }");
-            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b < c; bool d = e $$> f; } }");
-            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b < c; bool d = e >$$ f; } }");
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    void Foo()
+    {
+        bool a = b $$< c;
+        bool d = e > f;
+    }
+}");
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    void Foo()
+    {
+        bool a = b <$$ c;
+        bool d = e > f;
+    }
+}");
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    void Foo()
+    {
+        bool a = b < c;
+        bool d = e $$> f;
+    }
+}");
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    void Foo()
+    {
+        bool a = b < c;
+        bool d = e >$$ f;
+    }
+}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestSwitch()
         {
-            await TestBraceHighlightingAsync(@"
-class C
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
@@ -76,9 +120,9 @@ class C
                 break;
         }
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
@@ -88,9 +132,9 @@ class C
                 break;
         }
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
@@ -100,33 +144,33 @@ class C
                 break;
         }
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
-        switch [|(|]variable[|)|]$$
+        switch [|(|]variable[|)$$|]
         {
             case 0:
                 break;
         }
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
         switch (variable)
-       $$[|{|]
+        $$[|{|]
             case 0:
                 break;
         [|}|]
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
@@ -136,9 +180,9 @@ class C
                 break;
         }
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
@@ -148,19 +192,19 @@ class C
                 break;
         $$}
     }
-} ");
-            await TestBraceHighlightingAsync(@"
-class C
+}");
+            await TestBraceHighlightingAsync(
+@"class C
 {
     void M(int variable)
     {
         switch (variable)
-       [|{|]
+        [|{|]
             case 0:
                 break;
-        [|}|]$$
+        [|}$$|]
     }
-} ");
+}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
@@ -173,22 +217,46 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestTuples()
         {
-            await TestBraceHighlightingAsync(@" class C { [|(|]int, int[|)|]$$ x = (1, 2); } ", TestOptions.Regular);
-            await TestBraceHighlightingAsync(@" class C { (int, int) x = [|(|]1, 2[|)|]$$; } ", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    [|(|]int, int[|)$$|] x = (1, 2);
+}", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    (int, int) x = [|(|]1, 2[|)$$|];
+}", TestOptions.Regular);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestNestedTuples()
         {
-            await TestBraceHighlightingAsync(@" class C { ([|(|]int, int[|)|]$$, string) x = ((1, 2), ""hello""; } ", TestOptions.Regular);
-            await TestBraceHighlightingAsync(@" class C { ((int, int), string) x = ([|(|]1, 2[|)|]$$, ""hello""; } ", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    ([|(|]int, int[|)$$|], string) x = ((1, 2), ""hello"";
+}", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    ((int, int), string) x = ([|(|]1, 2[|)$$|], ""hello"";
+}", TestOptions.Regular);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestTuplesWithGenerics()
         {
-            await TestBraceHighlightingAsync(@" class C { [|(|]Dictionary<int, string>, List<int>[|)|]$$ x = (null, null); } ", TestOptions.Regular);
-            await TestBraceHighlightingAsync(@" class C { var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)|]$$; } ", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    [|(|]Dictionary<int, string>, List<int>[|)$$|] x = (null, null);
+}", TestOptions.Regular);
+            await TestBraceHighlightingAsync(
+@"class C
+{
+    var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
+}", TestOptions.Regular);
         }
     }
 }

@@ -33,22 +33,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVoid()
         {
-            await Test_KeywordAsync(@"
-class C
+            await Test_KeywordAsync(
+@"class C
 {
-    vo[||]id foo() { }
+    vo[||]id foo()
+    {
+    }
 }", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestReturn()
         {
-            await Test_KeywordAsync(@"
-class C
+            await Test_KeywordAsync(
+@"class C
 {
-    void foo() 
-    { 
-        ret[||]urn; 
+    void foo()
+    {
+        ret[||]urn;
     }
 }", "return");
         }
@@ -56,8 +58,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestPartialType()
         {
-            await Test_KeywordAsync(@"
-part[||]ial class C
+            await Test_KeywordAsync(
+@"part[||]ial class C
 {
     partial void foo();
 }", "partialtype");
@@ -66,8 +68,8 @@ part[||]ial class C
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestPartialMethod()
         {
-            await Test_KeywordAsync(@"
-partial class C
+            await Test_KeywordAsync(
+@"partial class C
 {
     par[||]tial void foo();
 }", "partialmethod");
@@ -76,12 +78,16 @@ partial class C
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestWhereClause()
         {
-            await Test_KeywordAsync(@"
-using System.Linq;
-class Program<T> where T : class {
+            await Test_KeywordAsync(
+@"using System.Linq;
+
+class Program<T> where T : class
+{
     void foo(string[] args)
     {
-        var x = from a in args whe[||]re a.Length > 0 select a;
+        var x = from a in args
+                whe[||]re a.Length > 0
+                select a;
     }
 }", "whereclause");
         }
@@ -89,12 +95,16 @@ class Program<T> where T : class {
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestWhereConstraint()
         {
-            await Test_KeywordAsync(@"
-using System.Linq;
-class Program<T> wh[||]ere T : class {
+            await Test_KeywordAsync(
+@"using System.Linq;
+
+class Program<T> wh[||]ere T : class
+{
     void foo(string[] args)
     {
-        var x = from a in args where a.Length > 0 select a;
+        var x = from a in args
+                where a.Length > 0
+                select a;
     }
 }", "whereconstraint");
         }
@@ -488,8 +498,7 @@ class Program
 {
     void M()
     {
-        var a = new System.Action(() =[||]>
-        {
+        var a = new System.Action(() =[||]> {
         });
     }
 }", "=>_CSharpKeyword");
@@ -506,8 +515,7 @@ class Program
 
     void M()
     {
-        e +[||]= () =>
-        {
+        e +[||]= () => {
         };
     }
 }", "CCC.e.add");

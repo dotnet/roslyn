@@ -437,7 +437,18 @@ index: 1);
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 FeaturesResources.Generate_Equals_object);
         }
 
@@ -445,7 +456,18 @@ FeaturesResources.Generate_Equals_object);
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 FeaturesResources.Generate_GetHashCode,
 index: 1);
         }
@@ -454,7 +476,18 @@ index: 1);
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 FeaturesResources.Generate_Both,
 index: 2);
         }

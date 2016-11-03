@@ -323,8 +323,7 @@ class C
 {
     C()
     {
-        Action a = (C p) =>
-        {
+        Action a = (C p) => {
         };
     }
 }",
@@ -339,8 +338,7 @@ class C
 {
     C()
     {
-        Action a = delegate (C p)
-        {
+        Action a = delegate (C p) {
         };
     }
 }",
@@ -1175,7 +1173,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task NAQTypeNameCtor()
         {
-            await TestInMethodAsync(@"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
+            await TestInMethodAsync(
+@"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
                 Class("BufferedStream"),
                 Class("BufferedStream"));
         }
@@ -1218,8 +1217,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task NAQEventSubscription()
         {
-            await TestInMethodAsync(@"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
-            delegate(object sender, System.AssemblyLoadEventArgs args) {};",
+            await TestInMethodAsync(
+@"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
+            delegate (object sender, System.AssemblyLoadEventArgs args) {};",
                 Class("AppDomain"),
                 Class("AssemblyLoadEventArgs"));
         }
@@ -1232,8 +1232,7 @@ class C
 {
     void M()
     {
-        System.Action<System.EventArgs> a = delegate (System.EventArgs e)
-        {
+        System.Action<System.EventArgs> a = delegate (System.EventArgs e) {
         };
     }
 }",
@@ -1245,7 +1244,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task NAQCtor()
         {
-            await TestInMethodAsync(@"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
+            await TestInMethodAsync(
+@"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
                 Struct("DictionaryEntry"),
                 Struct("DictionaryEntry"));
         }
@@ -1892,7 +1892,7 @@ public class X : B<X>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestDuplicateTypeParamWithConstraint()
         {
-            await TestAsync(@"where U : IEnumerable<S>", 
+            await TestAsync(@"where U : IEnumerable<S>",
 @"using System.Collections.Generic;
 
 class C<T>
@@ -1919,7 +1919,10 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task OptimisticallyColorFromInAssignment()
         {
-            await TestInMethodAsync(@"var q = 3; q = from",
+            await TestInMethodAsync(
+@"var q = 3;
+
+q = from",
                 Keyword("var"),
                 Keyword("from"));
         }
@@ -1935,7 +1938,10 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorThingsOtherThanFromInAssignment()
         {
-            await TestInMethodAsync("var q = 3; q = fro ",
+            await TestInMethodAsync(
+@"var q = 3;
+
+q = fro",
                 Keyword("var"));
         }
 
@@ -1943,9 +1949,9 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorFromWhenBoundInDeclaration()
         {
-            await TestInMethodAsync(@"
-var from = 3;
-var q = from ",
+            await TestInMethodAsync(
+@"var from = 3;
+var q = from",
                 Keyword("var"),
                 Keyword("var"));
         }
@@ -1954,10 +1960,11 @@ var q = from ",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorFromWhenBoundInAssignment()
         {
-            await TestInMethodAsync(@"
-var q = 3;
+            await TestInMethodAsync(
+@"var q = 3;
 var from = 3;
-q = from ",
+
+q = from",
                 Keyword("var"),
                 Keyword("var"));
         }
