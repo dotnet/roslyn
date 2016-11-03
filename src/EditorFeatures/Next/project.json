@@ -13,7 +13,7 @@
         "Roslyn.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "15.0.25726-Preview5",
         "System.Collections.Immutable": "1.2.0",
         "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "VS.ExternalAPIs.CodingConventions": "1.0.60704.2"

@@ -5,15 +5,15 @@
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Language.Intellisense": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Editor": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Language.StandardClassification": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         }
     },

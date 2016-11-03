@@ -1,20 +1,20 @@
 ﻿{
     "dependencies": {
-        "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "14.3.25420",
+        "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "15.0.25726-Preview5",
         "Microsoft.VisualStudio.Language.Intellisense": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-            "version": "14.3.25420",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.ImageCatalog": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
     },

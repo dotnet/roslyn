@@ -5,11 +5,11 @@
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Text.UI": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Text.UI.Wpf": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
     },

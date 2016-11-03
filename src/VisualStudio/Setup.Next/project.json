@@ -5,7 +5,7 @@
         "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.25413-Preview5",
         "Microsoft.VisualStudio.Shell.Immutable.11.0": "15.0.25413-Preview5",
         "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         }
     },
