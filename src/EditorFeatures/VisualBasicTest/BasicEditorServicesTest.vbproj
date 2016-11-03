@@ -190,6 +190,8 @@
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
+    <Compile Include="Structure\ObjectCollectionInitializerStructureProviderTests.vb" />
+    <Compile Include="Structure\ObjectMemberInitializerStructureProviderTests.vb" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
