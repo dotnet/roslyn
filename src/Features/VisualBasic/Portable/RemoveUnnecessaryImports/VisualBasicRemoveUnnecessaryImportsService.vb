@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 root As SyntaxNode,
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
+            predicate = If(predicate, Functions(Of SyntaxNode).True)
             Dim unnecessaryImports = GetIndividualUnnecessaryImportsShared(model, root, predicate, cancellationToken)
             If Not unnecessaryImports.Any() Then
                 Return ImmutableArray(Of SyntaxNode).Empty
