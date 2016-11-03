@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 throw new ArgumentNullException(nameof(assemblies));
             }
 
-            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
+            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies.Distinct());
             var container = compositionConfiguration.CreateContainer();
             return new MefHostServices(container);
         }

@@ -14,15 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AcquireCompletionService()
         {
-            var hostServices = MefHostServices.Create(
-                MefHostServices.DefaultAssemblies.Concat(
-                    new[]
-                    {
-                        typeof(CompletionService).Assembly,
-                        typeof(CSharpCompletionService).Assembly
-                    }));
-
-            var workspace = new AdhocWorkspace(hostServices);
+            var workspace = new AdhocWorkspace();
 
             var document = workspace
                 .AddProject("TestProject", LanguageNames.CSharp)
