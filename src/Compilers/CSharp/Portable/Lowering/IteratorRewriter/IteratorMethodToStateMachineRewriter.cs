@@ -95,11 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // state_0:
             // state = -1;
             // [[rewritten body]]
-            newBody = F.Block(ImmutableArray.Create(cachedState),
-                    F.Block(
-                        F.HiddenSequencePoint(),
-                        F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField))
-                    ),
+            newBody = F.Block((object)cachedThis == null?
+                                ImmutableArray.Create(cachedState):
+                                ImmutableArray.Create(cachedState, cachedThis),
+
+                    F.HiddenSequencePoint(),
+                    F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)),
+                    CacheThisIfNeeded(),
                     Dispatch(),
                     GenerateReturn(finished: true),
                     F.Label(initialLabel),
@@ -386,8 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      return;
             // }
             Debug.Assert(frame.parent.finalizeState == _currentFinallyFrame.finalizeState);
-            rewrittenHandler = F.Block(
+            rewrittenHandler = F.Block((object)this.cachedThis != null?
+                                            ImmutableArray.Create(this.cachedThis):
+                                            ImmutableArray<LocalSymbol>.Empty,
                                 F.Assignment(F.Field(F.This(), stateField), F.Literal(frame.parent.finalizeState)),
+                                CacheThisIfNeeded(),
                                 rewrittenHandler,
                                 F.Return()
                             );

@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly LocalSymbol cachedState;
 
+        protected readonly LocalSymbol cachedThis;
+
         private int _nextState;
 
         /// <summary>
@@ -135,6 +137,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var proxy in nonReusableLocalProxies)
             {
                 this.proxies.Add(proxy.Key, proxy.Value);
+            }
+
+            // create cache local for reference type "this" in Release
+            var thisParameter = originalMethod.ThisParameter;
+            CapturedSymbolReplacement thisProxy;
+            if ((object)thisParameter != null && 
+                thisParameter.Type.IsReferenceType &&
+                proxies.TryGetValue(thisParameter, out thisProxy) &&
+                F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            {
+                var thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
         }
 
@@ -739,8 +753,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitThisReference(BoundThisReference node)
+        protected BoundStatement CacheThisIfNeeded()
         {
+            // restore "this" cache, if there is a cache
+            if (this.cachedThis != null)
+            {
+                CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
+                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                return F.Assignment(F.Local(this.cachedThis), fetchThis);
+            }
+
+            // do nothing
+            return F.Block();
+        }
+
+        public sealed override BoundNode VisitThisReference(BoundThisReference node)
+        {
+            // if "this" is cached, return it.
+            if (this.cachedThis != null)
+            {
+                return F.Local(this.cachedThis);
+            }
+
             var thisParameter = this.OriginalMethod.ThisParameter;
             CapturedSymbolReplacement proxy;
             if ((object)thisParameter == null || !proxies.TryGetValue(thisParameter, out proxy))
@@ -768,6 +802,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             // TODO: fix up the type of the resulting node to be the base type
+
+            // if "this" is cached, return it.
+            if (this.cachedThis != null)
+            {
+                return F.Local(this.cachedThis);
+            }
+
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
             return proxy.Replacement(F.Syntax, frameType => F.This());

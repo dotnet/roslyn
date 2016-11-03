@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false, bool isThis = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic, isThis);
             AddField(CurrentType, result);
             return result;
         }

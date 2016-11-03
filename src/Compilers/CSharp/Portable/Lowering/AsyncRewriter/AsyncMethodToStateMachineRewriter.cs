@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(F.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
+            bodyBuilder.Add(CacheThisIfNeeded());
 
             var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
@@ -194,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
+            if ((object)cachedThis != null)
+            {
+                locals.Add(cachedThis);
+            }
+
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
@@ -425,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this.state = cachedState = NotStartedStateMachine
                     F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine))));
 
-            return F.Block(blockBuilder.ToImmutableAndFree());
+             return F.Block(blockBuilder.ToImmutableAndFree());
         }
 
         private BoundStatement GenerateAwaitOnCompletedDynamic(LocalSymbol awaiterTemp)
