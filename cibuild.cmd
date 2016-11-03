@@ -120,7 +120,7 @@ echo Running RepoUtil
 
 REM Verify the state of our project.jsons
 echo Running BuildBoss
-.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0
