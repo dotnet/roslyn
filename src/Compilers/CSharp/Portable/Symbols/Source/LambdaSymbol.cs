@@ -1,21 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LambdaSymbol : MethodSymbol
     {
+        internal delegate void GetReturnTypeDelegate(
+            UnboundLambda unboundLambda,
+            LambdaSymbol lambda,
+            out RefKind refKind,
+            out TypeSymbol returnType);
+
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
         private readonly CSharpSyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
-        private RefKind _refKind;
-        private TypeSymbol _returnType;
+        private readonly RefKind _refKind;
+        private readonly TypeSymbol _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
 
@@ -24,18 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
             ImmutableArray<ParameterSymbol> delegateParameters,
-            RefKind refKind,
-            TypeSymbol returnType)
+            GetReturnTypeDelegate getReturnType)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            _refKind = refKind;
-            _returnType = returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, delegateParameters);
+            getReturnType(unboundLambda, this, out _refKind, out _returnType);
         }
 
         public LambdaSymbol(
@@ -45,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnType,
             MessageID messageID,
             CSharpSyntaxNode syntax,
-            bool isSynthesized,
-            bool isAsync)
+            bool isSynthesized)
         {
             _containingSymbol = containingSymbol;
             _messageID = messageID;
@@ -54,21 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _returnType = returnType;
             _isSynthesized = isSynthesized;
-            _isAsync = isAsync;
             _parameters = parameters.SelectAsArray(CopyParameter, this);
-        }
-
-        internal LambdaSymbol ToContainer(Symbol containingSymbol)
-        {
-            return new LambdaSymbol(
-                containingSymbol,
-                _parameters,
-                _refKind,
-                _returnType,
-                _messageID,
-                _syntax,
-                _isSynthesized,
-                _isAsync);
         }
 
         public MessageID MessageID { get { return _messageID; } }
@@ -194,17 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeSymbol ReturnType
         {
             get { return _returnType; }
-        }
-
-        // In error recovery and type inference scenarios we do not know the return type
-        // until after the body is bound, but the symbol is created before the body
-        // is bound.  Fill in the return type post hoc in these scenarios; the
-        // IDE might inspect the symbol and want to know the return type.
-        internal void SetInferredReturnType(RefKind refKind, TypeSymbol inferredReturnType)
-        {
-            Debug.Assert((object)inferredReturnType != null && (object)_returnType == null);
-            _refKind = refKind;
-            _returnType = inferredReturnType;
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers

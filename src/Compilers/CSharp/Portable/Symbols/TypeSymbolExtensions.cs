@@ -1240,5 +1240,176 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
+
+        internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            if (namedType.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+            MethodSymbol createBuilderMethod;
+            var builderType = namedType.GetAsyncMethodBuilderType(out createBuilderMethod);
+            return (object)builderType != null;
+        }
+
+        internal static bool IsGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            MethodSymbol createBuilderMethod;
+            var builderType = namedType.GetAsyncMethodBuilderType(out createBuilderMethod);
+            return (object)builderType != null;
+        }
+
+        /// <summary>
+        /// Returns the async method builder type for generic and non-generic task-like types.
+        /// </summary>
+        internal static NamedTypeSymbol GetAsyncMethodBuilderType(this NamedTypeSymbol type, out MethodSymbol createBuilderMethod)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+
+            // Find the public static CreateAsyncMethodBuilder method.
+            var members = type.GetMembers(WellKnownMemberNames.CreateAsyncMethodBuilder);
+            foreach (var member in members)
+            {
+                if (member.Kind != SymbolKind.Method)
+                {
+                    continue;
+                }
+                var method = (MethodSymbol)member;
+                if ((method.DeclaredAccessibility == Accessibility.Public) &&
+                    method.IsStatic &&
+                    (method.ParameterCount == 0) &&
+                    !method.IsGenericMethod)
+                {
+                    var returnType = method.ReturnType as NamedTypeSymbol;
+                    if ((object)returnType == null)
+                    {
+                        break;
+                    }
+                    createBuilderMethod = method;
+                    return returnType;
+                }
+            }
+            createBuilderMethod = null;
+            return null;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types.
+        /// </summary>
+        internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            NormalizeTaskTypesCore(compilation, ref type);
+            return type;
+        }
+
+        /// <summary>
+        /// Replace Task-like types with Task types. Returns true if there were changes.
+        /// </summary>
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref TypeSymbol type)
+        {
+            switch (type.Kind)
+            {
+                case SymbolKind.NamedType:
+                    {
+                        var namedType = (NamedTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref namedType);
+                        type = namedType;
+                        return changed;
+                    }
+                case SymbolKind.ArrayType:
+                    {
+                        var arrayType = (ArrayTypeSymbol)type;
+                        var changed = NormalizeTaskTypesCore(compilation, ref arrayType);
+                        type = arrayType;
+                        return changed;
+                    }
+            }
+            return false;
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref NamedTypeSymbol type)
+        {
+            var constructedFrom = type.ConstructedFrom;
+            if ((object)constructedFrom == type)
+            {
+                MethodSymbol createBuilderMethod;
+                var builderType = type.GetAsyncMethodBuilderType(out createBuilderMethod);
+                if ((object)builderType == null)
+                {
+                    return false;
+                }
+                Debug.Assert(type.Arity < 2);
+                var taskType = compilation.GetWellKnownType(
+                    type.Arity == 1 ?
+                    WellKnownType.System_Threading_Tasks_Task_T :
+                    WellKnownType.System_Threading_Tasks_Task);
+                if (taskType.TypeKind == TypeKind.Error)
+                {
+                    // Skip if Task types are not available.
+                    return false;
+                }
+                type = taskType;
+                return true;
+            }
+            else
+            {
+                var typeArgs = type.TypeArgumentsNoUseSiteDiagnostics;
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                bool hasChanged = false;
+                foreach (var typeArg in typeArgs)
+                {
+                    TypeSymbol typeArgNormalized = typeArg;
+                    if (NormalizeTaskTypesCore(compilation, ref typeArgNormalized))
+                    {
+                        hasChanged = true;
+                    }
+                    builder.Add(typeArgNormalized);
+                }
+                if (hasChanged)
+                {
+                    typeArgs = builder.ToImmutable();
+                }
+                builder.Free();
+                if (NormalizeTaskTypesCore(compilation, ref constructedFrom))
+                {
+                    hasChanged = true;
+                }
+                if (hasChanged)
+                {
+                    type = constructedFrom.Construct(typeArgs);
+                }
+                return hasChanged;
+            }
+        }
+
+        private static bool NormalizeTaskTypesCore(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)
+        {
+            var elementType = arrayType.ElementType;
+            if (!NormalizeTaskTypesCore(compilation, ref elementType))
+            {
+                return false;
+            }
+            arrayType = arrayType.WithElementType(elementType);
+            return true;
+        }
     }
 }
