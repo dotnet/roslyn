@@ -155,11 +155,6 @@
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
-    <Compile Include="Implementation\Watson\ErrorReportSettings.cs" />
-    <Compile Include="Implementation\Watson\ExceptionInfo.cs" />
-    <Compile Include="Implementation\Watson\NativeWin32Stubs.cs" />
-    <Compile Include="Implementation\Watson\Watson.cs" />
-    <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
     <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
