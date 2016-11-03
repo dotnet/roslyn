@@ -11,7 +11,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <Nonshipping>true</Nonshipping>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <RoslynProjectType>UnitTestNext</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'"></PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'"></PropertyGroup>
@@ -33,6 +33,8 @@
     <Compile Include="VisualBasic\BasicIntelliSense.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="EnvDTE" />
+    <Reference Include="EnvDTE80" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
