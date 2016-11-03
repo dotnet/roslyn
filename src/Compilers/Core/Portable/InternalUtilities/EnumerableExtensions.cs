@@ -9,12 +9,6 @@ using System.Linq;
 
 namespace Roslyn.Utilities
 {
-    internal static class Functions<T>
-    {
-        public static readonly Func<T, T> Identity = t => t;
-        public static readonly Func<T, bool> True = t => true;
-    }
-
     internal static partial class EnumerableExtensions
     {
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
@@ -393,5 +387,11 @@ namespace Roslyn.Utilities
         {
             return Comparer<T>.Create(comparison);
         }
+    }
+
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> True = t => true;
     }
 }
