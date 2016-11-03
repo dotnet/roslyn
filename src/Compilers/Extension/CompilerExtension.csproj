@@ -55,6 +55,7 @@
     <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
