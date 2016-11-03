@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return SpecializedTasks.Default<SymbolTreeInfo>();
             }
 
-            // Try to acquire the data outside the lock.  That way 
+            // Try to acquire the data outside the lock.  That way we can avoid any sort of 
+            // allocations around acquiring the task for it.  Note: once ValueTask is available
+            // (and enabled in the language), we'd likely want to use it here. (Presuming 
+            // the lock is not being held most of the time).
             SymbolTreeInfo info;
             if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
             {
