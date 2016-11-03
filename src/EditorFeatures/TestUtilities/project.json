@@ -9,6 +9,8 @@
       "version": "0.9.3",
       "suppressParent": "all"
     },
+    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
+    "Microsoft.VisualStudio.Composition": "14.2.19-pre",
     "Microsoft.VisualStudio.Composition": {
       "version": "14.2.19-pre",
       "suppressParent": "all"
