@@ -137,8 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public bool TryInstallPackage(
             Workspace workspace,
             DocumentId documentId,
-            string source,
-            string packageName,
+            PackageInfo packageInfo,
             string versionOpt,
             CancellationToken cancellationToken)
         {
@@ -154,12 +153,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
+                    var description = string.Format(ServicesVSResources.Install_0, packageInfo.PackageName);
 
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
-                    return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
+                    return TryInstallAndAddUndoAction(packageInfo, versionOpt, dte, dteProject, undoManager);
                 }
             }
 
@@ -167,18 +166,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private bool TryInstallPackage(
-            string source,
-            string packageName,
+            PackageInfo packageInfo,
             string versionOpt,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject)
         {
             try
             {
+                var packageName = packageInfo.PackageName;
                 if (!_packageServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
-                    _packageServices.InstallPackage(source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+                    _packageServices.InstallPackage(packageInfo.Source.Source, dteProject, packageName, versionOpt, ignoreDependencies: false);
 
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
@@ -195,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageInfo.PackageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.
@@ -210,12 +209,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private bool TryUninstallPackage(
-            string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+            PackageInfo packageInfo, EnvDTE.DTE dte, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
 
             try
             {
+                var packageName = packageInfo.PackageName;
                 if (_packageServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageInfo.PackageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.

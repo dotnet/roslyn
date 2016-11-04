@@ -263,15 +263,15 @@ class C
                 installerServiceMock.Verify();
             }
 
-            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
+            private Task<ImmutableArray<PackageWithTypeInfo>> CreateSearchResult(
                 string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
             {
-                return CreateSearchResult(new PackageWithTypeResult(
+                return CreateSearchResult(new PackageWithTypeInfo(
                     packageName: packageName, typeName: typeName, version: null,
                     rank: 0, containingNamespaceNames: containingNamespaceNames));
             }
 
-            private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+            private Task<ImmutableArray<PackageWithTypeInfo>> CreateSearchResult(params PackageWithTypeInfo[] results)
                 => Task.FromResult(ImmutableArray.Create(results));
 
             private IReadOnlyList<string> CreateNameParts(params string[] parts) => parts;

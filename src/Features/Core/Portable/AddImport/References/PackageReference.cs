@@ -13,22 +13,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private partial class PackageReference : Reference
         {
             private readonly IPackageInstallerService _installerService;
-            private readonly string _source;
-            private readonly string _packageName;
+            private readonly PackageInfo _packageInfo;
             private readonly string _versionOpt;
 
             public PackageReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 IPackageInstallerService installerService,
                 SearchResult searchResult,
-                string source,
-                string packageName,
+                PackageInfo packageInfo,
                 string versionOpt)
                 : base(provider, searchResult)
             {
                 _installerService = installerService;
-                _source = source;
-                _packageName = packageName;
+                _packageInfo = packageInfo;
                 _versionOpt = versionOpt;
             }
 
@@ -43,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var reference = obj as PackageReference;
                 return base.Equals(obj) &&
-                    _packageName == reference._packageName &&
+                    _packageInfo.PackageName == reference._packageInfo.PackageName &&
                     _versionOpt == reference._versionOpt;
             }
 
             public override int GetHashCode()
             {
                 return Hash.Combine(_versionOpt,
-                    Hash.Combine(_packageName, base.GetHashCode()));
+                    Hash.Combine(_packageInfo.PackageName, base.GetHashCode()));
             }
         }
     }

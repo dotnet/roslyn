@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string sourceName, string localSettingsDirectory, byte[] solutionChecksum);
 
         Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
-            string source, string name, int arity, byte[] solutionChecksum);
+            SerializablePackageSource source, string name, int arity, byte[] solutionChecksum);
         Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
-            string source, string name, byte[] solutionChecksum);
+            SerializablePackageSource source, string name, byte[] solutionChecksum);
         Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, byte[] solutionChecksum);
     }

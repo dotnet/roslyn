@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                         if (installedVersions.Any())
                         {
                             codeActions.Add(new InstallPackageParentCodeAction(
-                                installerService, packageSource.Source, package.PackageName, document));
+                                installerService, package, document));
                         }
                     }
                 }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+        private async Task<ImmutableArray<PackageWithAssemblyInfo>> FindMatchingPackagesAsync(
             PackageSource source, 
             ISymbolSearchService searchService, 
             IPackageInstallerService installerService, 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = new HashSet<PackageWithAssemblyResult>();
+            var result = new HashSet<PackageWithAssemblyInfo>();
 
             foreach (var identity in uniqueIdentities)
             {

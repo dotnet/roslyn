@@ -104,8 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
+            PackageSource source, string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
@@ -114,8 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return FilterAndOrderPackages(allPackagesWithType);
         }
 
-        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(
+            PackageSource source, string assemblyName, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
             var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         }
 
         private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
-            ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
+            ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageInfo
         {
             var packagesUsedInOtherProjects = new List<TPackageResult>();
             var packagesNotUsedInOtherProjects = new List<TPackageResult>();
@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return result.ToImmutableAndFree();
         }
 
-        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public async Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngine(cancellationToken).ConfigureAwait(false);

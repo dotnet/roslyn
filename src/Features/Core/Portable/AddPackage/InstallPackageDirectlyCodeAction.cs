@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         public InstallPackageDirectlyCodeAction(
             IPackageInstallerService installerService,
             Document document,
-            string source,
-            string packageName,
+            PackageInfo packageInfo,
             string versionOpt,
             bool isLocal)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
             _installPackageOperation = new InstallPackageDirectlyCodeActionOperation(
-                installerService, document, source, packageName, versionOpt, isLocal);
+                installerService, document, packageInfo, versionOpt, isLocal);
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)

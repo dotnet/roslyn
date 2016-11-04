@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -196,16 +197,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class SerializablePackageWithTypeResult
     {
+        public SerializablePackageSource Source;
         public string PackageName;
         public string TypeName;
         public string Version;
         public int Rank;
         public string[] ContainingNamespaceNames;
 
-        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeResult result)
+        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeInfo result)
         {
             return new SerializablePackageWithTypeResult
             {
+                Source = SerializablePackageSource.Dehydrate(result.Source),
                 PackageName = result.PackageName,
                 TypeName = result.TypeName,
                 Version = result.Version,
@@ -214,31 +217,51 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        public PackageWithTypeResult Rehydrate()
+        public PackageWithTypeInfo Rehydrate()
         {
-            return new PackageWithTypeResult(
-                PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
+            return new PackageWithTypeInfo(
+                Source.Rehydrate(), PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
         }
+    }
+
+    internal class SerializablePackageSource
+    {
+        public string Name;
+        public string Source;
+
+        public static SerializablePackageSource Dehydrate(PackageSource result)
+        {
+            return new SerializablePackageSource
+            {
+                Name = result.Name,
+                Source = result.Source
+            };
+        }
+
+        public PackageSource Rehydrate()
+            => new PackageSource(Name, Source);
     }
 
     internal class SerializablePackageWithAssemblyResult
     {
+        public SerializablePackageSource Source;
         public string PackageName;
         public string Version;
         public int Rank;
 
-        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyResult result)
+        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyInfo result)
         {
             return new SerializablePackageWithAssemblyResult
             {
+                Source = SerializablePackageSource.Dehydrate(result.Source),
                 PackageName = result.PackageName,
                 Version = result.Version,
                 Rank = result.Rank,
             };
         }
 
-        public PackageWithAssemblyResult Rehydrate()
-            => new PackageWithAssemblyResult(PackageName, Version, Rank);
+        public PackageWithAssemblyInfo Rehydrate()
+            => new PackageWithAssemblyInfo(Source.Rehydrate(), PackageName, Version, Rank);
     }
 
     internal class SerializableReferenceAssemblyWithTypeResult
@@ -248,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public string[] ContainingNamespaceNames;
 
         public static SerializableReferenceAssemblyWithTypeResult Dehydrate(
-            ReferenceAssemblyWithTypeResult result)
+            ReferenceAssemblyWithTypeInfo result)
         {
             return new SerializableReferenceAssemblyWithTypeResult
             {
@@ -258,9 +281,9 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        public ReferenceAssemblyWithTypeResult Rehydrate()
+        public ReferenceAssemblyWithTypeInfo Rehydrate()
         {
-            return new ReferenceAssemblyWithTypeResult(AssemblyName, TypeName, ContainingNamespaceNames);
+            return new ReferenceAssemblyWithTypeInfo(AssemblyName, TypeName, ContainingNamespaceNames);
         }
     }
 

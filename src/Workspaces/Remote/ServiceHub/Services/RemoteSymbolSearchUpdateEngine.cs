@@ -26,19 +26,19 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
-            string source, string name, int arity, byte[] solutionChecksum)
+            SerializablePackageSource source, string name, int arity, byte[] solutionChecksum)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source.Rehydrate(), name, arity).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
         }
 
         public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName, byte[] solutionChecksum)
+            SerializablePackageSource source, string assemblyName, byte[] solutionChecksum)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source.Rehydrate(), assemblyName).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithAssemblyResult.Dehydrate).ToArray();
             return serializedResults;
         }
