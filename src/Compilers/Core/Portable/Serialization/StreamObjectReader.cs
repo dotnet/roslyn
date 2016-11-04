@@ -1018,7 +1018,7 @@ namespace Roslyn.Utilities
             }
 
             // reverse list so that first member to be read is first
-            _memberList.Reverse();
+            Reverse(_memberList);
 
             // invoke the deserialization constructor to create instance and read & assign members           
             var instance = reader(_memberReader);
@@ -1031,6 +1031,26 @@ namespace Roslyn.Utilities
             _referenceMap.SetValue(id, instance);
 
             return Variant.FromObject(instance);
+        }
+
+        private static void Reverse(List<Variant> memberList)
+            => Reverse(memberList, 0, memberList.Count);
+
+        private static void Reverse(List<Variant> memberList, int index, int length)
+        {
+            // Note: we do not call List<T>.Reverse as that causes boxing of elements when
+            // T is a struct type:
+            // https://github.com/dotnet/coreclr/issues/7986
+            int i = index;
+            int j = index + length - 1;
+            while (i < j)
+            {
+                var temp = memberList[i];
+                memberList[i] = memberList[j];
+                memberList[j] = temp;
+                i++;
+                j--;
+            }
         }
 
         private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
