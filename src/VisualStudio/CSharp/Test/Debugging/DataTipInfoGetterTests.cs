@@ -147,10 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System.Console.WriteLine|]$$(args);
-  }
+    void Foo()
+    {
+        [|System.Console.WriteLine$$|](args);
+    }
 }");
         }
 
@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
-  {
-    [|System.Console.WriteLine|](args$$);
-  }
+    void Foo()
+    {
+        [|System.Console.WriteLine|](args$$);
+    }
 }");
         }
 
@@ -239,10 +239,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
-  {
-    int i = 42;
-  }$$
+    void Foo()
+    {
+        int i = 42;
+    }$$
 }");
         }
 

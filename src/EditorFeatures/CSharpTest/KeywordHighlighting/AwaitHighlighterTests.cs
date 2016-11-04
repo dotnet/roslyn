@@ -31,7 +31,8 @@ class AsyncExample
 
     [|async|] Task UseAsync()
     {
-        Func<Task<int>> lambda = async () => {
+        Func<Task<int>> lambda = async () =>
+        {
             return await AsyncMethod();
         };
         int result = {|Cursor:[|await|]|} AsyncMethod();
@@ -59,7 +60,8 @@ class AsyncExample
 
     [|async|] Task UseAsync()
     {
-        Func<Task<int>> lambda = async () => {
+        Func<Task<int>> lambda = async () =>
+        {
             return await AsyncMethod();
         };
         int result = [|await|] AsyncMethod();
@@ -87,7 +89,8 @@ class AsyncExample
 
     [|async|] Task UseAsync()
     {
-        Func<Task<int>> lambda = async () => {
+        Func<Task<int>> lambda = async () =>
+        {
             return await AsyncMethod();
         };
         int result = [|await|] AsyncMethod();
@@ -115,7 +118,8 @@ class AsyncExample
 
     async Task UseAsync()
     {
-        Func<Task<int>> lambda = [|async|] () => {
+        Func<Task<int>> lambda = [|async|] () =>
+        {
             return {|Cursor:[|await|]|} AsyncMethod();
         };
         int result = await AsyncMethod();
@@ -149,7 +153,8 @@ class AsyncExample
 
     async Task UseAsync()
     {
-        Func<Task<int>> lambda = [|async|] () => {
+        Func<Task<int>> lambda = [|async|] () =>
+        {
             return {|Cursor:[|await await|]|} AsyncMethod();
         };
         int result = await await AsyncMethod();
@@ -183,7 +188,8 @@ class AsyncExample
 
     [|async|] Task UseAsync()
     {
-        Func<Task<int>> lambda = async () => {
+        Func<Task<int>> lambda = async () =>
+        {
             return await await AsyncMethod();
         };
         int result = {|Cursor:[|await await|]|} AsyncMethod();

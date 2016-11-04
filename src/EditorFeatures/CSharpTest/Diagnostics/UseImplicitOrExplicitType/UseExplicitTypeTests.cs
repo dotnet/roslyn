@@ -101,8 +101,7 @@ class Program
 {
     void Method()
     {
-        [|var|] comparer = delegate (string value)
-        {
+        [|var|] comparer = delegate (string value) {
             return value != ""0"";
         };
     }

@@ -135,7 +135,9 @@ index: 1);
         public async Task TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
         {
             await TestActionCountAsync(
-@"class EmployeeList<T> where T : [|Employee|] { }",
+@"class EmployeeList<T> where T : [|Employee|]
+{
+}",
 count: 3,
 parseOptions: Options.Regular);
         }
@@ -169,15 +171,13 @@ index: 2);
             await TestAsync(
 @"class Class
 {
-    System.Action<Class, int> l = (Class e, int age) =>
-    {
+    System.Action<Class, int> l = (Class e, int age) => {
         [|Wage|] w;
     };
 }",
 @"class Class
 {
-    System.Action<Class, int> l = (Class e, int age) =>
-    {
+    System.Action<Class, int> l = (Class e, int age) => {
         Wage w;
     };
 
@@ -584,7 +584,9 @@ index: 2);
         public async Task TestAbsenceOfGenerateIntoInvokingTypeForBaseList()
         {
             await TestActionCountAsync(
-@"class Class : [|BaseClass|] { }",
+@"class Class : [|BaseClass|]
+{
+}",
 count: 3,
 parseOptions: Options.Regular);
         }
@@ -2864,8 +2866,20 @@ expectedDocumentName: "Bar.cs");
         public async Task TestDeclarationSpan()
         {
             await TestSpansAsync(
-@"class Class { void Foo() { [|Bar|] b; } }",
-@"class Class { void Foo() { [|Bar|] b; } }",
+@"class Class
+{
+    void Foo()
+    {
+        [|Bar|] b;
+    }
+}",
+@"class Class
+{
+    void Foo()
+    {
+        [|Bar|] b;
+    }
+}",
 index: 1);
         }
 
@@ -4015,11 +4029,13 @@ index: 1);
         {
             await TestActionCountAsync(
 @"using System;
- 
+
 class A<T>
 {
     [[|C|]]
-    void Foo() { }
+    void Foo()
+    {
+    }
 }",
 count: 3);
         }

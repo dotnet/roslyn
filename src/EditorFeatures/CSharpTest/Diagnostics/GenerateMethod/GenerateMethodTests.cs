@@ -1650,7 +1650,18 @@ class Foo
         public async Task TestFixCountGeneratingIntoInterface()
         {
             await TestActionCountAsync(
-@"interface I2 { } class C2 : I2 { public void Meth(){ I2 i = (I2)this; i.[|M|](); } }",
+@"interface I2
+{
+}
+
+class C2 : I2
+{
+    public void Meth()
+    {
+        I2 i = (I2)this;
+        i.[|M|]();
+    }
+}",
 count: 1);
         }
 
@@ -2542,8 +2553,7 @@ class Program
 {
     void M()
     {
-        System.Action<int> v = delegate (int x)
-        {
+        System.Action<int> v = delegate (int x) {
             x = [|Foo|](x);
         };
     }
@@ -2554,8 +2564,7 @@ class C
 {
     void M()
     {
-        System.Action<int> v = delegate (int x)
-        {
+        System.Action<int> v = delegate (int x) {
             x = Foo(x);
         };
     }
@@ -3597,8 +3606,7 @@ void Foo()
 class C<T, R>
 {
     private static Func<T, R> g = null;
-    private static Func<T, R> f = (T) =>
-    {
+    private static Func<T, R> f = (T) => {
         return [|Foo<T, R>|](g);
     };
 }",
@@ -3607,8 +3615,7 @@ class C<T, R>
 class C<T, R>
 {
     private static Func<T, R> g = null;
-    private static Func<T, R> f = (T) =>
-    {
+    private static Func<T, R> f = (T) => {
         return Foo<T, R>(g);
     };
 
@@ -3864,8 +3871,7 @@ class Program
     static void Main(string[] args)
     {
         C<int> c = new C<int>();
-        c.[|Sum|]((arg) =>
-        {
+        c.[|Sum|]((arg) => {
             return 2;
         });
     }
@@ -6510,11 +6516,9 @@ class C
 {
     static async void T()
     {
-        bool x = await [|M|]().ContinueWith(a =>
-        {
+        bool x = await [|M|]().ContinueWith(a => {
             return true;
-        }).ContinueWith(a =>
-        {
+        }).ContinueWith(a => {
             return false;
         });
     }
@@ -6526,11 +6530,9 @@ class C
 {
     static async void T()
     {
-        bool x = await M().ContinueWith(a =>
-        {
+        bool x = await M().ContinueWith(a => {
             return true;
-        }).ContinueWith(a =>
-        {
+        }).ContinueWith(a => {
             return false;
         });
     }
@@ -6603,7 +6605,13 @@ class C
         public async Task TestGenerateMethodEquivalenceKey()
         {
             await TestEquivalenceKeyAsync(
-@"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
+@"class C
+{
+    void M()
+    {
+        this.[|M1|](System.Exception.M2());
+    }
+}",
 string.Format(FeaturesResources.Generate_method_1_0, "M1", "C"));
         }
 

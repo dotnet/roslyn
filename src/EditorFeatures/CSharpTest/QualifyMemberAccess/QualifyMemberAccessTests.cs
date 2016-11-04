@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -47,8 +47,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
         public async Task QualifyFieldAccess_LHS()
         {
             await TestAsyncWithOption(
-@"class Class { int i; void M() { [|i|] = 1; } }",
-@"class Class { int i; void M() { this.i = 1; } }",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        this.i = 1;
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -57,8 +73,24 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_RHS()
         {
             await TestAsyncWithOption(
-@"class Class { int i; void M() { var x = [|i|]; } }",
-@"class Class { int i; void M() { var x = this.i; } }",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        var x = [|i|];
+    }
+}",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        var x = this.i;
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -67,8 +99,24 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_MethodArgument()
         {
             await TestAsyncWithOption(
-@"class Class { int i; void M(int ii) { M([|i|]); } }",
-@"class Class { int i; void M(int ii) { M(this.i); } }",
+@"class Class
+{
+    int i;
+
+    void M(int ii)
+    {
+        M([|i|]);
+    }
+}",
+@"class Class
+{
+    int i;
+
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -77,8 +125,24 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_ChainedAccess()
         {
             await TestAsyncWithOption(
-@"class Class { int i; void M() { var s = [|i|].ToString(); } }",
-@"class Class { int i; void M() { var s = this.i.ToString(); } }",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        var s = [|i|].ToString();
+    }
+}",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -87,8 +151,24 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_ConditionalAccess()
         {
             await TestAsyncWithOption(
-@"class Class { string s; void M() { var x = [|s|]?.ToString(); } }",
-@"class Class { string s; void M() { var x = this.s?.ToString(); } }",
+@"class Class
+{
+    string s;
+
+    void M()
+    {
+        var x = [|s|]?.ToString();
+    }
+}",
+@"class Class
+{
+    string s;
+
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -97,8 +177,30 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_OnBase()
         {
             await TestAsyncWithOption(
-@"class Base { protected int i; } class Derived : Base { void M() { [|i|] = 1; } }",
-@"class Base { protected int i; } class Derived : Base { void M() { this.i = 1; } }",
+@"class Base
+{
+    protected int i;
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
+@"class Base
+{
+    protected int i;
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        this.i = 1;
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -107,7 +209,16 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_NotSuggestedOnInstance()
         {
             await TestMissingAsyncWithOption(
-@"class Class { int i; void M() { Class c = new Class(); c.[|i|] = 1; } }",
+@"class Class
+{
+    int i;
+
+    void M()
+    {
+        Class c = new Class();
+        c.[|i|] = 1;
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -116,7 +227,15 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyFieldAccess_NotSuggestedOnStatic()
         {
             await TestMissingAsyncWithOption(
-@"class C { static int i; void M() { [|i|] = 1; } }",
+@"class C
+{
+    static int i;
+
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
 CodeStyleOptions.QualifyFieldAccess);
         }
 
@@ -125,8 +244,24 @@ CodeStyleOptions.QualifyFieldAccess);
         public async Task QualifyPropertyAccess_LHS()
         {
             await TestAsyncWithOption(
-@"class Class { int i { get; set; } void M() { [|i|] = 1; } }",
-@"class Class { int i { get; set; } void M() { this.i = 1; } }",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        this.i = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -135,8 +270,24 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_RHS()
         {
             await TestAsyncWithOption(
-@"class Class { int i { get; set; } void M() { var x = [|i|]; } }",
-@"class Class { int i { get; set; } void M() { var x = this.i; } }",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        var x = [|i|];
+    }
+}",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        var x = this.i;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -145,8 +296,24 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_MethodArgument()
         {
             await TestAsyncWithOption(
-@"class Class { int i { get; set; } void M(int ii) { M([|i|]); } }",
-@"class Class { int i { get; set; } void M(int ii) { M(this.i); } }",
+@"class Class
+{
+    int i { get; set; }
+
+    void M(int ii)
+    {
+        M([|i|]);
+    }
+}",
+@"class Class
+{
+    int i { get; set; }
+
+    void M(int ii)
+    {
+        M(this.i);
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -155,8 +322,24 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_ChainedAccess()
         {
             await TestAsyncWithOption(
-@"class Class { int i { get; set; } void M() { var s = [|i|].ToString(); } }",
-@"class Class { int i { get; set; } void M() { var s = this.i.ToString(); } }",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        var s = [|i|].ToString();
+    }
+}",
+@"class Class
+{
+    int i { get; set; }
+
+    void M()
+    {
+        var s = this.i.ToString();
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -165,8 +348,24 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_ConditionalAccess()
         {
             await TestAsyncWithOption(
-@"class Class { string s { get; set; } void M() { var x = [|s|]?.ToString(); } }",
-@"class Class { string s { get; set; } void M() { var x = this.s?.ToString(); } }",
+@"class Class
+{
+    string s { get; set; }
+
+    void M()
+    {
+        var x = [|s|]?.ToString();
+    }
+}",
+@"class Class
+{
+    string s { get; set; }
+
+    void M()
+    {
+        var x = this.s?.ToString();
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -175,8 +374,30 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_OnBase()
         {
             await TestAsyncWithOption(
-@"class Base { protected int i { get; set; } } class Derived : Base { void M() { [|i|] = 1; } }",
-@"class Base { protected int i { get; set; } } class Derived : Base { void M() { this.i = 1; } }",
+@"class Base
+{
+    protected int i { get; set; }
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
+@"class Base
+{
+    protected int i { get; set; }
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        this.i = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -185,7 +406,15 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_NotSuggestedOnInstance()
         {
             await TestMissingAsyncWithOption(
-@"class Class { int i { get; set; } void M(Class c) { c.[|i|] = 1; } }",
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        c.[|i|] = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -194,7 +423,15 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_NotSuggestedOnStatic()
         {
             await TestMissingAsyncWithOption(
-@"class C { static int i { get; set; } void M() { [|i|] = 1; } }",
+@"class C
+{
+    static int i { get; set; }
+
+    void M()
+    {
+        [|i|] = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess);
         }
 
@@ -203,8 +440,20 @@ CodeStyleOptions.QualifyPropertyAccess);
         public async Task QualifyMethodAccess_VoidCallWithArguments()
         {
             await TestAsyncWithOption(
-@"class Class { void M(int i) { [|M|](0); } }",
-@"class Class { void M(int i) { this.M(0); } }",
+@"class Class
+{
+    void M(int i)
+    {
+        [|M|](0);
+    }
+}",
+@"class Class
+{
+    void M(int i)
+    {
+        this.M(0);
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -213,8 +462,18 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_AsReturn()
         {
             await TestAsyncWithOption(
-@"class Class { int M() { return [|M|](); }",
-@"class Class { int M() { return this.M(); }",
+@"class Class
+{
+    int M()
+    {
+        return [|M|]();
+    }",
+@"class Class
+{
+    int M()
+    {
+        return this.M();
+    }",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -223,8 +482,18 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_ChainedAccess()
         {
             await TestAsyncWithOption(
-@"class Class { string M() { var s = [|M|]().ToString(); }",
-@"class Class { string M() { var s = this.M().ToString(); }",
+@"class Class
+{
+    string M()
+    {
+        var s = [|M|]().ToString();
+    }",
+@"class Class
+{
+    string M()
+    {
+        var s = this.M().ToString();
+    }",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -233,8 +502,18 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_ConditionalAccess()
         {
             await TestAsyncWithOption(
-@"class Class { string M() { return [|M|]()?.ToString(); }",
-@"class Class { string M() { return this.M()?.ToString(); }",
+@"class Class
+{
+    string M()
+    {
+        return [|M|]()?.ToString();
+    }",
+@"class Class
+{
+    string M()
+    {
+        return this.M()?.ToString();
+    }",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -243,8 +522,28 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_EventSubscription1()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { e += [|Handler|]; } }",
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { e += this.Handler; } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        e += [|Handler|];
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        e += this.Handler;
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -253,8 +552,28 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_EventSubscription2()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { e += new EventHandler([|Handler|]); } }",
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { e += new EventHandler(this.Handler); } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        e += new EventHandler([|Handler|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        e += new EventHandler(this.Handler);
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -263,8 +582,34 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_OnBase()
         {
             await TestAsyncWithOption(
-@"class Base { protected void Method() { } } class Derived : Base { void M() { [|Method|](); } }",
-@"class Base { protected void Method() { } } class Derived : Base { void M() { this.Method(); } }",
+@"class Base
+{
+    protected void Method()
+    {
+    }
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        [|Method|]();
+    }
+}",
+@"class Base
+{
+    protected void Method()
+    {
+    }
+}
+
+class Derived : Base
+{
+    void M()
+    {
+        this.Method();
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -273,7 +618,13 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_NotSuggestedOnInstance()
         {
             await TestMissingAsyncWithOption(
-@"class Class { void M(Class c) { c.[|M|](); } }",
+@"class Class
+{
+    void M(Class c)
+    {
+        c.[|M|]();
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -282,7 +633,17 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyMethodAccess_NotSuggestedOnStatic()
         {
             await TestMissingAsyncWithOption(
-@"class C { static void Method() { } void M() { [|Method|](); } }",
+@"class C
+{
+    static void Method()
+    {
+    }
+
+    void M()
+    {
+        [|Method|]();
+    }
+}",
 CodeStyleOptions.QualifyMethodAccess);
         }
 
@@ -291,8 +652,28 @@ CodeStyleOptions.QualifyMethodAccess);
         public async Task QualifyEventAccess_EventSubscription()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
-@"using System; class C { event EventHandler e; void Handler(object sender, EventArgs args) { this.e += Handler; } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        [|e|] += Handler;
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void Handler(object sender, EventArgs args)
+    {
+        this.e += Handler;
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -301,8 +682,46 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccessAsProperty_EventSubscription()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e { add { } remove { } } void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
-@"using System; class C { event EventHandler e { add { } remove { } } void Handler(object sender, EventArgs args) { this.e += Handler; } }",
+@"using System;
+
+class C
+{
+    event EventHandler e
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+
+    void Handler(object sender, EventArgs args)
+    {
+        [|e|] += Handler;
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+
+    void Handler(object sender, EventArgs args)
+    {
+        this.e += Handler;
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -311,8 +730,28 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_InvokeEvent1()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void OnSomeEvent() { [|e|](this, new EventArgs()); } }",
-@"using System; class C { event EventHandler e; void OnSomeEvent() { this.e(this, new EventArgs()); } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        [|e|](this, new EventArgs());
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        this.e(this, new EventArgs());
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -321,8 +760,28 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_InvokeEvent2()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void OnSomeEvent() { [|e|].Invoke(this, new EventArgs()); } }",
-@"using System; class C { event EventHandler e; void OnSomeEvent() { this.e.Invoke(this, new EventArgs()); } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        [|e|].Invoke(this, new EventArgs());
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        this.e.Invoke(this, new EventArgs());
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -331,8 +790,28 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_InvokeEvent3()
         {
             await TestAsyncWithOption(
-@"using System; class C { event EventHandler e; void OnSomeEvent() { [|e|]?.Invoke(this, new EventArgs()); } }",
-@"using System; class C { event EventHandler e; void OnSomeEvent() { this.e?.Invoke(this, new EventArgs()); } }",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        [|e|]?.Invoke(this, new EventArgs());
+    }
+}",
+@"using System;
+
+class C
+{
+    event EventHandler e;
+
+    void OnSomeEvent()
+    {
+        this.e?.Invoke(this, new EventArgs());
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -341,8 +820,34 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_OnBase()
         {
             await TestAsyncWithOption(
-@"using System; class Base { protected event EventHandler e; } class Derived : Base { void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
-@"using System; class Base { protected event EventHandler e; } class Derived : Base { void Handler(object sender, EventArgs args) { this.e += Handler; } }",
+@"using System;
+
+class Base
+{
+    protected event EventHandler e;
+}
+
+class Derived : Base
+{
+    void Handler(object sender, EventArgs args)
+    {
+        [|e|] += Handler;
+    }
+}",
+@"using System;
+
+class Base
+{
+    protected event EventHandler e;
+}
+
+class Derived : Base
+{
+    void Handler(object sender, EventArgs args)
+    {
+        this.e += Handler;
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -351,7 +856,21 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_NotSuggestedOnInstance()
         {
             await TestMissingAsyncWithOption(
-@"using System; class Class { event EventHandler e; void M(Class c) { c.[|e|] += Handler; } void Handler(object sender, EventArgs args) { } }",
+@"using System;
+
+class Class
+{
+    event EventHandler e;
+
+    void M(Class c)
+    {
+        c.[|e|] += Handler;
+    }
+
+    void Handler(object sender, EventArgs args)
+    {
+    }
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -360,7 +879,17 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyEventAccess_NotSuggestedOnStatic()
         {
             await TestMissingAsyncWithOption(
-@"using System; class C { static event EventHandler e; } void Handler(object sender, EventArgs args) { [|e|] += Handler; } }",
+@"using System;
+
+class C
+{
+    static event EventHandler e;
+}
+
+void Handler(object sender, EventArgs args)
+{
+    [|e|] += Handler;
+} }",
 CodeStyleOptions.QualifyEventAccess);
         }
 
@@ -368,7 +897,15 @@ CodeStyleOptions.QualifyEventAccess);
         public async Task QualifyMemberAccessNotPresentOnNotificationOptionNone()
         {
             await TestMissingAsyncWithOptionAndNotificationOption(
-@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        [|Property|] = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
         }
 
@@ -376,8 +913,24 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
         public async Task QualifyMemberAccessOnNotificationOptionInfo()
         {
             await TestAsyncWithOptionAndNotificationOption(
-@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
-@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        [|Property|] = 1;
+    }
+}",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Suggestion);
         }
 
@@ -385,8 +938,24 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Suggestion);
         public async Task QualifyMemberAccessOnNotificationOptionWarning()
         {
             await TestAsyncWithOptionAndNotificationOption(
-@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
-@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        [|Property|] = 1;
+    }
+}",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning);
         }
 
@@ -394,8 +963,24 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning);
         public async Task QualifyMemberAccessOnNotificationOptionError()
         {
             await TestAsyncWithOptionAndNotificationOption(
-@"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
-@"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        [|Property|] = 1;
+    }
+}",
+@"class Class
+{
+    int Property { get; set; };
+
+    void M()
+    {
+        this.Property = 1;
+    }
+}",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error);
         }
     }

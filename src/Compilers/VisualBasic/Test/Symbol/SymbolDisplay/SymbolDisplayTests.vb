@@ -4792,23 +4792,25 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub TupleFullyQualified()
-            Dim source =
-                <compilation>
-                    <file name="a.vb">
-Imports N
+        Public Sub TupleQualifiedNames()
+            Dim text =
+"Imports NAB = N.A.B
 Namespace N
     Class A
         Friend Class B
         End Class
     End Class
     Class C(Of T)
+        ' offset 1
     End Class
 End Namespace
 Class C
-    Private f As (One As Integer, C(Of (Object(), Two As A.B)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As A)
-End Class
-                    </file>
+    Private f As (One As Integer, N.C(Of (Object(), Two As NAB)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As N.A)
+    ' offset 2
+End Class"
+            Dim source =
+                <compilation>
+                    <file name="a.vb"><%= text %></file>
                 </compilation>
             Dim format = New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Included,
@@ -4819,9 +4821,25 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim symbol = comp.GetMember("C.f")
+
+            ' Fully qualified format.
             Verify(
                 SymbolDisplay.ToDisplayParts(symbol, format),
                 "f As (One As Integer, Global.N.C(Of (Object(), Two As Global.N.A.B)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As Global.N.A)")
+
+            ' Minimally qualified format.
+            Verify(
+                SymbolDisplay.ToDisplayParts(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "C.f As (One As Integer, C(Of (Object(), Two As B)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As A)")
+
+            ' ToMinimalDisplayParts.
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
+                "f As (One As Integer, C(Of (Object(), Two As NAB)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As A)")
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 2"), format),
+                "f As (One As Integer, N.C(Of (Object(), Two As NAB)), Integer, Four As Object, Integer, Object, Integer, Object, Nine As N.A)")
         End Sub
 
         ' A tuple type symbol that is not Microsoft.CodeAnalysis.VisualBasic.Symbols.TupleTypeSymbol.

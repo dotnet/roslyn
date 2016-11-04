@@ -31,7 +31,8 @@ class AsyncExample
 
     async Task UseAsync()
     {
-        Func<Task<int>> lambda = {|Cursor:[|async|]|} () => {
+        Func<Task<int>> lambda = {|Cursor:[|async|]|} () =>
+        {
             return [|await|] AsyncMethod();
         };
         int result = await AsyncMethod();

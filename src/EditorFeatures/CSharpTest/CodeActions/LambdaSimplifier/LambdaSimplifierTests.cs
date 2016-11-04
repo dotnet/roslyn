@@ -203,8 +203,7 @@ class C
 {
     void Foo()
     {
-        Bar((s1, s2) [||]=>
-        {
+        Bar((s1, s2) [||]=> {
             return Quux(s1, s2);
         });
     }
@@ -237,8 +236,7 @@ class C
 {
     void Foo()
     {
-        Bar((s1, s2) [||]=>
-        {
+        Bar((s1, s2) [||]=> {
             return this.Quux(s1, s2);
         });
     }
@@ -501,8 +499,7 @@ class Program
 {
     static void Main()
     {
-        Action a = [||]() =>
-        {
+        Action a = [||]() => {
             Console.WriteLine();
         };
     }

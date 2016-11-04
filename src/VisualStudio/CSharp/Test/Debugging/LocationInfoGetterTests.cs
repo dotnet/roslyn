@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class Class
 {
-    Action<int> a = b =>
-    {
+    Action<int> a = b => {
         in$$t c;
     };
 }", "Class.a", 0);
@@ -305,7 +304,8 @@ class C1
 @"class C1
 {
     void M1(params int[] x)
-    {$$
+    {
+$$
     }
 }", "C1.M1(params int[] x)", 0);
         }
@@ -317,7 +317,8 @@ class C1
 @"class C1
 {
     void M1(__arglist)
-    {$$
+    {
+$$
     }
 }", "C1.M1(__arglist)", 0); // Old implementation does not show "__arglist"...
         }
@@ -367,7 +368,8 @@ class C1
 @"class C1<T, U>
 {
     static void M1()
-    {$$
+    {
+$$
     }
 }", "C1.M1()", 0);
         }
@@ -379,7 +381,8 @@ class C1
 @"class C1<T, U>
 {
     static void M1<V>()
-    {$$
+    {
+$$
     }
 }", "C1.M1()", 0);
         }
@@ -391,7 +394,8 @@ class C1
 @"class C1<T, U>
 {
     static void M1<V>(C1<int, V> x, V y)
-    {$$
+    {
+$$
     }
 }", "C1.M1(C1<int, V> x, V y)", 0);
         }

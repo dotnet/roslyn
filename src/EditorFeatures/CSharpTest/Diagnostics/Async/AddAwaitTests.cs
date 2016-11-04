@@ -610,8 +610,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action lambda = async () =>
-        {
+        Action lambda = async () => {
             int myInt = [|MyIntMethodAsync()|];
         };
     }
@@ -628,8 +627,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action lambda = async () =>
-        {
+        Action lambda = async () => {
             int myInt = await MyIntMethodAsync();
         };
     }
@@ -652,8 +650,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> lambda = async () =>
-        {
+        Func<Task> lambda = async () => {
             int myInt = [|MyIntMethodAsync()|];
         };
     }
@@ -670,8 +667,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> lambda = async () =>
-        {
+        Func<Task> lambda = async () => {
             int myInt = await MyIntMethodAsync();
         };
     }
@@ -694,8 +690,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> lambda = () =>
-        {
+        Func<Task> lambda = () => {
             int myInt = MyInt [||] MethodAsync();
         };
     }
@@ -718,8 +713,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action lambda = () =>
-        {
+        Action lambda = () => {
             int myInt = MyIntM [||] ethodAsync();
         };
     }
@@ -742,8 +736,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action @delegate = async delegate
-        {
+        Action @delegate = async delegate {
             int myInt = [|MyIntMethodAsync()|];
         };
     }
@@ -760,8 +753,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action @delegate = async delegate
-        {
+        Action @delegate = async delegate {
             int myInt = await MyIntMethodAsync();
         };
     }
@@ -784,8 +776,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> @delegate = async delegate
-        {
+        Func<Task> @delegate = async delegate {
             int myInt = [|MyIntMethodAsync()|];
         };
     }
@@ -802,8 +793,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> @delegate = async delegate
-        {
+        Func<Task> @delegate = async delegate {
             int myInt = await MyIntMethodAsync();
         };
     }
@@ -826,8 +816,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action @delegate = delegate
-        {
+        Action @delegate = delegate {
             int myInt = MyInt [||] MethodAsync();
         };
     }
@@ -850,8 +839,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> @delegate = delegate
-        {
+        Func<Task> @delegate = delegate {
             int myInt = MyIntM [||] ethodAsync();
         };
     }

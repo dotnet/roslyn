@@ -414,37 +414,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         public async Task GetSpanOfEnclosingTest()
         {
             // First operation returns span of 'Class1'
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 10, 0, 6, 6);
+            await TestNavigatorAsync(
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 10, 0, 6, 6);
 
             // Second operation returns span of 'class Class1 { }'
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 6, 6, 0, 16);
+            await TestNavigatorAsync(
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 6, 6, 0, 16);
 
             // Last operation does nothing
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
+            await TestNavigatorAsync(
+@"class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task GetSpanOfFirstChildTest()
         {
             // Go from 'class Class1 { }' to 'class'
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfFirstChild(s), 0, 16, 0, 5);
+            await TestNavigatorAsync(
+@"class Class1
+{
+}", (n, s) => n.GetSpanOfFirstChild(s), 0, 16, 0, 5);
 
             // Next operation should do nothing as we're at the bottom
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
+            await TestNavigatorAsync(
+@"class Class1
+{
+}", (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task GetSpanOfNextSiblingTest()
         {
             // Go from 'class' to 'Class1'
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
+            await TestNavigatorAsync(
+@"class Class1
+{
+}", (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public async Task GetSpanOfPreviousSiblingTest()
         {
             // Go from '{' to 'Class1'
-            await TestNavigatorAsync("class Class1 { }", (n, s) => n.GetSpanOfPreviousSibling(s), 13, 1, 6, 6);
+            await TestNavigatorAsync(
+@"class Class1 { }", (n, s) => n.GetSpanOfPreviousSibling(s), 13, 1, 6, 6);
         }
     }
 }
