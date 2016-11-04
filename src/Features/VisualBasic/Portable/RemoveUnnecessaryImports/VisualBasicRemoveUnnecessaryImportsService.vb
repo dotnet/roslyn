@@ -12,30 +12,31 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     <ExportLanguageService(GetType(IRemoveUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(IUnnecessaryImportsService), LanguageNames.VisualBasic)>
     Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
         Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
 
-        Public Shared Function GetUnnecessaryImportsShared(
-                model As SemanticModel,
-                root As SyntaxNode,
-                predicate As Func(Of SyntaxNode, Boolean),
-                cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
-            predicate = If(predicate, Functions(Of SyntaxNode).True)
-            Dim unnecessaryImports = GetIndividualUnnecessaryImportsShared(model, root, predicate, cancellationToken)
-            If Not unnecessaryImports.Any() Then
-                Return ImmutableArray(Of SyntaxNode).Empty
-            End If
+        'Public Shared Function GetUnnecessaryImportsShared(
+        '        model As SemanticModel,
+        '        root As SyntaxNode,
+        '        predicate As Func(Of SyntaxNode, Boolean),
+        '        cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
+        '    predicate = If(predicate, Functions(Of SyntaxNode).True)
+        '    Dim unnecessaryImports = GetIndividualUnnecessaryImportsShared(model, root, predicate, cancellationToken)
+        '    If Not unnecessaryImports.Any() Then
+        '        Return ImmutableArray(Of SyntaxNode).Empty
+        '    End If
 
-            Return unnecessaryImports.Select(
-                    Function(i) As SyntaxNode
-                        Dim statement = DirectCast(i.Parent, ImportsStatementSyntax)
-                        If statement.ImportsClauses.All(AddressOf unnecessaryImports.Contains) Then
-                            Return statement
-                        Else
-                            Return i
-                        End If
-                    End Function).ToImmutableArray()
-        End Function
+        '    Return unnecessaryImports.Select(
+        '            Function(i) As SyntaxNode
+        '                Dim statement = DirectCast(i.Parent, ImportsStatementSyntax)
+        '                If statement.ImportsClauses.All(AddressOf unnecessaryImports.Contains) Then
+        '                    Return statement
+        '                Else
+        '                    Return i
+        '                End If
+        '            End Function).ToImmutableArray()
+        'End Function
 
         Public Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
@@ -66,14 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 model As SemanticModel, root As SyntaxNode,
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken) As ImmutableArray(Of ImportsClauseSyntax)
-            Return GetIndividualUnnecessaryImportsShared(model, root, predicate, cancellationToken)
-        End Function
-
-        Private Shared Function GetIndividualUnnecessaryImportsShared(
-                semanticModel As SemanticModel, root As SyntaxNode,
-                predicate As Func(Of SyntaxNode, Boolean),
-                CancellationToken As CancellationToken) As ImmutableArray(Of ImportsClauseSyntax)
-            Dim diagnostics = semanticModel.GetDiagnostics(cancellationToken:=CancellationToken)
+            Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)
 
@@ -94,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Next
 
             Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-            AddRedundantImports(oldRoot, semanticModel, unnecessaryImports, predicate, CancellationToken)
+            AddRedundantImports(oldRoot, model, unnecessaryImports, predicate, cancellationToken)
 
             Return unnecessaryImports.ToImmutableArray()
         End Function

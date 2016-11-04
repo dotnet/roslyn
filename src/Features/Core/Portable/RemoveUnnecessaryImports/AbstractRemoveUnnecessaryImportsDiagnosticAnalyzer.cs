@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase :
+    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer :
         DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
@@ -61,9 +62,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
+            var workspace = ((WorkspaceAnalyzerOptions)context.Options).Workspace;
+            var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
+                                            .GetService<IUnnecessaryImportsService>();
+
             var root = tree.GetRoot();
-            var unnecessaryImports = GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
-            if (unnecessaryImports != null && unnecessaryImports.Any())
+            var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
+            if (unnecessaryImports.Any())
             {
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
@@ -77,9 +82,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
                 }
             }
         }
-
-        protected abstract IEnumerable<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         protected virtual Func<SyntaxNode, SyntaxToken> GetLastTokenDelegateForContiguousSpans()
         {

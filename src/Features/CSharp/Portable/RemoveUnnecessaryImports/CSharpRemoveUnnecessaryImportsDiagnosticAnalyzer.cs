@@ -6,16 +6,16 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : 
-        RemoveUnnecessaryImportsDiagnosticAnalyzerBase
+        AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_TitleAndMessageFormat =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.Using_directive_is_unnecessary), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
@@ -23,13 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
         {
             return s_TitleAndMessageFormat;
-        }
-
-        protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImportsShared(
-                semanticModel, root, predicate: null, cancellationToken: cancellationToken);
         }
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(

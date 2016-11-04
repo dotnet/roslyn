@@ -19,38 +19,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IUnnecessaryImportsService), LanguageNames.CSharp)]
     internal partial class CSharpRemoveUnnecessaryImportsService :
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
-        public static ImmutableArray<UsingDirectiveSyntax> GetUnnecessaryImportsShared(
-            SemanticModel semanticModel, SyntaxNode root, 
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-        {
-            predicate = predicate ?? Functions<SyntaxNode>.True;
-            var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
-            if (!diagnostics.Any())
-            {
-                return ImmutableArray<UsingDirectiveSyntax>.Empty;
-            }
-
-            var unnecessaryImports = new HashSet<UsingDirectiveSyntax>();
-
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Id == "CS8019")
-                {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
-
-                    if (node != null && predicate(node))
-                    {
-                        unnecessaryImports.Add(node);
-                    }
-                }
-            }
-
-            return unnecessaryImports.ToImmutableArray();
-        }
-
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, 
             Func<SyntaxNode, bool> predicate,
@@ -80,7 +52,29 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             SemanticModel model, SyntaxNode root,
             Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
-            return GetUnnecessaryImportsShared(model, root, predicate, cancellationToken);
+            predicate = predicate ?? Functions<SyntaxNode>.True;
+            var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
+            if (!diagnostics.Any())
+            {
+                return ImmutableArray<UsingDirectiveSyntax>.Empty;
+            }
+
+            var unnecessaryImports = new HashSet<UsingDirectiveSyntax>();
+
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Id == "CS8019")
+                {
+                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
+
+                    if (node != null && predicate(node))
+                    {
+                        unnecessaryImports.Add(node);
+                    }
+                }
+            }
+
+            return unnecessaryImports.ToImmutableArray();
         }
 
         private async Task<SyntaxNode> FormatResultAsync(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)

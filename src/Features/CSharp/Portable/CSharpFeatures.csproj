@@ -292,7 +292,7 @@
     <Compile Include="Diagnostics\Analyzers\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />

@@ -1,27 +1,23 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImports
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer
-        Inherits RemoveUnnecessaryImportsDiagnosticAnalyzerBase
+        Inherits AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
+
         Private Shared ReadOnly s_TitleAndMessageFormat As LocalizableString =
             New LocalizableResourceString(NameOf(VBFeaturesResources.Imports_statement_is_unnecessary), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
 
         Protected Overrides Function GetTitleAndMessageFormatForClassificationIdDescriptor() As LocalizableString
             Return s_TitleAndMessageFormat
-        End Function
-
-        Protected Overrides Function GetUnnecessaryImports(
-                semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Return VisualBasicRemoveUnnecessaryImportsService.GetUnnecessaryImportsShared(
-                semanticModel, root, predicate:=Nothing, cancellationToken:=cancellationToken)
         End Function
 
         Protected Overrides Function GetFixableDiagnosticSpans(

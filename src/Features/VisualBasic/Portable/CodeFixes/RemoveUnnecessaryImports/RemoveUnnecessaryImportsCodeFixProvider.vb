@@ -4,19 +4,18 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryImports
 
-    <ExportCodeFixProviderAttribute(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddMissingReference)>
     Friend Class RemoveUnnecessaryImportsCodeFixProvider
         Inherits CodeFixProvider
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(RemoveUnnecessaryImportsDiagnosticAnalyzerBase.DiagnosticFixableId)
+                Return ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId)
             End Get
         End Property
 

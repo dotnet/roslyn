@@ -5,7 +5,8 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -295,7 +296,7 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
-    <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
