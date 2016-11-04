@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
         protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(
             SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
         {
-            return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImports(semanticModel, root, cancellationToken);
+            return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImportsShared(
+                semanticModel, root, predicate: null, cancellationToken: cancellationToken);
         }
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
