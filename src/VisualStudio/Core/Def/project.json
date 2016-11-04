@@ -1,4 +1,4 @@
-﻿{
+{
   "dependencies": {
     "ManagedEsent": "1.9.4",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",

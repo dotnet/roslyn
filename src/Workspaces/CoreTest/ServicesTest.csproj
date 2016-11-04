@@ -141,34 +141,6 @@
     <Folder Include="Host\Utilities\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_InvalidProjectPath.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_NonExistentProject.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath.csproj" />
-    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_AssemblyNameIsPath2.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuid.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectTypeGuidAndUnknownExtension.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\TestSolution_CSharp_UnknownProjectExtension.sln" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_InvalidProjectReference.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_NonExistentProjectReference.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
