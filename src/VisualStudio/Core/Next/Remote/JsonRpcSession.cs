@@ -82,12 +82,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync, CancellationToken);
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
         }
 
         protected override void OnDisposed()
