@@ -56,6 +56,8 @@
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
     <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpUnnecessaryImportsService.cs" />
     <Compile Include="Structure\Providers\InitializerExpressionStructureProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
@@ -434,8 +436,8 @@
     <Compile Include="Structure\Providers\RegionDirectiveStructureProvider.cs" />
     <Compile Include="Structure\Providers\SimpleLambdaExpressionStructureProvider.cs" />
     <Compile Include="Structure\Providers\TypeDeclarationStructureProvider.cs" />
-    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
     <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />

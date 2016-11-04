@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
-    [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpRemoveUnnecessaryImportsService : AbstractCSharpRemoveUnnecessaryImportsService
+    [ExportLanguageService(typeof(IUnnecessaryImportsService), LanguageNames.CSharp), Shared]
+    internal partial class CSharpUnnecessaryImportsService : AbstractCSharpRemoveUnnecessaryImportsService
     {
     }
 }
