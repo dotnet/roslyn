@@ -60,9 +60,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptor(id, _localizableTitle, _localizableMessage, severity, customTags);
 
-        //protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
-        //    => CreateDescriptor(id, title, title, severity, customTags);
-
         private DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
                 id,
