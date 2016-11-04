@@ -1346,19 +1346,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
                 case SyntaxKind.ForEachVariableStatement:
-                    return ((ForEachComponentStatementSyntax)node).VariableComponent.Span;
+                    return ((ForEachVariableStatementSyntax)node).Variable.Span;
 
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.RefType:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
-                case SyntaxKind.VariableComponentAssignment:
+                case SyntaxKind.SimpleAssignmentExpression:
                     return node.Span;
 
                 default:
@@ -1607,12 +1604,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.IsPatternExpression:
                     return CSharpFeaturesResources.is_pattern;
 
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.ForEachVariableStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
-                case SyntaxKind.VariableComponentAssignment:
                     return CSharpFeaturesResources.deconstruction;
+
+                case SyntaxKind.SimpleAssignmentExpression:
+                    if (IsDeconstruction((AssignmentExpressionSyntax)node))
+                    {
+                        return CSharpFeaturesResources.deconstruction;
+                    }
+                    else
+                    {
+                        goto default;
+                    }
 
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
@@ -3106,11 +3109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (n.Kind())
             {
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.VariableComponentAssignment:
                 case SyntaxKind.ForEachVariableStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.LocalFunctionStatement:
@@ -3119,10 +3118,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
                     return true;
-
+                case SyntaxKind.SimpleAssignmentExpression:
+                    return IsDeconstruction((AssignmentExpressionSyntax)n);
                 default:
                     return false;
             }
+        }
+
+        private static bool IsDeconstruction(AssignmentExpressionSyntax assignment)
+        {
+            return assignment.Left.Kind() == SyntaxKind.TupleExpression ||
+                assignment.Left.Kind() == SyntaxKind.DeclarationExpression;
         }
 
         private void ReportRudeEditsForCheckedStatements(

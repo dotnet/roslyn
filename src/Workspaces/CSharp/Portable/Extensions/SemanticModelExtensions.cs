@@ -235,8 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current is DeclarationExpressionSyntax)
                 {
                     var decl = (DeclarationExpressionSyntax)current;
-                    var component = decl.VariableComponent as TypedVariableComponentSyntax;
-                    var name = component?.Designation as SingleVariableDesignationSyntax;
+                    var name = decl.Designation as SingleVariableDesignationSyntax;
                     if (name == null) break;
                     return name.Identifier.ValueText.ToCamelCase();
                 }

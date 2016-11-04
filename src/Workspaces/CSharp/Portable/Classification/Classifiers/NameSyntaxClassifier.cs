@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
-                name.CheckParent<TypedVariableComponentSyntax>(f => f.Type == name);
+                name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
         private static ISymbol TryGetSymbol(NameSyntax name, SymbolInfo symbolInfo, SemanticModel semanticModel)

@@ -420,25 +420,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     switch (node.Kind())
                     {
                         case SyntaxKind.DeclarationExpression:
+
                             var declaration = (DeclarationExpressionSyntax)node;
-                            if (declaration.VariableComponent.Kind() != SyntaxKind.TypedVariableComponent)
+                            if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
                             {
                                 break;
                             }
 
-                            var variableComponent = (TypedVariableComponentSyntax)declaration.VariableComponent;
-                            if (variableComponent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
-                            {
-                                break;
-                            }
-
-                            var designation = (SingleVariableDesignationSyntax)variableComponent.Designation;
+                            var designation = (SingleVariableDesignationSyntax)declaration.Designation;
                             var name = designation.Identifier.ValueText;
                             if (variablesToRemove.HasSyntaxAnnotation(designation))
                             {
                                 var newLeadingTrivia = new SyntaxTriviaList();
-                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetLeadingTrivia());
-                                newLeadingTrivia = newLeadingTrivia.AddRange(variableComponent.Type.GetTrailingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
+                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
                                 newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
 
                                 replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)

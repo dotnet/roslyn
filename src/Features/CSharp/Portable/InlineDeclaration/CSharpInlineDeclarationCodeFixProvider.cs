@@ -200,8 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 }
             }
 
-            return SyntaxFactory.DeclarationExpression(
-                SyntaxFactory.TypedVariableComponent(newType, designation));
+            return SyntaxFactory.DeclarationExpression(newType, designation);
         }
 
         private static IEnumerable<SyntaxTrivia> MassageTrivia(IEnumerable<SyntaxTrivia> triviaList)

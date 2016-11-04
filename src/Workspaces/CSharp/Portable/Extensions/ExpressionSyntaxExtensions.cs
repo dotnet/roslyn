@@ -2161,12 +2161,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (simpleName.IsParentKind(SyntaxKind.TypedVariableComponent))
-            {
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
-            }
+            //if (simpleName.IsParentKind(SyntaxKind.TypedVariableComponent))
+            //{
+            //    replacementNode = candidateReplacementNode;
+            //    issueSpan = candidateIssueSpan;
+            //    return true;
+            //}
+            // TODO REVIEW Are we lacking tests? It seems this code should be needed for DeclarationExpression
 
             return false;
         }
