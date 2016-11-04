@@ -65,9 +65,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task InitializeAsync()
         {
-            // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+            CancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
+                await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+                await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+                // can cause this exception to happen. newer version supports cancellation token natively, but
+                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                CancellationToken.ThrowIfCancellationRequested();
+                throw;
+            }
         }
 
         public override async Task InvokeAsync(string targetName, params object[] arguments)
