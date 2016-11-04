@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             foreach (var identity in uniqueIdentities)
             {
                 var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
-                    source.Name, identity.Name, cancellationToken).ConfigureAwait(false);
+                    source, identity.Name, cancellationToken).ConfigureAwait(false);
 
                 result.AddRange(packagesWithAssembly);
             }

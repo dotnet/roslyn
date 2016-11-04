@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await searchService.FindPackagesWithTypeAsync(
-                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
                 if (results.IsDefault)
                 {
                     return;
