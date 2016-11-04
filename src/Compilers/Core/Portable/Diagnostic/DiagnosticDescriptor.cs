@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return DefaultAnalyzerHostContext.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }

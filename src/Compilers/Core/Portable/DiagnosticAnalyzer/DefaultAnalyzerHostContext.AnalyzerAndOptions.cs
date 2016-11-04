@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class AnalyzerManager
+    internal partial class DefaultAnalyzerHostContext
     {
         private sealed class AnalyzerAndOptions
         {

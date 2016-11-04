@@ -2864,7 +2864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, DefaultAnalyzerHostContext analyzerManager)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
             Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;

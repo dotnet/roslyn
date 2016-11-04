@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static AnalyzerHostContext Create()
         {
-            return new AnalyzerManager();
+            return new DefaultAnalyzerHostContext();
         }
 
         internal AnalyzerHostContext()

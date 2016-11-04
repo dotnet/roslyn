@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly CompilationData _compilationData;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
-        private readonly AnalyzerManager _context;
+        private readonly DefaultAnalyzerHostContext _context;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
         private readonly CancellationToken _cancellationToken;
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
-            _context = (AnalyzerManager)(context ?? AnalyzerManager.Instance);
+            _context = (DefaultAnalyzerHostContext)(context ?? DefaultAnalyzerHostContext.Instance);
             _analysisOptions = analysisOptions;
             _cancellationToken = cancellationToken;
 
@@ -1161,8 +1161,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, DefaultAnalyzerHostContext.Instance);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, DefaultAnalyzerHostContext.Instance, analyzerExecutor);
         }
 
         /// <summary>
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAnalyzersArgumentForStaticApis(analyzers, allowDefaultOrEmpty: true);
 
-            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
+            DefaultAnalyzerHostContext.Instance.ClearAnalyzerState(analyzers);
         }
 
         /// <summary>
