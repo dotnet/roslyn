@@ -15,12 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false)
         {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-            _documentId = documentId;
+            _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
             _activate = activateIfAlreadyOpen;
         }
 

@@ -84,12 +84,7 @@ namespace Microsoft.CodeAnalysis
 
         public SymbolKey(string symbolKeyData)
         {
-            if (symbolKeyData == null)
-            {
-                throw new ArgumentNullException();
-            }
-
-            _symbolKeyData = symbolKeyData;
+            _symbolKeyData = symbolKeyData ?? throw new ArgumentNullException();
         }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)

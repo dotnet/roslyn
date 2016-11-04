@@ -20,17 +20,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _root = root;
+            _root = root ?? throw new ArgumentNullException(nameof(root));
             _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
             _changes = new List<Change>();
         }
