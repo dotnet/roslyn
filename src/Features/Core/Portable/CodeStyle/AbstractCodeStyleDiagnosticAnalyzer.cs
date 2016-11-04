@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
-                id,
-                title,
-                message,
+                id, title, message,
                 DiagnosticCategory.Style,
                 severity,
                 isEnabledByDefault: true,
