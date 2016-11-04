@@ -11,7 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
@@ -37,6 +38,10 @@
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CoreTestUtilities\ScriptingTestUtilities.csproj">
+      <Project>{21a01c2d-2501-4619-8144-48977dd22d9c}</Project>
+      <Name>ScriptingTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
@@ -51,21 +56,14 @@
       <Name>BasicScripting</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="NuGetPackageResolverTests.cs" />
-    <Compile Include="ObjectFormatterTestBase.cs" />
-    <Compile Include="ObjectFormatterTests.Fixtures.cs" />
-    <Compile Include="RedirectedOutput.cs" />
     <Compile Include="RuntimeMetadataReferenceResolverTests.cs" />
-    <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptOptionsTests.cs" />
-    <Compile Include="ScriptTaskExtensions.cs" />
-    <Compile Include="TestCompilationFactory.cs" />
-    <Compile Include="TestConsoleIO.cs" />
-    <Compile Include="TestVisualBasicObjectFormatter.cs" />
-    <Compile Include="TestCSharpObjectFormatter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />

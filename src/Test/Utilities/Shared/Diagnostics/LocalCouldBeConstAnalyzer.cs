@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>Analyzer used to identify local variables that could be declared Const.</summary>
     public class LocalCouldBeConstAnalyzer : DiagnosticAnalyzer

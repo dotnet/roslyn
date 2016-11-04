@@ -17,6 +17,7 @@
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
+    <Compile Include="Diagnostics\SuppressMessageAttributeCompilerTests.cs" />
     <Compile Include="EmbeddedTextTests.cs" />
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />
@@ -28,13 +29,7 @@
     <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
     <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
     <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
-    <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
-    <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
-    <Compile Include="Diagnostics\EmptyArrayAnalyzer.cs" />
-    <Compile Include="Diagnostics\LocalCouldBeConstAnalyzer.cs" />
-    <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
-    <Compile Include="Diagnostics\FieldCouldBeReadOnlyAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="FileSystem\PathUtilitiesTests.cs" />
@@ -83,8 +78,10 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -111,8 +108,6 @@
     <Compile Include="CommonTypedConstantTests.cs" />
     <Compile Include="CorLibTypesTests.cs" />
     <Compile Include="DiagnosticBagTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.DiagnosticAnalyzers.cs" />
     <Compile Include="Diagnostics\SuppressMessageTargetSymbolResolverTests.cs" />
     <Compile Include="DiffUtilTests.cs" />
     <Compile Include="Emit\EmitBaselineTests.cs" />

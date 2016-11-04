@@ -2,11 +2,13 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -102,8 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
             return MinimalTestExportProvider.CreateAssemblyCatalog(
-                GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies()),
+                GetCSharpAndVisualBasicAssemblies(),
                 MinimalTestExportProvider.CreateResolver());
+        }
+
+        public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()
+        {
+            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies());
         }
     }
 }

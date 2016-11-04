@@ -40,6 +40,12 @@ namespace BuildBoss
                     continue;
                 }
 
+                // TODO: temporary work around util a cross cutting change can be sync'd up.  
+                if (Path.GetFileName(projectEntry.RelativeFilePath) == "CompilerPerfTest.vbproj")
+                {
+                    continue;
+                }
+
                 var projectFilePath = Path.Combine(solutionPath, projectEntry.RelativeFilePath);
                 var projectData = new ProjectData(projectFilePath);
                 map.Add(projectData.Key, projectData);

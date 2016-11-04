@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     /// <summary>Analyzer that looks boxing operations.</summary>
     public class BoxingOperationAnalyzer : DiagnosticAnalyzer

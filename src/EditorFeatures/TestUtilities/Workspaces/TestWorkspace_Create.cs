@@ -83,6 +83,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateAsync(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
         }
 
+        /// <summary>
+        /// Creates a single buffer in a workspace.
+        /// </summary>
+        /// <param name="content">Lines of text, the buffer contents</param>
+        internal static Task<TestWorkspace> CreateAsync(
+            string workspaceKind,
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            string content,
+            ExportProvider exportProvider)
+        {
+            return CreateAsync(language, compilationOptions, parseOptions, new[] { content },  exportProvider: exportProvider, workspaceKind: workspaceKind);
+        }
+
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
         internal static Task<TestWorkspace> CreateAsync(
             string language,
