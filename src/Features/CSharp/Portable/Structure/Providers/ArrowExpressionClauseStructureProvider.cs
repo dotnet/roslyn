@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var previousToken = node.ArrowToken.GetPreviousToken();
             spans.Add(new BlockSpan(
                 isCollapsible: true,
-                textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),
+                textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Parent.Span.End),
                 hintSpan: node.Parent.Span,
                 type: BlockTypes.Nonstructural));
         }
