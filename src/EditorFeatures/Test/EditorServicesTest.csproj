@@ -179,7 +179,6 @@
     <Compile Include="EditorAdapter\SpanExtensionsTest.cs" />
     <Compile Include="EditorAdapter\TextSnapshotImplementationTest.cs" />
     <Compile Include="EditorAdapter\TextSpanExtensionsTest.cs" />
-    <Compile Include="EventHookup\EventHookupWaiter.cs" />
     <Compile Include="Extensions\CollectionExtensionsTest.cs" />
     <Compile Include="Extensions\EnumerableExtensionTests.cs" />
     <Compile Include="Extensions\IProjectionBufferFactoryServiceExtensionsTests.cs" />

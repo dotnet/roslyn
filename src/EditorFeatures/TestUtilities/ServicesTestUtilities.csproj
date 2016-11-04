@@ -185,6 +185,7 @@
     <Compile Include="EditAndContinue\SemanticEditDescription.cs" />
     <Compile Include="EditAndContinue\TestActiveStatementTrackingService.cs" />
     <Compile Include="EditorFactory.cs" />
+    <Compile Include="EventHookup\EventHookupWaiter.cs" />
     <Compile Include="ExceptionUtilities.cs" />
     <Compile Include="Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
