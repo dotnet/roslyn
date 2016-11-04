@@ -16,28 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
         Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
 
-        'Public Shared Function GetUnnecessaryImportsShared(
-        '        model As SemanticModel,
-        '        root As SyntaxNode,
-        '        predicate As Func(Of SyntaxNode, Boolean),
-        '        cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode)
-        '    predicate = If(predicate, Functions(Of SyntaxNode).True)
-        '    Dim unnecessaryImports = GetIndividualUnnecessaryImportsShared(model, root, predicate, cancellationToken)
-        '    If Not unnecessaryImports.Any() Then
-        '        Return ImmutableArray(Of SyntaxNode).Empty
-        '    End If
-
-        '    Return unnecessaryImports.Select(
-        '            Function(i) As SyntaxNode
-        '                Dim statement = DirectCast(i.Parent, ImportsStatementSyntax)
-        '                If statement.ImportsClauses.All(AddressOf unnecessaryImports.Contains) Then
-        '                    Return statement
-        '                Else
-        '                    Return i
-        '                End If
-        '            End Function).ToImmutableArray()
-        'End Function
-
         Public Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
                 predicate As Func(Of SyntaxNode, Boolean),
