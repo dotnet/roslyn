@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
@@ -21,9 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             new LocalizableResourceString(nameof(CSharpFeaturesResources.Using_directive_is_unnecessary), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
-        {
-            return s_TitleAndMessageFormat;
-        }
+            => s_TitleAndMessageFormat;
+
+        // C# has no need to do any merging of using statements.  Only VB needs to
+        // merge import clauses to an import statement if it all the import clauses
+        // are unnecessary.
+        protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports)
+            => unnecessaryImports;
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)

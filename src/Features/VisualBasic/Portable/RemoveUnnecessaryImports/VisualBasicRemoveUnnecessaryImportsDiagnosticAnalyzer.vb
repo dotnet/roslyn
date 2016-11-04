@@ -5,7 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
@@ -18,6 +18,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
         Protected Overrides Function GetTitleAndMessageFormatForClassificationIdDescriptor() As LocalizableString
             Return s_TitleAndMessageFormat
+        End Function
+
+        Protected Overrides Function MergeImports(unnecessaryImports As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
+            Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
+            Dim importsClauses = unnecessaryImports.CastArray(Of ImportsClauseSyntax)
+
+            For Each clause In importsClauses
+                If Not result.Contains(clause.Parent) Then
+                    Dim statement = DirectCast(clause.Parent, ImportsStatementSyntax)
+                    If statement.ImportsClauses.All(AddressOf importsClauses.Contains) Then
+                        result.Add(statement)
+                    Else
+                        result.Add(clause)
+                    End If
+                End If
+            Next
+
+            Return result.ToImmutableAndFree()
         End Function
 
         Protected Overrides Function GetFixableDiagnosticSpans(

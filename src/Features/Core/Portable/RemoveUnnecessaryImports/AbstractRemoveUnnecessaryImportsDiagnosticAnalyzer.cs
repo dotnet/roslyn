@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
+
         public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
@@ -70,6 +71,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
             if (unnecessaryImports.Any())
             {
+                unnecessaryImports = MergeImports(unnecessaryImports);
+
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
@@ -82,6 +85,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 }
             }
         }
+
+        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
 
         protected virtual Func<SyntaxNode, SyntaxToken> GetLastTokenDelegateForContiguousSpans()
         {
