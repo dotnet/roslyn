@@ -51,13 +51,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
+        protected DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptor(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
+
+        protected DiagnosticDescriptor CreateDescriptor(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptor(DescriptorId, title, title, severity, customTags);
+
         protected DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(id, _localizableTitle, severity, customTags);
+            => CreateDescriptor(id, _localizableTitle, _localizableMessage, severity, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(id, title, title, severity, customTags);
+        //protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
+        //    => CreateDescriptor(id, title, title, severity, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
+        private DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
                 id,
                 title,

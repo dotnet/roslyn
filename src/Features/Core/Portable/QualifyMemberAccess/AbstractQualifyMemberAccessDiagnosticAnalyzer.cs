@@ -11,21 +11,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
-    internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
+    internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum> :
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        where TLanguageKindEnum : struct
     {
-        private static readonly LocalizableString s_shouldBeQualifiedMessage = new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
-
-        private static readonly LocalizableString s_qualifyMembersTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-
-        private static readonly DiagnosticDescriptor s_descriptorQualifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.AddQualificationDiagnosticId,
-                                                                    s_qualifyMembersTitle,
-                                                                    s_shouldBeQualifiedMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorQualifyMemberAccess);
+        protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
+            : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
+                   new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        {
+        }
 
         public bool OpenFileOnly(Workspace workspace)
         {
@@ -49,6 +44,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var internalMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
             internalMethod.Invoke(context, new object[] { new Action<OperationAnalysisContext>(AnalyzeOperation), ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression) });
         }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -90,23 +87,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 var severity = optionValue.Notification.Value;
                 if (severity != DiagnosticSeverity.Hidden)
                 {
-                    var descriptor = new DiagnosticDescriptor(
-                        IDEDiagnosticIds.AddQualificationDiagnosticId,
-                        s_qualifyMembersTitle,
-                        s_shouldBeQualifiedMessage,
-                        DiagnosticCategory.Style,
-                        severity,
-                        isEnabledByDefault: true,
-                        customTags: DiagnosticCustomTags.Unnecessary);
-
-                    context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Operation.Syntax.GetLocation()));
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        CreateDescriptor(severity), 
+                        context.Operation.Syntax.GetLocation()));
                 }
             }
-        }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
         }
 
         internal static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)

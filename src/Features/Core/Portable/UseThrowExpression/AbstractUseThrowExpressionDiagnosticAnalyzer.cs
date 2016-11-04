@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptor(DescriptorId, option.Notification.Value);
+            var descriptor = CreateDescriptor(option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
