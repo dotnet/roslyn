@@ -32,7 +32,6 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTestNext'">
       <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
         <OutDir>$(OutDir)UnitTests\Next\</OutDir>
       </PropertyGroup>
     </When>
