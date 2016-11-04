@@ -42,6 +42,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\AnalyzerHostContext.cs" />
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
