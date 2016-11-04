@@ -16,8 +16,8 @@
     <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
-    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests*.dll</IncludePattern>
-    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>

@@ -280,18 +280,16 @@ namespace BuildBoss
             }
 
             var name = element.Value.Trim();
-            if (Regex.IsMatch(name, @"UnitTest(s?)\.dll", RegexOptions.IgnoreCase))
+            if (Regex.IsMatch(name, @"(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase) && !data.IsAnyUnitTest)
             {
-                switch (data.EffectiveKind)
-                {
-                    case RoslynProjectKind.UnitTest:
-                    case RoslynProjectKind.UnitTestNext:
-                        // This is correct
-                        break;
-                    default:
-                        textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
-                        return false;
-                }
+                textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
+                return false;
+            }
+
+            if (data.IsAnyUnitTest && !Regex.IsMatch(name, @".*(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase))
+            {
+                textWriter.WriteLine($"Assembly {name} is a unit test that doesn't end with UnitTests.dll");
+                return false;
             }
 
             return true;
