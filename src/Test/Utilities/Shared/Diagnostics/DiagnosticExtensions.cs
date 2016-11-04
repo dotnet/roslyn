@@ -199,9 +199,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, DefaultAnalyzerHostContext.Instance, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
-            var discarded = newCompilation.GetDiagnostics();
-            diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
+            using (var context = AnalyzerHostContext.Create())
+            {
+                var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, (DefaultAnalyzerHostContext)context, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
+                var discarded = newCompilation.GetDiagnostics();
+                diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
+            }
 
             if (!reportSuppressedDiagnostics)
             {
