@@ -32,10 +32,6 @@ namespace BuildBoss
         {
             switch (value)
             {
-                case "Dll":
-                    return RoslynProjectKind.Dll;
-                case "ExeDesktop":
-                    return RoslynProjectKind.Exe;
                 case "ExeCoreClr":
                     return RoslynProjectKind.Exe;
                 case "UnitTest":
