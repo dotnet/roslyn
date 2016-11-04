@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 

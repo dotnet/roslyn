@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryImports
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddMissingReference)>
-    Friend Class RemoveUnnecessaryImportsCodeFixProvider
+    Friend Class VisualBasicRemoveUnnecessaryImportsCodeFixProvider
         Inherits CodeFixProvider
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

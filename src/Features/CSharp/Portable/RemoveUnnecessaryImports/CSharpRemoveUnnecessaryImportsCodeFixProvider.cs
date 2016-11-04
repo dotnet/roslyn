@@ -7,16 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-    internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
+    internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             =>  ImmutableArray.Create(CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);

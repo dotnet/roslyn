@@ -234,8 +234,8 @@
     <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
