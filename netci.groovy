@@ -126,11 +126,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
-                  label('mac-roslyn')
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-            }
+    label('mac-roslyn')
+    steps {
+      shell("./cibuild.sh --nocache --debug")
+    }
+  }
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
@@ -143,7 +143,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
   def myJob = job(jobName) {
     description('Determinism tests')
-    label('windows-roslyn')
     steps {
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -163,7 +162,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
   def myJob = job(jobName) {
     description('perf test correctness')
-    label('windows-roslyn')
     steps {
       batchFile(""".\\cibuild.cmd /testPerfCorrectness""")
     }
@@ -180,7 +178,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
   def myJob = job(jobName) {
     description('MicroBuild test')
-    label('windows-roslyn')
     steps {
       batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
     }
@@ -197,7 +194,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "open-vsi", isPr)
   def myJob = job(jobName) {
     description('open integration tests')
-    label('auto-win2012-20160912')
     steps {
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
