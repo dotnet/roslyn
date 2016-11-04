@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
             if (unnecessaryImports.Any())
             {
+                // The IUnnecessaryImportsService will return individual import pieces that
+                // need to be removed.  For example, it will return individual import-clauses
+                // from VB.  However, we want to mark the entire import statement if we are
+                // going to remove all the clause.  Defer to our subclass to stitch this up
+                // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
