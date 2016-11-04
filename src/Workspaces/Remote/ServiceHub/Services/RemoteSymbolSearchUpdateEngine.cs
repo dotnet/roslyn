@@ -25,6 +25,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
+        public async Task<SerializablePackageInfo> FindPackageAsync(
+            SerializablePackageSource source, string packageName, byte[] solutionChecksum)
+        {
+            var result = await _updateEngine.FindPackageAsync(
+                source.Rehydrate(), packageName).ConfigureAwait(false);
+
+            return SerializablePackageInfo.Dehydrate(result);
+        }
+
         public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
             SerializablePackageSource source, string name, int arity, byte[] solutionChecksum)
         {

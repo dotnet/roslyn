@@ -2,17 +2,15 @@
 
 namespace Microsoft.CodeAnalysis.Packaging
 {
-    internal abstract class PackageInfo
+    internal class PackageInfo
     {
         public readonly PackageSource Source;
         public readonly string PackageName;
-        internal readonly int Rank;
 
-        protected PackageInfo(PackageSource source, string packageName, int rank)
+        public PackageInfo(PackageSource source, string packageName)
         {
             Source = source;
             PackageName = packageName;
-            Rank = rank;
         }
     }
 }

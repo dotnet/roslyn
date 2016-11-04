@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -13,6 +14,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal interface ISymbolSearchService : IWorkspaceService
     {
+        /// <summary>
+        /// Checks the given source for a package with the specified name.
+        /// </summary>
+        Task<PackageInfo> FindPackageAsync(
+            PackageSource source, string packageName, CancellationToken cancellationToken);
+
         /// <summary>
         /// Searches for packages that contain a type with the provided name and arity.
         /// Note: Implementations are free to return the results they feel best for the
@@ -52,6 +59,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
+        public Task<PackageInfo> FindPackageAsync(PackageSource source, string packageName, CancellationToken cancellationToken)
+            => SpecializedTasks.Default<PackageInfo>();
+
         public Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
             PackageSource source, string name, int arity, CancellationToken cancellationToken)
         {

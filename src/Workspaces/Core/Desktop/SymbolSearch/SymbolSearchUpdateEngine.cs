@@ -72,6 +72,36 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _updateCancellationToken = updateCancellationToken;
         }
 
+        public Task<PackageInfo> FindPackageAsync(
+            PackageSource source, string packageName)
+        {
+            if (!_sourceToDatabase.TryGetValue(source.Source, out var databaseWrapper))
+            {
+                // Don't have a database to search.  
+                return SpecializedTasks.Default<PackageInfo>();
+            }
+
+            var database = databaseWrapper.Database;
+            var index = database.Index;
+            var stringStore = database.StringStore;
+
+            if (stringStore.TryFindString(packageName, out var range) &&
+                index.TryGetMatchesInRange(range, out var matches, out var startIndex, out var count))
+            {
+                for (var i = startIndex; i < (startIndex + count); i++)
+                {
+                    var symbol = new Symbol(database, matches[i]);
+                    if (symbol.Type == SymbolType.Package)
+                    {
+                        return Task.FromResult(
+                            new PackageInfo(source, packageName));
+                    }
+                }
+            }
+
+            return SpecializedTasks.Default<PackageInfo>();
+        }
+
         public Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
             PackageSource source, string name, int arity)
         {

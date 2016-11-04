@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Packaging;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal class PackageWithTypeInfo : PackageInfo
+    internal class PackageWithTypeInfo : PackageInfoResult
     {
         public readonly IReadOnlyList<string> ContainingNamespaceNames;
         public readonly string TypeName;

@@ -14,11 +14,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
-            PackageSource source, string name, int arity);
-        Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(
-            PackageSource source, string assemblyName);
-        Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity);
+        Task<PackageInfo> FindPackageAsync(PackageSource source, string packageName);
+
+        Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(PackageSource source, string name, int arity);
+        Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(PackageSource source, string assemblyName);
+        Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(string name, int arity);
     }
 }

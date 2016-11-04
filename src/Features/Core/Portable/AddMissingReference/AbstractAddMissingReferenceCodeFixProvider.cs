@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var sortedPackages = await FindMatchingPackagesAsync(
-                        packageSource, symbolSearchService, installerService, 
-                        uniqueIdentities, codeActions, cancellationToken).ConfigureAwait(false);
+                        packageSource, symbolSearchService, 
+                        uniqueIdentities, cancellationToken).ConfigureAwait(false);
 
                     foreach (var package in sortedPackages)
                     {
@@ -93,9 +93,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         private async Task<ImmutableArray<PackageWithAssemblyInfo>> FindMatchingPackagesAsync(
             PackageSource source, 
             ISymbolSearchService searchService, 
-            IPackageInstallerService installerService, 
             ISet<AssemblyIdentity> uniqueIdentities, 
-            ArrayBuilder<CodeAction> builder, 
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

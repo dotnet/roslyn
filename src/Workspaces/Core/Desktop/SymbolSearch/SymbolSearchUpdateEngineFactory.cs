@@ -54,6 +54,17 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 _session = session;
             }
 
+            public async Task<PackageInfo> FindPackageAsync(
+                PackageSource source, string packageName)
+            {
+                var result = await _session.InvokeAsync<SerializablePackageInfo>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackageAsync),
+                    SerializablePackageSource.Dehydrate(source),
+                    packageName).ConfigureAwait(false);
+
+                return result?.Rehydrate();
+            }
+
             public async Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
                 PackageSource source, string name, int arity)
             {

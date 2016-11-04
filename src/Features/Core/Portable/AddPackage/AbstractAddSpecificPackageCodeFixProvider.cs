@@ -14,40 +14,45 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-    internal abstract partial class AddSpecificPackageCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractAddSpecificPackageCodeFixProvider : CodeFixProvider
     {
         private readonly IPackageInstallerService _packageInstallerService;
+        private readonly ISymbolSearchService _symbolSearchService;
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
         /// </summary> 
-        protected AddSpecificPackageCodeFixProvider(
-            IPackageInstallerService packageInstallerService = null)
+        protected AbstractAddSpecificPackageCodeFixProvider(
+            IPackageInstallerService packageInstallerService = null,
+            ISymbolSearchService symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
+            _symbolSearchService = symbolSearchService;
         }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        protected abstract string GetPackageName(string diagnosticId);
+
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var packageInfo = GetPackageResult(context.Diagnostics[0].Id);
-
-            var addPackageCodeActions = GetAddPackagesCodeActions(context, packageInfo);
-            context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
-
-            return SpecializedTasks.EmptyTask;
+            var packageName = GetPackageName(context.Diagnostics[0].Id);
+            if (packageName != null)
+            {
+                var addPackageCodeActions = await GetAddPackagesCodeActionsAsync(
+                    context, packageName).ConfigureAwait(false);
+                context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
+            }
         }
 
-        protected abstract PackageInfo GetPackageResult(string diagnosticId);
-
-        private ImmutableArray<CodeAction> GetAddPackagesCodeActions(
-            CodeFixContext context, PackageInfo packageResult)
+        private async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
+            CodeFixContext context, string packageName)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var workspaceServices = document.Project.Solution.Workspace.Services;
 
+            var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
             var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
             var language = document.Project.Language;
@@ -57,7 +62,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
 
             var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-            if (installerService != null &&
+            if (symbolSearchService != null &&
+                installerService != null &&
                 searchNugetPackages &&
                 installerService.IsEnabled)
             {
@@ -65,37 +71,18 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    codeActions.Add(new InstallPackageParentCodeAction(
-                        installerService, packageResult, document));
+                    var packageInfo = await symbolSearchService.FindPackageAsync(
+                        packageSource, packageName, cancellationToken).ConfigureAwait(false);
+
+                    if (packageInfo != null)
+                    {
+                        codeActions.Add(new InstallPackageParentCodeAction(
+                            installerService, packageInfo, document));
+                    }
                 }
             }
 
             return codeActions.ToImmutableAndFree();
-        }
-
-        private async Task<ImmutableArray<PackageWithAssemblyInfo>> FindMatchingPackagesAsync(
-            PackageSource source, 
-            ISymbolSearchService searchService, 
-            IPackageInstallerService installerService, 
-            ISet<AssemblyIdentity> uniqueIdentities, 
-            ArrayBuilder<CodeAction> builder, 
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var result = new HashSet<PackageWithAssemblyInfo>();
-
-            foreach (var identity in uniqueIdentities)
-            {
-                var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
-                    source, identity.Name, cancellationToken).ConfigureAwait(false);
-
-                result.AddRange(packagesWithAssembly);
-            }
-
-            // Ensure the packages are sorted by rank.
-            var sortedPackages = result.ToImmutableArray().Sort();
-
-            return sortedPackages;
         }
     }
 }

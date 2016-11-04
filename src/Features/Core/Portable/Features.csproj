@@ -93,7 +93,7 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
-    <Compile Include="AddPackage\AddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />

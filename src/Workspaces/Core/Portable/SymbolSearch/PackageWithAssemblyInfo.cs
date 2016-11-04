@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Packaging;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal class PackageWithAssemblyInfo : PackageInfo, IEquatable<PackageWithAssemblyInfo>, IComparable<PackageWithAssemblyInfo>
+    internal class PackageWithAssemblyInfo : PackageInfoResult, IEquatable<PackageWithAssemblyInfo>, IComparable<PackageWithAssemblyInfo>
     {
         public readonly string Version;
 

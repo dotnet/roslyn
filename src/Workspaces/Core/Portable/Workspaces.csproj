@@ -370,6 +370,7 @@
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Packaging\PackageInfo.cs" />
+    <Compile Include="SymbolSearch\PackageInfoResult.cs" />
     <Compile Include="SymbolSearch\PackageWithAssemblyInfo.cs" />
     <Compile Include="SymbolSearch\PackageWithTypeInfo.cs" />
     <Compile Include="SymbolSearch\ReferenceAssemblyWithTypeInfo.cs" />

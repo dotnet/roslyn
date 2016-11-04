@@ -195,6 +195,29 @@ namespace Microsoft.CodeAnalysis.Remote
 
     #region SymbolSearch
 
+    internal class SerializablePackageInfo
+    {
+        public SerializablePackageSource Source;
+        public string PackageName;
+
+        public static SerializablePackageInfo Dehydrate(PackageInfo info)
+        {
+            if (info == null)
+            {
+                return null;
+            }
+
+            return new SerializablePackageInfo()
+            {
+                Source = SerializablePackageSource.Dehydrate(info.Source),
+                PackageName = info.PackageName
+            };
+        }
+
+        public PackageInfo Rehydrate()
+            => new PackageInfo(Source.Rehydrate(), PackageName);
+    }
+
     internal class SerializablePackageWithTypeResult
     {
         public SerializablePackageSource Source;

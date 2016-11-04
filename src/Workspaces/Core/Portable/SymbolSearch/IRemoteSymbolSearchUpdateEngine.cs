@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         Task UpdateContinuouslyAsync(
             string sourceName, string localSettingsDirectory, byte[] solutionChecksum);
 
+        Task<SerializablePackageInfo> FindPackageAsync(
+            SerializablePackageSource source, string packageName, byte[] solutionChecksum);
+
         Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
             SerializablePackageSource source, string name, int arity, byte[] solutionChecksum);
         Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
