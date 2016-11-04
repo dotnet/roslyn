@@ -54,6 +54,17 @@ namespace BuildBoss
             }
         }
 
+        internal Guid? GetProjectGuid()
+        {
+            var elem = _document.XPathSelectElements("//mb:ProjectGuid", _manager).FirstOrDefault();
+            if (elem == null)
+            {
+                return null;
+            }
+
+            return Guid.Parse(elem.Value);
+        }
+
         internal RoslynProjectData? TryGetRoslynProjectData()
         {
             try
@@ -81,6 +92,11 @@ namespace BuildBoss
         internal IEnumerable<XElement> GetImports()
         {
             return _document.XPathSelectElements("//mb:Import", _manager);
+        }
+
+        internal IEnumerable<XElement> GetItemGroup()
+        {
+            return _document.XPathSelectElements("//mb:ItemGroup", _manager);
         }
 
         internal List<ProjectKey> GetDeclaredProjectReferences()

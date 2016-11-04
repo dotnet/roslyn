@@ -13,6 +13,7 @@ namespace BuildBoss
         Exe,
         ExeCoreClr,
         UnitTest,
+        UnitTestFixed,
         UnitTestNext,
         CompilerGeneratorTool,
         DeploymentCompilerGeneratorTools,
@@ -34,6 +35,8 @@ namespace BuildBoss
             {
                 case "ExeCoreClr":
                     return RoslynProjectKind.Exe;
+                case "UnitTestFixed":
+                    return RoslynProjectKind.UnitTestFixed;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
                 case "UnitTestNext":
@@ -59,12 +62,15 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
+                kind == RoslynProjectKind.UnitTestFixed ||
                 kind == RoslynProjectKind.UnitTestNext;
         }
 
         internal static bool IsDeploymentProject(RoslynProjectKind kind)
         {
-            return kind == RoslynProjectKind.Exe;
+            return
+                kind == RoslynProjectKind.Exe ||
+                kind == RoslynProjectKind.UnitTestFixed;
         }
     }
 

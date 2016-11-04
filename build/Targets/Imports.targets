@@ -8,6 +8,11 @@
         <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
+    <When Condition="'$(RoslynProjectType)' == 'UnitTestFixed'">
+      <PropertyGroup>
+        <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
+      </PropertyGroup>
+    </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
         <OutDir>$(OutDir)UnitTests\Current\</OutDir>
