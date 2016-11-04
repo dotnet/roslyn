@@ -42,9 +42,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var primaryDescriptor = CreateDescriptor(descriptorId, DiagnosticSeverity.Hidden);
 
             UnnecessaryWithSuggestionDescriptor = CreateDescriptor(
-                descriptorId, DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptor(descriptorId + "WithoutSuggestion",
+                descriptorId, _localizableTitle, _localizableMessage, 
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+
+            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptor(
+                descriptorId + "WithoutSuggestion",
+                _localizableTitle, _localizableMessage, 
+                DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+
             SupportedDiagnostics = ImmutableArray.Create(
                 primaryDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
@@ -56,9 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected DiagnosticDescriptor CreateDescriptor(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptor(DescriptorId, title, title, severity, customTags);
-
-        private DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(id, _localizableTitle, _localizableMessage, severity, customTags);
 
         private DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
