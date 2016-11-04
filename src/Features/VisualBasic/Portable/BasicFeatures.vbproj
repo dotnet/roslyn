@@ -402,9 +402,8 @@
     <Compile Include="Structure\Providers\XmlExpressionStructureProvider.vb" />
     <Compile Include="Structure\VisualBasicStructureHelpers.vb" />
     <Compile Include="Structure\VisualBasicBlockStructureProvider.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
@@ -448,6 +447,8 @@
       <DependentUpon>VBFeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Structure\Providers\WithBlockStructureProvider.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsService.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBFeaturesResources.resx">
