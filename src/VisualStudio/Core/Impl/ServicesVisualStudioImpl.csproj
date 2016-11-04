@@ -256,7 +256,6 @@
     <Compile Include="Options\Style\NamingPreferences\NamingStyleOptionPageControl.xaml.cs">
       <DependentUpon>NamingStyleOptionPageControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Options\Style\NamingPreferences\EnforcementLevel.cs" />
     <Compile Include="Options\Style\NamingPreferences\NamingStyleOptionPageViewModel.cs" />
     <Compile Include="Options\Style\NamingPreferences\SymbolSpecification\SymbolSpecificationDialog.xaml.cs">
       <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>

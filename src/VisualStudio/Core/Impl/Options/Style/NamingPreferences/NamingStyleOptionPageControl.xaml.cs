@@ -8,9 +8,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -22,11 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
 
-        private readonly ImmutableArray<EnforcementLevel> _notifications = ImmutableArray.Create(
-            new EnforcementLevel(DiagnosticSeverity.Hidden),
-            new EnforcementLevel(DiagnosticSeverity.Info),
-            new EnforcementLevel(DiagnosticSeverity.Warning),
-            new EnforcementLevel(DiagnosticSeverity.Error));
+        private readonly NotificationOptionViewModel[] _notifications = new[]
+        {
+            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
+            new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+            new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+        };
 
         internal NamingStyleOptionPageControl(IServiceProvider serviceProvider, INotificationService notificationService, string languageName)
             : base(serviceProvider)
@@ -137,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 var rule = new SerializableNamingRule()
                 {
-                    EnforcementLevel = item.SelectedNotificationPreference.Value,
+                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Value,
                     NamingStyleID = item.SelectedStyle.ID,
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };
