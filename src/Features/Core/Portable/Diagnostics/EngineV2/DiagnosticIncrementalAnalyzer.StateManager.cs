@@ -133,6 +133,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // we always include compiler analyzer in build only state
                 var compilerAnalyzer = _analyzerManager.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer == null)
+                {
+                    // only way to get here is if MEF is corrupted.
+                    FailFast.OnFatalException(new Exception("How can this happen?"));
+                }
+
                 StateSet compilerStateSet;
                 if (hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
