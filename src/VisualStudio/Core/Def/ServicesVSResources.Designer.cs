@@ -371,6 +371,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collapse #regions when collapsing to definitions.
+        /// </summary>
+        internal static string Collapse_regions_when_collapsing_to_definitions {
+            get {
+                return ResourceManager.GetString("Collapse_regions_when_collapsing_to_definitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {

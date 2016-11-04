@@ -23,5 +23,8 @@ namespace Microsoft.CodeAnalysis.Structure
 
         public static readonly PerLanguageOption<bool> ShowOutliningForCodeLevelConstructs = new PerLanguageOption<bool>(
             nameof(BlockStructureOptions), nameof(ShowOutliningForCodeLevelConstructs), defaultValue: true);
+
+        public static readonly PerLanguageOption<bool> CollapseRegionsWhenCollapsingToDefinitions = new PerLanguageOption<bool>(
+            nameof(BlockStructureOptions), nameof(CollapseRegionsWhenCollapsingToDefinitions), defaultValue: false);
     }
 }

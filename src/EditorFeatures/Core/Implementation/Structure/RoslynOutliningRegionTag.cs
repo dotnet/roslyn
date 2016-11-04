@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -55,13 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public override bool Equals(object obj) 
             => Equals(obj as RoslynOutliningRegionTag);
 
-        // This is only called if the spans for the tags were the same. In that case, we 
-        // consider ourselves the same unless the CollapsedForm properties are different.
         public bool Equals(RoslynOutliningRegionTag tag)
-            => tag != null && Equals(this.CollapsedForm, tag.CollapsedForm);
+            => tag != null &&
+               IsImplementation == tag.IsImplementation &&
+               Equals(this.CollapsedForm, tag.CollapsedForm);
 
         public override int GetHashCode() 
-            => EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm);
+            => Hash.Combine(IsImplementation,
+                            EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm));
 
         public object CollapsedHintForm =>
             new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
