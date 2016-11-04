@@ -304,6 +304,35 @@
     </ItemGroup>
   </Target>
 
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
+  <!-- Currently, the Willow installer can't install vsixes that have a <Prerequisites> element
+       but the Dev15 RC SDK packages can NOT install vsixes without them as part of the build.
+       To work around this conflict, we include them in our manifest files, but if we're building
+       with something older than Dev15 RC (as we do for official builds that we insert into setup)
+       we'll run a transform to strip out the <Prerequisites> element. -->
+  <Target Name="RewriteVsixManifestOnOfficialBuild"
+          BeforeTargets="FindSourceVsixManifest"
+          Condition="'$(IsDev15RC)' != 'true'">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <XslTransformation XslInputPath="$(MSBuildThisFileDirectory)TransformVsixManifest.xslt"
+                       XmlInputPaths="source.extension.vsixmanifest"
+                       OutputPaths="$(IntermediateOutputPath)\source.extension.vsixmanifest" />
+    <ItemGroup>
+      <!-- Note that `FindSourceVsixManifest` finds the first item in @None that matches the name.
+           Our template projects include other manifests as content that are in @None, so make
+           sure we put our tranformed item back at the beginning of the list. -->
+      <None Remove="source.extension.vsixmanifest" />
+      <_TempNoneForReordering Include="@(None)" />
+      <None Remove="@(None)" />
+      <None Include="$(IntermediateOutputPath)\source.extension.vsixmanifest;@(_TempNoneForReordering)" />
+    </ItemGroup>
+  </Target>
+
   <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
        assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
        strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->

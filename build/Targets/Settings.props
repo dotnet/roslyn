@@ -56,6 +56,8 @@
     <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
     <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
     <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
+    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
   </PropertyGroup>
 
   <!-- Unix specific settings -->
@@ -186,6 +188,11 @@
     <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsVSBeforeDev15Preview4)' == 'true'">
       <PropertyGroup>
         <VisualStudioBuildToolsVersion>15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsDev15RC)' == 'true'">
+      <PropertyGroup>
+        <VisualStudioBuildToolsVersion>15.0.25825-RC</VisualStudioBuildToolsVersion>
       </PropertyGroup>
     </When>
     <When Condition="'$(VisualStudioVersion)' == '15.0'">
