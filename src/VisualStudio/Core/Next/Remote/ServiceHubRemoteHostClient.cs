@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
+        private readonly string _hostGroup;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -27,12 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var remoteHostStream = await primary.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+                var current = $"VS ({Process.GetCurrentProcess().Id})";
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
+                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, current, cancellationToken).ConfigureAwait(false);
+
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, current, remoteHostStream);
 
                 // make sure connection is done right
-                var current = $"VS ({Process.GetCurrentProcess().Id})";
                 var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
@@ -61,10 +63,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 new WorkspaceHost(vsWorkspace, client));
         }
 
-        private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :
+        private ServiceHubRemoteHostClient(
+            Workspace workspace, HubClient hubClient, string hostGroup, Stream stream) :
             base(workspace)
         {
             _hubClient = hubClient;
+            _hostGroup = hostGroup;
 
             _rpc = JsonRpc.Attach(stream, target: this);
 
@@ -76,11 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
-            var serviceStream = await _hubClient.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
             return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
         }
@@ -97,6 +101,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             Disconnected();
+        }
+
+        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, string hostGroup, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // we can remove these once whole system moved to new servicehub API
+            try
+            {
+                var descriptor = new ServiceDescriptor(serviceName) { HostGroup = new HostGroup(hostGroup) };
+                return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                return await client.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
