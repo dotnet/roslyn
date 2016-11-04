@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         public static CaretPreservingEditTransaction CreateEditTransaction(
             this ITextView view, string description, ITextUndoHistoryRegistry registry, IEditorOperationsFactoryService service)
         {
-            var transaction = new CaretPreservingEditTransaction(description, view, registry, service);
-            transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
-
-            return transaction;
+            return new CaretPreservingEditTransaction(description, view, registry, service)
+            {
+                MergePolicy = AutomaticCodeChangeMergePolicy.Instance
+            };
         }
 
         public static SyntaxToken FindToken(this ITextSnapshot snapshot, int position, CancellationToken cancellationToken)
