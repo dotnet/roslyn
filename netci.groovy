@@ -204,7 +204,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "open-vsi"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-preview5')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
