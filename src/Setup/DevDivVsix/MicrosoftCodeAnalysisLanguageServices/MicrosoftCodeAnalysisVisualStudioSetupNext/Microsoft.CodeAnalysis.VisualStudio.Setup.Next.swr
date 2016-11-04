@@ -15,8 +15,7 @@ vs.payloads
   vs.payload source=$(OutputPath)Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix
 
 vs.dependencies
-  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
-  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resources
+  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
   vs.dependency id=Microsoft.VisualStudio.MinShell
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
                 version=$(Version)
