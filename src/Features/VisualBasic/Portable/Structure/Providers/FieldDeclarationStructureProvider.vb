@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -11,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(fieldDeclaration As FieldDeclarationSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  options As OptionSet,
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(fieldDeclaration, spans)
         End Sub

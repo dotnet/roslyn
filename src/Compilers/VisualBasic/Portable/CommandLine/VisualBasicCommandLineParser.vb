@@ -2216,10 +2216,12 @@ lVbRuntimePlus:
                         outputFileName = outputFileName & ".netmodule"
                     End If
                 Else
-                    Dim defaultExtension As String = kind.GetDefaultExtension()
-                    If Not String.Equals(ext, defaultExtension, StringComparison.OrdinalIgnoreCase) Then
+                    If Not ext.Equals(".exe", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".dll", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".netmodule", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".winmdobj", StringComparison.OrdinalIgnoreCase) Then
                         simpleName = outputFileName
-                        outputFileName = outputFileName & defaultExtension
+                        outputFileName = outputFileName & kind.GetDefaultExtension()
                     End If
 
                     If simpleName Is Nothing Then
