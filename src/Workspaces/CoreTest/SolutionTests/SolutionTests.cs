@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text, docRoot.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14954"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestGetRecoveredSyntaxRootAsync()
         {
             var pid = ProjectId.CreateNewId();
