@@ -22,7 +22,7 @@ End Class
 Class Outer
     [||]Class test1
     End Class
-    End Class
+End Class
 "
 
             Await TestMissingAsync(code)
@@ -41,12 +41,12 @@ End Class
             Dim codeAfterMove =
 "
 Class Class2
-    End Class
+End Class
 "
             Dim expectedDocumentName = "Class1.vb"
 
             Dim destinationDocumentText =
-        "
+"
 Class Class1
 End Class
 "
@@ -82,7 +82,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
         Public Async Function MoveNestedTypeToNewFile_Simple_DottedName() As Task
             Dim code =
-    "
+"
 Public Class Class1
     Class Class2[||]
     End Class
@@ -96,7 +96,7 @@ End Class
             Dim expectedDocumentName = "Class1.Class2.vb"
 
             Dim destinationDocumentText =
-        "
+"
 Public Partial Class Class1
     Class Class2
 
@@ -113,10 +113,10 @@ End Class
 "
 ''' Outer comment
 Public Class Class1
-        ''' Inner comment
-        Class Class2[||]
+    ''' Inner comment
+    Class Class2[||]
     End Class
-    End Class
+End Class
 "
             Dim codeAfterMove =
 "
