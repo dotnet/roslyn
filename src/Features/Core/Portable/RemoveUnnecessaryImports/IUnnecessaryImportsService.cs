@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal interface IUnnecessaryImportsService : ILanguageService
     {
-        ImmutableArray<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+        ImmutableArray<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, CancellationToken cancellationToken);
     }
 }

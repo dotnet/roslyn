@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
                                             .GetService<IUnnecessaryImportsService>();
 
-            var root = tree.GetRoot();
-            var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
+            var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
             if (unnecessaryImports.Any())
             {
                 // The IUnnecessaryImportsService will return individual import pieces that

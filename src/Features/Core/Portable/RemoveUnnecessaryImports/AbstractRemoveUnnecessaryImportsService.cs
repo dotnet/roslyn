@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
         public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
+            SemanticModel model, CancellationToken cancellationToken)
         {
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken).CastArray<SyntaxNode>();
         }
 
