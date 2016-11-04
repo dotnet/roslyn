@@ -41,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 model As SemanticModel, root As SyntaxNode,
                 predicate As Func(Of SyntaxNode, Boolean),
                 cancellationToken As CancellationToken) As ImmutableArray(Of ImportsClauseSyntax)
+            predicate = If(predicate, Functions(Of SyntaxNode).True)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)
