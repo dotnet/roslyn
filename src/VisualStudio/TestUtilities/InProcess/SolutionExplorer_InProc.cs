@@ -138,36 +138,21 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
-            var projectTemplateName = string.Empty;
-
-            switch (languageName.ToLower())
+            string csharpProjectTemplate;
+            if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
+               _csharpProjectTemplates.TryGetValue(projectTemplate, out csharpProjectTemplate))
             {
-                case "csharp":
-                {
-                    if (_csharpProjectTemplates.TryGetValue(projectTemplate, out projectTemplateName))
-                    {
-                        break;
-                    }
-                    goto default;
-                }
-
-                case "visualbasic":
-                {
-                    if (_visualBasicProjectTemplates.TryGetValue(projectTemplate, out projectTemplateName))
-                    {
-                        break;
-                    }
-                    goto default;
-                }
-
-                default:
-                {
-                    projectTemplateName = projectTemplate;
-                    break;
-                }
+                return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
-            return _solution.GetProjectTemplate(projectTemplateName, languageName);
+            string visualBasicProjectTemplate;
+            if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
+               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out visualBasicProjectTemplate))
+            {
+                return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
+            }
+
+            return _solution.GetProjectTemplate(projectTemplate, languageName);
         }
 
         public void CleanUpOpenSolution()
