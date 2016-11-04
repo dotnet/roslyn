@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public new INamedTypeSymbol OriginalDefinition { get; protected set; }
 
+        public ImmutableArray<IFieldSymbol> TupleElements { get; protected set; }
+
         internal readonly IList<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
         protected CodeGenerationAbstractNamedTypeSymbol(

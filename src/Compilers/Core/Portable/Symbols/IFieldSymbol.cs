@@ -66,5 +66,12 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IFieldSymbol OriginalDefinition { get; }
+
+        /// <summary>
+        /// If this field represents a tuple element, returns a corresponding default element field.
+        /// Otherwise returns null
+        /// </summary>
+        IFieldSymbol CorrespondingTupleField { get; }
+
     }
 }

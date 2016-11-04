@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public IFieldSymbol CorrespondingTupleField
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
             public ISymbol AssociatedSymbol
             {
                 get
