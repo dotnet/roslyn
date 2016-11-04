@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
 
-namespace Microsoft.CodeAnalysis.AddMissingReference
+namespace Microsoft.CodeAnalysis.AddPackage
 {
     /// <summary>
     /// This is the top level 'Install Nuget Package' code action we show in 
