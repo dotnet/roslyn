@@ -5,8 +5,8 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
-    <ExportLanguageService(GetType(IRemoveUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicRemoveUnnecessaryImportsService
+    <ExportLanguageService(GetType(IUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicUnnecessaryImportsService
         Inherits AbstractVisualBasicRemoveUnnecessaryImportsService
 
     End Class

@@ -196,8 +196,8 @@
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
     <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />

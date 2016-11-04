@@ -11,12 +11,21 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsService<T> : 
-        IRemoveUnnecessaryImportsService, IEqualityComparer<T> where T : SyntaxNode
+        IRemoveUnnecessaryImportsService, 
+        IUnnecessaryImportsService, 
+        IEqualityComparer<T> where T : SyntaxNode
     {
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
             => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
+
+        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
+            SemanticModel model, CancellationToken cancellationToken)
+        {
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
+            return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken).CastArray<SyntaxNode>();
+        }
 
         protected abstract ImmutableArray<T> GetUnnecessaryImports(
             SemanticModel model, SyntaxNode root, 

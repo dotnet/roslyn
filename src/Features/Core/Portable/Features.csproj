@@ -106,6 +106,8 @@
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
+    <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
@@ -418,7 +420,7 @@
     <Compile Include="Diagnostics\Analyzers\DocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\ProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryImportsDiagnosticAnalyzerBase.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\IDocumentationCommentFormattingService.cs" />

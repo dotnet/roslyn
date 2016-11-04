@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase :
+    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer :
         DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
@@ -48,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             return _classificationIdDescriptor;
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => 
+            ImmutableArray.Create(s_fixableIdDescriptor, GetClassificationIdDescriptor());
+
         public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
@@ -61,10 +64,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var root = tree.GetRoot();
-            var unnecessaryImports = GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
-            if (unnecessaryImports != null && unnecessaryImports.Any())
+            var workspace = ((WorkspaceAnalyzerOptions)context.Options).Workspace;
+            var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
+                                            .GetService<IUnnecessaryImportsService>();
+
+            var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
+            if (unnecessaryImports.Any())
             {
+                // The IUnnecessaryImportsService will return individual import pieces that
+                // need to be removed.  For example, it will return individual import-clauses
+                // from VB.  However, we want to mark the entire import statement if we are
+                // going to remove all the clause.  Defer to our subclass to stitch this up
+                // for us appropriately.
+                unnecessaryImports = MergeImports(unnecessaryImports);
+
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics =
@@ -78,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             }
         }
 
-        protected abstract IEnumerable<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
 
         protected virtual Func<SyntaxNode, SyntaxToken> GetLastTokenDelegateForContiguousSpans()
         {

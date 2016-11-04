@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
-    Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
+    Partial Friend Class AbstractVisualBasicRemoveUnnecessaryImportsService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 

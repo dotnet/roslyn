@@ -1,36 +1,35 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : 
-        RemoveUnnecessaryImportsDiagnosticAnalyzerBase
+        AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_TitleAndMessageFormat =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.Using_directive_is_unnecessary), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         protected override LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor()
-        {
-            return s_TitleAndMessageFormat;
-        }
+            => s_TitleAndMessageFormat;
 
-        protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImportsShared(
-                semanticModel, root, predicate: null, cancellationToken: cancellationToken);
-        }
+        // C# has no need to do any merging of using statements.  Only VB needs to
+        // merge import clauses to an import statement if it all the import clauses
+        // are unnecessary.
+        protected override ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports)
+            => unnecessaryImports;
 
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)
