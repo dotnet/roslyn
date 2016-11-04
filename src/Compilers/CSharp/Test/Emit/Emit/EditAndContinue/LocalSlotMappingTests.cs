@@ -1492,7 +1492,7 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef });
+                references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
