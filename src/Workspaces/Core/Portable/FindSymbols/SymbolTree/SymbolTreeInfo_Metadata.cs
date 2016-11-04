@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note: can return <code>null</code> if we weren't able to actually load the metadata for some
         /// reason.
         /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
+        public static Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             bool loadOnly,
@@ -80,9 +80,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
             {
-                return null;
+                return SpecializedTasks.Default<SymbolTreeInfo>();
             }
 
+            // Try to acquire the data outside the lock.  That way we can avoid any sort of 
+            // allocations around acquiring the task for it.  Note: once ValueTask is available
+            // (and enabled in the language), we'd likely want to use it here. (Presuming 
+            // the lock is not being held most of the time).
+            Task<SymbolTreeInfo> infoTask;
+            if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
+            {
+                return infoTask;
+            }
+
+            return TryGetInfoForMetadataReferenceSlowAsync(
+                solution, reference, loadOnly, metadata, cancellationToken);
+        }
+
+        private static async Task<SymbolTreeInfo> TryGetInfoForMetadataReferenceSlowAsync(
+            Solution solution, PortableExecutableReference reference,
+            bool loadOnly, Metadata metadata, CancellationToken cancellationToken)
+        {
             // Find the lock associated with this piece of metadata.  This way only one thread is
             // computing a symbol tree info for a particular piece of metadata at a time.
             var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
@@ -90,20 +108,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SymbolTreeInfo info;
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
+                Task<SymbolTreeInfo> infoTask;
+                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
                 {
-                    return info;
+                    return await infoTask.ConfigureAwait(false);
                 }
 
-                info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
+                var info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
                     solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
                 }
 
-                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
+                // Cache the result in our dictionary.  Store it as a completed task so that 
+                // future callers don't need to allocate to get the result back.
+                infoTask = Task.FromResult(info);
+                s_metadataIdToInfo.Add(metadata.Id, infoTask);
+
+                return info;
             }
         }
 

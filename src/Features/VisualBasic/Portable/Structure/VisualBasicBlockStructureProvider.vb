@@ -43,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             builder.Add(Of AccessorStatementSyntax, AccessorDeclarationStructureProvider)()
             builder.Add(Of ClassStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
+            builder.Add(Of CollectionInitializerSyntax, CollectionInitializerStructureProvider)
             builder.Add(Of CompilationUnitSyntax, CompilationUnitStructureProvider)()
             builder.Add(Of SubNewStatementSyntax, ConstructorDeclarationStructureProvider, MetadataAsSource.MetadataConstructorDeclarationStructureProvider)()
             builder.Add(Of DelegateStatementSyntax, DelegateDeclarationStructureProvider, MetadataAsSource.MetadataDelegateDeclarationStructureProvider)()
@@ -61,6 +62,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             builder.Add(Of MultiLineIfBlockSyntax, MultiLineIfBlockStructureProvider)()
             builder.Add(Of MultiLineLambdaExpressionSyntax, MultilineLambdaStructureProvider)()
             builder.Add(Of NamespaceStatementSyntax, NamespaceDeclarationStructureProvider)()
+            builder.Add(Of ObjectCollectionInitializerSyntax, ObjectCreationInitializerStructureProvider)
+            builder.Add(Of ObjectMemberInitializerSyntax, ObjectCreationInitializerStructureProvider)
             builder.Add(Of OperatorStatementSyntax, OperatorDeclarationStructureProvider, MetadataAsSource.MetadataOperatorDeclarationStructureProvider)()
             builder.Add(Of PropertyStatementSyntax, PropertyDeclarationStructureProvider, MetadataAsSource.MetadataPropertyDeclarationStructureProvider)()
             builder.Add(Of RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider)()

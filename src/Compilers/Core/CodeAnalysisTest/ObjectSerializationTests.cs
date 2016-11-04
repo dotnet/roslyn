@@ -528,6 +528,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripMember(inputBool);
         }
 
+        private static readonly DateTime _testNow = DateTime.Now;
+
         [Fact]
         public void TestPrimitiveValues()
         {
@@ -562,6 +564,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(ELong.Value);
             TestRoundTripValue(EULong.Value);
             TestRoundTripValue(typeof(object));
+            TestRoundTripValue(_testNow);
         }
 
         [Fact]
@@ -638,6 +641,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripMember(ELong.Value);
             TestRoundTripMember(EULong.Value);
             TestRoundTripMember(typeof(object));
+            TestRoundTripMember(_testNow);
         }
 
         [Fact]
@@ -783,6 +787,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue(ELong.Value);
             writer.WriteValue(EULong.Value);
             writer.WriteValue(typeof(object));
+            writer.WriteValue(_testNow);
         }
 
         private static void TestReadingPrimitiveValues(ObjectReader reader)
@@ -818,6 +823,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ELong.Value, reader.ReadValue());
             Assert.Equal(EULong.Value, reader.ReadValue());
             Assert.Equal(typeof(object), (Type)reader.ReadValue());
+            Assert.Equal(_testNow, (DateTime)reader.ReadValue());
         }
 
         public enum EByte : byte

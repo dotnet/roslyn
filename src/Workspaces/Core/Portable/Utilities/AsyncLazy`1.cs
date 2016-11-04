@@ -222,7 +222,11 @@ namespace Roslyn.Utilities
                     StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
                 }
 
-                return request.Task.WaitAndGetResult(cancellationToken);
+                // The reason we have synchronous codepaths in AsyncLazy is to support the synchronous requests for syntax trees
+                // that we may get from the compiler. Thus, it's entirely possible that this will be requested by the compiler or
+                // an analyzer on the background thread when another part of the IDE is requesting the same tree asynchronously.
+                // In that case we block the synchronous request on the asynchronous request, since that's better than alternatives.
+                return request.Task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
             else
             {

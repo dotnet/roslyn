@@ -277,19 +277,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Messages.Add(source.GetType().Name, ToLogFormat(exception));
             }
 
-            public bool TryLogException(object source, Exception exception)
-            {
-                try
-                {
-                    Messages.Add(source.GetType().Name, ToLogFormat(exception));
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-
             private static string ToLogFormat(Exception exception)
             {
                 return exception.Message + Environment.NewLine + exception.StackTrace;

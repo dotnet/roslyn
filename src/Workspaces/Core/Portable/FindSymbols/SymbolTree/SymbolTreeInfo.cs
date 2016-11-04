@@ -303,7 +303,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
         // only cache results (the symbol tree infos) if they successfully compute to completion.
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
-        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
+        private static readonly ConditionalWeakTable<MetadataId, Task<SymbolTreeInfo>> s_metadataIdToInfo = 
+            new ConditionalWeakTable<MetadataId, Task<SymbolTreeInfo>>();
 
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
