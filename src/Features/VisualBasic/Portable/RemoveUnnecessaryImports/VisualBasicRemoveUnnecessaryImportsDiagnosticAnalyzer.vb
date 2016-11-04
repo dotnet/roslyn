@@ -20,6 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Return s_TitleAndMessageFormat
         End Function
 
+        ''' Takes the import clauses we want to remove and returns them *or* their 
+        ''' containing ImportsStatements *if* we wanted to remove all the clauses of
+        ''' that ImportStatement.
         Protected Overrides Function MergeImports(unnecessaryImports As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
             Dim importsClauses = unnecessaryImports.CastArray(Of ImportsClauseSyntax)
