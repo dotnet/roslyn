@@ -6,7 +6,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{3CEA0D69-00D3-40E5-A661-DC41EA07269B}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Roslyn.Services.Editor.UnitTests2</AssemblyName>
+    <AssemblyName>Roslyn.Services.Editor2.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
@@ -166,12 +166,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

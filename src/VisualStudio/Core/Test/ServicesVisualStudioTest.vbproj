@@ -90,6 +90,10 @@
       <Project>{7BE3DEEB-87F8-4E15-9C21-4F94B0B1C2D6}</Project>
       <Name>SolutionExplorerShim</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\TestUtilities2\VisualStudioTestUtilities2.vbproj">
+      <Project>{69f853e5-bd04-4842-984f-fc68cc51f402}</Project>
+      <Name>VisualStudioTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\Impl\BasicVisualStudio.vbproj">
       <Project>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</Project>
       <Name>BasicVisualStudio</Name>
@@ -252,8 +256,6 @@
     <Compile Include="CodeModel\AbstractEventCollectorTests.vb" />
     <Compile Include="CodeModel\AbstractFileCodeModelTests.vb" />
     <Compile Include="CodeModel\AbstractRootCodeModelTests.vb" />
-    <Compile Include="CodeModel\CodeModelTestHelpers.vb" />
-    <Compile Include="CodeModel\CodeModelTestState.vb" />
     <Compile Include="CodeModel\CSharp\CodeAccessorFunctionTests.vb" />
     <Compile Include="CodeModel\CSharp\CodeAttributeTests.vb" />
     <Compile Include="CodeModel\CSharp\CodeClassTests.vb" />
@@ -288,8 +290,6 @@
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBInvocations.vb" />
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBLocalDeclarations.vb" />
     <Compile Include="CodeModel\MethodXML\MethodXMLTests_VBStatements.vb" />
-    <Compile Include="CodeModel\Mocks\MockTextManagerAdapter.vb" />
-    <Compile Include="CodeModel\Mocks\MockTextPoint.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeAccessorFunctionTests.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeAttributeTests.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeClassTests.vb" />
@@ -354,7 +354,6 @@
     <Compile Include="GoToDefinition\GoToDefinitionApiTests.vb" />
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
-    <Compile Include="MockComponentModel.vb" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineTests.vb" />
     <Compile Include="Telemetry\VSTelemetryLoggerTest.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
@@ -362,21 +361,16 @@
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
     <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
     <Compile Include="ObjectBrowser\Helpers.vb" />
-    <Compile Include="ObjectBrowser\Mocks\MockObjectBrowserDescription.vb" />
-    <Compile Include="ObjectBrowser\Mocks\MockServiceProvider.vb" />
-    <Compile Include="MockVisualStudioWorkspace.vb" />
     <Compile Include="ObjectBrowser\NavInfoNodeDescriptor.vb" />
     <Compile Include="ObjectBrowser\VisualBasic\ObjectBrowerTests.vb" />
     <Compile Include="Progression\GraphProviderTests.vb" />
     <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptionsTests.vb" />
     <Compile Include="ProjectSystemShim\DeferredProjectLoadingTests.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchy.vb" />
     <Compile Include="ProjectSystemShim\MockRuleSetFile.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
     <Compile Include="Snippets\SnippetServiceWaiter.vb" />
     <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
     <Compile Include="SolutionExplorer\RuleSetDocumentExtensionsTests.vb" />
-    <Compile Include="StubVsEditorAdaptersFactoryService.vb" />
     <Compile Include="Preview\PreviewChangesTests.vb" />
     <Compile Include="Progression\CallsGraphQueryTests.vb" />
     <Compile Include="Progression\ContainsChildrenGraphQueryTests.vb" />
@@ -397,19 +391,10 @@
     <Compile Include="Progression\ProgressionTestState.vb" />
     <Compile Include="Progression\SearchGraphQueryTests.vb" />
     <Compile Include="Progression\VisualBasicSymbolLabelTests.vb" />
-    <Compile Include="ProjectSystemShim\Framework\ExtensionMethods.vb" />
-    <Compile Include="ProjectSystemShim\Framework\HierarchyItemMapper.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchyItem.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchyItemIdentity.vb" />
-    <Compile Include="ProjectSystemShim\Framework\TestEnvironment.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockVsFileChangeEx.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicCompilerOptionsTests.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicHelpers\MockCompilerHost.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicHelpers\VisualBasicHelpers.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicSpecialReferencesTests.vb" />
     <Compile Include="ProjectSystemShim\VisualStudioAnalyzerTests.vb" />
     <Compile Include="ProjectSystemShim\VisualStudioRuleSetTests.vb" />
-    <Compile Include="PropertyChangedTestMonitor.vb" />
     <Compile Include="RQName\RQNameTests.vb" />
     <Compile Include="Snippets\CSharpSnippetCommandHandlerTests.vb" />
     <Compile Include="Snippets\CSharpSnippetExpansionClientTests.vb" />
@@ -430,7 +415,6 @@
     <Compile Include="Venus\ContainedDocumentTests_UpdateText.vb" />
     <Compile Include="Venus\CSharpContainedLanguageSupportTests.vb" />
     <Compile Include="Venus\VisualBasicContainedLanguageSupportTests.vb" />
-    <Compile Include="VisualStudioTestExportProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Debugging\Resources.resx">

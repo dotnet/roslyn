@@ -11,8 +11,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj">
+      <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
+      <Name>ServicesTestUtilities2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
       <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
       <Name>InteractiveEditorFeatures</Name>
@@ -49,10 +54,6 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\EditorFeatures\Test\EditorServicesTest.csproj">
-      <Project>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</Project>
-      <Name>EditorServicesTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -65,9 +66,9 @@
       <Project>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</Project>
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\Test\ServicesVisualStudioTest.vbproj">
-      <Project>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</Project>
-      <Name>ServicesVisualStudioTest</Name>
+    <ProjectReference Include="..\..\TestUtilities2\VisualStudioTestUtilities2.vbproj">
+      <Project>{69f853e5-bd04-4842-984f-fc68cc51f402}</Project>
+      <Name>VisualStudioTestUtilities2</Name>
     </ProjectReference>
     <ProjectReference Include="..\Impl\CSharpVisualStudio.csproj">
       <Project>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</Project>
@@ -97,8 +98,10 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'"></PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
