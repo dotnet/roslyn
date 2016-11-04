@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return false;
             }
 
-            SyntaxNode left, right;
-            _syntaxFacts.GetPartsOfAssignmentStatement(_containingStatement, out left, out right);
+            _syntaxFacts.GetPartsOfAssignmentStatement(
+                _containingStatement, out var left, out var right);
             if (right != _objectCreationExpression)
             {
                 return false;
