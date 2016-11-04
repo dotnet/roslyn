@@ -172,7 +172,6 @@
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
-    <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />

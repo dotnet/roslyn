@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="FileSet.cs" />
     <Compile Include="Formatting\FormattingTestBase.cs" />
+    <Compile Include="SolutionTestUtilities.cs" />
     <Compile Include="SolutionUtilities.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml.cs">
       <DependentUpon>CSharpProject_App.xaml</DependentUpon>

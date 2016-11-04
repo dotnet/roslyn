@@ -32,22 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
 
-        public static byte[] GetResourceBytes(string fileName)
-        {
-            var fullName = @"Microsoft.CodeAnalysis.UnitTests.TestFiles." + fileName;
-            var resourceStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
-            if (resourceStream != null)
-            {
-                using (resourceStream)
-                {
-                    var bytes = new byte[resourceStream.Length];
-                    resourceStream.Read(bytes, 0, (int)resourceStream.Length);
-                    return bytes;
-                }
-            }
-
-            return null;
-        }
+        public static byte[] GetResourceBytes(string fileName) => SolutionTestUtilities.GetResourceBytes(fileName);
 
         private Solution CreateSolution()
         {
