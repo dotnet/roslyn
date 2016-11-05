@@ -113,14 +113,40 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
+      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
+      <Name>BasicScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
+      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
+      <Name>InteractiveHost</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />

@@ -11,6 +11,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -33,10 +34,6 @@
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CoreTest\ScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>
-      <Name>ScriptingTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
@@ -46,8 +43,10 @@
       <Name>CSharpScripting</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="GlobalAssemblyCacheTests.cs" />
     <Compile Include="MetadataShadowCopyProviderTests.cs" />

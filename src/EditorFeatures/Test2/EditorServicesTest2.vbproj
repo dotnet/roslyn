@@ -6,7 +6,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{3CEA0D69-00D3-40E5-A661-DC41EA07269B}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Roslyn.Services.Editor.UnitTests2</AssemblyName>
+    <AssemblyName>Roslyn.Services.Editor2.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
@@ -101,17 +101,75 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
+      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
+      <Name>BasicInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
+      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
+      <Name>BasicScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
+      <Project>{8e2a252e-a140-45a6-a81a-2652996ea589}</Project>
+      <Name>InteractiveFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
+      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
+      <Name>InteractiveHost</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
+      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
+      <Name>Scripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj">
+      <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
+      <Name>ServicesVisualStudioImpl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

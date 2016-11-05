@@ -256,7 +256,7 @@
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
@@ -270,6 +270,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />

@@ -2,27 +2,15 @@
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
   <Choose>
-    <When Condition="'$(RoslynProjectType)' == 'Dll'">
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'ExeDesktop'">
-      <PropertyGroup>
-        <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'ExeCoreClr'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'ToolDesktop'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTestFixed'">
       <PropertyGroup>
-        <OutDir>$(OutDir)Tools\$(MSBuildProjectName)\</OutDir>
+        <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
@@ -55,14 +43,6 @@
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <OutDir>$(OutDir)Vsix\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'Ignore'">
-      <!-- Thinking through these -->
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Dependency'">
