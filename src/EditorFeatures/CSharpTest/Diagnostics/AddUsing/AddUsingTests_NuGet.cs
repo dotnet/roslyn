@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -89,7 +89,7 @@ class C
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -184,7 +184,7 @@ fixProviderData: data);
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -214,7 +214,7 @@ class C
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -244,7 +244,7 @@ class C
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(false);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
