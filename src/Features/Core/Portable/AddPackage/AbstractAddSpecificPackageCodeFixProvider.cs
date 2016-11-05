@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var assemblyName = GetAssemblyname(context.Diagnostics[0].Id);
+            var assemblyName = GetAssemblyName(context.Diagnostics[0].Id);
 
             if (assemblyName != null)
             {
@@ -33,6 +33,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
             }
         }
 
-        protected abstract string GetAssemblyname(string id);
+        protected abstract string GetAssemblyName(string id);
     }
 }

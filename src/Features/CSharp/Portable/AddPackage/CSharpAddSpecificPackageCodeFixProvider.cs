@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddPackage
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8179);
 
-        protected override string GetAssemblyname(string id)
+        protected override string GetAssemblyName(string id)
         {
             switch (id)
             {
