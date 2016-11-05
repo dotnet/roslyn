@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public bool IsCaseSensitive => true;
+
+        public bool SupportsIndexingInitializer(ParseOptions options) 
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
+
         public bool IsAwaitKeyword(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.AwaitKeyword);
@@ -206,14 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpGenericName != null
                 ? csharpGenericName.Identifier
                 : default(SyntaxToken);
-        }
-
-        public bool IsCaseSensitive
-        {
-            get
-            {
-                return true;
-            }
         }
 
         public bool IsUsingDirectiveName(SyntaxNode node)

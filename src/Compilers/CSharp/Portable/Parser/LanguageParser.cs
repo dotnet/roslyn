@@ -10860,18 +10860,13 @@ tryAgain:
         {
             var arguments = this.ParseBracketedArgumentList();
             var equal = this.EatToken(SyntaxKind.EqualsToken);
-            ExpressionSyntax expression;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                expression = this.ParseObjectOrCollectionInitializer();
-            }
-            else
-            {
-                expression = this.ParseExpressionCore();
-            }
+            var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? this.ParseObjectOrCollectionInitializer()
+                : this.ParseExpressionCore();
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
-            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
+            return _syntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()

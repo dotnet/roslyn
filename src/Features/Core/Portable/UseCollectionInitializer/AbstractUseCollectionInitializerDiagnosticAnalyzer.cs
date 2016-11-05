@@ -82,9 +82,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclarator>(
-                syntaxFacts,
-                objectCreationExpression);
+            var analyzer = new Analyzer<
+                TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, 
+                TMemberAccessExpressionSyntax, TInvocationExpressionSyntax,
+                TExpressionStatementSyntax, TVariableDeclarator>(syntaxFacts, objectCreationExpression);
             var matches = analyzer.Analyze();
             if (matches.Length == 0)
             {
@@ -205,6 +206,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
 
+            var seenInvocation = false;
+            var seenIndexAssignment = false;
+            
             foreach (var child in containingBlock.ChildNodesAndTokens())
             {
                 if (!foundStatement)
@@ -228,19 +232,62 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     return;
                 }
 
-                SyntaxNode instance;
-                if (!TryAnalyzeAddInvocation(statement, out instance))
+                SyntaxNode instance = null;
+                if (!seenIndexAssignment)
+                {
+                    if (TryAnalyzeAddInvocation(statement, out instance))
+                    {
+                        seenInvocation = true;
+                    }
+                }
+
+                if (!seenInvocation)
+                {
+                    if (TryAnalyzeIndexAssignment(statement, out instance))
+                    {
+                        seenIndexAssignment = true;
+                    }
+                }
+
+                if (instance == null)
                 {
                     return;
                 }
 
                 if (!ValuePatternMatches((TExpressionSyntax)instance))
                 {
-                    break;
+                    return;
                 }
 
                 matches.Add(statement);
             }
+        }
+
+        private bool TryAnalyzeIndexAssignment(
+            TExpressionStatementSyntax statement,
+            out SyntaxNode instance)
+        {
+            instance = null;
+            if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
+            {
+                return false;
+            }
+
+            if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
+            {
+                return false;
+            }
+
+            SyntaxNode left, right;
+            _syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out right);
+
+            if (!_syntaxFacts.IsElementAccessExpression(left))
+            {
+                return false;
+            }
+
+            instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
+            return true;
         }
 
         private bool TryAnalyzeAddInvocation(

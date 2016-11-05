@@ -50,6 +50,200 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestIndexAccess1()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c[1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            [1] = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestIndexAccess1_NotInCSharp5()
+        {
+            await TestMissingAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c[1] = 2;
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestComplexIndexAccess1()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        a.b.c = [||]new List<int>();
+        a.b.c[1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        a.b.c = new List<int>
+        {
+            [1] = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestIndexAccess2()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c[1] = 2;
+        c[2] = """";
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            [1] = 2,
+            [2] = """"
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestIndexAccess3()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c[1] = 2;
+        c[2] = """";
+        c[3, 4] = 5;
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            [1] = 2,
+            [2] = """",
+            [3, 4] = 5
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestIndexFollowedByInvocation()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c[1] = 2;
+        c.Add(0);
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            [1] = 2
+        };
+        c.Add(0);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestInvocationFollowedByIndex()
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>();
+        c.Add(0);
+        c[1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            0
+        };
+        c[1] = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestWithInterimStatement()
         {
             await TestAsync(
