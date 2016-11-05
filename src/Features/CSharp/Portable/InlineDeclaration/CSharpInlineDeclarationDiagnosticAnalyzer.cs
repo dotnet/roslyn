@@ -49,8 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
-
-            var optionSet = context.Options.GetOptionSet();
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
             var option = optionSet.GetOption(CodeStyleOptions.PreferInlinedVariableDeclaration, argumentNode.Language);
             if (!option.Value)
             {
@@ -99,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var outSymbol = semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol;
             if (outSymbol?.Kind != SymbolKind.Local)
             {

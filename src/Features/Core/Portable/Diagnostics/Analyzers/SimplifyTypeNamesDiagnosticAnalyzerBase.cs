@@ -91,12 +91,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             diagnostic = default(Diagnostic);
-
-            var optionSet = analyzerOptions.GetOptionSet();
-            string diagnosticId;
-
-            TextSpan issueSpan;
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+            var syntaxTree = node.SyntaxTree;
+            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return false;
+            }
+            
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
             {
                 return false;
             }

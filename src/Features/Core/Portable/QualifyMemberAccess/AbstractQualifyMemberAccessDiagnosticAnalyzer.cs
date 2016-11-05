@@ -72,8 +72,9 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            // get the option
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;

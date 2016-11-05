@@ -61,11 +61,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
+            var syntaxTree = objectCreationExpression.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
 
-            var optionSet = context.Options.GetOptionSet();
             var option = optionSet.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
             if (!option.Value)
             {

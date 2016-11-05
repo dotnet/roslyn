@@ -37,7 +37,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationTokan = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {

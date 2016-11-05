@@ -73,8 +73,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var throwOperation = (IThrowStatement)context.Operation;
             var throwStatement = throwOperation.Syntax;
-
-            var optionSet = context.Options.GetOptionSet();
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
             var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatement.Language);
             if (!option.Value)
             {
