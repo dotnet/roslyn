@@ -1139,14 +1139,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken))
+            if (tokenOnLeftOfPosition.Parent?.IsKind(SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true ||
+                tokenOnLeftOfPosition.Parent?.Parent?.IsKind(SyntaxKind.ParenthesizedExpression,
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true)
             {
-                return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression, SyntaxKind.TupleType);
+                return true;
             }
 
-            return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) &&
-                tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType);
+            // (int a, i$$
+            // ($$int a, int b
+            if (tokenOnLeftOfPosition.Parent?.IsKind(SyntaxKind.ParameterList) == true &&
+                tokenOnLeftOfPosition.Parent?.Parent?.IsKind(SyntaxKind.ParenthesizedLambdaExpression) == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsPossibleDeconstructionDesignation(this SyntaxTree syntaxTree,
+            int position, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+
+            if (token.Parent?.IsKind(SyntaxKind.SingleVariableDesignation) == true)
+            {
+                var designation = (SingleVariableDesignationSyntax)token.Parent;
+                if (designation.Parent?.IsKind(SyntaxKind.DeclarationExpression) == true)
+                {
+                    var declaration = (DeclarationExpressionSyntax)designation.Parent;
+                    return !declaration.Type.IsMissing && designation.Identifier == token;
+                }
+                return false;
+            }
+
+            var prev = token.GetPreviousTokenIfTouchingWord(position);
+
+            return IsPossibleTupleContext(syntaxTree, token, position) &&
+                !prev.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken);
         }
 
         public static bool HasNames(this TupleExpressionSyntax tuple)
