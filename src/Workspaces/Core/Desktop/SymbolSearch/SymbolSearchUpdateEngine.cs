@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return result;
         }
 
-
         public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyWorkerAsync(
             string source, string assemblyName)
         {
