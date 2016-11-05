@@ -114,18 +114,24 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             // We found an assignment using this local/parameter.  Now, just make sure there
-            // were no intervening writes between the check and the assignement.
-            var dataFlow = semanticModel.AnalyzeDataFlow(
-                ifOperation.Syntax, expressionStatement.Syntax);
+            // were no intervening accesses between the check and the assignment.
+            var statements = containingBlock.Statements;
+            var ifOperationIndex = statements.IndexOf(ifOperation);
+            var expressionStatementIndex = statements.IndexOf(expressionStatement);
 
-            if (dataFlow.WrittenInside.Contains(localOrParameter))
+            if (expressionStatementIndex > ifOperationIndex + 1)
             {
-                return;
-            }
+                // There are intermediary statements between the check and the assignment.
+                // Make sure they don't try to access the local.
+                var dataFlow = semanticModel.AnalyzeDataFlow(
+                    statements[ifOperationIndex + 1].Syntax,
+                    statements[expressionStatementIndex - 1].Syntax);
 
-            if (ContainsMemberAccess(containingBlock, ifOperation, expressionStatement, localOrParameter))
-            {
-                return;
+                if (dataFlow.ReadInside.Contains(localOrParameter) ||
+                    dataFlow.WrittenInside.Contains(localOrParameter))
+                {
+                    return;
+                }
             }
 
             // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
@@ -160,33 +166,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                             ifOperation.Syntax.Span.End)),
                         additionalLocations: allLocations));
             }
-        }
-
-        private bool ContainsMemberAccess(
-            IBlockStatement containingBlock, IIfStatement ifOperation,
-            IExpressionStatement expressionStatement, ISymbol localOrParameter)
-        {
-            var syntaxFacts = this.GetSyntaxFactsService();
-
-            var ifIndex = containingBlock.Statements.IndexOf(ifOperation);
-            var expressionStatementIndex = containingBlock.Statements.IndexOf(expressionStatement);
-            for (var i = ifIndex + 1; i <= expressionStatementIndex; i++)
-            {
-                var currentStatement = containingBlock.Statements[i];
-
-                var statementSyntax = currentStatement.Syntax;
-                foreach (var token in statementSyntax.DescendantTokens())
-                {
-                    if (syntaxFacts.IsIdentifier(token) &&
-                        syntaxFacts.IsExpressionOfMemberAccessExpression(token.Parent) &&
-                        token.ValueText == localOrParameter.Name)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
