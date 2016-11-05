@@ -604,6 +604,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
             {
+                // Use reflection until the 3.5.0 version of NuGet.VisualStudio is released
+                // publicly.  Then we call into this method directly.
                 var installLatestPackageInfo = _packageInstaller.GetType().GetMethod(
                     nameof(InstallLatestPackage), BindingFlags.Public | BindingFlags.Instance);
 
