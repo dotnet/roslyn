@@ -167,18 +167,8 @@ namespace Microsoft.CodeAnalysis
                 string filePath,
                 bool isGenerated)
             {
-                if (id == null)
-                {
-                    throw new ArgumentNullException(nameof(id));
-                }
-
-                if (name == null)
-                {
-                    throw new ArgumentNullException(nameof(name));
-                }
-
-                Id = id;
-                Name = name;
+                Id = id ?? throw new ArgumentNullException(nameof(id));
+                Name = name ?? throw new ArgumentNullException(nameof(name));
                 Folders = folders.ToImmutableReadOnlyListOrEmpty();
                 SourceCodeKind = sourceCodeKind;
                 FilePath = filePath;
