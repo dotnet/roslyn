@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -101,16 +102,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            ISymbol localOrParameter;
-            if (!TryDecomposeIfCondition(ifOperation, out localOrParameter))
+            if (!TryDecomposeIfCondition(ifOperation, out var localOrParameter))
             {
                 return;
             }
 
-            IExpressionStatement expressionStatement;
-            IAssignmentExpression assignmentExpression;
             if (!TryFindAssignmentExpression(containingBlock, ifOperation, localOrParameter,
-                out expressionStatement, out assignmentExpression))
+                out var expressionStatement, out var assignmentExpression))
             {
                 return;
             }
@@ -125,7 +123,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            // Ok, there were no intervening writes.  This check+assignment can be simplified.
+            if (ContainsMemberAccess(containingBlock, ifOperation, expressionStatement, localOrParameter))
+            {
+                return;
+            }
+
+            // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
@@ -159,6 +162,35 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
         }
 
+        private bool ContainsMemberAccess(
+            IBlockStatement containingBlock, IIfStatement ifOperation,
+            IExpressionStatement expressionStatement, ISymbol localOrParameter)
+        {
+            var syntaxFacts = this.GetSyntaxFactsService();
+
+            var ifIndex = containingBlock.Statements.IndexOf(ifOperation);
+            var expressionStatementIndex = containingBlock.Statements.IndexOf(expressionStatement);
+            for (var i = ifIndex + 1; i <= expressionStatementIndex; i++)
+            {
+                var currentStatement = containingBlock.Statements[i];
+
+                var statementSyntax = currentStatement.Syntax;
+                foreach (var token in statementSyntax.DescendantTokens())
+                {
+                    if (syntaxFacts.IsIdentifier(token) &&
+                        syntaxFacts.IsExpressionOfMemberAccessExpression(token.Parent) &&
+                        token.ValueText == localOrParameter.Name)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+
         private bool TryFindAssignmentExpression(
             IBlockStatement containingBlock, IIfStatement ifOperation, ISymbol localOrParameter,
             out IExpressionStatement expressionStatement, out IAssignmentExpression assignmentExpression)
@@ -181,8 +213,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     continue;
                 }
 
-                ISymbol assignmentValue;
-                if (!TryGetLocalOrParameterSymbol(assignmentExpression.Value, out assignmentValue))
+                if (!TryGetLocalOrParameterSymbol(assignmentExpression.Value, out var assignmentValue))
                 {
                     continue;
                 }
