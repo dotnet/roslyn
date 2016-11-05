@@ -111,6 +111,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName)
         {
+#if DEBUG
+            if (source == NugetOrgSource && assemblyName == "System.ValueTuple")
+            {
+                return Task.FromResult(ImmutableArray.Create(new PackageWithAssemblyResult(
+                    "System.ValueTuple", "", rank: 0)));
+            }
+#endif
+
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
