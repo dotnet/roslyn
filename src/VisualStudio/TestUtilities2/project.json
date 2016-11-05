@@ -1,5 +1,10 @@
 ﻿{
     "dependencies": {
+        "Microsoft.VisualStudio.Composition": "14.2.19-pre",
+        "Microsoft.VisualStudio.Editor": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
         "Microsoft.VisualStudio.RemoteControl": {
             "version": "14.0.249-master2E2DC10C",
             "suppressParent": "all"
