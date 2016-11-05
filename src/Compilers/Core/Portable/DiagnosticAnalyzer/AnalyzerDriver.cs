@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const int MaxSymbolKind = 100;
 
         protected readonly ImmutableArray<DiagnosticAnalyzer> analyzers;
-        protected readonly DefaultAnalyzerHostContext analyzerManager;
+        protected readonly DefaultCompilationWithAnalyzersHost analyzerManager;
         private readonly Func<SyntaxTree, CancellationToken, bool> _isGeneratedCode;
 
         // Lazy fields
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for analyzer host's lifetime.</param>
         /// <param name="isComment">Delegate to identify if the given trivia is a comment.</param>
-        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, DefaultAnalyzerHostContext analyzerManager, Func<SyntaxTrivia, bool> isComment)
+        protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, DefaultCompilationWithAnalyzersHost analyzerManager, Func<SyntaxTrivia, bool> isComment)
         {
             this.analyzers = analyzers;
             this.analyzerManager = analyzerManager;
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
             bool reportAnalyzer,
             out Compilation newCompilation,
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool> analyzerExceptionFilter,
             bool reportAnalyzer,
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableArray<DiagnosticAnalyzer> GetUnsuppressedAnalyzers(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static async Task<AnalyzerActions> GetAnalyzerActionsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
             var allAnalyzerActions = new AnalyzerActions();
@@ -1214,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> GetAnalyzerGateMapAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static async Task<ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>> GetGeneratedCodeAnalysisFlagsAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
-            DefaultAnalyzerHostContext analyzerManager,
+            DefaultCompilationWithAnalyzersHost analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
             return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, IsCompilerAnalyzer, analyzerExecutor);
@@ -1357,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="getKind">A delegate that returns the language-specific kind for a given syntax node</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="isComment">Delegate to identify if the given trivia is a comment.</param>
-        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, DefaultAnalyzerHostContext analyzerManager, Func<SyntaxTrivia, bool> isComment)
+        internal AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, Func<SyntaxNode, TLanguageKindEnum> getKind, DefaultCompilationWithAnalyzersHost analyzerManager, Func<SyntaxTrivia, bool> isComment)
             : base(analyzers, analyzerManager, isComment)
         {
             _getKind = getKind;

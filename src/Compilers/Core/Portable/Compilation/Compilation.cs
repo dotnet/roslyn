@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             return set;
         }
 
-        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, DefaultAnalyzerHostContext analyzerManager);
+        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, DefaultCompilationWithAnalyzersHost analyzerManager);
 
         /// <summary>
         /// Gets the source language ("C#" or "Visual Basic").

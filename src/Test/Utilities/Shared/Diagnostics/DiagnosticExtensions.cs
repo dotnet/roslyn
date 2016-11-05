@@ -199,9 +199,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            using (var context = AnalyzerHostContext.Create())
+            using (var context = CompilationWithAnalyzersHost.Create())
             {
-                var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, (DefaultAnalyzerHostContext)context, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
+                var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, (DefaultCompilationWithAnalyzersHost)context, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
                 var discarded = newCompilation.GetDiagnostics();
                 diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
             }

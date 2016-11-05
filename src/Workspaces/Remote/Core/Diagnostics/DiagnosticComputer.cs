@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
-            using (var context = AnalyzerHostContext.Create())
+            using (var context = CompilationWithAnalyzersHost.Create())
             {
                 var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 

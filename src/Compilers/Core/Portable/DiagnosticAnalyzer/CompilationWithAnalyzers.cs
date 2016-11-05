@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private readonly CompilationData _compilationData;
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
-        private readonly DefaultAnalyzerHostContext _context;
+        private readonly DefaultCompilationWithAnalyzersHost _analyzerHost;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
         private readonly CancellationToken _cancellationToken;
 
@@ -102,7 +102,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
+            : this(
+                  compilation,
+                  analyzers,
+                  analyzerHost: null,
+                  analysisOptions: new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false),
+                  cancellationToken: cancellationToken)
         {
         }
 
@@ -111,11 +116,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
-        /// <param name="context"><see cref="AnalyzerHostContext"/> analyzers will run under</param>
+        /// <param name="analyzerHost"><see cref="CompilationWithAnalyzersHost"/> analyzers will run under</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerHostContext context, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, context, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersHost analyzerHost, AnalyzerOptions options, CancellationToken cancellationToken)
+            : this(compilation, analyzers, analyzerHost, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
         {
         }
 
@@ -126,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="analysisOptions">Options to configure analyzer execution.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
-            : this(compilation, analyzers, analysisOptions, cancellationToken: CancellationToken.None)
+            : this(compilation, analyzers, analyzerHost: null, analysisOptions: analysisOptions, cancellationToken: CancellationToken.None)
         {
         }
 
@@ -135,19 +140,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
-        /// <param name="context"><see cref="AnalyzerHostContext"/> analyzers will run under</param>
+        /// <param name="analyzerHost"><see cref="CompilationWithAnalyzersHost"/> analyzers will run under</param>
         /// <param name="analysisOptions">Options to configure analyzer execution.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerHostContext context, CompilationWithAnalyzersOptions analysisOptions)
-            : this(compilation, analyzers, context, analysisOptions, cancellationToken: CancellationToken.None)
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersHost analyzerHost, CompilationWithAnalyzersOptions analysisOptions)
+            : this(compilation, analyzers, analyzerHost, analysisOptions, cancellationToken: CancellationToken.None)
         {
         }
 
-        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken) :
-            this(compilation, analyzers, context: null, analysisOptions: analysisOptions, cancellationToken: cancellationToken)
-        {
-        }
-
-        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerHostContext context, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken)
+        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersHost analyzerHost, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken)
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
@@ -156,14 +156,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
             _compilation = compilation;
             _analyzers = analyzers;
-            _context = (DefaultAnalyzerHostContext)(context ?? DefaultAnalyzerHostContext.Instance);
+            _analyzerHost = (DefaultCompilationWithAnalyzersHost)(analyzerHost ?? DefaultCompilationWithAnalyzersHost.Instance);
             _analysisOptions = analysisOptions;
             _cancellationToken = cancellationToken;
 
             _compilationData = new CompilationData(_compilation);
             _analysisState = new AnalysisState(analyzers, _compilationData);
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers);
-            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, _context));
+            _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, _analyzerHost));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
             _concurrentTreeTaskTokensOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<Task, int>() : null;
             _executingCompilationOrNonConcurrentTreeTask = null;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
-                driver = compilation.AnalyzerForLanguage(analyzers, _context);
+                driver = compilation.AnalyzerForLanguage(analyzers, _analyzerHost);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
-                driver = compilation.AnalyzerForLanguage(analyzers, _context);
+                driver = compilation.AnalyzerForLanguage(analyzers, _analyzerHost);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var analysisScope = new AnalysisScope(compilation, analyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
                 driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
@@ -1161,8 +1161,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, DefaultAnalyzerHostContext.Instance);
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, DefaultAnalyzerHostContext.Instance, analyzerExecutor);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, DefaultCompilationWithAnalyzersHost.Instance);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, DefaultCompilationWithAnalyzersHost.Instance, analyzerExecutor);
         }
 
         /// <summary>
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAnalyzersArgumentForStaticApis(analyzers, allowDefaultOrEmpty: true);
 
-            DefaultAnalyzerHostContext.Instance.ClearAnalyzerState(analyzers);
+            DefaultCompilationWithAnalyzersHost.Instance.ClearAnalyzerState(analyzers);
         }
 
         /// <summary>

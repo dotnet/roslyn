@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/>
     /// out of the AnalyzerManager and into analyzer drivers.
     /// </remarks>
-    internal partial class DefaultAnalyzerHostContext : AnalyzerHostContext
+    internal sealed partial class DefaultCompilationWithAnalyzersHost : CompilationWithAnalyzersHost
     {
         /// <summary>
         /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
         /// </summary>
-        public static readonly DefaultAnalyzerHostContext Instance = new DefaultAnalyzerHostContext();
+        public static readonly DefaultCompilationWithAnalyzersHost Instance = new DefaultCompilationWithAnalyzersHost();
 
         // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
