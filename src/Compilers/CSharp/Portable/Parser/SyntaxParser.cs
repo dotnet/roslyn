@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
         private GreenNode _prevTokenTrailingTrivia;
-        private int _firstToken; // The position of the first token in _lexedTokens. Summed with _tokenOffset, we get the position of the current token.
-        private int _tokenOffset;
+        private int _firstToken; // The position of _lexedTokens[0] (or _blendedTokens[0]).
+        private int _tokenOffset; // The index of the current token within _lexedTokens or _blendedTokens.
         private int _tokenCount;
         private int _resetCount;
         private int _resetStart;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected ResetPoint GetResetPoint()
         {
-            var pos = _firstToken + _tokenOffset;
+            var pos = CurrentTokenPosition;
             if (_resetCount == 0)
             {
                 _resetStart = pos; // low water mark
@@ -1081,15 +1081,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         protected bool IsMakingProgress(ref int lastTokenPosition)
         {
-            var currentPosition = _firstToken + _tokenOffset;
-            if (currentPosition > lastTokenPosition)
+            var pos = CurrentTokenPosition;
+            if (pos > lastTokenPosition)
             {
-                lastTokenPosition = currentPosition;
+                lastTokenPosition = pos;
                 return true;
             }
 
             Debug.Assert(false);
             return false;
         }
+
+        private int CurrentTokenPosition => _firstToken + _tokenOffset;
     }
 }
