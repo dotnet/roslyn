@@ -17823,6 +17823,39 @@ val:   -2
 ]]>)
 
         End Sub
+
+        <Fact>
+        Public Sub UnusedTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module C
+    Sub Main()
+        Dim x1 As Integer
+        Dim t1 As (Integer, String)
+        Dim x2 As Integer = 1
+        Dim t2 As (Integer, String) = (1, 2)
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC42024: Unused local variable: 'x1'.
+        Dim x1 As Integer
+            ~~
+BC42024: Unused local variable: 't1'.
+        Dim t1 As (Integer, String)
+            ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace

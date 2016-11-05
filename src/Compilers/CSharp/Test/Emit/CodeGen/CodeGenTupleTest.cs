@@ -2733,7 +2733,10 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
                 // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                // (6,23): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         (int, string) x = (1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 23)
                 );
         }
 
@@ -2756,10 +2759,13 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
             comp.VerifyEmitDiagnostics(
+                // (11,20): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         (int, int) x = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(11, 20),
                 // (11,24): error CS8128: Member '.ctor' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int, int) x = (1, 2);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(1, 2)").WithArguments(".ctor", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 24)
-                               );
+                );
         }
 
         [Fact]
@@ -5493,7 +5499,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long, string))(1, ""hello"")").WithArguments("(long, string)", "(short, string)").WithLocation(10, 30),
                 // (13,34): error CS0266: Cannot implicitly convert type '(long c, string d)' to '(short a, string b)'. An explicit conversion exists (are you missing a cast?)
                 //         (short a, string b) x3 = ((long c, string d))(1, "hello");
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long c, string d))(1, ""hello"")").WithArguments("(long c, string d)", "(short a, string b)").WithLocation(13, 34)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long c, string d))(1, ""hello"")").WithArguments("(long c, string d)", "(short a, string b)").WithLocation(13, 34),
+                // (7,25): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (short, string) x1 = (1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25)
             );
         }
 
@@ -16272,7 +16281,13 @@ public class C
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(int a, int)").WithLocation(6, 31),
                 // (7,34): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, string)'.
                 //         (int a, string) x2 = (1, b: null);
-                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int a, string)").WithLocation(7, 34)
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: null").WithArguments("b", "(int a, string)").WithLocation(7, 34),
+                // (6,22): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (int a, int) x1 = (1, b: 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 22),
+                // (7,25): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (int a, string) x2 = (1, b: null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(7, 25)
                 );
         }
 
@@ -18601,7 +18616,10 @@ public class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(10, 14),
                 // (11,14): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
                 //         D.M3((1, null));
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14),
+                // (6,20): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (int, int) x1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 20)
                 );
         }
 
@@ -20011,5 +20029,30 @@ class C
             // no assertion
         }
 
+        [Fact]
+        public void UnusedTuple()
+        {
+            string source = @"
+public class C
+{
+    void M(int x)
+    {
+        (int, int) t1 = default((int, int));
+        (int, int) t2 = (1, 2);
+        (int, int) t3 = (1, 2);
+        M(t3.Item1);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS0219: The variable 't1' is assigned but its value is never used
+                //         (int, int) t1 = default((int, int));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(6, 20),
+                // (7,20): warning CS0219: The variable 't2' is assigned but its value is never used
+                //         (int, int) t2 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(7, 20)
+                );
+        }
     }
 }

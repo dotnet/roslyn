@@ -609,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
                 case BoundKind.DefaultOperator:
+                case BoundKind.ConvertedTupleLiteral:
                     return false;
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
