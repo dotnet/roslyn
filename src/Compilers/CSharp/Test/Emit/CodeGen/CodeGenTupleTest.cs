@@ -19902,5 +19902,27 @@ namespace ConsoleApplication5
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo.get", b.GetMethod.ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(14649, "https://github.com/dotnet/roslyn/issues/14649")]
+        public void ParseLongLambda()
+        {
+            string filler = string.Join("\r\n", Enumerable.Range(1, 1000).Select(i => $"int y{i};"));
+            string parameters = string.Join(", ", Enumerable.Range(1, 2000).Select(i => $"int x{i}"));
+            string text = @"
+class C
+{
+    " + filler + @"
+    public void M()
+    {
+        N((" + parameters + @") => 1);
+    }
+}
+";
+            // This is designed to trigger a shift of the array of lexed tokens (see AddLexedTokenSlot) while
+            // parsing lambda parameters
+            var tree = SyntaxFactory.ParseSyntaxTree(text, CSharpParseOptions.Default);
+            // no assertion
+        }
+
     }
 }
