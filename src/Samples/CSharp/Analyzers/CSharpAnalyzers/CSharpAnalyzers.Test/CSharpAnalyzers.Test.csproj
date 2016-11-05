@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CSharpAnalyzers.Test</RootNamespace>
-    <AssemblyName>CSharpAnalyzers.Test</AssemblyName>
+    <AssemblyName>CSharpAnalyzers.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RoslynProjectType>UnitTest</RoslynProjectType>
