@@ -40,8 +40,6 @@ namespace BuildBoss
                     return RoslynProjectKind.UnitTestPortable;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
-                case "UnitTestNext":
-                    return RoslynProjectKind.UnitTestNext;
                 case "CompilerGeneratorTool":
                     return RoslynProjectKind.CompilerGeneratorTool;
                 case "DeploymentCompilerGeneratorTools":
@@ -65,15 +63,15 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
-                kind == RoslynProjectKind.UnitTestPortable ||
-                kind == RoslynProjectKind.UnitTestNext;
+                kind == RoslynProjectKind.UnitTestPortable;
         }
 
         internal static bool IsDeploymentProject(RoslynProjectKind kind)
         {
             return
                 kind == RoslynProjectKind.Exe ||
-                kind == RoslynProjectKind.DeploymentTest;
+                kind == RoslynProjectKind.DeploymentTest ||
+                IsAnyUnitTest(kind);
         }
     }
 
