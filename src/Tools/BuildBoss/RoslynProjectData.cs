@@ -13,16 +13,17 @@ namespace BuildBoss
         Exe,
         ExeCoreClr,
         UnitTest,
-        UnitTestFixed,
         UnitTestNext,
+        UnitTestPortable,
         CompilerGeneratorTool,
         DeploymentCompilerGeneratorTools,
         Deployment,
+        DeploymentTest,
         Vsix,
         Depedency,
         Custom
     }
-    
+
     internal static class RoslynProjectKindUtil
     {
 
@@ -35,8 +36,8 @@ namespace BuildBoss
             {
                 case "ExeCoreClr":
                     return RoslynProjectKind.Exe;
-                case "UnitTestFixed":
-                    return RoslynProjectKind.UnitTestFixed;
+                case "UnitTestPortable":
+                    return RoslynProjectKind.UnitTestPortable;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
                 case "UnitTestNext":
@@ -47,6 +48,8 @@ namespace BuildBoss
                     return RoslynProjectKind.DeploymentCompilerGeneratorTools;
                 case "Deployment":
                     return RoslynProjectKind.Deployment;
+                case "DeploymentTest":
+                    return RoslynProjectKind.DeploymentTest;
                 case "Vsix":
                     return RoslynProjectKind.Vsix;
                 case "Dependency":
@@ -62,7 +65,7 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
-                kind == RoslynProjectKind.UnitTestFixed ||
+                kind == RoslynProjectKind.UnitTestPortable ||
                 kind == RoslynProjectKind.UnitTestNext;
         }
 
@@ -70,7 +73,7 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.Exe ||
-                kind == RoslynProjectKind.UnitTestFixed;
+                kind == RoslynProjectKind.DeploymentTest;
         }
     }
 

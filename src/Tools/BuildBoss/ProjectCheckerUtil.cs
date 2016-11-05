@@ -49,6 +49,8 @@ namespace BuildBoss
                 allGood &= CheckProjectReferences(textWriter);
             }
 
+            allGood &= CheckTestDeploymentProjects(textWriter);
+
             return allGood;
         }
 
@@ -295,5 +297,38 @@ namespace BuildBoss
             return true;
         }
 
+        /// <summary>
+        /// Verify our test deployment projects properly reference everything which is labeled as a portable
+        /// unit test.  This ensurse they are properly deployed during build and test.
+        /// </summary>
+        private bool CheckTestDeploymentProjects(TextWriter textWriter)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
+            if (fileName != "DeployCoreClrTestRuntime" && fileName != "DeployDesktopTestRuntime")
+            {
+                return true;
+            }
+
+            var allGood = true;
+            var data = _projectUtil.GetRoslynProjectData();
+            if (data.DeclaredKind != RoslynProjectKind.DeploymentTest)
+            {
+                textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
+                allGood = false;
+            }
+
+            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences());
+            foreach (var projectData in _solutionMap.Values)
+            {
+                var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
+                if (rosData?.DeclaredKind == RoslynProjectKind.UnitTestPortable && !set.Contains(projectData.Key))
+                {
+                    textWriter.WriteLine($"Portable unit test {projectData.FileName} must be referenced");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
     }
 }
