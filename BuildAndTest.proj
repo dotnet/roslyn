@@ -104,7 +104,9 @@
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
     
+    <!--
     <Exec Condition="'$(RunProcessWatchdog)' != 'true' AND '$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    -->
 
     <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 
