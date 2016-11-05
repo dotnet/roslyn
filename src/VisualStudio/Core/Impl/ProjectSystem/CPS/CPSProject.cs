@@ -29,6 +29,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             : base(projectTracker, reportExternalErrorCreatorOpt, projectDisplayName, projectFilePath,
                    hierarchy, language, projectGuid, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
         {
+            // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
+            NormalizeAndSetBinOutputPathAndRelatedData(binOutputPath);
+
+            // Now hook up the project to the project tracker.
+            projectTracker.AddProject(this);
+        }
+
+        private void NormalizeAndSetBinOutputPathAndRelatedData(string binOutputPath)
+        {
             if (binOutputPath != null)
             {
                 // Ensure that binOutputPath is either null or a rooted path.
@@ -40,16 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 else if (!PathUtilities.IsAbsolute(binOutputPath))
                 {
                     // Make it a rooted path.
-                    var basePath = PathUtilities.IsAbsolute(projectFilePath) ? PathUtilities.GetDirectoryName(projectFilePath) : Path.GetTempPath();
+                    var basePath = this.ContainingDirectoryPathOpt ?? Path.GetTempPath();
                     binOutputPath = PathUtilities.CombineAbsoluteAndRelativePaths(basePath, binOutputPath);
                 }
             }
 
             // We need to ensure that the bin output path for the project has been initialized before we hookup the project with the project tracker.
             SetBinOutputPathAndRelatedData(binOutputPath);
-
-            // Now hook up the project to the project tracker.
-            projectTracker.AddProject(this);
         }
 
         // We might we invoked from a background thread, so schedule the disconnect on foreground task scheduler.
