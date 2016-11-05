@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -53,27 +54,38 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 _session = session;
             }
 
-            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity)
+            public async Task<PackageInfo> FindPackageAsync(
+                PackageSource source, string packageName)
+            {
+                var result = await _session.InvokeAsync<SerializablePackageInfo>(
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackageAsync),
+                    SerializablePackageSource.Dehydrate(source),
+                    packageName).ConfigureAwait(false);
+
+                return result?.Rehydrate();
+            }
+
+            public async Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
+                PackageSource source, string name, int arity)
             {
                 var results = await _session.InvokeAsync<SerializablePackageWithTypeResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
-                    source, name, arity).ConfigureAwait(false);
+                    SerializablePackageSource.Dehydrate(source), name, arity).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
-            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-                string source, string assemblyName)
+            public async Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(
+                PackageSource source, string assemblyName)
             {
                 var results = await _session.InvokeAsync<SerializablePackageWithAssemblyResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
-                    source, assemblyName).ConfigureAwait(false);
+                    SerializablePackageSource.Dehydrate(source), assemblyName).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
-            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public async Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
                 var results = await _session.InvokeAsync<SerializableReferenceAssemblyWithTypeResult[]>(

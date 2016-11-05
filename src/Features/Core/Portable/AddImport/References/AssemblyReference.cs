@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class AssemblyReference : Reference
         {
-            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
+            private readonly ReferenceAssemblyWithTypeInfo _referenceAssemblyWithType;
 
             public AssemblyReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
                 SearchResult searchResult,
-                ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
+                ReferenceAssemblyWithTypeInfo referenceAssemblyWithType)
                 : base(provider, searchResult)
             {
                 _referenceAssemblyWithType = referenceAssemblyWithType;

@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                     {
-                        reference._installerService.ShowManagePackagesDialog(reference._packageName);
+                        reference._installerService.ShowManagePackagesDialog(
+                            reference._packageInfo.PackageName);
                     }
                 }
             }

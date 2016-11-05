@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Packaging;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -13,11 +14,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity);
-        Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName);
-        Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity);
+        Task<PackageInfo> FindPackageAsync(PackageSource source, string packageName);
+
+        Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(PackageSource source, string name, int arity);
+        Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(PackageSource source, string assemblyName);
+        Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(string name, int arity);
     }
 }

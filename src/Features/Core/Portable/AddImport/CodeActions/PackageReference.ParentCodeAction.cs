@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     Document document,
                     SyntaxNode node,
                     bool placeSystemNamespaceFirst)
-                    : base(string.Format(FeaturesResources.Install_package_0, reference._packageName), 
+                    : base(string.Format(FeaturesResources.Install_package_0, reference._packageInfo.PackageName), 
                            CreateNestedActions(reference, document, node, placeSystemNamespaceFirst),
                            isInlinable: false)
                 {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
                     // followed by an option to "Find and install latest version."
-                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName).NullToEmpty();
+                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageInfo.PackageName).NullToEmpty();
                     var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // First add the actions to install a specific version.
@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         newDocument, cancellationToken).ConfigureAwait(false);
 
                     var installOperation = new InstallPackageDirectlyCodeActionOperation(
-                        reference._installerService, document, reference._source, 
-                        reference._packageName, versionOpt, isLocal);
+                        reference._installerService, document, reference._packageInfo,
+                        versionOpt, isLocal);
 
                     return new InstallPackageAndAddImportData(
                         oldDocument, newDocument, installOperation);

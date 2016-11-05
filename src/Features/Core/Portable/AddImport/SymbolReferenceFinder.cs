@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var results = await searchService.FindPackagesWithTypeAsync(
-                    source.Name, name, arity, cancellationToken).ConfigureAwait(false);
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
                 if (results.IsDefault)
                 {
                     return;
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await HandleNugetReferenceAsync(
-                        source.Source, installerService, allReferences, nameNode,
+                        installerService, allReferences, nameNode,
                         project, isAttributeSearch, result, weight: allReferences.Count).ConfigureAwait(false);
                 }
             }
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,
-                ReferenceAssemblyWithTypeResult result,
+                ReferenceAssemblyWithTypeInfo result,
                 int weight,
                 CancellationToken cancellationToken)
             {
@@ -383,13 +383,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             private Task HandleNugetReferenceAsync(
-                string source,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 Project project,
                 bool isAttributeSearch,
-                PackageWithTypeResult result,
+                PackageWithTypeInfo result,
                 int weight)
             {
                 if (!installerService.IsInstalled(project.Solution.Workspace, project.Id, result.PackageName))
@@ -397,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var desiredName = GetDesiredName(isAttributeSearch, result.TypeName);
                     allReferences.Add(new PackageReference(_owner, installerService,
                         new SearchResult(desiredName, nameNode, result.ContainingNamespaceNames, weight), 
-                        source, result.PackageName, result.Version));
+                        result, result.Version));
                 }
 
                 return SpecializedTasks.EmptyTask;

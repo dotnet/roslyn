@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
 {
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId, string source, string packageName, string versionOpt, CancellationToken cancellationToken);
+        bool TryInstallPackage(Workspace workspace, DocumentId documentId, PackageInfo packageInfo, string versionOpt, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
@@ -25,26 +24,5 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         ImmutableArray<PackageSource> PackageSources { get; }
         event EventHandler PackageSourcesChanged;
-    }
-
-    internal struct PackageSource : IEquatable<PackageSource>
-    {
-        public readonly string Name;
-        public readonly string Source;
-
-        public PackageSource(string name, string source)
-        {
-            Name = name;
-            Source = source;
-        }
-
-        public override bool Equals(object obj)
-            => Equals((PackageSource)obj);
-
-        public bool Equals(PackageSource other)
-            => Name == other.Name && Source == other.Source;
-
-        public override int GetHashCode()
-            => Hash.Combine(Name, Source.GetHashCode());
     }
 }

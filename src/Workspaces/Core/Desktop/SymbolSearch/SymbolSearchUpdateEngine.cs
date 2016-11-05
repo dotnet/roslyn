@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Packaging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -71,27 +72,56 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _updateCancellationToken = updateCancellationToken;
         }
 
-        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity)
+        public Task<PackageInfo> FindPackageAsync(
+            PackageSource source, string packageName)
         {
-            IAddReferenceDatabaseWrapper databaseWrapper;
-            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(source.Source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return SpecializedTasks.Default<PackageInfo>();
+            }
+
+            var database = databaseWrapper.Database;
+            var index = database.Index;
+            var stringStore = database.StringStore;
+
+            if (stringStore.TryFindString(packageName, out var range) &&
+                index.TryGetMatchesInRange(range, out var matches, out var startIndex, out var count))
+            {
+                for (var i = startIndex; i < (startIndex + count); i++)
+                {
+                    var symbol = new Symbol(database, matches[i]);
+                    if (symbol.Type == SymbolType.Package)
+                    {
+                        return Task.FromResult(
+                            new PackageInfo(source, packageName));
+                    }
+                }
+            }
+
+            return SpecializedTasks.Default<PackageInfo>();
+        }
+
+        public Task<ImmutableArray<PackageWithTypeInfo>> FindPackagesWithTypeAsync(
+            PackageSource source, string name, int arity)
+        {
+            if (!_sourceToDatabase.TryGetValue(source.Source, out var databaseWrapper))
+            {
+                // Don't have a database to search.  
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeInfo>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<PackageWithTypeInfo>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
-            var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
+            var result = ArrayBuilder<PackageWithTypeInfo>.GetInstance();
             if (query.TryFindMembers(database, ref symbols))
             {
                 var types = FilterToViableTypes(symbols);
@@ -101,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Ignore any reference assembly results.
                     if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
                     {
-                        result.Add(CreateResult(database, type));
+                        result.Add(CreateResult(source, database, type));
                     }
                 }
             }
@@ -109,17 +139,17 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName)
+        public Task<ImmutableArray<PackageWithAssemblyInfo>> FindPackagesWithAssemblyAsync(
+            PackageSource source, string assemblyName)
         {
             IAddReferenceDatabaseWrapper databaseWrapper;
-            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(source.Source, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+                return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyInfo>();
             }
 
-            var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
+            var result = ArrayBuilder<PackageWithAssemblyInfo>.GetInstance();
 
             var database = databaseWrapper.Database;
             var index = database.Index;
@@ -136,8 +166,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var symbol = new Symbol(database, matches[i]);
                     if (symbol.Type == SymbolType.Assembly)
                     {
-                        result.Add(new PackageWithAssemblyResult(
-                            symbol.PackageName.ToString(),
+                        result.Add(new PackageWithAssemblyInfo(
+                            source, symbol.PackageName.ToString(),
                             database.GetPackageVersion(symbol.Index).ToString(),
                             GetRank(symbol)));
                     }
@@ -147,8 +177,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
-
-        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public Task<ImmutableArray<ReferenceAssemblyWithTypeInfo>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity)
         {
             // Our reference assembly data is stored in the nuget.org DB.
@@ -156,20 +185,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
             {
                 // Don't have a database to search.  
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeInfo>();
             }
 
             var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
-                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+                return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeInfo>();
             }
 
             var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
             var symbols = new PartialArray<Symbol>(100);
 
-            var results = ArrayBuilder<ReferenceAssemblyWithTypeResult>.GetInstance();
+            var results = ArrayBuilder<ReferenceAssemblyWithTypeInfo>.GetInstance();
             if (query.TryFindMembers(database, ref symbols))
             {
                 var types = FilterToViableTypes(symbols);
@@ -181,7 +210,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     {
                         var nameParts = new List<string>();
                         GetFullName(nameParts, type.FullName.Parent);
-                        var result = new ReferenceAssemblyWithTypeResult(
+                        var result = new ReferenceAssemblyWithTypeInfo(
                             type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
                         results.Add(result);
                     }
@@ -202,7 +231,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 select symbol);
         }
 
-        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
+        private PackageWithTypeInfo CreateResult(
+            PackageSource source, AddReferenceDatabase database, Symbol type)
         {
             var nameParts = new List<string>();
             GetFullName(nameParts, type.FullName.Parent);
@@ -211,7 +241,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             var version = database.GetPackageVersion(type.Index).ToString();
 
-            return new PackageWithTypeResult(
+            return new PackageWithTypeInfo(
+                source: source,
                 packageName: packageName, 
                 typeName: type.Name.ToString(), 
                 version: version,

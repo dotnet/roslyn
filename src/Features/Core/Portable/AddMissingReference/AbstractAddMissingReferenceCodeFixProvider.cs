@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var sortedPackages = await FindMatchingPackagesAsync(
-                        packageSource, symbolSearchService, installerService, 
-                        uniqueIdentities, codeActions, cancellationToken).ConfigureAwait(false);
+                        packageSource, symbolSearchService, 
+                        uniqueIdentities, cancellationToken).ConfigureAwait(false);
 
                     foreach (var package in sortedPackages)
                     {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                         if (installedVersions.Any())
                         {
                             codeActions.Add(new InstallPackageParentCodeAction(
-                                installerService, packageSource.Source, package.PackageName, document));
+                                installerService, package, document));
                         }
                     }
                 }
@@ -90,21 +90,19 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+        private async Task<ImmutableArray<PackageWithAssemblyInfo>> FindMatchingPackagesAsync(
             PackageSource source, 
             ISymbolSearchService searchService, 
-            IPackageInstallerService installerService, 
             ISet<AssemblyIdentity> uniqueIdentities, 
-            ArrayBuilder<CodeAction> builder, 
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = new HashSet<PackageWithAssemblyResult>();
+            var result = new HashSet<PackageWithAssemblyInfo>();
 
             foreach (var identity in uniqueIdentities)
             {
                 var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
-                    source.Name, identity.Name, cancellationToken).ConfigureAwait(false);
+                    source, identity.Name, cancellationToken).ConfigureAwait(false);
 
                 result.AddRange(packagesWithAssembly);
             }

@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
     {
         private readonly Document _document;
         private readonly IPackageInstallerService _installerService;
-        private readonly string _source;
-        private readonly string _packageName;
+        private readonly PackageInfo _packageInfo;
         private readonly string _versionOpt;
         private readonly bool _isLocal;
         private readonly List<string> _projectsWithMatchingVersion;
@@ -27,22 +27,20 @@ namespace Microsoft.CodeAnalysis.AddPackage
         public InstallPackageDirectlyCodeActionOperation(
             IPackageInstallerService installerService,
             Document document,
-            string source,
-            string packageName,
+            PackageInfo packageInfo,
             string versionOpt,
             bool isLocal)
         {
             _installerService = installerService;
             _document = document;
-            _source = source;
-            _packageName = packageName;
+            _packageInfo = packageInfo;
             _versionOpt = versionOpt;
             _isLocal = isLocal;
             if (versionOpt != null)
             {
                 const int projectsToShow = 5;
                 var otherProjects = installerService.GetProjectsWithInstalledPackage(
-                    _document.Project.Solution, packageName, versionOpt).ToList();
+                    _document.Project.Solution, _packageInfo.PackageName, versionOpt).ToList();
                 _projectsWithMatchingVersion = otherProjects.Take(projectsToShow).Select(p => p.Name).ToList();
                 if (otherProjects.Count > projectsToShow)
                 {
@@ -52,17 +50,17 @@ namespace Microsoft.CodeAnalysis.AddPackage
         }
 
         public override string Title => _versionOpt == null
-            ? string.Format(FeaturesResources.Find_and_install_latest_version_of_0, _packageName)
+            ? string.Format(FeaturesResources.Find_and_install_latest_version_of_0, _packageInfo.PackageName)
             : _isLocal
-                ? string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_colon_2, _packageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion))
-                : string.Format(FeaturesResources.Install_0_1, _packageName, _versionOpt);
+                ? string.Format(FeaturesResources.Use_locally_installed_0_version_1_This_version_used_in_colon_2, _packageInfo.PackageName, _versionOpt, string.Join(", ", _projectsWithMatchingVersion))
+                : string.Format(FeaturesResources.Install_0_1, _packageInfo.PackageName, _versionOpt);
 
         internal override bool ApplyDuringTests => true;
 
         internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackage(
-                workspace, _document.Id, _source, _packageName, _versionOpt, cancellationToken);
+                workspace, _document.Id, _packageInfo, _versionOpt, cancellationToken);
         }
     }
 }
