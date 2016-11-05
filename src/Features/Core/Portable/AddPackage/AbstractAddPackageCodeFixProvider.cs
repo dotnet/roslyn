@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
             _symbolSearchService = symbolSearchService;
         }
 
+        protected abstract bool IncludePrerelease { get; }
+
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
         {
@@ -62,7 +64,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     foreach (var package in sortedPackages)
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
-                            installerService, packageSource.Source, package.PackageName, document));
+                            installerService, packageSource.Source,
+                            package.PackageName, this.IncludePrerelease, document));
                     }
                 }
             }

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
             : base(packageInstallerService, symbolSearchService)
         {
         }
+
+        protected override bool IncludePrerelease => true;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

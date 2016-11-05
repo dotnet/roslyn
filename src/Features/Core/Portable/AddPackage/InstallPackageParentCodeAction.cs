@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.AddPackage
             IPackageInstallerService installerService,
             string source,
             string packageName,
+            bool includePrerelease,
             Document document)
             : base(string.Format(FeaturesResources.Install_package_0, packageName),
-                   CreateNestedActions(installerService, source, packageName, document),
+                   CreateNestedActions(installerService, source, packageName, includePrerelease, document),
                    isInlinable: false)
         {
             _installerService = installerService;
@@ -42,7 +43,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         private static ImmutableArray<CodeAction> CreateNestedActions(
             IPackageInstallerService installerService,
-            string source, string packageName, Document document)
+            string source, string packageName, bool includePrerelease,
+            Document document)
         {
             // Determine what versions of this package are already installed in some project
             // in this solution.  We'll offer to add those specific versions to this project,
@@ -52,13 +54,13 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
             // First add the actions to install a specific version.
             codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(
-                installerService, source, packageName, 
-                document, versionOpt: v, isLocal: true)));
+                installerService, source, packageName, document, 
+                versionOpt: v, includePrerelease: includePrerelease, isLocal: true)));
 
             // Now add the action to install the specific version.
             codeActions.Add(CreateCodeAction(
                 installerService, source, packageName, document,
-                versionOpt: null, isLocal: false));
+                versionOpt: null, includePrerelease: includePrerelease, isLocal: false));
 
             // And finally the action to show the package manager dialog.
             codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, packageName));
@@ -71,10 +73,12 @@ namespace Microsoft.CodeAnalysis.AddPackage
             string packageName,
             Document document,
             string versionOpt,
+            bool includePrerelease,
             bool isLocal)
         {
             return new InstallPackageDirectlyCodeAction(
-                installerService, document, source, packageName, versionOpt, isLocal);
+                installerService, document, source, packageName, 
+                versionOpt, includePrerelease, isLocal);
         }
     }
 }
