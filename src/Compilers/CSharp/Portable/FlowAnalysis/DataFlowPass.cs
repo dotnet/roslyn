@@ -582,6 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (value == null || value.HasAnyErrors) return true;
             if ((object)type != null && type.IsReferenceType && type.SpecialType != SpecialType.System_String)
             {
+                //if (value.ConstantValue != ConstantValue.Null) { throw new Exception();  }
                 return value.ConstantValue != ConstantValue.Null;
             }
 
@@ -609,11 +610,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
                 case BoundKind.DefaultOperator:
-                case BoundKind.ConvertedTupleLiteral:
                     return false;
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
+                case BoundKind.ConvertedTupleLiteral:
+                    var typePresent = type != null;
+                    Debug.Assert(!typePresent || type.IsTupleType);
+                    var typeTupleTypes = typePresent ? ((TupleTypeSymbol)type).TupleElementTypes : ImmutableArray<TypeSymbol>.Empty;
+                    var valueTupleArguments = ((BoundConvertedTupleLiteral)value).Arguments;
+
+                    Debug.Assert(!typePresent || valueTupleArguments.Length == typeTupleTypes.Length);
+
+                    for (int i = 0; i < valueTupleArguments.Length; i++)
+                    {
+                        if (WriteConsideredUse(typePresent ? typeTupleTypes[i] : null, valueTupleArguments[i]))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+
                 default:
                     return true;
             }

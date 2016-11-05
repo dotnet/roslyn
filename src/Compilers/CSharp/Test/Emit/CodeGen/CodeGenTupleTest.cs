@@ -20037,20 +20037,38 @@ public class C
 {
     void M(int x)
     {
-        (int, int) t1 = default((int, int));
-        (int, int) t2 = (1, 2);
-        (int, int) t3 = (1, 2);
+        (int, int) t1 = default((int, int)); // warning
+        (int, int) t2 = (1, 2); // warning
+
+        (int, int) t3 = (1, 2); // used
         M(t3.Item1);
+
+        (int, int) t4 = (new C(), 2); // user conversion
+        ((int, int), int) t5 = (new C(), 2); // user conversion
+        (Error, int) t6 = (1, 2);
+        (int, C) t7 = (1, new C());
+    }
+
+    public static implicit operator int(C c)
+    {
+        return 0;
+    }
+    public static implicit operator (int, int)(C p)
+    {
+        return (0, 0);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (14,10): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //         (Error, int) t6 = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(14, 10),
                 // (6,20): warning CS0219: The variable 't1' is assigned but its value is never used
-                //         (int, int) t1 = default((int, int));
+                //         (int, int) t1 = default((int, int)); // warning
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(6, 20),
                 // (7,20): warning CS0219: The variable 't2' is assigned but its value is never used
-                //         (int, int) t2 = (1, 2);
+                //         (int, int) t2 = (1, 2); // warning
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(7, 20)
                 );
         }
