@@ -2802,20 +2802,127 @@ End Class]]></Document>)
         End Function
 
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
-		Friend Class MockSnippetInfoService
-			Implements ISnippetInfoService
+        Friend Class MockSnippetInfoService
+            Implements ISnippetInfoService
 
-			Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
-				Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
-			End Function
+            Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
+                Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
+            End Function
 
-			Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
-				Return False
-			End Function
+            Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
+                Return False
+            End Function
 
-			Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
-				Return shortcut = "Shortcut"
-			End Function
-		End Class
-	End Class
+            Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
+                Return shortcut = "Shortcut"
+            End Function
+        End Class
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13610"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_EscapesAwaitInAsyncMethod() As Task
+            Using state = TestState.CreateVisualBasicTestState("
+Class Await
+End Class
+
+Class C
+    Async Sub Foo()
+        Dim a As [Await] = New $$
+    End Sub
+End Class
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Await")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim a As [Await] = New [Await]", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_DontEscapeAwaitInNonAsyncMethod() As Task
+            Using state = TestState.CreateVisualBasicTestState("
+Class Await
+End Class
+
+Class C
+    Sub Foo()
+        Dim a As Await = New $$
+    End Sub
+End Class
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Await")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim a As Await = New Await", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_DontEscapeNestedAwaitInAsyncMethod() As Task
+            Using state = TestState.CreateVisualBasicTestState("
+Namespace NS
+    Class Await
+    End Class
+End Namespace
+
+Class C
+    Async Sub Foo()
+        Dim a As NS.Await = New $$
+    End Sub
+End Class
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("NS.Await")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim a As NS.Await = New NS.Await", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SymbolCompletion_EscapedAwaitIdentifierInAsyncMethod() As Task
+            Using state = TestState.CreateVisualBasicTestState("
+Class Await
+End Class
+
+Class C
+    Async Sub Foo()
+        Dim a As $$
+    End Sub
+End Class
+")
+                state.SendTypeChars("Awai")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Await")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim a As [Await]", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SymbolCompletion_DontEscapeAwaitInNonAsyncMethod() As Task
+            Using state = TestState.CreateVisualBasicTestState("
+Class Await
+End Class
+
+Class C
+    Sub Foo()
+        Dim a As $$
+    End Sub
+End Class
+")
+                state.SendTypeChars("Awai")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Await")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim a As Await", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+    End Class
 End Namespace

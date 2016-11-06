@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected abstract Task BaseVerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options);
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options);
 
         internal static CompletionHelper GetCompletionHelper(Document document)
         {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private Task VerifyAsync(
             string markup, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options)
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options)
         {
             string code;
             int position;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
             int? glyph = null, int? matchPriority = null,
-            IEnumerable<KeyValuePair<OptionKey, object>> options = null)
+            IDictionary<OptionKey, object> options = null)
         {
             if (sourceCodeKind.HasValue)
             {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyItemIsAbsentAsync(
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
-            IEnumerable<KeyValuePair<OptionKey, object>> options = null)
+            IDictionary<OptionKey, object> options = null)
         {
             if (sourceCodeKind.HasValue)
             {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyAnyItemExistsAsync(
             string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
-            IEnumerable < KeyValuePair < OptionKey, object>> options = null)
+            IDictionary<OptionKey, object> options = null)
         {
             if (sourceCodeKind.HasValue)
             {
@@ -232,8 +232,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected async Task VerifyNoItemsExistAsync(string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
-            IEnumerable<KeyValuePair<OptionKey, object>> options = null)
+        protected async Task VerifyNoItemsExistAsync(
+            string markup, SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
+            IDictionary<OptionKey, object> options = null)
         {
             if (sourceCodeKind.HasValue)
             {
@@ -256,12 +257,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedDescriptionOrNull">If this is null, the Description for the item is ignored.</param>
         /// <param name="usePreviousCharAsTrigger">Whether or not the previous character in markup should be used to trigger IntelliSense for this provider. If false, invokes it through the invoke IntelliSense command.</param>
         /// <param name="checkForAbsence">If true, checks for absence of a specific item (or that no items are returned from this CompletionProvider)</param>
+        /// <param name="options">Workspace-level options to apply before running the test.</param>
         protected virtual async Task VerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind,
             bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options)
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options)
         {
             Glyph? expectedGlyph = null;
             if (glyph.HasValue)
@@ -273,13 +275,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             OptionSet defaultOptions = null;
 
-            if (options != null && options.Any())
+            if (options != null)
             {
                 // Work on a cached copy since OptionServiceFactory.OptionService.GetOptions
                 // always returns a new instance, losing any recorded observations.
                 defaultOptions = workspace.Options;
 
-                // Workspace options are not guaranteed to be immutable until observed.
+                // Workspace options are not guaranteed to be immutable until observed, so observe them.
                 foreach (var option in options)
                 {
                     defaultOptions.GetOption(option.Key);
@@ -695,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options)
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options)
         {
             code = code.Substring(0, position) + insertText + code.Substring(position);
             position += insertText.Length;
@@ -710,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyAtPositionAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
@@ -722,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             // only do this if the placeholder was at the end of the text.
             if (code.Length != position)
@@ -742,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyAtPositionAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
@@ -754,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull,
@@ -765,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyAtEndOfFileAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
@@ -850,15 +852,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected IEnumerable<KeyValuePair<OptionKey, object>> Option<T>(
+        protected IDictionary<OptionKey, object> Option<T>(
             PerLanguageOption<CodeStyleOption<T>> option,
             string language, T value, NotificationOption notification = null)
         {
-            return new[]
+            return new Dictionary<OptionKey, object>
             {
-                new KeyValuePair<OptionKey, object>(
-                    new OptionKey(option, language),
-                    new CodeStyleOption<T>(value, notification ?? NotificationOption.None))
+                { new OptionKey(option, language), new CodeStyleOption<T>(value, notification ?? NotificationOption.None) }
             };
         }
     }

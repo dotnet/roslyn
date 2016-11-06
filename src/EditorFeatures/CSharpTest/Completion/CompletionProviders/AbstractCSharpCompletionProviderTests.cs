@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options)
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options)
         {
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull, 
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, 
             bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, options);
             await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, options);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, int? matchPriority,
-            IEnumerable<KeyValuePair<OptionKey, object>> options)
+            IDictionary<OptionKey, object> options)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,

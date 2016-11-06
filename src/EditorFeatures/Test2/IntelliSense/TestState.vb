@@ -104,6 +104,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 extraExportedTypes)
         End Function
 
+        Public Shared Function CreateVisualBasicTestState(
+                documentText As String,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
+                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
+                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+            Return CreateVisualBasicTestState(
+                <Document><%= documentText %></Document>,
+                extraCompletionProviders,
+                extraSignatureHelpProviders,
+                extraExportedTypes)
+        End Function
+
+        Public Shared Function CreateCSharpTestState(
+                documentText As String,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
+                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
+                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+            Return CreateCSharpTestState(
+                <Document><%= documentText %></Document>,
+                extraCompletionProviders,
+                extraSignatureHelpProviders,
+                extraExportedTypes)
+        End Function
+
         Public Shared Function CreateCSharpTestState(
                 documentElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,

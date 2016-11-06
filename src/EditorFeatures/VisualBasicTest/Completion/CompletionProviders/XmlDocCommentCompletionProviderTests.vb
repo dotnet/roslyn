@@ -24,7 +24,7 @@ Namespace Tests
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                options As IEnumerable(Of KeyValuePair(Of OptionKey, Object))) As Task
+                options As IDictionary(Of OptionKey, Object)) As Task
             Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, options)
             Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, options)
         End Function

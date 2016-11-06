@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                options As IEnumerable(Of KeyValuePair(Of OptionKey, Object))) As Task
+                options As IDictionary(Of OptionKey, Object)) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then

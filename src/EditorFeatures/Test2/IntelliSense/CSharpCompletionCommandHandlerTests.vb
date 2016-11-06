@@ -2313,5 +2313,74 @@ class C
                 Await state.AssertSelectedCompletionItem("ConfigureAwait")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_CommitOnAngleBracket_NonGeneric() As Task
+            Using state = TestState.CreateCSharpTestState("
+namespace NS
+{
+    public class A { }
+}
+
+public class C
+{
+    private NS.A _a = new $$
+}
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("NS.A")
+                state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("private NS.A _a = new NS.A<", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_CommitOnAngleBracket_Generic() As Task
+            Using state = TestState.CreateCSharpTestState("
+namespace NS
+{
+    public class A<T> { }
+}
+
+public class C
+{
+    private NS.A<int> _a = new $$
+}
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("NS.A<int>")
+                state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("private NS.A<int> _a = new NS.A<", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ObjectCreationCompletion_CommitOnAngleBracket_NestedGeneric() As Task
+            Using state = TestState.CreateCSharpTestState("
+namespace NS
+{
+    public class A<T>
+    {
+        public class B<U> { }
+    }
+}
+
+public class C
+{
+    private NS.A<int>.B<long> _b = new $$
+}
+")
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("NS.A<int>.B<long>")
+                state.SendTypeChars("<")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("private NS.A<int>.B<long> _b = new NS.A<", state.GetLineTextFromCaretPosition().Trim())
+            End Using
+        End Function
     End Class
 End Namespace

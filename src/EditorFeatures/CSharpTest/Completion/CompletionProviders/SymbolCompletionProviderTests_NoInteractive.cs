@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, IEnumerable<KeyValuePair<OptionKey, object>> options)
+            int? glyph, int? matchPriority, IDictionary<OptionKey, object> options)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
