@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
         }
 
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
+            => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
+
+        public Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
         {
             return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
         }

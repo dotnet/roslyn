@@ -221,6 +221,26 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    internal class SerializablePackageWithAssemblyResult
+    {
+        public string PackageName;
+        public string Version;
+        public int Rank;
+
+        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyResult result)
+        {
+            return new SerializablePackageWithAssemblyResult
+            {
+                PackageName = result.PackageName,
+                Version = result.Version,
+                Rank = result.Rank,
+            };
+        }
+
+        public PackageWithAssemblyResult Rehydrate()
+            => new PackageWithAssemblyResult(PackageName, Version, Rank);
+    }
+
     internal class SerializableReferenceAssemblyWithTypeResult
     {
         public string AssemblyName;

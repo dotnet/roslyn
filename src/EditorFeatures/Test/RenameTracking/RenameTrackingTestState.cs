@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = await CreateTestWorkspaceAsync(markup, languageName, TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+            var workspace = await CreateTestWorkspaceAsync(markup, languageName, EditorServicesUtil.CreateExportProvider());
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -67,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
             var workspace = await TestWorkspace.CreateAsync(
-                workspaceXml, 
-                exportProvider: TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+                workspaceXml,
+                exportProvider: EditorServicesUtil.CreateExportProvider());
 
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }

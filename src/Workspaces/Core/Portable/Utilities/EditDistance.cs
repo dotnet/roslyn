@@ -48,12 +48,7 @@ namespace Roslyn.Utilities
 
         public EditDistance(string text)
         {
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            _source = text;
+            _source = text ?? throw new ArgumentNullException(nameof(text));
             _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
         }
 

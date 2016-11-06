@@ -229,7 +229,6 @@ compareTokens:=False)
             Await TestAsync(
 "
 Class C
-{
     Dim i As Integer
     Dim j As Integer
     Sub M()
@@ -240,7 +239,6 @@ Class C
 End Class",
 "
 Class C
-{
     Dim i As Integer
     Dim j As Integer
     Sub M()

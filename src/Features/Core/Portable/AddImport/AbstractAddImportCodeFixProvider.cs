@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
 
-        /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
+        /// <summary>
+        /// Values for these parameters can be provided (during testing) for mocking purposes.
+        /// </summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
             ISymbolSearchService symbolSearchService = null)

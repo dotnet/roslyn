@@ -84,10 +84,13 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
+            public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
+            public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeGeneration = nameof(CodeGeneration);

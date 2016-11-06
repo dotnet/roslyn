@@ -312,15 +312,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
-                newRight.TrackingSpans = oldRight.TrackingSpans;
+                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
+                {
+                    TrackingSpans = oldRight.TrackingSpans
+                };
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
-                newLeft.TrackingSpans = oldLeft.TrackingSpans;
+                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
+                {
+                    TrackingSpans = oldLeft.TrackingSpans
+                };
                 listOfLeft.Add(newLeft);
             }
 

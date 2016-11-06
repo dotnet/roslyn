@@ -12,7 +12,8 @@ namespace Roslyn.Test.Performance.Runner
     public static class Benchview
     {
         private const string s_sasEnvironmentVar = "BV_UPLOAD_SAS_TOKEN";
-        private static readonly string s_scriptDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.BenchView.JSONFormat", "tools");
+        private static readonly string s_scriptDirectory = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "tools", "Microsoft.BenchView.JSONFormat", "tools");
         private static readonly string s_outputDirectory = GetCPCDirectoryPath();
         private static readonly string[] s_validSubmissionTypes = new string[] { "rolling", "private", "local" };
 

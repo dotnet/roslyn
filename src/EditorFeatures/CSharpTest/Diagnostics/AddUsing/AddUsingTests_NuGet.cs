@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,13 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -100,13 +98,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NS1.NS2;
+@"using NS1.NS2;
 
 class C
 {
@@ -131,8 +127,7 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
                 await TestMissingAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
@@ -147,7 +142,7 @@ class C
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-                    .Returns(new[] { "1.0", "2.0" });
+                    .Returns(ImmutableArray.Create("1.0", "2.0"));
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
                 packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(
@@ -156,8 +151,7 @@ class C
 
                 var data = new FixProviderData(installerServiceMock.Object, packageServiceMock.Object);
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
@@ -166,8 +160,7 @@ index: 0,
 fixProviderData: data);
 
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
@@ -176,8 +169,7 @@ index: 1,
 fixProviderData: data);
 
                 await TestSmartTagTextAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
@@ -201,13 +193,11 @@ fixProviderData: data);
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -223,7 +213,7 @@ class C
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-                    .Returns(new[] { "1.0" });
+                    .Returns(ImmutableArray.Create("1.0"));
                 installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
@@ -232,13 +222,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-using NuGetNamespace;
+@"using NuGetNamespace;
 
 class C
 {
@@ -255,7 +243,7 @@ class C
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
-                    .Returns(new[] { "1.0" });
+                    .Returns(ImmutableArray.Create("1.0"));
                 installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
                                     .Returns(false);
 
@@ -264,13 +252,11 @@ class C
                     .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
                 await TestAsync(
-@"
-class C
+@"class C
 {
     [|NuGetType|] n;
 }",
-@"
-class C
+@"class C
 {
     NuGetType n;
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));

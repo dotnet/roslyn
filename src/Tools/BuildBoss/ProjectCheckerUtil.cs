@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,6 +41,10 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
                 allGood &= CheckForProperty(textWriter, "SchemaVersion");
                 allGood &= CheckForProperty(textWriter, "Configuration");
+                allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
+                allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
+                allGood &= CheckForProperty(textWriter, "Deterministic");
+                allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
             }
@@ -127,10 +132,7 @@ namespace BuildBoss
 
             var declaredList = _projectUtil.GetDeclaredProjectReferences();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
-
-            // Disabling this check until we have time to discuss the team implications.
-            // allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-
+            allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
             return allGood;
@@ -278,18 +280,16 @@ namespace BuildBoss
             }
 
             var name = element.Value.Trim();
-            if (Regex.IsMatch(name, @"UnitTest(s?)\.dll", RegexOptions.IgnoreCase))
+            if (Regex.IsMatch(name, @"(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase) && !data.IsAnyUnitTest)
             {
-                switch (data.EffectiveKind)
-                {
-                    case RoslynProjectKind.UnitTest:
-                    case RoslynProjectKind.UnitTestNext:
-                        // This is correct
-                        break;
-                    default:
-                        textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
-                        return false;
-                }
+                textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
+                return false;
+            }
+
+            if (data.IsAnyUnitTest && !Regex.IsMatch(name, @".*(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase))
+            {
+                textWriter.WriteLine($"Assembly {name} is a unit test that doesn't end with UnitTests.dll");
+                return false;
             }
 
             return true;

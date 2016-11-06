@@ -60,7 +60,7 @@
       <summary>Class which represents the syntax node for qualified name.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an QualifiedNameSyntax node.</summary>
+      <summary>Creates a QualifiedNameSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="GenericNameSyntax" Base="SimpleNameSyntax">
@@ -80,7 +80,7 @@
       <summary>Class which represents the syntax node for generic name.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an GenericNameSyntax node.</summary>
+      <summary>Creates a GenericNameSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TypeArgumentListSyntax" Base="CSharpSyntaxNode">
@@ -106,7 +106,7 @@
       <summary>Class which represents the syntax node for type argument list.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an TypeArgumentListSyntax node.</summary>
+      <summary>Creates a TypeArgumentListSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="AliasQualifiedNameSyntax" Base="NameSyntax">
@@ -167,7 +167,7 @@
       <summary>Class which represents the syntax node for predefined types.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an PredefinedTypeSyntax node.</summary>
+      <summary>Creates a PredefinedTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ArrayTypeSyntax" Base="TypeSyntax">
@@ -216,7 +216,7 @@
       <summary>Class which represents the syntax node for pointer type.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an PointerTypeSyntax node.</summary>
+      <summary>Creates a PointerTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="NullableTypeSyntax" Base="TypeSyntax">
@@ -236,7 +236,7 @@
       <summary>Class which represents the syntax node for a nullable type.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an NullableTypeSyntax node.</summary>
+      <summary>Creates a NullableTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TupleTypeSyntax" Base="TypeSyntax">
@@ -258,7 +258,7 @@
       <summary>Class which represents the syntax node for tuple type.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an TupleTypeSyntax node.</summary>
+      <summary>Creates a TupleTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TupleElementSyntax" Base="CSharpSyntaxNode">
@@ -332,7 +332,7 @@
       <summary>Class which represents the syntax node for parenthesized expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an ParenthesizedExpressionSyntax node.</summary>
+      <summary>Creates a ParenthesizedExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TupleExpressionSyntax" Base="ExpressionSyntax">
@@ -358,7 +358,7 @@
       <summary>Class which represents the syntax node for tuple expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an TupleExpressionSyntax node.</summary>
+      <summary>Creates a TupleExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="PrefixUnaryExpressionSyntax" Base="ExpressionSyntax">
@@ -392,7 +392,7 @@
       <summary>Class which represents the syntax node for prefix unary expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an PrefixUnaryExpressionSyntax node.</summary>
+      <summary>Creates a PrefixUnaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="AwaitExpressionSyntax" Base="ExpressionSyntax">
@@ -434,7 +434,7 @@
       <summary>Class which represents the syntax node for postfix unary expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an PostfixUnaryExpressionSyntax node.</summary>
+      <summary>Creates a PostfixUnaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
@@ -461,7 +461,7 @@
       <summary>Class which represents the syntax node for member access expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an MemberAccessExpressionSyntax node.</summary>
+      <summary>Creates a MemberAccessExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ConditionalAccessExpressionSyntax" Base="ExpressionSyntax">
@@ -506,7 +506,7 @@
       <summary>Class which represents the syntax node for member binding expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an MemberBindingExpressionSyntax node.</summary>
+      <summary>Creates a MemberBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
@@ -599,7 +599,7 @@
       <summary>Class which represents an expression that has a binary operator.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an BinaryExpressionSyntax node.</summary>
+      <summary>Creates a BinaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
@@ -680,7 +680,7 @@
       <summary>Class which represents the syntax node for conditional expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an ConditionalExpressionSyntax node.</summary>
+      <summary>Creates a ConditionalExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <AbstractNode Name="InstanceExpressionSyntax" Base="ExpressionSyntax">
@@ -700,7 +700,7 @@
       <summary>Class which represents the syntax node for a this expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an ThisExpressionSyntax node.</summary>
+      <summary>Creates a ThisExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="BaseExpressionSyntax" Base="InstanceExpressionSyntax">
@@ -715,7 +715,7 @@
       <summary>Class which represents the syntax node for a base expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an BaseExpressionSyntax node.</summary>
+      <summary>Creates a BaseExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="LiteralExpressionSyntax" Base="ExpressionSyntax">
@@ -742,7 +742,7 @@
       <summary>Class which represents the syntax node for a literal expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an LiteralExpressionSyntax node.</summary>
+      <summary>Creates a LiteralExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="MakeRefExpressionSyntax" Base="ExpressionSyntax">
@@ -774,7 +774,7 @@
       <summary>Class which represents the syntax node for MakeRef expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an MakeRefExpressionSyntax node.</summary>
+      <summary>Creates a MakeRefExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="RefTypeExpressionSyntax" Base="ExpressionSyntax">
@@ -806,7 +806,7 @@
       <summary>Class which represents the syntax node for RefType expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an RefTypeExpressionSyntax node.</summary>
+      <summary>Creates a RefTypeExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="RefValueExpressionSyntax" Base="ExpressionSyntax">
@@ -849,7 +849,7 @@
       <summary>Class which represents the syntax node for RefValue expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an RefValueExpressionSyntax node.</summary>
+      <summary>Creates a RefValueExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="CheckedExpressionSyntax" Base="ExpressionSyntax">
@@ -883,7 +883,7 @@
       <summary>Class which represents the syntax node for Checked or Unchecked expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an CheckedExpressionSyntax node.</summary>
+      <summary>Creates a CheckedExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="DefaultExpressionSyntax" Base="ExpressionSyntax">
@@ -915,7 +915,7 @@
       <summary>Class which represents the syntax node for Default expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an DefaultExpressionSyntax node.</summary>
+      <summary>Creates a DefaultExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="TypeOfExpressionSyntax" Base="ExpressionSyntax">
@@ -947,7 +947,7 @@
       <summary>Class which represents the syntax node for TypeOf expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an TypeOfExpressionSyntax node.</summary>
+      <summary>Creates a TypeOfExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="SizeOfExpressionSyntax" Base="ExpressionSyntax">
@@ -979,7 +979,7 @@
       <summary>Class which represents the syntax node for SizeOf expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an SizeOfExpressionSyntax node.</summary>
+      <summary>Creates a SizeOfExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="InvocationExpressionSyntax" Base="ExpressionSyntax">
@@ -1079,7 +1079,7 @@
       <summary>Class which represents the syntax node for bracketed argument list.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an BracketedArgumentListSyntax node.</summary>
+      <summary>Creates a BracketedArgumentListSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ArgumentSyntax" Base="CSharpSyntaxNode">
@@ -1126,7 +1126,7 @@
       <summary>Class which represents the syntax node for name colon syntax.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an NameColonSyntax node.</summary>
+      <summary>Creates a NameColonSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
@@ -1153,7 +1153,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax">
       <PropertyComment>
-        <summary>TypeSyntax node representing the type the expression is being casted to.</summary>
+        <summary>TypeSyntax node representing the type to which the expression is being cast.</summary>
       </PropertyComment>
     </Field>
     <Field Name="CloseParenToken" Type="SyntaxToken">
@@ -1171,7 +1171,7 @@
       <summary>Class which represents the syntax node for cast expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an CastExpressionSyntax node.</summary>
+      <summary>Creates a CastExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <AbstractNode Name="AnonymousFunctionExpressionSyntax" Base="ExpressionSyntax">
@@ -1264,7 +1264,7 @@
       <summary>Class which represents the syntax node for a simple lambda expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an SimpleLambdaExpressionSyntax node.</summary>
+      <summary>Creates a SimpleLambdaExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="RefExpressionSyntax" Base="ExpressionSyntax">
@@ -1303,7 +1303,7 @@
       <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an ParenthesizedLambdaExpressionSyntax node.</summary>
+      <summary>Creates a ParenthesizedLambdaExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="InitializerExpressionSyntax" Base="ExpressionSyntax">
@@ -1492,7 +1492,7 @@
       <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
     </TypeComment>
     <FactoryComment>
-      <summary>Creates an StackAllocArrayCreationExpressionSyntax node.</summary>
+      <summary>Creates a StackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
@@ -2395,7 +2395,7 @@
     <Field Name="Keyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents a case or default keywords that belongs to a switch label.
+          Gets a SyntaxToken that represents a case or default keyword that belongs to a switch label.
         </summary>
       </PropertyComment>
     </Field>

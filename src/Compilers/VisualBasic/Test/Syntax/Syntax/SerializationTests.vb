@@ -38,6 +38,16 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestRoundTripDateTimeLiteral()
+            Dim x As DateTime = #10/5/2015#
+            RoundTrip(<Foo>
+Public Class C
+    Private _x As DateTime = #10/5/2015#
+End Class
+</Foo>.Value)
+        End Sub
+
+        <Fact>
         Public Sub TestRoundTripSyntaxNodeWithDiagnostics()
             Dim text = <Foo>
 Public Class C

@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -10,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
@@ -29,6 +30,115 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(243633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
+        public void CaptureGenericFieldAndParameter()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+
+class Test<T>
+{
+    T Value;
+
+    public bool Foo(IEqualityComparer<T> comparer)
+    {
+        bool local(T tmp)
+        {
+            return comparer.Equals(tmp, this.Value);
+        }
+        return local(this.Value);
+    }
+}
+";
+            var comp = CompileAndVerify(src);
+        }
+
+        [Fact]
+        public void CaptureGenericField()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M()
+    {
+        void L()
+        {
+            Console.WriteLine(Value);
+        }
+        var f = (Action)(() => L());
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M();
+}
+";
+            VerifyOutput(src, "0");
+        }
+
+        [Fact]
+        public void CaptureGenericParam()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M<U>(U val2)
+    {
+        void L()
+        {
+            Console.WriteLine(Value);
+            Console.WriteLine(val2);
+        }
+        var f = (Action)(() => L());
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M(10);
+}
+";
+            VerifyOutput(src, @"0
+10");
+        }
+
+        [Fact]
+        public void CaptureGenericParamInGenericLocalFunc()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M<U>(U v1)
+    {
+        void L<V>(V v2) where V : T
+        {
+            Console.WriteLine(Value);
+            Console.WriteLine(v1);
+            Console.WriteLine(v2);
+        }
+        var f = (Action)(() => L<T>(Value));
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M(10);
+}
+";
+            VerifyOutput(src, @"0
+10
+0");
+        }
+
         [Fact]
         public void DeepNestedLocalFuncsWithDifferentCaptures()
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|return|] Bar();
         }
     }
@@ -67,11 +69,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|return|] Bar();
         }
-        set { }
+
+        set
+        {
+        }
     }
 }", options: UseExpressionBody);
         }
@@ -82,9 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         [A]
-        get {
+        get
+        {
             [|return|] Bar();
         }
     }
@@ -97,8 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo {
-        set {
+    int Foo
+    {
+        set
+        {
             [|Bar|]();
         }
     }
@@ -111,8 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|throw|] new NotImplementedException();
         }
     }
@@ -153,8 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             return Bar();
         }
     }
@@ -171,10 +186,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         get => Bar();
-    }
-}", options: UseBlockBodyExceptAccessor);
+        }
+    }", options: UseBlockBodyExceptAccessor);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -187,8 +203,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             throw new NotImplementedException();
         }
     }

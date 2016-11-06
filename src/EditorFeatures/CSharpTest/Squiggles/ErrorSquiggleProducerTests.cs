@@ -4,24 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {

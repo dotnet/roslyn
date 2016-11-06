@@ -2,6 +2,7 @@
 
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -71,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  options As OptionSet,
                                                   cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
             Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</ProjectGuid>
@@ -256,10 +256,12 @@
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -268,6 +270,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
@@ -1092,5 +1095,5 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

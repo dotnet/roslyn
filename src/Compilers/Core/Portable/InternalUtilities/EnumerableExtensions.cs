@@ -307,11 +307,6 @@ namespace Roslyn.Utilities
             public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
         }
 
-        private static class Functions<T>
-        {
-            public static readonly Func<T, T> Identity = t => t;
-        }
-
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
         {
             using (var e = enumerable.GetEnumerator())
@@ -392,5 +387,15 @@ namespace Roslyn.Utilities
         {
             return Comparer<T>.Create(comparison);
         }
+    }
+
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> True = t => true;
     }
 }

@@ -134,6 +134,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_outlining_for_comments_and_preprocessor_regions As String =
             ServicesVSResources.Show_outlining_for_comments_and_preprocessor_regions
 
+        Public ReadOnly Property Option_Collapse_regions_when_collapsing_to_definitions As String =
+            ServicesVSResources.Collapse_regions_when_collapsing_to_definitions
+
         Public ReadOnly Property Option_Block_Structure_Guides As String =
             ServicesVSResources.Block_Structure_Guides
 

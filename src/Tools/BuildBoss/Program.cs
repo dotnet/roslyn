@@ -11,26 +11,12 @@ namespace BuildBoss
 {
     internal static class Program
     {
-        internal static int Main(string[] args)
+        internal static int Main(string[] solutionFilePaths)
         {
-            string configFile;
-            string basePath;
-            List<string> solutionFilePaths;
-            if (!ParseCommandLine(args, out configFile, out basePath, out solutionFilePaths))
+            if (solutionFilePaths.Length == 0)
             { 
                 Usage();
                 return 1;
-            }
-
-            if (configFile != null)
-            {
-                var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configFile));
-                foreach (var target in config.Targets)
-                {
-                    solutionFilePaths.Add(Path.IsPathRooted(target)
-                        ? target
-                        : Path.Combine(basePath, target));
-                }
             }
 
             var allGood = true;
@@ -50,6 +36,12 @@ namespace BuildBoss
             foreach (var projectEntry in projectDataList)
             {
                 if (projectEntry.IsFolder)
+                {
+                    continue;
+                }
+
+                // TODO: temporary work around util a cross cutting change can be sync'd up.  
+                if (Path.GetFileName(projectEntry.RelativeFilePath) == "CompilerPerfTest.vbproj")
                 {
                     continue;
                 }
@@ -86,51 +78,9 @@ namespace BuildBoss
             return true;
         }
 
-        private static bool ParseCommandLine(string[] args, out string configFile, out string basePath, out List<string> solutionFilePaths)
-        {
-            configFile = null;
-            basePath = AppContext.BaseDirectory;
-            solutionFilePaths = new List<string>();
-
-            var i = 0;
-            while (i < args.Length)
-            {
-                var current = args[i];
-                switch (current.ToLower())
-                {
-                    case "-config":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("config requires an argument");
-                            return false;
-                        }
-
-                        configFile = args[i + 1];
-                        i += 2;
-                        break;
-                    case "-basepath":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("basePath requise and argument");
-                            return false;
-                        }
-
-                        basePath = args[i + 1];
-                        i += 2;
-                        break;
-                    default:
-                        solutionFilePaths.Add(current);
-                        i++;
-                        break;
-                }
-            }
-
-            return true;
-        }
-
         private static void Usage()
         {
-            Console.WriteLine($"BuildBoss [-config <config file path] [-basePath <base path>] <solution paths>");
+            Console.WriteLine($"BuildBoss <solution paths>");
         }
     }
 }

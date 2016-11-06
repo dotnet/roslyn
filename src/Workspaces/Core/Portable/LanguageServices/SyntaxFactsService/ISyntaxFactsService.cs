@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+        bool SupportsIndexingInitializer(ParseOptions options);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -28,8 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsHashToken(SyntaxToken token);
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
+
         bool IsStringLiteral(SyntaxToken token);
-        bool IsNumericLiteralExpression(SyntaxNode node);
+        bool IsStringLiteralExpression(SyntaxNode node);
+        bool IsVerbatimStringLiteral(SyntaxToken token);
+
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsDocumentationComment(SyntaxNode node);
@@ -37,8 +41,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
 
-        string GetText(int kind);
+        bool IsNumericLiteralExpression(SyntaxNode node);
+        bool IsNullLiteralExpression(SyntaxNode node);
 
+        string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -52,12 +58,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpression(SyntaxNode node);
         SyntaxNode GetObjectCreationInitializer(SyntaxNode objectCreationExpression);
 
+        bool IsBinaryExpression(SyntaxNode node);
+        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
+
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
 
+        SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
+
         bool IsExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
+
+        bool IsLogicalNotExpression(SyntaxNode node);
+        SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -81,9 +96,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfMemberAccessExpression(SyntaxNode node);
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
-        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression);
-        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode memberAccessExpression);
-        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression);
+        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
+        SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode node);
+        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name);
 
         bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
@@ -92,7 +108,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
-        SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
+
+        SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);
+        SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node);
+
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
@@ -102,12 +122,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
 
+        /// <summary>
+        /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,
+        /// no named params, no omitted args).
+        /// </summary>
+        bool IsSimpleArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
+
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression);
         bool IsUsingDirectiveName(SyntaxNode node);
-
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
 
@@ -176,6 +201,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken FindTokenOnRightOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
 
         SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true);
+        SyntaxNode WalkDownParentheses(SyntaxNode node);
 
         SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 

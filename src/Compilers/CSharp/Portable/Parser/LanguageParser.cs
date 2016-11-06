@@ -5588,12 +5588,14 @@ tryAgain:
                                 // These tokens are from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
-                            case SyntaxKind.AmpersandAmpersandToken:
-                            case SyntaxKind.BarBarToken:
-                            case SyntaxKind.CaretToken:
-                            case SyntaxKind.BarToken:
-                            case SyntaxKind.CloseBraceToken:
-                            case SyntaxKind.EndOfFileToken:
+                            case SyntaxKind.AmpersandAmpersandToken: // e.g. `e is A<B> && e`
+                            case SyntaxKind.BarBarToken:             // e.g. `e is A<B> || e`
+                            case SyntaxKind.CaretToken:              // e.g. `e is A<B> ^ e`
+                            case SyntaxKind.BarToken:                // e.g. `e is A<B> | e`
+                            case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
+                            case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
+                            case SyntaxKind.CloseBraceToken:         // e.g. `new { X = e is A<B> }`
+                            case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>` in isolation
                                 // These tokens are not from 7.5.4.2 Grammar Ambiguities
                                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
@@ -10858,18 +10860,13 @@ tryAgain:
         {
             var arguments = this.ParseBracketedArgumentList();
             var equal = this.EatToken(SyntaxKind.EqualsToken);
-            ExpressionSyntax expression;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                expression = this.ParseObjectOrCollectionInitializer();
-            }
-            else
-            {
-                expression = this.ParseExpressionCore();
-            }
+            var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? this.ParseObjectOrCollectionInitializer()
+                : this.ParseExpressionCore();
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
-            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
+            return _syntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()

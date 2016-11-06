@@ -40,12 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public AbstractContainedLanguage(
             AbstractProject project)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            this.Project = project;
+            this.Project = project ?? throw new ArgumentNullException(nameof(project));
         }
 
         /// <summary>
@@ -54,12 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// <param name="subjectBuffer"></param>
         protected void SetSubjectBuffer(ITextBuffer subjectBuffer)
         {
-            if (subjectBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffer));
-            }
-
-            this.SubjectBuffer = subjectBuffer;
+            this.SubjectBuffer = subjectBuffer ?? throw new ArgumentNullException(nameof(subjectBuffer));
         }
 
         /// <summary>
@@ -67,12 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         protected void SetDataBuffer(ITextBuffer dataBuffer)
         {
-            if (dataBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(dataBuffer));
-            }
-
-            this.DataBuffer = dataBuffer;
+            this.DataBuffer = dataBuffer ?? throw new ArgumentNullException(nameof(dataBuffer));
         }
 
         public abstract void Dispose();

@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Structure
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 
@@ -12,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
 
         Protected Overrides Sub CollectBlockSpans(node As TSyntaxNode,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  options As OptionSet,
                                                   cancellationToken As CancellationToken)
             Dim startToken = node.GetFirstToken()
             Dim endToken = GetEndToken(node)

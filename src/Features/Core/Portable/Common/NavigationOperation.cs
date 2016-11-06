@@ -21,12 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public DocumentNavigationOperation(DocumentId documentId, int position = 0)
         {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-            _documentId = documentId;
+            _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
             _position = position;
         }
 

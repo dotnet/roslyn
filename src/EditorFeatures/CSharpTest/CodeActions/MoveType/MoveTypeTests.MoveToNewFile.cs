@@ -130,6 +130,7 @@ class Class2 { }";
 
             var codeAfterMove =
 @"// Banner Text
+using System;
 
 class Class2 { }";
 
@@ -706,6 +707,44 @@ namespace OuterN1.N1
         }
     }
 }";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeUsings1()
+        {
+            var code =
+@"
+// Only used by inner type.
+using System;
+
+// Unused by both types.
+using System.Collections;
+
+class Outer { 
+    [||]class Inner {
+        DateTime d;
+    }
+}";
+            var codeAfterMove = @"
+// Unused by both types.
+using System.Collections;
+
+partial class Outer {
+}";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText =
+@"
+// Only used by inner type.
+using System;
+
+partial class Outer {
+    class Inner { 
+        DateTime d;
+    }
+}";
+
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
     }

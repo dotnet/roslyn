@@ -32,19 +32,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             BloomFilter escapedIdentifierFilter) :
             base(version)
         {
-            if (identifierFilter == null)
-            {
-                throw new ArgumentNullException(nameof(identifierFilter));
-            }
-
-            if (escapedIdentifierFilter == null)
-            {
-                throw new ArgumentNullException(nameof(escapedIdentifierFilter));
-            }
-
             _version = version;
-            _identifierFilter = identifierFilter;
-            _escapedIdentifierFilter = escapedIdentifierFilter;
+            _identifierFilter = identifierFilter ?? throw new ArgumentNullException(nameof(identifierFilter));
+            _escapedIdentifierFilter = escapedIdentifierFilter ?? throw new ArgumentNullException(nameof(escapedIdentifierFilter));
         }
 
         /// <summary>

@@ -108,12 +108,7 @@ namespace Roslyn.Utilities
 
         public WordSimilarityChecker(string text, bool substringsAreSimilar)
         {
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            _source = text;
+            _source = text ?? throw new ArgumentNullException(nameof(text));
             _threshold = GetThreshold(_source);
             _editDistance = new EditDistance(text);
             _substringsAreSimilar = substringsAreSimilar;

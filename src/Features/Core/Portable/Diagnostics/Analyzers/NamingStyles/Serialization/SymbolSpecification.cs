@@ -133,10 +133,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static SymbolSpecification FromXElement(XElement symbolSpecificationElement)
         {
-            var result = new SymbolSpecification();
-            result.ID = Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value);
-            result.Name = symbolSpecificationElement.Attribute(nameof(Name)).Value;
-
+            var result = new SymbolSpecification()
+            {
+                ID = Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
+                Name = symbolSpecificationElement.Attribute(nameof(Name)).Value
+            };
             result.PopulateSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList)));
             result.PopulateAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList)));
             result.PopulateModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList)));

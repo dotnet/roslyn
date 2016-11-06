@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -24,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _showPreviewChangesDialog = showPreviewChangesDialog;
         }
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            return ComputeOperationsAsync(new ProgressTracker(), cancellationToken);
+            return await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
         }
 
-        internal override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        internal override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -38,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllOperationsAsync(
+            return service.GetFixAllOperationsAsync(
                 FixAllState.CreateFixAllContext(progressTracker, cancellationToken),
-                _showPreviewChangesDialog).ConfigureAwait(false);
+                _showPreviewChangesDialog);
         }
 
         internal async override Task<Solution> GetChangedSolutionAsync(
