@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    [ExportWorkspaceService(typeof(IAssemblySerializationInfoService), ServiceLayer.Host)]
-    [Shared]
-    internal class AssemblySerializationInfoService : IAssemblySerializationInfoService
+    internal abstract class AbstractAssemblySerializationInfoService : IAssemblySerializationInfoService
     {
         public bool Serializable(Solution solution, string assemblyFilePath)
         {

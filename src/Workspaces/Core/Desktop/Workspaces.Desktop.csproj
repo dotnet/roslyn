@@ -48,6 +48,7 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="Serialization\AbstractAssemblySerializationInfoService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
