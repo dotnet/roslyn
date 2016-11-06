@@ -580,8 +580,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public override Task ReportProgressAsync(int current, int maximum)
             {
-                //var progress = maximum == 0 ? 0 : ((double)current / maximum);
-                // _findReferencesWindow.SetProgress(current, maximum);
+                try
+                {
+                    // The original FAR window exposed a SetProgress(double). Ensure that we 
+                    // don't crash if this code is running on a machine without the new API.
+                    _findReferencesWindow.SetProgress(current, maximum);
+                }
+                catch
+                {
+                }
+
                 return SpecializedTasks.EmptyTask;
             }
 
