@@ -252,17 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if ((kind == SyntaxKind.DeclarationExpression || kind == SyntaxKind.TupleExpression) &&
-                             (current.Parent as ForEachVariableStatementSyntax)?.Variable == current)
-                {
-                    binder = rootBinder.GetBinder(current.Parent);
-                }
-                else if ((kind == SyntaxKind.DeclarationExpression || kind == SyntaxKind.TupleExpression) &&
-                             (current.Parent is AssignmentExpressionSyntax) &&
-                             (current.Parent.Parent as ForStatementSyntax)?.Initializers.Contains(current.Parent) == true)
-                {
-                    binder = rootBinder.GetBinder(current.Parent.Parent);
-                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -321,7 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
                     var foreachStmt = (CommonForEachStatementSyntax)stmt;
-                    if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
+                    var start = stmt.Kind() == SyntaxKind.ForEachVariableStatement ? foreachStmt.InKeyword : foreachStmt.OpenParenToken;
+                    if (LookupPosition.IsBetweenTokens(position, start, foreachStmt.Statement.GetFirstToken()))
                     {
                         binder = binder.GetBinder(foreachStmt.Expression);
                         Debug.Assert(binder != null);
@@ -1457,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            done:
+done:
             return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }
@@ -1690,28 +1680,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If this declaration is part of a deconstruction, find the deconstruction.
         /// Returns null otherwise.
         /// </summary>
-        private AssignmentExpressionSyntax GetContainingDeconstruction(ExpressionSyntax expr)
+        private static AssignmentExpressionSyntax GetContainingDeconstruction(ExpressionSyntax expr)
         {
-            Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression);
-
-            if (expr.Parent.Kind() == SyntaxKind.Argument)
+            while (true)
             {
-                if (expr.Parent.Parent.Kind() == SyntaxKind.TupleExpression)
-                {
-                    return GetContainingDeconstruction((TupleExpressionSyntax)expr.Parent.Parent);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            else if (expr.Parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                    (object)((AssignmentExpressionSyntax)expr.Parent).Left == expr)
-            {
-                return (AssignmentExpressionSyntax)expr.Parent;
-            }
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
 
-            return null;
+                if (parent.Kind() == SyntaxKind.Argument)
+                {
+                    if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                    {
+                        expr = (TupleExpressionSyntax)parent.Parent;
+                        continue;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else if (parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                        (object)((AssignmentExpressionSyntax)parent).Left == expr)
+                {
+                    return (AssignmentExpressionSyntax)parent;
+                }
+
+                return null;
+            }
         }
 
         /// <summary>

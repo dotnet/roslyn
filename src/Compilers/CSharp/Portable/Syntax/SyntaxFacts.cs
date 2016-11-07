@@ -401,9 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
         {
-            var component = node.Parent as DeclarationExpressionSyntax;
-            parent = component as DeclarationExpressionSyntax;
-            return node == component?.Type;
+            parent = node.Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type;
         }
     }
 }

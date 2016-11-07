@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+    using System.Linq;
 
     internal partial class LanguageParser : SyntaxParser
     {
@@ -7533,6 +7534,19 @@ tryAgain:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                    break;
+                case SyntaxKind.ExpressionStatement:
+                    // Deconstruction-declaration is only allowed as top-level statement
+                    // see https://github.com/dotnet/roslyn/issues/15049
+                    var expression = ((ExpressionStatementSyntax)statement).Expression;
+                    if (expression.Kind == SyntaxKind.SimpleAssignmentExpression)
+                    {
+                        var assignment = (AssignmentExpressionSyntax)expression;
+                        if (assignment.Left.EnumerateNodes().Any(x => x.RawKind == (int)SyntaxKind.DeclarationExpression))
+                        {
+                            statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
+                        }
+                    }
                     break;
             }
 

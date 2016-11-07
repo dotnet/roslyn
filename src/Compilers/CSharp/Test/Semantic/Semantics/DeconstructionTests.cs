@@ -2434,7 +2434,7 @@ class C1
         }
 
         [Fact]
-        public void DeclarationCanBeEmbedded()
+        public void DeclarationCannotBeEmbedded()
         {
             var source = @"
 class C1
@@ -2443,32 +2443,14 @@ class C1
     {
         if (true)
             var (x, y) = (1, 2);
-    }
-}
-";
-            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EmbeddedDeclarationIsScoped()
-        {
-            var source = @"
-class C1
-{
-    void M()
-    {
-        if (true)
-            var (x, y) = (1, 2);
-        System.Console.WriteLine(x);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (8,34): error CS0103: The name 'x' does not exist in the current context
-                //         System.Console.WriteLine(x);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 34)
+                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
                 );
         }
 

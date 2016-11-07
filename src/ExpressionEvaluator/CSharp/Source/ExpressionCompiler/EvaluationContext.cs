@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 statementDiagnostics.Free();
 
                 // Prefer to parse expression statements (except deconstruction-declarations) as expressions.
+                // Once https://github.com/dotnet/roslyn/issues/15049 is fixed, we should parse d-declarations as expressions.
                 var isExpressionStatement = statementSyntax.IsKind(SyntaxKind.ExpressionStatement);
                 var isDeconstructionDeclaration = isExpressionStatement &&
                                                   IsDeconstructionDeclaration((ExpressionStatementSyntax)statementSyntax);

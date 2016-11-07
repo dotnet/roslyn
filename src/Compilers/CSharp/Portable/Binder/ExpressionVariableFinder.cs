@@ -445,6 +445,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             SingleVariableDesignationSyntax designation,
                                             AssignmentExpressionSyntax deconstruction)
         {
+            NamedTypeSymbol container = _scopeBinder.ContainingType;
+
+            if ((object)container != null && container.IsScriptClass &&
+                (object)_scopeBinder.LookupDeclaredField(designation) != null)
+            {
+                // This is a field declaration
+                return null;
+            }
+
             return SourceLocalSymbol.MakeDeconstructionLocal(
                                       containingSymbol: _scopeBinder.ContainingMemberOrLambda,
                                       scopeBinder: _scopeBinder,

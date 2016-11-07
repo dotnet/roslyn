@@ -539,12 +539,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Changes after C# 6
 
         // tuples
-        TupleType = 8925,
-        TupleElement = 8926,
-        TupleExpression = 8927,
-        SingleVariableDesignation = 8930,
-        ParenthesizedVariableDesignation = 8931,
-        ForEachVariableStatement = 8934,
+        TupleType = 8924,
+        TupleElement = 8925,
+        TupleExpression = 8926,
+        SingleVariableDesignation = 8927,
+        ParenthesizedVariableDesignation = 8928,
+        ForEachVariableStatement = 8929,
 
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,

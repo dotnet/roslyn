@@ -2110,7 +2110,10 @@
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Variable" Type="ExpressionSyntax"/>
+    <Field Name="Variable" Type="ExpressionSyntax">
+      <Kind Name="DeclarationExpression"/>
+      <Kind Name="TupleExpression"/>
+    </Field>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
     </Field>

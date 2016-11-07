@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
+        /// <summary>
+        /// Only handles assignment-only or declaration-only deconstructions at this point.
+        /// Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions
+        /// </summary>
         private BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var left = node.Left;
@@ -26,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstructionDeclaration(node, left, right, diagnostics);
             }
 
-            // We only parse assignment-only or declaration-only deconstructions at this point
             AssertDeconstructionIsAssignment(left);
 
             var tuple = (TupleExpressionSyntax)left;

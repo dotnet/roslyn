@@ -157,17 +157,17 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.CasePatternSwitchLabel = 9009 -> Micros
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConstantPattern = 9002 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationExpression = 9040 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DeclarationPattern = 9000 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ForEachVariableStatement = 8934 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ForEachVariableStatement = 8929 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.IsPatternExpression = 8657 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LocalFunctionStatement = 8830 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ParenthesizedVariableDesignation = 8931 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ParenthesizedVariableDesignation = 8928 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RefExpression = 9050 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RefType = 9051 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleVariableDesignation = 8930 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleVariableDesignation = 8927 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ThrowExpression = 9052 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleElement = 8926 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleExpression = 8927 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleType = 8925 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleElement = 8925 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleExpression = 8926 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.TupleType = 8924 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WhenClause = 9013 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken

@@ -206,7 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        private static bool IsDeconstructionDeclaration(this ExpressionSyntax self)
+        /// <summary>
+        /// Is this expression composed only of declaration expressions nested in tuple expressions?
+        /// </summary>
+        private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
         {
             switch (self.Kind())
             {
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.TupleExpression:
                     var tuple = (TupleExpressionSyntax)self;
-                    return tuple.Arguments.All(a => IsDeconstructionDeclaration(a.Expression));
+                    return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
                 default:
                     return false;
             }
@@ -222,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
         {
-            return self.Left.IsDeconstructionDeclaration(); 
+            return self.Left.IsDeconstructionDeclarationLeft();
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)

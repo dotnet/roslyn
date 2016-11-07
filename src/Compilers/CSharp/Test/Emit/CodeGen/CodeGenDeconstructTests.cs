@@ -1164,6 +1164,40 @@ class C
         }
 
         [Fact]
+        public void MixedDeconstructionCannotBeParsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x;
+        (x, int y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,10): error CS1031: Type expected
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(7, 10),
+                // (7,10): error CS0128: A local variable or function named 'x' is already defined in this scope
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(7, 10),
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void DeconstructionWithTupleNamesCannotBeParsed()
         {
             string source = @"

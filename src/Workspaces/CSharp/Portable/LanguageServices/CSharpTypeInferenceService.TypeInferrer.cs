@@ -879,8 +879,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operatorToken.Kind() == SyntaxKind.EqualsToken &&
                     (left.Kind() == SyntaxKind.TupleExpression || left.Kind() == SyntaxKind.DeclarationExpression))
                 {
-                    // TODO REVIEW Once GetTypeInfo works on the left-hand-side expression in a deconstruction declaration,
-                    // this may not be needed
                     return InferTypeInVariableComponentAssignment(left);
                 }
 
