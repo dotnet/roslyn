@@ -304,7 +304,9 @@ namespace BuildBoss
         private bool CheckTestDeploymentProjects(TextWriter textWriter)
         {
             var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
-            if (fileName != "DeployCoreClrTestRuntime" && fileName != "DeployDesktopTestRuntime")
+            var isDesktop = fileName == "DeployDesktopTestRuntime";
+            var isCoreClr = fileName == "DeployCoreClrTestRuntime";
+            if (!isDesktop && !isCoreClr)
             {
                 return true;
             }
@@ -321,7 +323,27 @@ namespace BuildBoss
             foreach (var projectData in _solutionMap.Values)
             {
                 var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
-                if (rosData?.DeclaredKind == RoslynProjectKind.UnitTestPortable && !set.Contains(projectData.Key))
+                if (rosData == null)
+                {
+                    continue;
+                }
+
+                var kind = rosData.Value.DeclaredKind;
+                bool include;
+                switch (kind)
+                {
+                    case RoslynProjectKind.UnitTestPortable:
+                        include = true;
+                        break;
+                    case RoslynProjectKind.UnitTestDesktop:
+                        include = isDesktop;
+                        break;
+                    default:
+                        include = false;
+                        break;
+                }
+
+                if (include && !set.Contains(projectData.Key))
                 {
                     textWriter.WriteLine($"Portable unit test {projectData.FileName} must be referenced");
                     allGood = false;

@@ -13,7 +13,7 @@
         <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' or '$(RoslynProjectType)' == 'UnitTestDesktop'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <_CopyProjectReferences>false</_CopyProjectReferences>

@@ -13,7 +13,7 @@ namespace BuildBoss
         Exe,
         ExeCoreClr,
         UnitTest,
-        UnitTestNext,
+        UnitTestDesktop,
         UnitTestPortable,
         CompilerGeneratorTool,
         DeploymentCompilerGeneratorTools,
@@ -38,6 +38,8 @@ namespace BuildBoss
                     return RoslynProjectKind.Exe;
                 case "UnitTestPortable":
                     return RoslynProjectKind.UnitTestPortable;
+                case "UnitTestDesktop":
+                    return RoslynProjectKind.UnitTestDesktop;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
                 case "CompilerGeneratorTool":
@@ -63,6 +65,7 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
+                kind == RoslynProjectKind.UnitTestDesktop ||
                 kind == RoslynProjectKind.UnitTestPortable;
         }
 
