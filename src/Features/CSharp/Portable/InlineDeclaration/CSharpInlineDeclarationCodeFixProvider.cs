@@ -85,9 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
             var outArgumentContainingStatementLocation = diagnostic.AdditionalLocations[3];
 
+            var root = declaratorLocation.SourceTree.GetRoot(cancellationToken);
+
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
             var identifier = (IdentifierNameSyntax)identifierLocation.FindNode(cancellationToken);
-            var invocationOrCreation = (ExpressionSyntax)invocationOrCreationLocation.FindNode(cancellationToken);
+            var invocationOrCreation = (ExpressionSyntax)invocationOrCreationLocation.FindNode(
+                getInnermostNodeForTie: true, cancellationToken: cancellationToken);
             var outArgumentContainingStatement = (StatementSyntax)outArgumentContainingStatementLocation.FindNode(cancellationToken);
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
