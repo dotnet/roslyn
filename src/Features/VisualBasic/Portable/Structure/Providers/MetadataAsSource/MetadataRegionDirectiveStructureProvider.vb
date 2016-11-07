@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
                 spans.AddIfNotNull(CreateRegion(
                     TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     GetBannerText(regionDirective),
-                    autoCollapse:=True,
-                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
+                    autoCollapse:=True, type:=BlockTypes.PreprocessorRegion,
+                    isCollapsible:=True, isDefaultCollapsed:=False))
             End If
         End Sub
 

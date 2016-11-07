@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
                 type:=BlockTypes.Comment,
-                isCollapsible:=True)
+                isCollapsible:=True, isDefaultCollapsed:=False)
         End Function
 
         ' For testing purposes
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean,
-                Optional isDefaultCollapsed As Boolean = False) As BlockSpan?
+                isDefaultCollapsed As Boolean) As BlockSpan?
             Return New BlockSpan(
                 textSpan:=span,
                 bannerText:=bannerText,
@@ -98,7 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean) As BlockSpan?
-            Return CreateRegion(blockNode.Span, bannerText, autoCollapse, type, isCollapsible)
+            Return CreateRegion(blockNode.Span, bannerText, autoCollapse,
+                                type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
         Friend Function CreateRegionFromBlock(
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 isCollapsible As Boolean) As BlockSpan?
             Return CreateRegion(
                 blockNode.Span, GetNodeBannerText(bannerNode),
-                autoCollapse, type, isCollapsible)
+                autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
         Friend Function CreateRegion(syntaxList As IEnumerable(Of SyntaxNode),
@@ -125,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim endPos = syntaxList.Last().Span.End
             Return CreateRegion(
                 TextSpan.FromBounds(startPos, endPos), bannerText,
-                autoCollapse, type, isCollapsible)
+                autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function
     End Module
 End Namespace

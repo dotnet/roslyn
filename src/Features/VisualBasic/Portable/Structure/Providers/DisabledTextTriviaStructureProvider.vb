@@ -20,7 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 spans.AddIfNotNull(CreateRegion(
                     span:=TextSpan.FromBounds(startPos, endPos),
                     bannerText:=Ellipsis, autoCollapse:=True,
-                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
+                    type:=BlockTypes.PreprocessorRegion,
+                    isCollapsible:=True, isDefaultCollapsed:=False))
             End If
         End Sub
     End Class
