@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    public struct OutputRedirect : IDisposable
+    public sealed class OutputRedirect : IDisposable
     {
         private readonly TextWriter _oldOut;
         private readonly StringWriter _newOut;
