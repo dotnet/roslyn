@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
                     return _expressionToInline
                         .Parenthesize()
-                        .WithLeadingTrivia(node.GetLeadingTrivia())
-                        .WithTrailingTrivia(node.GetTrailingTrivia())
+                        .WithTriviaFrom(node)
                         .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
                 }
 
