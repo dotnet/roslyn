@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// threshold to start to use esent (50MB)
         /// </summary>
-        private const int SolutionSizeThreshold = 50 * 1024 * 1024;
+        internal const int SolutionSizeThreshold = 50 * 1024 * 1024;
 
         internal static readonly IPersistentStorage NoOpPersistentStorageInstance = new NoOpPersistentStorage();
 
         private readonly IOptionService _optionService;
-        private readonly SolutionSizeTracker _solutionSizeTracker;
+        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         private readonly object _lookupAccessLock;
         private readonly Dictionary<string, AbstractPersistentStorage> _lookup;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public PersistentStorageService(
             IOptionService optionService,
-            SolutionSizeTracker solutionSizeTracker)
+            ISolutionSizeTracker solutionSizeTracker)
         {
             _optionService = optionService;
             _solutionSizeTracker = solutionSizeTracker;

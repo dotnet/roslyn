@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
     /// </summary>
     [Export]
     [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
-    internal class SolutionSizeTracker : IIncrementalAnalyzerProvider
+    internal class SolutionSizeTracker : ISolutionSizeTracker, IIncrementalAnalyzerProvider
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 

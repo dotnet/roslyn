@@ -74,6 +74,7 @@
     <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
+    <Compile Include="Storage\RemotePersistenceStorageServiceFactory.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
