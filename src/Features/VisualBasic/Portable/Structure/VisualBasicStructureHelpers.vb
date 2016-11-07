@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Private Function CreateCommentsRegion(startComment As SyntaxTrivia,
                                               endComment As SyntaxTrivia) As BlockSpan?
-            Return CreateRegion(
+            Return CreateBlockSpan(
                 TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End),
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             CollectCommentsRegions(triviaList, spans)
         End Sub
 
-        Friend Function CreateRegion(
+        Friend Function CreateBlockSpan(
                 span As TextSpan,
                 bannerText As String,
                 autoCollapse As Boolean,
@@ -92,28 +92,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 isCollapsible:=isCollapsible)
         End Function
 
-        Friend Function CreateRegionFromBlock(
+        Friend Function CreateBlockSpanFromBlock(
                 blockNode As SyntaxNode,
                 bannerText As String,
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean) As BlockSpan?
-            Return CreateRegion(blockNode.Span, bannerText, autoCollapse,
+            Return CreateBlockSpan(blockNode.Span, bannerText, autoCollapse,
                                 type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
-        Friend Function CreateRegionFromBlock(
+        Friend Function CreateBlockSpanFromBlock(
                 blockNode As SyntaxNode,
                 bannerNode As SyntaxNode,
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean) As BlockSpan?
-            Return CreateRegion(
+            Return CreateBlockSpan(
                 blockNode.Span, GetNodeBannerText(bannerNode),
                 autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
-        Friend Function CreateRegion(syntaxList As IEnumerable(Of SyntaxNode),
+        Friend Function CreateBlockSpan(syntaxList As IEnumerable(Of SyntaxNode),
                                      bannerText As String,
                                      autoCollapse As Boolean,
                                      type As String,
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim startPos = syntaxList.First().SpanStart
             Dim endPos = syntaxList.Last().Span.End
-            Return CreateRegion(
+            Return CreateBlockSpan(
                 TextSpan.FromBounds(startPos, endPos), bannerText,
                 autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function

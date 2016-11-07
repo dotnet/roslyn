@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(namespaceDeclaration.Parent, NamespaceBlockSyntax)
             If Not block?.EndNamespaceStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     block, bannerNode:=namespaceDeclaration, autoCollapse:=False,
                     type:=BlockTypes.Namespace, isCollapsible:=True))
 

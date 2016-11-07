@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
                                                   cancellationToken As CancellationToken)
             Dim match = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
             If match IsNot Nothing Then
-                spans.AddIfNotNull(CreateRegion(
+                spans.AddIfNotNull(CreateBlockSpan(
                     TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     GetBannerText(regionDirective),
                     autoCollapse:=True, type:=BlockTypes.PreprocessorRegion,

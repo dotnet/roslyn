@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim startPos = nodeSpan.Start
                 Dim endPos = startPos + trivia.ToString().TrimEnd().Length
 
-                spans.AddIfNotNull(CreateRegion(
+                spans.AddIfNotNull(CreateBlockSpan(
                     span:=TextSpan.FromBounds(startPos, endPos),
                     bannerText:=Ellipsis, autoCollapse:=True,
                     type:=BlockTypes.PreprocessorRegion,

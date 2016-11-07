@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(compilationUnit, spans)
-            spans.AddIfNotNull(CreateRegion(
+            spans.AddIfNotNull(CreateBlockSpan(
                 compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis,
                 autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True))
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
