@@ -39,6 +39,8 @@ folder InstallDir:\MSBuild\15.0\Bin
 
     file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.Process.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all
@@ -91,6 +93,8 @@ folder InstallDir:\MSBuild\15.0\Bin\amd64
 
     file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.Process.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all
