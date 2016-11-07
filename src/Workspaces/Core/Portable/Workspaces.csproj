@@ -367,6 +367,7 @@
     <Compile Include="PatternMatching\PatternMatcher.TextChunk.cs" />
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
+    <Compile Include="Serialization\DefaultAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
@@ -544,7 +545,6 @@
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
-    <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
     <Compile Include="Shared\Extensions\AccessibilityUtilities.cs" />
     <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
@@ -1087,7 +1087,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json">
-      <SubType></SubType>
+      <SubType>
+      </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />
