@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
+using System;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -236,8 +238,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                SyntaxNode left, right;
-                _syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out right);
+                _syntaxFacts.GetPartsOfAssignmentStatement(
+                    statement, out var left, out var right);
 
                 var rightExpression = right as TExpressionSyntax;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
@@ -248,6 +250,27 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
                 if (!ValuePatternMatches(expression))
+                {
+                    break;
+                }
+
+                // Don't offer this fix if the value we're initializing is itself referenced
+                // on the RHS of the assignment.  For example:
+                //
+                //      var v = new X();
+                //      v.Prop = v.Prop.WithSomething();
+                //
+                // Or with
+                //
+                //      v = new X();
+                //      v.Prop = v.Prop.WithSomething();
+                //
+                // In the first case, 'v' is being initialized, and so will not be available 
+                // in the object initializer we create.
+                // 
+                // In the second case we'd change semantics because we'd access the old value 
+                // before the new value got written.
+                if (ExpressionContainsValuePattern(rightExpression))
                 {
                     break;
                 }
@@ -269,6 +292,22 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             return matches.ToImmutableAndFree();
+        }
+
+        private bool ExpressionContainsValuePattern(TExpressionSyntax expression)
+        {
+            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
+            {
+                if (!_syntaxFacts.IsNameOfMemberAccessExpression(subExpression))
+                {
+                    if (ValuePatternMatches(subExpression))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool ValuePatternMatches(TExpressionSyntax expression)
@@ -294,8 +333,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return false;
             }
 
-            SyntaxNode left, right;
-            _syntaxFacts.GetPartsOfAssignmentStatement(_containingStatement, out left, out right);
+            _syntaxFacts.GetPartsOfAssignmentStatement(
+                _containingStatement, out var left, out var right);
             if (right != _objectCreationExpression)
             {
                 return false;
