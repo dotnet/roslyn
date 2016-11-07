@@ -239,6 +239,63 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnForEachVarWithAnonymousType()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5).Select(i => new { Value = i });
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task OnForEachVarWithExplicitType()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach (int value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnAnonymousType()
         {
             await TestMissingAsync(

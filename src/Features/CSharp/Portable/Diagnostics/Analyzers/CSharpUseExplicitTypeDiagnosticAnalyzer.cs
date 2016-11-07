@@ -64,12 +64,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
+            var isForeachDecl = typeName.Parent.IsKind(SyntaxKind.ForEachStatement);
+
             if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
                 var variable = ((VariableDeclarationSyntax)typeName.Parent).Variables.First();
-                if (!AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (!AssignmentSupportsStylePreference(
+                        variable.Identifier, typeName, variable.Initializer.Value,
+                        semanticModel, optionSet, cancellationToken))
+                {
+                    return false;
+                }
+            }
+            else if (typeName.Parent.IsKind(SyntaxKind.ForEachStatement))
+            {
+                var foreachStatement = (ForEachStatementSyntax)typeName.Parent;
+                if (!AssignmentSupportsStylePreference(
+                        foreachStatement.Identifier, typeName, foreachStatement.Expression, 
+                        semanticModel, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -86,7 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         /// false, if explicit typing cannot be used.
         /// true, otherwise.
         /// </returns>
-        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool AssignmentSupportsStylePreference(
+            SyntaxToken identifier,
+            TypeSyntax typeName,
+            ExpressionSyntax initializer,
+            SemanticModel semanticModel,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
         {
             // is or contains an anonymous type
             // cases :
@@ -99,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // cannot find type if initializer resolves to an ErrorTypeSymbol
-            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
+            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
         }
     }
