@@ -67,12 +67,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch.Patching
             {
                 DeltaInput ds = new DeltaInput(pSourceBuf, sourceBytes.Length, true);
                 DeltaInput dp = new DeltaInput(pPatchBuf, patchBytes.Length, true);
-                DeltaOutput output;
-
                 if (!ApplyDeltaB(DeltaApplyFlag.None,
                                   ds,
                                   dp,
-                                  out output))
+                                  out var output))
                 {
                     throw new Win32Exception();
                 }

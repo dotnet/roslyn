@@ -305,8 +305,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                int result;
-                int.TryParse(value, out result);
+                int.TryParse(value, out var result);
                 return result;
             }
         }
@@ -329,8 +328,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                ulong result;
-                ulong.TryParse(value, out result);
+                ulong.TryParse(value, out var result);
                 return result;
             }
         }
@@ -356,8 +354,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                TEnum result;
-                if (Enum.TryParse<TEnum>(value, out result))
+                if (Enum.TryParse<TEnum>(value, out var result))
                 {
                     return result;
                 }
