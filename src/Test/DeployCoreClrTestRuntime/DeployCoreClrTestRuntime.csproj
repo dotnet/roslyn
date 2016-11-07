@@ -65,10 +65,6 @@
       <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
       <Name>Scripting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharpTest\CSharpScriptingTest.csproj">
-      <Project>{2dae4406-7a89-4b5f-95c3-bc5422ce47ce}</Project>
-      <Name>CSharpScriptingTest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
       <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
       <Name>CSharpScripting</Name>
