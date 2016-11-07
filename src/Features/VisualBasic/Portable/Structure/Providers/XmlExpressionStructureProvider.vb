@@ -24,9 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim lineText = line.ToString().Substring(span.Start - line.Start)
             Dim bannerText = lineText & SpaceEllipsis
 
-            spans.AddIfNotNull(CreateRegion(
-                span, bannerText, autoCollapse:=False,
-                type:=BlockTypes.Expression, isCollapsible:=True))
+            spans.AddIfNotNull(CreateBlockSpan(
+                span, span, bannerText, autoCollapse:=False,
+                type:=BlockTypes.Expression,
+                isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub
     End Class
 End Namespace

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(eventDeclaration.Parent, EventBlockSyntax)
             If Not block?.EndEventStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     block, bannerNode:=eventDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Member, isCollapsible:=True))
 

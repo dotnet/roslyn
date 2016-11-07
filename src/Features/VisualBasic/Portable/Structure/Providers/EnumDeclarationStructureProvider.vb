@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
             If Not block?.EndEnumStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     block, bannerNode:=enumDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Type, isCollapsible:=True))
 

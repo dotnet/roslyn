@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(propertyDeclaration.Parent, PropertyBlockSyntax)
             If Not block?.EndPropertyStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     block, bannerNode:=propertyDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Member, isCollapsible:=True))
 

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             var nestedIfDirectiveTrivia = 0;
-            for (int i = indexInParent; i < parentTriviaList.Count; i++)
+            for (var i = indexInParent; i < parentTriviaList.Count; i++)
             {
                 if (parentTriviaList[i].IsKind(SyntaxKind.IfDirectiveTrivia))
                 {
