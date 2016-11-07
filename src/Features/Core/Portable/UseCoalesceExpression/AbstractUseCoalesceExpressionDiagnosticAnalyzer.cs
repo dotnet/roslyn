@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptor(this.DescriptorId, option.Notification.Value),
+                this.CreateDescriptor(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

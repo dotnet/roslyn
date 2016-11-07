@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var severity = option.Notification.Value;
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(DescriptorId, severity),
+                CreateDescriptor(severity),
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
