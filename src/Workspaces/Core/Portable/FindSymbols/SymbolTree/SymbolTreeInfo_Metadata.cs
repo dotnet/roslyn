@@ -54,6 +54,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
+        {
+            try
+            {
+                return reference.GetMetadataId();
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            {
+                return null;
+            }
+        }
+
         private static Metadata GetMetadataNoThrow(PortableExecutableReference reference)
         {
             try
@@ -77,8 +89,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             CancellationToken cancellationToken)
         {
-            var metadata = GetMetadataNoThrow(reference);
-            if (metadata == null)
+            var metadataId = GetMetadataIdNoThrow(reference);
+            if (metadataId == null)
             {
                 return SpecializedTasks.Default<SymbolTreeInfo>();
             }
@@ -87,10 +99,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // allocations around acquiring the task for it.  Note: once ValueTask is available
             // (and enabled in the language), we'd likely want to use it here. (Presuming 
             // the lock is not being held most of the time).
-            Task<SymbolTreeInfo> infoTask;
-            if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
+            if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
             {
                 return infoTask;
+            }
+
+            var metadata = GetMetadataNoThrow(reference);
+            if (metadata == null)
+            {
+                return SpecializedTasks.Default<SymbolTreeInfo>();
             }
 
             return TryGetInfoForMetadataReferenceSlowAsync(
@@ -107,9 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                Task<SymbolTreeInfo> infoTask;
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out infoTask))
+                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out var infoTask))
                 {
                     return await infoTask.ConfigureAwait(false);
                 }
@@ -693,11 +708,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public static MetadataDefinition Create(
                 MetadataReader reader, TypeDefinition definition)
             {
-                string typeName = GetMetadataNameWithoutBackticks(reader, definition.Name);
+                var typeName = GetMetadataNameWithoutBackticks(reader, definition.Name);
 
-                return new MetadataDefinition(
-                    MetadataDefinitionKind.Type,
-                    typeName)
+                return new MetadataDefinition(MetadataDefinitionKind.Type,typeName)
                 {
                     Type = definition
                 };
