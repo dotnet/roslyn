@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -14,10 +15,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
             CollectCommentsRegions(compilationUnit, spans)
-            spans.AddIfNotNull(CreateBlockSpan(
-                compilationUnit.Imports, bannerText:="Imports" & SpaceEllipsis,
-                autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True))
-            CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
+
+            If Not compilationUnit.Imports.IsEmpty Then
+                Dim startPos = compilationUnit.Imports.First().SpanStart
+                Dim endPos = compilationUnit.Imports.Last().Span.End
+
+                Dim span = TextSpan.FromBounds(startPos, endPos)
+                spans.AddIfNotNull(CreateBlockSpan(
+                    span, span, bannerText:="Imports" & SpaceEllipsis,
+                    autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True,
+                    isDefaultCollapsed:=False))
+                CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
+            End If
         End Sub
 
         Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean

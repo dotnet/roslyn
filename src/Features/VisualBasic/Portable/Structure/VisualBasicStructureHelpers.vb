@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Module VisualBasicOutliningHelpers
@@ -20,12 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Private Function CreateCommentsRegion(startComment As SyntaxTrivia,
                                               endComment As SyntaxTrivia) As BlockSpan?
+            Dim span = TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End)
             Return CreateBlockSpan(
-                TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End),
+                span, span,
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
                 type:=BlockTypes.Comment,
-                isCollapsible:=True, isDefaultCollapsed:=False)
+                isCollapsible:=True,
+                isDefaultCollapsed:=False)
         End Function
 
         ' For testing purposes
@@ -78,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Friend Function CreateBlockSpan(
                 span As TextSpan,
+                hintSpan As TextSpan,
                 bannerText As String,
                 autoCollapse As Boolean,
                 type As String,
@@ -85,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 isDefaultCollapsed As Boolean) As BlockSpan?
             Return New BlockSpan(
                 textSpan:=span,
+                hintSpan:=hintSpan,
                 bannerText:=bannerText,
                 autoCollapse:=autoCollapse,
                 isDefaultCollapsed:=isDefaultCollapsed,
@@ -98,8 +103,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean) As BlockSpan?
-            Return CreateBlockSpan(blockNode.Span, bannerText, autoCollapse,
-                                type, isCollapsible, isDefaultCollapsed:=False)
+            Return CreateBlockSpan(
+                blockNode.Span, GetHintSpan(blockNode),
+                bannerText, autoCollapse,
+                type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
         Friend Function CreateBlockSpanFromBlock(
@@ -109,24 +116,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 type As String,
                 isCollapsible As Boolean) As BlockSpan?
             Return CreateBlockSpan(
-                blockNode.Span, GetNodeBannerText(bannerNode),
+                blockNode.Span, GetHintSpan(blockNode),
+                GetNodeBannerText(bannerNode),
                 autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
-        Friend Function CreateBlockSpan(syntaxList As IEnumerable(Of SyntaxNode),
-                                     bannerText As String,
-                                     autoCollapse As Boolean,
-                                     type As String,
-                                     isCollapsible As Boolean) As BlockSpan?
-            If syntaxList.IsEmpty() Then
-                Return Nothing
+        Private Function GetHintSpan(blockNode As SyntaxNode) As TextSpan
+            ' Don't include attributes in the hint-span for a block.  We don't want
+            ' the attributes to show up when users hover over indent guide lines.
+            Dim firstToken = blockNode.GetFirstToken()
+            If firstToken.Kind() = SyntaxKind.LessThanToken AndAlso
+               firstToken.Parent.IsKind(SyntaxKind.AttributeList) Then
+
+                Dim attributeOwner = firstToken.Parent.Parent
+                For Each child In attributeOwner.ChildNodesAndTokens
+                    If child.Kind() <> SyntaxKind.AttributeList Then
+                        Return TextSpan.FromBounds(child.SpanStart, child.Span.End)
+                    End If
+                Next
             End If
 
-            Dim startPos = syntaxList.First().SpanStart
-            Dim endPos = syntaxList.Last().Span.End
-            Return CreateBlockSpan(
-                TextSpan.FromBounds(startPos, endPos), bannerText,
-                autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
+            Return blockNode.Span
         End Function
     End Module
 End Namespace

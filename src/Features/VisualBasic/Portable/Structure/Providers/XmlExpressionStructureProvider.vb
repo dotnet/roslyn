@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim bannerText = lineText & SpaceEllipsis
 
             spans.AddIfNotNull(CreateBlockSpan(
-                span, bannerText, autoCollapse:=False,
+                span, span, bannerText, autoCollapse:=False,
                 type:=BlockTypes.Expression,
                 isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub
