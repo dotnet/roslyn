@@ -105,9 +105,6 @@
     <HighEntropyVA>true</HighEntropyVA>
     <Deterministic>True</Deterministic>
 
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
-    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
     <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
@@ -309,6 +306,7 @@
       <_TempNoneForReordering Include="@(None)" />
       <None Remove="@(None)" />
       <None Include="$(IntermediateOutputPath)\source.extension.vsixmanifest;@(_TempNoneForReordering)" />
+
     </ItemGroup>
   </Target>
 
@@ -357,6 +355,8 @@
 
   <PropertyGroup>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
   <Target Name="PostCompileBinaryModification"
