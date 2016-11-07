@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
         protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
-        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
-        protected static ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
-            initializer.Value is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer.Value).Expression.WalkDownParentheses()
-                : initializer.Value.WalkDownParentheses();
+        protected static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) =>
+            initializer is CheckedExpressionSyntax
+                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
+                : initializer.WalkDownParentheses();
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
