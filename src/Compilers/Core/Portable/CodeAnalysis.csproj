@@ -42,11 +42,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Compile Include="Serialization\FixedObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectData.cs" />
-    <Compile Include="Serialization\StreamObjectReader.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.cs" />
-    <Compile Include="Serialization\TypeKey.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
@@ -552,12 +547,18 @@
     <Compile Include="ReferenceManager\UnifiedAssembly.cs" />
     <Compile Include="ResourceDescription.cs" />
     <Compile Include="ResourceException.cs" />
-    <Compile Include="Serialization\RecordingObjectBinder.cs" />
+    <Compile Include="Serialization\ConcurrentRecordingObjectBinder.cs" />
+    <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
+    <Compile Include="Serialization\ObjectReaderData.cs" />
+    <Compile Include="Serialization\ObjectReaderWriterBase.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
+    <Compile Include="Serialization\ObjectWriterData.cs" />
+    <Compile Include="Serialization\RecordingObjectBinder.cs" />
+    <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
     <Compile Include="SpecialMember.cs" />

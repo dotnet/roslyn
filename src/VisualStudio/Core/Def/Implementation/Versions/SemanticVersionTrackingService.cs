@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
                 try
                 {
-                    using (var reader = new StreamObjectReader(stream))
+                    using (var reader = new ObjectReader(stream))
                     {
                         var formatVersion = reader.ReadInt32();
                         if (formatVersion != SerializationFormat)
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
             IPersistentStorage storage, string keyName, VersionStamp projectVersion, VersionStamp semanticVersion, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 writer.WriteInt32(SerializationFormat);
                 projectVersion.WriteTo(writer);
