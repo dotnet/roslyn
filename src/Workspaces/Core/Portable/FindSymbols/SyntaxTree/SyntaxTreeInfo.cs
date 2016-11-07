@@ -109,8 +109,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetInfoAsync(document, s_identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
         }
 
-        private static Func<Document, CancellationToken, Task<SyntaxTreeDeclarationInfo>> s_loadAsync = SyntaxTreeDeclarationInfo.LoadAsync;
-        private static Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, SyntaxTreeDeclarationInfo> s_getThirdItem = tuple => tuple.Item3;
+        private static Func<Document, CancellationToken, Task<SyntaxTreeDeclarationInfo>> s_loadAsync 
+            = SyntaxTreeDeclarationInfo.LoadAsync;
+        private static Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, SyntaxTreeDeclarationInfo> s_getThirdItem 
+            = tuple => tuple.Item3;
 
         public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(
             Document document, CancellationToken cancellationToken)
