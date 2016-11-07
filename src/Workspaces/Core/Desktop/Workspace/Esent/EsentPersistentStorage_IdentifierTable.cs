@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return VersionStamp.Default;
             }
 
-            int identifierId;
-            if (!TryGetIdentifierSetVersionId(out identifierId))
+            if (!TryGetIdentifierSetVersionId(out var identifierId))
             {
                 return VersionStamp.Default;
             }
@@ -99,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return VersionStamp.Default;
             }
 
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return VersionStamp.Default;
             }
@@ -117,9 +115,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            int identifierId;
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return false;
             }
@@ -130,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            if (!TryGetUniqueIdentifierId(identifier, out identifierId))
+            if (!TryGetUniqueIdentifierId(identifier, out var identifierId))
             {
                 return false;
             }
@@ -180,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return false;
             }
@@ -290,8 +285,7 @@ namespace Microsoft.CodeAnalysis.Esent
         private bool TrySaveIdentifierSetVersion(
             EsentStorage.IdentifierLocationTableAccessor accessor, EsentStorage.Key key, VersionStamp version)
         {
-            int identifierId;
-            if (!TryGetIdentifierSetVersionId(out identifierId))
+            if (!TryGetIdentifierSetVersionId(out var identifierId))
             {
                 return false;
             }

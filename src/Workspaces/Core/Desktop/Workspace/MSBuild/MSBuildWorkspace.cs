@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
-                    IProjectFileLoader loader;
-                    if (_loader.TryGetLoaderFromProjectPath(projectPath, out loader))
+                    if (_loader.TryGetLoaderFromProjectPath(projectPath, out var loader))
                     {
                         try
                         {
@@ -343,9 +342,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             System.Diagnostics.Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-
-            IProjectFileLoader loader;
-            if (_loader.TryGetLoaderFromProjectPath(project.FilePath, out loader))
+            if (_loader.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);

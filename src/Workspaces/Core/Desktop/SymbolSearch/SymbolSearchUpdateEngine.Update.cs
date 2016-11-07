@@ -410,9 +410,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<TimeSpan?> TryProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
             {
-                bool upToDate, tooOld;
-                byte[] patchBytes;
-                ParsePatchElement(patchElement, out upToDate, out tooOld, out patchBytes);
+                ParsePatchElement(patchElement, out var upToDate, out var tooOld, out var patchBytes);
 
                 if (upToDate)
                 {
