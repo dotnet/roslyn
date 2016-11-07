@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using Roslyn.Test.Performance.Utilities;
+using System.Collections.Generic;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
@@ -18,13 +19,13 @@ namespace Roslyn.Test.Performance.Utilities
             else
             {
                 Log($"WARNING: Could not find CPC at {cpcFullPath} (no traces will be collected)");
-                return new NoOpTraceManager();
+                return new WallClockTraceManager();
             }
         }
 
         public static ITraceManager NoOpTraceManager()
         {
-            return new NoOpTraceManager();
+            return new WallClockTraceManager();
         }
     }
 
@@ -119,9 +120,20 @@ namespace Roslyn.Test.Performance.Utilities
         }
     }
 
-    public class NoOpTraceManager : ITraceManager
+    struct WallClockRecord
     {
-        public NoOpTraceManager()
+        public string name;
+        public int duration;
+    }
+
+    public class WallClockTraceManager : ITraceManager
+    {
+        private List<WallClockRecord> records = new List<WallClockRecord>();
+
+        private string currentName;
+        private int currentStartTime;
+
+        public WallClockTraceManager()
         {
         }
 
@@ -133,6 +145,31 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void Cleanup()
         {
+            string curName = null;
+            var totalDuration = 0;
+            var numRuns = 0;
+            foreach (var record in records) {
+                if (record.name == curName)
+                {
+                    totalDuration += record.duration;
+                    numRuns += 1;
+                }
+                else
+                {
+                    if (curName != null)
+                    {
+                        Log($"{curName}: {totalDuration / numRuns}");
+                    }
+                    curName = record.name;
+                    totalDuration = record.duration;
+                    numRuns = 1;
+                }
+            }
+
+            if (curName != null)
+            {
+                Log($"{curName}: {totalDuration / numRuns}");
+            }
         }
 
         public void EndEvent()
@@ -141,6 +178,10 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
+            records.Add(new WallClockRecord() {
+                name = currentName,
+                duration = System.Environment.TickCount - currentStartTime,
+            });
         }
 
         public void EndScenarios()
@@ -169,6 +210,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void StartScenario(string scenarioName, string processName)
         {
+            currentName = scenarioName;
+            currentStartTime = System.Environment.TickCount;
         }
 
         public void Stop()
