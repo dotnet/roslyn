@@ -152,21 +152,30 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private SignatureHelpItems CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts, 
             SyntaxNode targetExpression, SemanticModel semanticModel, IEnumerable<INamedTypeSymbol> tupleTypes, CancellationToken cancellationToken)
         {
-            var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
-            var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
-            var separatorParts = GetSeparatorParts();
+            var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "(")).ToTaggedText();
+            var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")")).ToTaggedText();
+            var separatorParts = GetSeparatorParts().ToTaggedText();
 
-            var items = tupleTypes.Select(t =>
-                new SignatureHelpItem(isVariadic: false,
+            var items = tupleTypes.Select(tupleType => Convert(
+                tupleType, prefixParts, suffixParts, separatorParts, semanticModel, position))
+                .ToList();
+
+            var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
+            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+        }
+
+        SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
+            ImmutableArray<TaggedText> separatorParts, SemanticModel semanticModel, int position)
+        {
+            return new SymbolKeySignatureHelpItem(
+                    symbol: tupleType,
+                    isVariadic: false,
                     documentationFactory: null,
                     prefixParts: prefixParts,
                     separatorParts: separatorParts,
                     suffixParts: suffixParts,
-                    parameters: ConvertTupleMembers(t, semanticModel, position),
-                    descriptionParts: null)).ToList();
-
-            var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
-            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+                    parameters: ConvertTupleMembers(tupleType, semanticModel, position),
+                    descriptionParts: null);
         }
 
         private IEnumerable<SignatureHelpParameter> ConvertTupleMembers(INamedTypeSymbol tupleType, SemanticModel semanticModel, int position)
