@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterCompilationStartAction(csac =>
             {
                 var analysisResults = new ConcurrentBag<AnalysisResult>();

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
         }
 

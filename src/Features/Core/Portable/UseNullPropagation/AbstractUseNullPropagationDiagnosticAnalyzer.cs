@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
         }
 

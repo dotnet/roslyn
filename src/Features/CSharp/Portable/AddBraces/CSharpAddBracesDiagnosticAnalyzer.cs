@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            var syntaxKindsOfInterest =
+        private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsOfInterest =
             ImmutableArray.Create(SyntaxKind.IfStatement,
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
@@ -41,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.UsingStatement,
                 SyntaxKind.LockStatement);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, syntaxKindsOfInterest);
+        public override void Initialize(AnalysisContext context)
+        {
+            context.EnableConcurrentExecution();
+            context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

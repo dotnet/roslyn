@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
         }
 
