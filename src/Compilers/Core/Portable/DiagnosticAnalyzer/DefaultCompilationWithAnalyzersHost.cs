@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -23,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/>
     /// out of the AnalyzerManager and into analyzer drivers.
     /// </remarks>
-    internal partial class AnalyzerManager
+    internal sealed partial class DefaultCompilationWithAnalyzersHost : CompilationWithAnalyzersHost
     {
         /// <summary>
         /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
         /// </summary>
-        public static readonly AnalyzerManager Instance = new AnalyzerManager();
+        public static readonly DefaultCompilationWithAnalyzersHost Instance = new DefaultCompilationWithAnalyzersHost();
 
         // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
         // These are run only once per every analyzer.
@@ -290,6 +288,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Clean up all states stored in this context
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            ImmutableArray<DiagnosticAnalyzer> analyzers;
+
+            lock (_sessionScopeMap)
+            {
+                analyzers = _sessionScopeMap.Keys.ToImmutableArray();
+            }
+
+            ClearAnalyzerState(analyzers);
+        }
+
+        /// <summary>
         /// This method should be invoked when the analyzer host is disposing off the analyzers.
         /// It unregisters the exception handler hooked up to the descriptors' LocalizableString fields and subsequently removes the cached descriptors for the analyzers.
         /// </summary>
@@ -350,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             lock (_compilationScopeMap)
             {
                 ClearCompilationScopeMap_NoLock(analyzers);
-            }            
+            }
         }
 
         private void ClearSessionScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)

@@ -42,6 +42,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\CompilationWithAnalyzersHost.cs" />
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
@@ -239,8 +240,8 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
+    <Compile Include="DiagnosticAnalyzer\DefaultCompilationWithAnalyzersHost.AnalyzerAndOptions.cs" />
+    <Compile Include="DiagnosticAnalyzer\DefaultCompilationWithAnalyzersHost.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationStartedEvent.cs" />

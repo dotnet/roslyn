@@ -54,41 +54,32 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
-            var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            using (var context = CompilationWithAnalyzersHost.Create())
+            {
+                var compilation = await _project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // TODO: can we support analyzerExceptionFilter in remote host? 
-            //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace),
-                    onAnalyzerException: OnAnalyzerException,
-                    analyzerExceptionFilter: null,
-                    concurrentAnalysis: true,
-                    logAnalyzerExecutionTime: logAnalyzerExecutionTime,
-                    reportSuppressedDiagnostics: reportSuppressedDiagnostics);
+                // TODO: can we support analyzerExceptionFilter in remote host? 
+                //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
+                var analyzerOptions = new CompilationWithAnalyzersOptions(
+                        options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution.Workspace),
+                        onAnalyzerException: OnAnalyzerException,
+                        analyzerExceptionFilter: null,
+                        concurrentAnalysis: true,
+                        logAnalyzerExecutionTime: logAnalyzerExecutionTime,
+                        reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
-            var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
+                var analyzerDriver = compilation.WithAnalyzers(analyzers, context, analyzerOptions);
 
-            // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
+                var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            // REVIEW: the design of current analyzer engine is that, information/states in CompilationWithAnalyzer (more specifically AnalyzerManager singleton)
-            //         will live forever until analyzer references (analyzers), which is given to CompilationWithAnalyzer, go away.
-            //         that is not suitable for OOP since OOP will create new workspace
-            //         for each analysis but share all resources including analyzer references.
-            //         until, we address this issue, OOP will clear state every time analysis is done.
-            //
-            //         * NOTE * this only works for now since we don't run analysis on multiple threads.
-            //
-            //         best way to fix this is doing this - https://github.com/dotnet/roslyn/issues/2830
-            //         host should control lifetime of all information related to analyzer reference explicitly
-            CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
+                var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
-
-            return DiagnosticAnalysisResultMap.Create(
-                builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+                return DiagnosticAnalysisResultMap.Create(
+                    builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+            }
         }
 
         private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

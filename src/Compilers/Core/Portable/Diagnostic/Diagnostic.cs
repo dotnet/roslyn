@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool IsNotConfigurable()
         {
-            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
+            return DefaultCompilationWithAnalyzersHost.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }

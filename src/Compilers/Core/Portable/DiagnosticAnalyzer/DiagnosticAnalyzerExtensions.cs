@@ -14,9 +14,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
             return new CompilationWithAnalyzers(compilation, analyzers, options, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with attached diagnostic analyzers.
+        /// </summary>
+        /// <param name="compilation">Compilation to which analyzers are to be added.</param>
+        /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
+        /// <param name="analyzerHost"><see cref="CompilationWithAnalyzersHost"/> analyzers will run under</param>
+        /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
+        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersHost analyzerHost = null, AnalyzerOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return new CompilationWithAnalyzers(compilation, analyzers, analyzerHost, options, cancellationToken);
         }
 
         /// <summary>
@@ -28,6 +41,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
         {
             return new CompilationWithAnalyzers(compilation, analyzers, analysisOptions);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with attached diagnostic analyzers.
+        /// </summary>
+        /// <param name="compilation">Compilation to which analyzers are to be added.</param>
+        /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
+        /// <param name="analyzerHost"><see cref="CompilationWithAnalyzersHost"/> analyzers will run under</param>
+        /// <param name="analysisOptions">Options to configure analyzer execution within <see cref="CompilationWithAnalyzers"/>.</param>
+        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersHost analyzerHost, CompilationWithAnalyzersOptions analysisOptions)
+        {
+            return new CompilationWithAnalyzers(compilation, analyzers, analyzerHost, analysisOptions);
         }
     }
 }
