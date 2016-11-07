@@ -189,8 +189,29 @@ class C
     {
         if (s == null)
         {
-            [|throw|] new ArgumentNullException(nameof(s)) };
+            [|throw|] new ArgumentNullException(nameof(s));
+        };
         s = ""something"";
+        _s = s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task NotWithIntermediaryMemberAccess()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(string s, string t)
+    {
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s));
+        };
+        s.ToString();
         _s = s;
     }
 }");
