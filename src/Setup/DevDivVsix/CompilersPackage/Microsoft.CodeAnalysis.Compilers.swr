@@ -4,8 +4,7 @@ package name=Microsoft.CodeAnalysis.Compilers
         version=$(Version)
 
 vs.dependencies
-  vs.dependency id=Microsoft.Net.4.6.1.FullRedist 
-  vs.dependency id=Microsoft.Net.4.6.1.FullRedist.Resources
+  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
 
 folder InstallDir:\MSBuild\15.0\Bin
     file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe vs.file.ngenArchitecture=all
