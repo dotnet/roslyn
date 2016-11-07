@@ -25,8 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     span, span, bannerText:="Imports" & SpaceEllipsis,
                     autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True,
                     isDefaultCollapsed:=False))
-                CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
             End If
+
+            CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
 
         Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean
