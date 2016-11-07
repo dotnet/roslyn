@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Serialization
 {
     [ExportWorkspaceService(typeof(IAssemblySerializationInfoService)), Shared]
-    internal class AssemblySerializationInfoService : IAssemblySerializationInfoService
+    internal class DefaultAssemblySerializationInfoService : IAssemblySerializationInfoService
     {
         public bool Serializable(Solution solution, string assemblyFilePath)
         {
