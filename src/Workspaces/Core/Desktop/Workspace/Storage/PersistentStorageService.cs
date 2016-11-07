@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
 
@@ -21,15 +18,9 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal partial class PersistentStorageService : IPersistentStorageService
     {
-        /// <summary>
-        /// threshold to start to use esent (50MB)
-        /// </summary>
-        internal const int SolutionSizeThreshold = 50 * 1024 * 1024;
-
         internal static readonly IPersistentStorage NoOpPersistentStorageInstance = new NoOpPersistentStorage();
 
         private readonly IOptionService _optionService;
-        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         private readonly object _lookupAccessLock;
         private readonly Dictionary<string, AbstractPersistentStorage> _lookup;
@@ -40,12 +31,9 @@ namespace Microsoft.CodeAnalysis.Storage
         private SolutionId _primarySolutionId;
         private AbstractPersistentStorage _primarySolutionStorage;
 
-        public PersistentStorageService(
-            IOptionService optionService,
-            ISolutionSizeTracker solutionSizeTracker)
+        public PersistentStorageService(IOptionService optionService)
         {
             _optionService = optionService;
-            _solutionSizeTracker = solutionSizeTracker;
 
             _lookupAccessLock = new object();
             _lookup = new Dictionary<string, AbstractPersistentStorage>();
@@ -56,13 +44,10 @@ namespace Microsoft.CodeAnalysis.Storage
             _primarySolutionStorage = null;
         }
 
-        public PersistentStorageService(IOptionService optionService, bool testing) : this(optionService)
+        public PersistentStorageService(IOptionService optionService, bool testing) 
+            : this(optionService)
         {
             _testing = true;
-        }
-
-        public PersistentStorageService(IOptionService optionService) : this(optionService, null)
-        {
         }
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -101,15 +86,8 @@ namespace Microsoft.CodeAnalysis.Storage
             lock (_lookupAccessLock)
             {
                 // see whether we have something we can use
-                AbstractPersistentStorage storage;
-                if (_lookup.TryGetValue(solution.FilePath, out storage))
+                if (_lookup.TryGetValue(solution.FilePath, out var storage))
                 {
-                    // previous attempt to create esent storage failed.
-                    if (storage == null && !SolutionSizeAboveThreshold(solution))
-                    {
-                        return NoOpPersistentStorageInstance;
-                    }
-
                     // everything seems right, use what we have
                     if (storage?.WorkingFolderPath == workingFolderPath)
                     {
@@ -121,13 +99,6 @@ namespace Microsoft.CodeAnalysis.Storage
                 // either this is the first time, or working folder path has changed.
                 // remove existing one
                 _lookup.Remove(solution.FilePath);
-
-                var dbFile = EsentPersistentStorage.GetDatabaseFile(workingFolderPath);
-                if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
-                {
-                    _lookup.Add(solution.FilePath, storage);
-                    return NoOpPersistentStorageInstance;
-                }
 
                 // try create new one
                 storage = TryCreateEsentStorage(workingFolderPath, solution.FilePath);
@@ -161,22 +132,6 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private bool SolutionSizeAboveThreshold(Solution solution)
-        {
-            if (_testing)
-            {
-                return true;
-            }
-
-            if (_solutionSizeTracker == null)
-            {
-                return false;
-            }
-
-            var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            return size > SolutionSizeThreshold;
-        }
-
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
         {
             if (_primarySolutionStorage != null || solution.Id != _primarySolutionId)
@@ -202,8 +157,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private AbstractPersistentStorage TryCreateEsentStorage(string workingFolderPath, string solutionPath)
         {
-            AbstractPersistentStorage esentStorage;
-            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out esentStorage))
+            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out var esentStorage))
             {
                 return esentStorage;
             }
