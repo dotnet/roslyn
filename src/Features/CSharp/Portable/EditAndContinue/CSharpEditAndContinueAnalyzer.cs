@@ -1608,13 +1608,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.deconstruction;
 
                 case SyntaxKind.SimpleAssignmentExpression:
-                    if (IsDeconstruction((AssignmentExpressionSyntax)node))
+                    if (((AssignmentExpressionSyntax)node).IsDeconstruction())
                     {
                         return CSharpFeaturesResources.deconstruction;
                     }
                     else
                     {
-                        goto default;
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
                     }
 
                 case SyntaxKind.TupleType:
@@ -3119,16 +3119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DeclarationPattern:
                     return true;
                 case SyntaxKind.SimpleAssignmentExpression:
-                    return IsDeconstruction((AssignmentExpressionSyntax)n);
+                    return ((AssignmentExpressionSyntax)n).IsDeconstruction();
                 default:
                     return false;
             }
-        }
-
-        private static bool IsDeconstruction(AssignmentExpressionSyntax assignment)
-        {
-            return assignment.Left.Kind() == SyntaxKind.TupleExpression ||
-                assignment.Left.Kind() == SyntaxKind.DeclarationExpression;
         }
 
         private void ReportRudeEditsForCheckedStatements(

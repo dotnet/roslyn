@@ -875,9 +875,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
                 }
 
-                // Infer type for deconstruction declaration
-                if (operatorToken.Kind() == SyntaxKind.EqualsToken &&
-                    (left.Kind() == SyntaxKind.TupleExpression || left.Kind() == SyntaxKind.DeclarationExpression))
+                // Infer type for deconstruction
+                if (binop.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                    ((AssignmentExpressionSyntax)binop).IsDeconstruction())
                 {
                     return InferTypeInVariableComponentAssignment(left);
                 }

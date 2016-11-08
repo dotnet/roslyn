@@ -135,7 +135,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                     case SyntaxKind.TupleExpression:
                         {
                             var t = (TupleExpressionSyntax)component;
-                            foreach (ArgumentSyntax a in t.Arguments) AddVariableExpressions(a.Expression, expressions);
+                            foreach (ArgumentSyntax a in t.Arguments)
+                            {
+                                AddVariableExpressions(a.Expression, expressions);
+                            }
+
                             break;
                         }
                     case SyntaxKind.DeclarationExpression:

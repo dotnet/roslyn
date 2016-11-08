@@ -236,7 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var decl = (DeclarationExpressionSyntax)current;
                     var name = decl.Designation as SingleVariableDesignationSyntax;
-                    if (name == null) break;
+                    if (name == null)
+                    {
+                        break;
+                    }
+
                     return name.Identifier.ValueText.ToCamelCase();
                 }
                 else
