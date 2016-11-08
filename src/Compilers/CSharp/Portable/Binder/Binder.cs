@@ -557,19 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ThreeState ReportDiagnosticsIfObsoleteInternal(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, Symbol containingMember, BinderFlags location)
         {
             Debug.Assert(diagnostics != null);
-
-            if (symbol.ObsoleteState == ThreeState.False)
-            {
-                return ThreeState.False;
-            }
-
-            var data = symbol.ObsoleteAttributeData;
-            if (data == null)
-            {
-                // Obsolete attribute has errors.
-                return ThreeState.False;
-            }
-
+            
             // If we haven't cracked attributes on the symbol at all or we haven't
             // cracked attribute arguments enough to be able to report diagnostics for
             // ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
@@ -580,33 +568,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ThreeState.Unknown;
             }
 
-            // After this point, always return True.
-
             var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(containingMember);
 
-            // If we are in a context that is already obsolete, there is no point reporting
-            // more obsolete diagnostics.
+            // If we are in a context that is already obsolete, there is no point reporting more obsolete diagnostics.
             if (inObsoleteContext == ThreeState.True)
             {
                 return ThreeState.True;
             }
-            // If the context is unknown, then store the symbol so that we can do this check at a
-            // later stage
+            // If the context is unknown, then store the symbol so that we can do this check at a later stage.
             else if (inObsoleteContext == ThreeState.Unknown)
             {
                 diagnostics.Add(new LazyObsoleteDiagnosticInfo(symbol, containingMember, location), node.GetLocation());
-                return ThreeState.True;
+                return ThreeState.Unknown;
             }
-
-            // We have all the information we need to report diagnostics right now. So do it.
-            var diagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
-            if (diagInfo != null)
+            // We are not in an obsolete context. We can report obsolete status (if any).
+            else
             {
-                diagnostics.Add(diagInfo, node.GetLocation());
+                var diagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, location);
+                if (diagInfo != null)
+                {
+                    diagnostics.Add(diagInfo, node.GetLocation());
+                }
+
+                if (symbol.ContainingType != null)
+                {
+                    var containingTypeDiagInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol.ContainingType, location);
+                    if (containingTypeDiagInfo != null)
+                    {
+                        diagnostics.Add(containingTypeDiagInfo, node.GetLocation());
+                    }
+                }
                 return ThreeState.True;
             }
-
-            return ThreeState.True;
         }
 
         internal static bool IsSymbolAccessibleConditional(
