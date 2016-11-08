@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableTitle = title;
             _localizableMessage = message ?? title;
 
-            var primaryDescriptor = CreateDescriptor(descriptorId, DiagnosticSeverity.Hidden);
+            var primaryDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
 
-            UnnecessaryWithSuggestionDescriptor = CreateDescriptor(
+            UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessage, 
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
 
-            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptor(
+            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId + "WithoutSuggestion",
                 _localizableTitle, _localizableMessage, 
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        protected DiagnosticDescriptor CreateDescriptor(DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
+        protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptor(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(DescriptorId, title, title, severity, customTags);
+        protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, title, title, severity, customTags);
 
-        private DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
+        private DiagnosticDescriptor CreateDescriptorWithId(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
                 id, title, message,
                 DiagnosticCategory.Style,

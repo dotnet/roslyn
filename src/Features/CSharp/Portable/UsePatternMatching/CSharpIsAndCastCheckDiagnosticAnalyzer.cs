@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(this.DescriptorId, severity),
+                CreateDescriptorWithSeverity(severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
         }
