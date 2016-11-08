@@ -8,19 +8,16 @@
         <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestFixed'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
         <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' or '$(RoslynProjectType)' == 'UnitTestDesktop'">
       <PropertyGroup>
-        <OutDir>$(OutDir)UnitTests\Current\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestNext'">
-      <PropertyGroup>
-        <OutDir>$(OutDir)UnitTests\Next\</OutDir>
+        <_CopyReferences>false</_CopyReferences>
+        <_CopyProjectReferences>false</_CopyProjectReferences>
+        <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
@@ -51,7 +48,14 @@
         <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'Custom'">
+    <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
+      <!-- Need to include PDB in deployment directory for debugging, and in some cases correctness when
+           stack traces are involved -->
+      <PropertyGroup>
+        <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(RoslynProjectType)' == 'Custom' or $(RoslynProjectType) == 'DeploymentTest'">
       <!-- Do nothing -->
     </When>
     <When Condition="'$(RoslynProjectType)' == '' and '$(OutputType)' == 'Library'">

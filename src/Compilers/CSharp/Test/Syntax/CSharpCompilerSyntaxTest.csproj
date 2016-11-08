@@ -16,7 +16,7 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
