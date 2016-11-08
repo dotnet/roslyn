@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
         /// </summary>
-        internal string ContainingDirectoryPathOpt
+        protected string ContainingDirectoryPathOpt
         {
             get
             {

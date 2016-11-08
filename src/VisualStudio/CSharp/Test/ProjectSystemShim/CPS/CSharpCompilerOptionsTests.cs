@@ -90,7 +90,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 // Change bin output folder to non-normalized path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
                 newBinPath = @"test.dll";
-                var expectedNewBinPath = Path.Combine(project.ContainingDirectoryPathOpt, newBinPath);
+                var expectedNewBinPath = Path.Combine(Path.GetTempPath(), newBinPath);
                 ((IWorkspaceProjectContext)project).BinOutputPath = newBinPath;
                 Assert.Equal(newObjPath, project.ObjOutputPath);
                 Assert.Equal(expectedNewBinPath, project.BinOutputPath);
