@@ -173,7 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression)
             {
                 var declaration = (DeclarationExpressionSyntax)node.Syntax;
-                if (((SingleVariableDesignationSyntax)declaration.Designation).Identifier == node.LocalSymbol.IdentifierToken &&
+                if (declaration.Designation.Kind() == SyntaxKind.SingleVariableDesignation &&
+                    ((SingleVariableDesignationSyntax)declaration.Designation).Identifier == node.LocalSymbol.IdentifierToken &&
+                    declaration.Parent != null &&
+                    declaration.Parent.Kind() == SyntaxKind.Argument &&
                     ((ArgumentSyntax)declaration.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
                 {
                     _variablesDeclared.Add(node.LocalSymbol);

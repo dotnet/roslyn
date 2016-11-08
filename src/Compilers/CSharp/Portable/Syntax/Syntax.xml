@@ -1131,7 +1131,7 @@
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DeclarationExpression"/>
-    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <PropertyComment>
         <summary>Declaration representing the variable declared in an out parameter or deconstruction.</summary>

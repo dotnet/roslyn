@@ -136,7 +136,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                         {
                             var t = (TupleExpressionSyntax)component;
                             foreach (ArgumentSyntax a in t.Arguments) AddVariableExpressions(a.Expression, expressions);
-                            // TODO REVIEW I think there was a bug there. Are we missing tests?
                             break;
                         }
                     case SyntaxKind.DeclarationExpression:

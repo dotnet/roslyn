@@ -11,7 +11,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-    using System.Linq;
 
     internal partial class LanguageParser : SyntaxParser
     {
@@ -7542,7 +7541,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.SimpleAssignmentExpression)
                     {
                         var assignment = (AssignmentExpressionSyntax)expression;
-                        if (assignment.Left.EnumerateNodes().Any(x => x.RawKind == (int)SyntaxKind.DeclarationExpression))
+                        if (IsDeconstructionDeclarationLeft(assignment.Left))
                         {
                             statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                         }
@@ -8665,6 +8664,28 @@ tryAgain:
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
+        /// </summary>
+        private static bool IsDeconstructionDeclarationLeft(ExpressionSyntax node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.TupleExpression:
+                    var arguments = ((TupleExpressionSyntax)node).Arguments;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
+                    }
+
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                default:
+                    return false;
             }
         }
 

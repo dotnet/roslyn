@@ -2455,6 +2455,24 @@ class C1
         }
 
         [Fact]
+        public void AssignmentExpressionCanBeUsedInEmbeddedStatement()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        int x, y;
+        if (true)
+            (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DeconstructObsoleteWarning()
         {
             var source = @"
