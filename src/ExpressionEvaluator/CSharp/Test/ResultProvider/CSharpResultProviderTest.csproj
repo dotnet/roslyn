@@ -104,5 +104,4 @@
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\CSharpResultProvider.projitems" Label="Shared" />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

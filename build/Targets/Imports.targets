@@ -10,6 +10,7 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
@@ -17,6 +18,7 @@
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <_CopyProjectReferences>false</_CopyProjectReferences>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
@@ -345,6 +347,8 @@
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
     <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
   </ImportGroup>
+
+  <Import Project="Roslyn.Toolset.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
   <!-- ====================================================================================
 
