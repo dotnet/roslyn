@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis
         protected virtual void WriteTo(ObjectWriter writer)
         {
             writer.WriteValue(_messageProvider);
-            writer.WriteInt32(_errorCode);
+            writer.WriteCompressedUInt((uint)_errorCode);
             writer.WriteInt32((int)_effectiveSeverity);
             writer.WriteInt32((int)_defaultSeverity);
 
             int count = _arguments?.Length ?? 0;
-            writer.WriteInt32(count);
+            writer.WriteCompressedUInt((uint)count);
 
             if (count > 0)
             {
@@ -170,11 +170,11 @@ namespace Microsoft.CodeAnalysis
         protected DiagnosticInfo(ObjectReader reader)
         {
             _messageProvider = (CommonMessageProvider)reader.ReadValue();
-            _errorCode = reader.ReadInt32();
+            _errorCode = (int)reader.ReadCompressedUInt();
             _effectiveSeverity = (DiagnosticSeverity)reader.ReadInt32();
             _defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
 
-            var count = reader.ReadInt32();
+            var count = (int)reader.ReadCompressedUInt();
             if (count == 0)
             {
                 _arguments = Array.Empty<object>();
