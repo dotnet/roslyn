@@ -22,18 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace)
-        {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
-
-            return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
-                     whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
-                     wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
-        }
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
