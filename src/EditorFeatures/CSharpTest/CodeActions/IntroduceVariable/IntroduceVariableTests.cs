@@ -2848,7 +2848,7 @@ class C
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestIntroduceVariableTextDoesntSpanLines()
+        public async Task TestIntroduceVariableTextDoesntSpanLines1()
         {
             await TestSmartTagTextAsync(
 @"class C
@@ -2863,6 +2863,25 @@ c""|];
 }",
 string.Format(FeaturesResources.Introduce_local_constant_for_0, @"@""a b c"""),
 index: 2);
+        }
+
+        [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceVariableTextDoesntSpanLines2()
+        {
+            await TestSmartTagTextAsync(
+@"class C
+{
+    void M()
+    {
+        var s = [|$@""a
+
+b
+c""|];
+    }
+}",
+string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""),
+index: 0);
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
