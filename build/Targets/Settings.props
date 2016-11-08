@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" InitialTargets="RestoreToolsetCheck" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
 
   <Import Project="Versions.props"/>
 
@@ -252,26 +252,4 @@
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
     <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
-
-  <Target Name="RestoreToolsetCheck"
-      Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
-             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-  </Target>
-
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
-  </Target>
-
-  <!-- 
-    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
-    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
-    by our test scripts
-  -->
-  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
-    <Copy
-        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
-        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
-        DestinationFolder="$(OutDir)" />
-  </Target>
 </Project>

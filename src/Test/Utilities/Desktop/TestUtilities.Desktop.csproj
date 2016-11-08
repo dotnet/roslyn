@@ -167,5 +167,4 @@
   </ItemGroup>
   <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

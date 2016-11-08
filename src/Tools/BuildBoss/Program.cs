@@ -11,18 +11,25 @@ namespace BuildBoss
 {
     internal static class Program
     {
-        internal static int Main(string[] solutionFilePaths)
+        internal static int Main(string[] args)
         {
-            if (solutionFilePaths.Length == 0)
+            if (args.Length == 0)
             { 
                 Usage();
                 return 1;
             }
 
             var allGood = true;
-            foreach (var solutionFilePath in solutionFilePaths)
+            foreach (var arg in args)
             {
-                allGood &= ProcessSolution(solutionFilePath);
+                if (SharedUtil.IsSolutionFile(arg))
+                {
+                    allGood &= ProcessSolution(arg);
+                }
+                else
+                {
+                    allGood &= ProcessTargets(arg);
+                }
             }
 
             return allGood ? 0 : 1;
@@ -76,6 +83,23 @@ namespace BuildBoss
             }
 
             return true;
+        }
+
+        private static bool ProcessTargets(string targets)
+        {
+            var checker = new TargetsCheckerUtil(targets);
+            var textWriter = new StringWriter();
+            if (checker.CheckAll(textWriter))
+            {
+                Console.WriteLine($"Processing {Path.GetFileName(targets)} passed");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Processing {Path.GetFileName(targets)} FAILED");
+                Console.WriteLine(textWriter.ToString());
+                return false;
+            }
         }
 
         private static void Usage()

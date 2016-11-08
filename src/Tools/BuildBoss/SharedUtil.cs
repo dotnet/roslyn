@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,5 +14,10 @@ namespace BuildBoss
         internal static Uri MSBuildNamespaceUri { get; } = new Uri(MSBuildNamespaceUriRaw);
         internal static XNamespace MSBuildNamespace { get; } = XNamespace.Get(MSBuildNamespaceUriRaw);
         internal static Encoding Encoding { get; } = Encoding.UTF8;
+
+        internal static bool IsSolutionFile(string path) => Path.GetExtension(path) == ".sln";
+        internal static bool IsPropsFile(string path) => Path.GetExtension(path) == ".props";
+        internal static bool IsTargetsFile(string path) => Path.GetExtension(path) == ".targets";
+        internal static bool IsXslt(string path) => Path.GetExtension(path) == ".xslt";
     }
 }

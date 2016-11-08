@@ -32,6 +32,7 @@
     <Compile Include="SharedUtil.cs" />
     <Compile Include="ProjectEntry.cs" />
     <Compile Include="SolutionUtil.cs" />
+    <Compile Include="TargetsCheckerUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

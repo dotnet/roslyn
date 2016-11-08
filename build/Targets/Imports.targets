@@ -10,6 +10,7 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
@@ -17,6 +18,7 @@
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <_CopyProjectReferences>false</_CopyProjectReferences>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
@@ -40,12 +42,6 @@
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <OutDir>$(OutDir)Vsix\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'Dependency'">
-      <!-- Thinking through these -->
-      <PropertyGroup>
-        <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
@@ -346,6 +342,8 @@
     <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
   </ImportGroup>
 
+  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
+
   <!-- ====================================================================================
 
          Support for in-place modification of the compiled binary.
@@ -362,6 +360,28 @@
     <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
+
+  <Target Name="RestoreToolsetCheck"
+      Condition="'$(BuildingProject)' == 'true'">
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
+             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </Target>
+
+  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
+    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
+  </Target>
+
+  <!-- 
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
+    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
+    by our test scripts
+  -->
+  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
+    <Copy
+        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
+        DestinationFolder="$(OutDir)" />
+  </Target>
 
   <Target Name="PostCompileBinaryModification"
           AfterTargets="CoreCompile"
