@@ -155,11 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            // get local copy of inprogress state
-            var inprogressState = BuildInprogressState;
-
-            // building is done. reset the state.
-            ClearInprogressState();
+            // building is done. reset the state
+            // and get local copy of inprogress state
+            var inprogressState = ClearInprogressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
@@ -356,31 +354,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void ClearInprogressState()
+        private InprogressState ClearInprogressState()
         {
             lock (_gate)
             {
+                var state = _stateDoNotAccessDirectly;
+
                 _stateDoNotAccessDirectly = null;
+                return state;
             }
         }
 
         private InprogressState GetOrCreateInprogressState()
         {
-            if (_stateDoNotAccessDirectly == null)
+            lock (_gate)
             {
-                lock (_gate)
+                if (_stateDoNotAccessDirectly == null)
                 {
-                    if (_stateDoNotAccessDirectly == null)
-                    {
-                        // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                        // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                        // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                        _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
-                    }
+                    // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+                    // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+                    // between build and diagnostic service, but this at least make us to consistent inside of our code.
+                    _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
                 }
-            }
 
-            return _stateDoNotAccessDirectly;
+                return _stateDoNotAccessDirectly;
+            }
         }
 
         private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
