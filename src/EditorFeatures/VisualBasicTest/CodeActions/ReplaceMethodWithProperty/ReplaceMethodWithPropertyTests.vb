@@ -607,5 +607,30 @@ public class Foo
     End Property
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestIndentation() As Task
+            Await TestAsync(
+"class C
+    Public Function [||]GetProp() As Integer
+        dim count = 0
+        for each x in y
+            count = count + z
+        next
+        return  count
+    End Function
+end class",
+"class C
+    Public ReadOnly Property Prop As Integer
+        Get 
+            dim count = 0
+            for each x in y
+                count = count + z
+            next
+            return count
+        End Get
+    End Property
+end class", compareTokens:=False)
+        End Function
     End Class
 End Namespace

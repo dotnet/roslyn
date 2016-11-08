@@ -31,13 +31,13 @@ end class")
         Public Async Function TestIndentation() As Task
             Await TestAsync(
 "class C
-    readonly property [||]Prop as integer
+    readonly property [||]Prop As Integer
         get 
             dim count = 0
             for each x in y
                 count = count + z
             next
-            reutrn count
+            return count
         end get
     end property
 end class",
@@ -47,7 +47,7 @@ end class",
         for each x in y
             count = count + z
         next
-        reutrn count
+        return count
     End Function
 end class", compareTokens:=False)
         End Function
