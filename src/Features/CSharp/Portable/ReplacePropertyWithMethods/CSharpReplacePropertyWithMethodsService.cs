@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var statements = new List<SyntaxNode>();
             if (setAccessorDeclaration?.Body != null)
             {
-                statements.AddRange(setAccessorDeclaration.Body.Statements.Select(WithMarkerAndAnnotation));
+                statements.AddRange(setAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
             }
             else if (propertyBackingField != null)
             {
@@ -124,9 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements);
         }
 
-        private static StatementSyntax WithMarkerAndAnnotation(StatementSyntax statement)
-            => statement.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
-                        .WithAdditionalAnnotations(Formatter.Annotation);
+        private static StatementSyntax WithFormattingAnnotation(StatementSyntax statement)
+            => statement.WithAdditionalAnnotations(Formatter.Annotation);
 
         private static SyntaxNode GetGetMethod(
             SyntaxGenerator generator,
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 if (getAccessorDeclaration?.Body != null)
                 {
-                    statements.AddRange(getAccessorDeclaration.Body.Statements.Select(WithMarkerAndAnnotation));
+                    statements.AddRange(getAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
                 }
                 else if (propertyBackingField != null)
                 {

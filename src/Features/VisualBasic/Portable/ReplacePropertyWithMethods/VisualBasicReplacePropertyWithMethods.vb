@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             If TypeOf getAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(getAccessorDeclaration.Parent, AccessorBlockSyntax)
-                statements.AddRange(block.Statements.Select(AddressOf WithMarkerAndAnnotation))
+                statements.AddRange(block.Statements.Select(AddressOf WithFormattingAnnotation))
             ElseIf propertyBackingField IsNot Nothing Then
                 Dim fieldReference = GetFieldReference(generator, propertyBackingField)
                 statements.Add(generator.ReturnStatement(fieldReference))
@@ -120,9 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
         End Function
 
-        Private Shared Function WithMarkerAndAnnotation(statement As StatementSyntax) As StatementSyntax
-            Return statement.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).
-                             WithAdditionalAnnotations(Formatter.Annotation)
+        Private Shared Function WithFormattingAnnotation(statement As StatementSyntax) As StatementSyntax
+            Return statement.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
         Private Function GetSetMethod(
@@ -140,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             If TypeOf setAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(setAccessorDeclaration.Parent, AccessorBlockSyntax)
-                statements.AddRange(block.Statements.Select(AddressOf WithMarkerAndAnnotation))
+                statements.AddRange(block.Statements.Select(AddressOf WithFormattingAnnotation))
             ElseIf propertyBackingField IsNot Nothing Then
                 Dim fieldReference = GetFieldReference(generator, propertyBackingField)
                 statements.Add(generator.AssignmentStatement(

@@ -622,7 +622,7 @@ end class")
 end class",
 "class C
     Public ReadOnly Property Prop As Integer
-        Get 
+        Get
             dim count = 0
             for each x in y
                 count = count + z
