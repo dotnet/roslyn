@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                var stack = ArrayBuilder<(NamedTypeSymbol, int)>.GetInstance();
+                var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
                 foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                 {
@@ -573,9 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     while (stack.Count > 0)
                     {
-                        var entry = stack.Pop();
-                        NamedTypeSymbol type = entry.Item1;
-                        int parentIndex = entry.Item2;
+                        var (type, parentIndex) = stack.Pop();
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
