@@ -39,7 +39,7 @@
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
-    <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
+    <CompilerGeneratorToolsDir>$(OutDir)Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
     <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir 

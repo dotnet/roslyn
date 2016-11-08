@@ -8,7 +8,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
     <AssemblyName>BoundTreeGenerator</AssemblyName>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
@@ -19,7 +18,7 @@
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
     <NonShipping>true</NonShipping>
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
-    <RoslynProjectType>CompilerGeneratorTool</RoslynProjectType>
+    <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>

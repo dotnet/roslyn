@@ -11,13 +11,10 @@ namespace BuildBoss
     {
         Dll,
         Exe,
-        ExeCoreClr,
+        ExeNonDeployment,
         UnitTest,
         UnitTestDesktop,
         UnitTestPortable,
-        CompilerGeneratorTool,
-        DeploymentCompilerGeneratorTools,
-        Deployment,
         DeploymentTest,
         Vsix,
         Depedency,
@@ -26,7 +23,6 @@ namespace BuildBoss
 
     internal static class RoslynProjectKindUtil
     {
-
         /// <summary>
         /// Convert a declared kind into the correspending enum value.
         /// </summary>
@@ -34,20 +30,14 @@ namespace BuildBoss
         {
             switch (value)
             {
-                case "ExeCoreClr":
-                    return RoslynProjectKind.Exe;
+                case "ExeNonDeployment":
+                    return RoslynProjectKind.ExeNonDeployment;
                 case "UnitTestPortable":
                     return RoslynProjectKind.UnitTestPortable;
                 case "UnitTestDesktop":
                     return RoslynProjectKind.UnitTestDesktop;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
-                case "CompilerGeneratorTool":
-                    return RoslynProjectKind.CompilerGeneratorTool;
-                case "DeploymentCompilerGeneratorTools":
-                    return RoslynProjectKind.DeploymentCompilerGeneratorTools;
-                case "Deployment":
-                    return RoslynProjectKind.Deployment;
                 case "DeploymentTest":
                     return RoslynProjectKind.DeploymentTest;
                 case "Vsix":
