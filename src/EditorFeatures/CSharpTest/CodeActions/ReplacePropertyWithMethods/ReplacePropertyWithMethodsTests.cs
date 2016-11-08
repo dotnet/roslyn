@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
     public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new ReplacePropertyWithMethodsCodeRefactoringProvider();
-        }
+            => new ReplacePropertyWithMethodsCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestGetWithBody()
@@ -635,6 +633,40 @@ class D
         return 1; // Comment
     }
 }", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIndentation()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Foo
+    {
+        get
+        {
+            int count;
+            foreach (var x in y)
+            {
+                count += bar;
+            }
+            return count;
+        }
+    }
+}",
+@"class C
+{
+    private int GetFoo()
+    {
+        int count;
+        foreach (var x in y)
+        {
+            count += bar;
+        }
+        return count;
+    }
+}",
+compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
