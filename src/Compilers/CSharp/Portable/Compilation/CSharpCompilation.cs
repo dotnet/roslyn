@@ -849,13 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
-        {
-            get
-            {
-                return GetBoundReferenceManager().ReferenceDirectiveMap;
-            }
-        }
+        internal override IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap
+            => GetBoundReferenceManager().ReferenceDirectiveMap;
 
         // for testing purposes
         internal IEnumerable<string> ExternAliases
