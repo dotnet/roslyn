@@ -19930,6 +19930,66 @@ class C
         }
 
         [Fact]
+        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        public void Iterator_01()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+public class C 
+{
+    static void Main(string[] args)
+    {
+        foreach (var x in entries())
+        {
+            Console.WriteLine(x);
+        }
+    }
+
+    static public IEnumerable<(int, int)> entries() 
+    {
+        yield return (1, 2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        public void Iterator_02()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+public class C 
+{
+    public IEnumerable<(int, int)> entries() 
+    {
+        yield return (1, 2);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source,
+                references: new[] { ValueTupleRef });
+
+            compilation.VerifyEmitDiagnostics(
+                // (7,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     public IEnumerable<(int, int)> entries() 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(7, 24),
+                // (9,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //         yield return (1, 2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
         [WorkItem(14649, "https://github.com/dotnet/roslyn/issues/14649")]
         public void ParseLongLambda()
         {
