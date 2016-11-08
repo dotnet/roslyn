@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCommonForEachStatement(node);
         }
 
-        public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+        public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
         }
@@ -662,11 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Initializer?.Value);
         }
 
-        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
-        {
-            Visit(node.Assignment.Value, _enclosing);
-        }
-
         public override void VisitReturnStatement(ReturnStatementSyntax node)
         {
             if (node.Expression != null)
@@ -746,7 +741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind())
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
                 // It is an error to have a declaration or a label in an embedded statement,

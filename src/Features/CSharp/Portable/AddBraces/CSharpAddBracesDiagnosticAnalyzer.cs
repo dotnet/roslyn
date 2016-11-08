@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
                 SyntaxKind.ForEachStatement,
-                SyntaxKind.ForEachComponentStatement,
+                SyntaxKind.ForEachVariableStatement,
                 SyntaxKind.WhileStatement,
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 }
             }
 
-            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachComponentStatement))
+            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachVariableStatement))
             {
                 var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))

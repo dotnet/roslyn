@@ -170,10 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckOutVarDeclaration(BoundLocal node)
         {
             if (IsInside &&
-                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
-                ((DeclarationExpressionSyntax)node.Syntax).Identifier() == node.LocalSymbol.IdentifierToken)
+                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression)
             {
-                _variablesDeclared.Add(node.LocalSymbol);
+                var declaration = (DeclarationExpressionSyntax)node.Syntax;
+                if (declaration.Designation.Kind() == SyntaxKind.SingleVariableDesignation &&
+                    ((SingleVariableDesignationSyntax)declaration.Designation).Identifier == node.LocalSymbol.IdentifierToken &&
+                    declaration.Parent != null &&
+                    declaration.Parent.Kind() == SyntaxKind.Argument &&
+                    ((ArgumentSyntax)declaration.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
+                {
+                    _variablesDeclared.Add(node.LocalSymbol);
+                }
             }
         }
 

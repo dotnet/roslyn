@@ -2043,7 +2043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.InKeyword))
             {
                 if (token.Parent.IsKind(SyntaxKind.ForEachStatement,
-                                        SyntaxKind.ForEachComponentStatement,
+                                        SyntaxKind.ForEachVariableStatement,
                                         SyntaxKind.FromClause,
                                         SyntaxKind.JoinClause))
                 {

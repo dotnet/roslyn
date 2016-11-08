@@ -11,20 +11,52 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This portion of the binder converts deconstruction-assignment syntax (AssignmentExpressionSyntax nodes with the left being a tuple expression)
-    /// into a BoundDeconstructionAssignmentOperator (or bad node).
+    /// This portion of the binder converts deconstruction-assignment syntax (AssignmentExpressionSyntax nodes with the left
+    /// being a tuple expression or declaration expression) into a BoundDeconstructionAssignmentOperator (or bad node).
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Only handles assignment-only or declaration-only deconstructions at this point.
+        /// Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions
+        /// </summary>
+        private BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var left = (TupleExpressionSyntax)node.Left;
-            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(left.Arguments, left, diagnostics);
+            var left = node.Left;
+            var right = node.Right;
 
+            if (node.IsDeconstructionDeclaration())
+            {
+                return BindDeconstructionDeclaration(node, left, right, diagnostics);
+            }
+
+            AssertDeconstructionIsAssignment(left);
+
+            var tuple = (TupleExpressionSyntax)left;
+            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(tuple.Arguments, tuple, diagnostics);
             var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics, isDeclaration: false);
             FreeDeconstructionVariables(checkedVariables);
-
             return result;
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertDeconstructionIsAssignment(ExpressionSyntax expression)
+        {
+            switch (expression.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    Debug.Assert(false);
+                    break;
+                case SyntaxKind.TupleExpression:
+                    var tuple = (TupleExpressionSyntax)expression;
+                    foreach (var arg in tuple.Arguments)
+                    {
+                        AssertDeconstructionIsAssignment(arg.Expression);
+                    }
+                    break;
+                default:
+                    return;
+            }
         }
 
         private static void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
@@ -606,24 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
-        internal BoundLocalDeconstructionDeclaration BindDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node, DiagnosticBag diagnostics)
-        {
-            bool modifierErrors;
-
-            // No modifiers are allowed in deconstruction declarations
-            ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiers: node.Modifiers,
-                defaultAccess: DeclarationModifiers.None,
-                allowedModifiers: DeclarationModifiers.None,
-                errorLocation: node.Assignment.VariableComponent.Location,
-                diagnostics: diagnostics,
-                modifierErrors: out modifierErrors);
-
-            var assignment = BindDeconstructionDeclaration(node, node.Assignment.VariableComponent, node.Assignment.Value, diagnostics);
-            return new BoundLocalDeconstructionDeclaration(node, assignment, hasErrors: modifierErrors);
-        }
-
-        internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, VariableComponentSyntax declaration, ExpressionSyntax right,
+        internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, ExpressionSyntax declaration, ExpressionSyntax right,
                                                         DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
             DeconstructionVariable locals = BindDeconstructionDeclarationVariables(declaration, diagnostics);
@@ -640,23 +655,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
         private DeconstructionVariable BindDeconstructionDeclarationVariables(
-            VariableComponentSyntax node,
+            ExpressionSyntax node,
             DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
-                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.DeclarationExpression:
                     {
-                        var component = (TypedVariableComponentSyntax)node;
+                        var component = (DeclarationExpressionSyntax)node;
                         return BindDeconstructionDeclarationVariables(component.Type, component.Designation, diagnostics);
                     }
-                case SyntaxKind.ParenthesizedVariableComponent:
+                case SyntaxKind.TupleExpression:
                     {
-                        var component = (ParenthesizedVariableComponentSyntax)node;
-                        var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Variables.Count);
-                        foreach (var n in component.Variables)
+                        var component = (TupleExpressionSyntax)node;
+                        var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Arguments.Count);
+                        foreach (var arg in component.Arguments)
                         {
-                            builder.Add(BindDeconstructionDeclarationVariables(n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationVariables(arg.Expression, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }

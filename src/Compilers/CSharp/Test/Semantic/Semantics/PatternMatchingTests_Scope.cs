@@ -6714,7 +6714,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var statement = (DeconstructionDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+            var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
 var (y1, dd) = ((123 is var x1), x1);
 ");
 

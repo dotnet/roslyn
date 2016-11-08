@@ -160,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (SwitchStatementSyntax switchStatement) => InferTypeInSwitchStatement(switchStatement),
                     (ThrowStatementSyntax throwStatement) => InferTypeInThrowStatement(throwStatement),
                     (UsingStatementSyntax usingStatement) => InferTypeInUsingStatement(usingStatement),
-                    (VariableComponentAssignmentSyntax variableComponentAssignment) => InferTypeInVariableComponentAssignment(variableComponentAssignment, expression),
                     (WhileStatementSyntax whileStatement) => InferTypeInWhileStatement(whileStatement),
                     (YieldStatementSyntax yieldStatement) => InferTypeInYieldStatement(yieldStatement),
                     _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>());
@@ -874,6 +873,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operatorToken.Kind() == SyntaxKind.BarBarToken)
                 {
                     return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                }
+
+                // Infer type for deconstruction
+                if (binop.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                    ((AssignmentExpressionSyntax)binop).IsDeconstruction())
+                {
+                    return InferTypeInVariableComponentAssignment(left);
                 }
 
                 // Try to figure out what's on the other side of the binop.  If we can, then just that
@@ -1951,31 +1957,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return types;
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(
-                VariableComponentAssignmentSyntax variableComponentAssigment, ExpressionSyntax expression)
+            private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
-                if (expression == variableComponentAssigment.Value)
+                if (left.IsKind(SyntaxKind.DeclarationExpression))
                 {
-                    var variableComponent = variableComponentAssigment.VariableComponent;
-                    if (variableComponent.IsKind(SyntaxKind.TypedVariableComponent))
-                    {
-                        var typedVariable = (TypedVariableComponentSyntax)variableComponent;
-                        return GetTypes(typedVariable.Type);
-                    }
-                    else if (variableComponent.IsKind(SyntaxKind.ParenthesizedVariableComponent))
-                    {
-                        // We have something of the form:
-                        //   (int a, int b) = ...
-                        //
-                        // This is a deconstruction, and a decent deconstructable type we can infer here
-                        // is ValueTuple<int,int>.
-                        var parenthesizedVariable = (ParenthesizedVariableComponentSyntax)variableComponent;
-                        var tupleType = GetTupleType(parenthesizedVariable);
+                    return GetTypes(((DeclarationExpressionSyntax)left).Type);
+                }
+                else if (left.IsKind(SyntaxKind.TupleExpression))
+                {
+                    // We have something of the form:
+                    //   (int a, int b) = ...
+                    //
+                    // This is a deconstruction, and a decent deconstructable type we can infer here
+                    // is ValueTuple<int,int>.
+                    var tupleType = GetTupleType((TupleExpressionSyntax)left);
 
-                        if (tupleType != null)
-                        {
-                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(tupleType));
-                        }
+                    if (tupleType != null)
+                    {
+                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(tupleType));
                     }
                 }
 
@@ -1983,13 +1982,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private ITypeSymbol GetTupleType(
-                ParenthesizedVariableComponentSyntax parenthesizedVariableComponent)
+                TupleExpressionSyntax tuple)
             {
                 ImmutableArray<ITypeSymbol> elementTypes;
                 ImmutableArray<string> elementNames;
 
-                if (!TryGetTupleTypesAndNames(parenthesizedVariableComponent.Variables,
-                        out elementTypes, out elementNames))
+                if (!TryGetTupleTypesAndNames(tuple.Arguments, out elementTypes, out elementNames))
                 {
                     return null;
                 }
@@ -1998,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private bool TryGetTupleTypesAndNames(
-                SeparatedSyntaxList<VariableComponentSyntax> variables,
+                SeparatedSyntaxList<ArgumentSyntax> arguments,
                 out ImmutableArray<ITypeSymbol> elementTypes,
                 out ImmutableArray<string> elementNames)
             {
@@ -2009,15 +2007,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementNamesBuilder = ArrayBuilder<string>.GetInstance();
                 try
                 {
-                    foreach (var component in variables)
+                    foreach (var arg in arguments)
                     {
-                        if (component.IsKind(SyntaxKind.TypedVariableComponent))
+                        var expr = arg.Expression;
+                        if (expr.IsKind(SyntaxKind.DeclarationExpression))
                         {
-                            AddTypeAndName((TypedVariableComponentSyntax)component, elementTypesBuilder, elementNamesBuilder);
+                            AddTypeAndName((DeclarationExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
-                        else if (component.IsKind(SyntaxKind.ParenthesizedVariableComponent))
+                        else if (expr.IsKind(SyntaxKind.TupleExpression))
                         {
-                            AddTypeAndName((ParenthesizedVariableComponentSyntax)component, elementTypesBuilder, elementNamesBuilder);
+                            AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
                     }
 
@@ -2038,13 +2037,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private void AddTypeAndName(
-                TypedVariableComponentSyntax component, 
-                ArrayBuilder<ITypeSymbol> elementTypesBuilder, 
+                DeclarationExpressionSyntax declaration,
+                ArrayBuilder<ITypeSymbol> elementTypesBuilder,
                 ArrayBuilder<string> elementNamesBuilder)
             {
-                elementTypesBuilder.Add(GetTypes(component.Type).FirstOrDefault().InferredType);
+                elementTypesBuilder.Add(GetTypes(declaration.Type).FirstOrDefault().InferredType);
 
-                var designation = component.Designation;
+                var designation = declaration.Designation;
                 if (designation.IsKind(SyntaxKind.SingleVariableDesignation))
                 {
                     var singleVariable = (SingleVariableDesignationSyntax)designation;
@@ -2057,11 +2056,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private void AddTypeAndName(
-                ParenthesizedVariableComponentSyntax component, 
-                ArrayBuilder<ITypeSymbol> elementTypesBuilder, 
+                TupleExpressionSyntax tuple,
+                ArrayBuilder<ITypeSymbol> elementTypesBuilder,
                 ArrayBuilder<string> elementNamesBuilder)
             {
-                var tupleType = GetTupleType(component);
+                var tupleType = GetTupleType(tuple);
                 elementTypesBuilder.Add(tupleType);
                 elementNamesBuilder.Add(null);
             }
