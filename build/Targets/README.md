@@ -8,6 +8,20 @@ To accomplish this all of the build logic is contained in our central targets fi
 
 The individual project files contain declaritive information only.  They inherit their build logic by importing [Settings.props](Settings.props) at the start and [Imports.targets](Imports.targets) at the conclusion.  
 
+## General rules
+
+There are a set of general rules to follow for props and targets files:
+
+- props files
+    - Do use Import for props files.
+    - Do not use Import for targets files.
+    - Do use UsingTask elements.
+    - Do not use Target elements
+- targets files
+    - Do use Import for targets files.
+    - Do not use Import for props files.
+    - Do use Task elements.
+
 ## Files
 
 This section describes the purpose and layout of the important files here.

@@ -16,6 +16,11 @@ namespace BuildBoss
         private readonly XDocument _document;
         private readonly XmlNamespaceManager _manager;
 
+        internal ProjectUtil(string filePath) :this(new ProjectKey(filePath), XDocument.Load(filePath))
+        {
+
+        }
+
         internal ProjectUtil(ProjectKey key, XDocument document)
         {
             _key = key;
@@ -89,9 +94,21 @@ namespace BuildBoss
             }
         }
 
+        internal IEnumerable<XElement> GetTargets()
+        {
+            return _document.XPathSelectElements("//mb:Target", _manager);
+        }
+
         internal IEnumerable<XElement> GetImports()
         {
             return _document.XPathSelectElements("//mb:Import", _manager);
+        }
+
+        internal IEnumerable<string> GetImportProjects()
+        {
+            return GetImports()
+                .Select(x => x.Attribute("Project")?.Value)
+                .Where(x => !string.IsNullOrEmpty(x));
         }
 
         internal IEnumerable<XElement> GetItemGroup()
