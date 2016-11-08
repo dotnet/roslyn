@@ -1157,4 +1157,16 @@ This version used in: {2}</value>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
+  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
+    <value>Variable declaration can be inlined</value>
+  </data>
+  <data name="Null_check_can_be_simplified" xml:space="preserve">
+    <value>Null check can be simplified</value>
+  </data>
+  <data name="Simplify_collection_initialization" xml:space="preserve">
+    <value>Simplify collection initialization</value>
+  </data>
+  <data name="Simplify_object_initialization" xml:space="preserve">
+    <value>Simplify object initialization</value>
+  </data>
 </root>

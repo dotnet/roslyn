@@ -174,7 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 additionalLocations, properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(this.DescriptorId, severity),
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(severity),
                 expressionStatement.GetLocation(),
                 additionalLocations, properties));
 

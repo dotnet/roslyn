@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_collection_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Collection_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var severity = option.Notification.Value;
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(severity),
+                CreateDescriptorWithSeverity(severity),
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 

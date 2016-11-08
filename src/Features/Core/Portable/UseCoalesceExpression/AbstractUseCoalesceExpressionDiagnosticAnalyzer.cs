@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptor(option.Notification.Value),
+                this.CreateDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

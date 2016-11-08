@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     {
                         var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                         return Diagnostic.Create(
-                            CreateDescriptor(_expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
+                            CreateDescriptorWithTitle(_expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
                             GetBody(declaration).Statements[0].GetLocation(),
                             additionalLocations: additionalLocations);
                     }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 {
                     var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                     return Diagnostic.Create(
-                        CreateDescriptor(_blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
+                        CreateDescriptorWithTitle(_blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
                         expressionBody.GetLocation(),
                         additionalLocations: additionalLocations);
                 }
