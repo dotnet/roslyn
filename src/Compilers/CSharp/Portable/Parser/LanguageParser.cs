@@ -7541,7 +7541,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.SimpleAssignmentExpression)
                     {
                         var assignment = (AssignmentExpressionSyntax)expression;
-                        if (IsDeconstructionDeclarationLeft(assignment.Left))
+                        if (assignment.Left.IsDeconstructionDeclarationLeft())
                         {
                             statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                         }
@@ -8664,28 +8664,6 @@ tryAgain:
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
-        /// </summary>
-        private static bool IsDeconstructionDeclarationLeft(ExpressionSyntax node)
-        {
-            switch (node.Kind)
-            {
-                case SyntaxKind.TupleExpression:
-                    var arguments = ((TupleExpressionSyntax)node).Arguments;
-                    for (int i = 0; i < arguments.Count; i++)
-                    {
-                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
-                    }
-
-                    return true;
-                case SyntaxKind.DeclarationExpression:
-                    return true;
-                default:
-                    return false;
             }
         }
 

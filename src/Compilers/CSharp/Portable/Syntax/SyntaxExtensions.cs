@@ -223,6 +223,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
+        /// </summary>
+        internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.TupleExpression:
+                    var arguments = ((Syntax.InternalSyntax.TupleExpressionSyntax)node).Arguments;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
+                    }
+
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
         {
             return self.Left.IsDeconstructionDeclarationLeft();
