@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new IntroduceVariableCodeRefactoringProvider();
-        }
+            => new IntroduceVariableCodeRefactoringProvider();
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -3872,8 +3870,8 @@ class C
     var i = (1, [|""hello""|]).ToString();
 }";
 
-var expected =
-@"class C
+            var expected =
+            @"class C
 {
     private const string {|Rename:V|} = ""hello"";
     var i = (1, V).ToString();
@@ -4018,6 +4016,41 @@ var expected =
                 parseOptions: TestOptions.Regular,
                 withScriptOption: true)
             );
+        }
+
+        [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestGenerateLocalConflictingName1()
+        {
+            await TestAsync(
+@"class Program
+{
+    class MySpan { public int Start { get; } public int End { get; } }
+    void Method(MySpan span)
+    {
+        int pos = span.Start;
+        while (pos < [|span.End|])
+        {
+            int spanEnd = span.End;
+            int end = pos;
+        }
+    }
+}",
+@"
+class Program
+{
+    class MySpan { public int Start { get; } public int End { get; } }
+    void Method(MySpan span)
+    {
+        int pos = span.Start;
+        int {|Rename:end1|} = span.End;
+        while (pos < end1)
+        {
+            int spanEnd = span.End;
+            int end = pos;
+        }
+    }
+}");
         }
     }
 }
