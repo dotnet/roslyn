@@ -37,19 +37,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         public sealed override void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(csac =>
-            {
-                var analysisResults = new ConcurrentBag<AnalysisResult>();
-                var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
-
-                csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
-                RegisterIneligibleFieldsAction(csac, ineligibleFields);
-
-                csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
-            });
-        }
+            => context.RegisterCompilationStartAction(csac =>
+               {
+                   var analysisResults = new ConcurrentBag<AnalysisResult>();
+                   var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
+               
+                   csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
+                   RegisterIneligibleFieldsAction(csac, ineligibleFields);
+               
+                   csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
+               });
 
         private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
         {

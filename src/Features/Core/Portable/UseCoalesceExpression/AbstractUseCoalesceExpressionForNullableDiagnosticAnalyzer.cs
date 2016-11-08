@@ -32,10 +32,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {

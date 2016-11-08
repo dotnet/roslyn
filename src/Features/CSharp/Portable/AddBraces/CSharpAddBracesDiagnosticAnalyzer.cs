@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.LockStatement);
 
         public override void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

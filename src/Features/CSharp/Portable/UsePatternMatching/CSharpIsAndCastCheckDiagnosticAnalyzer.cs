@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
-        }
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {

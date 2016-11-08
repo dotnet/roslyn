@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
         {

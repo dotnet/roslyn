@@ -28,13 +28,14 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
+        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
 
-            var internalMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
-            internalMethod.Invoke(context, new object[] { new Action<OperationAnalysisContext>(AnalyzeOperation), ImmutableArray.Create(OperationKind.SwitchStatement) });
-        }
+        public override void Initialize(AnalysisContext context)
+            => s_registerMethod.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.SwitchStatement)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {

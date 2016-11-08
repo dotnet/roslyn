@@ -56,14 +56,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         protected abstract bool IsSupported(ParseOptions options);
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            s_registerOperationActionInfo.Invoke(context, new object[]
-            {
-                new Action<OperationAnalysisContext>(AnalyzeOperation),
-                ImmutableArray.Create(OperationKind.ThrowStatement)
-            });
-        }
+            => s_registerOperationActionInfo.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.ThrowStatement)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {

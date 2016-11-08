@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {

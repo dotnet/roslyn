@@ -39,19 +39,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(compilationContext =>
-            {
-                var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
-                if (ienumerableType != null)
-                {
-                    context.RegisterSyntaxNodeAction(
-                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                        GetObjectCreationSyntaxKind());
-                }
-            });
-        }
+            => context.RegisterCompilationStartAction(compilationContext =>
+               {
+                   var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+                   if (ienumerableType != null)
+                   {
+                       context.RegisterSyntaxNodeAction(
+                           nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                           GetObjectCreationSyntaxKind());
+                   }
+               });
 
         protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
         protected abstract TSyntaxKind GetObjectCreationSyntaxKind();

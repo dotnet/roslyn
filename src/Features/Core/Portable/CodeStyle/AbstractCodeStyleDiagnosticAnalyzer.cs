@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             // Code style analyzers should not run on generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             InitializeWorker(context);
         }
 
