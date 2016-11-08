@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNullPropagationDiagnosticId = "IDE0030";
 
+        public const string UseAutoPropertyDiagnosticId = "IDE0031";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

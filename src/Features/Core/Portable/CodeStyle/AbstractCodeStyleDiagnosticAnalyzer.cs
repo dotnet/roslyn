@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly string DescriptorId;
 
         /// <summary>
+        /// Diagnostic descriptor that for analysis results that we don't want any treatment for.
+        /// </summary>
+        protected readonly DiagnosticDescriptor HiddenDescriptor;
+
+        /// <summary>
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
         /// appear for.  This is the common descriptor for code that is being faded out
         /// </summary>
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableTitle = title;
             _localizableMessage = message ?? title;
 
-            var primaryDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
+            HiddenDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
 
             UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessage, 
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
 
             SupportedDiagnostics = ImmutableArray.Create(
-                primaryDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
+                HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
