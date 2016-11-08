@@ -17198,6 +17198,33 @@ BC41009: The tuple element name 'd' is ignored because a different name is speci
 
         End Sub
 
+        <Fact()>
+        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
+        Public Sub NoSystemRuntimeFacade()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim o = (1, 2)
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef})
+
+            Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        Dim o = (1, 2)
+                ~~~~~~
+</errors>)
+        End Sub
+
         <Fact>
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_01()

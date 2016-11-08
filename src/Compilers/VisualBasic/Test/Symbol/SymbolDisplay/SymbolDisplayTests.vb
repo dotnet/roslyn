@@ -4818,7 +4818,7 @@ End Class"
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={ValueTupleRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim symbol = comp.GetMember("C.f")
 
@@ -4856,7 +4856,7 @@ End Class"
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, referencedAssemblies:={MscorlibRef, SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim type = comp.GlobalNamespace.GetTypeMembers("C").Single()
             Verify(
