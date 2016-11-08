@@ -290,7 +290,7 @@ class C{i}
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new ChangeSignatureCommandHandler();
+                var handler = new CSharpChangeSignatureCommandHandler();
                 var delegatedToNext = false;
                 Func<CommandState> nextHandler = () =>
                 {
