@@ -52,6 +52,8 @@ namespace BuildBoss
                     return RoslynProjectKind.DeploymentTest;
                 case "Vsix":
                     return RoslynProjectKind.Vsix;
+                case "Dependency":
+                    return RoslynProjectKind.Depedency;
                 case "Custom":
                     return RoslynProjectKind.Custom;
                 default:
