@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            var isForeachDecl = typeName.Parent.IsKind(SyntaxKind.ForEachStatement);
-
             if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration) &&
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
