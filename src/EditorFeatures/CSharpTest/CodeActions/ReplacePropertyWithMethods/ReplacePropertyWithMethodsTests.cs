@@ -637,6 +637,40 @@ class D
 }", compareTokens: false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIndentation()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Foo
+    {
+        get
+        {
+            int count;
+            foreach (var x in y)
+            {
+                count += bar;
+            }
+            return count;
+        }
+    }
+}",
+@"class C
+{
+    int GetFoo()
+    {
+        int count;
+        foreach (var x in y)
+        {
+            count += bar;
+        }
+        return count;
+    }
+}",
+compareTokens: false);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestComputedPropWithTrailingTriviaAfterArrow()
         {
