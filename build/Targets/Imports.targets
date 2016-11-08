@@ -44,12 +44,6 @@
         <OutDir>$(OutDir)Vsix\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'Dependency'">
-      <!-- Thinking through these -->
-      <PropertyGroup>
-        <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
       <!-- Need to include PDB in deployment directory for debugging, and in some cases correctness when
            stack traces are involved -->
