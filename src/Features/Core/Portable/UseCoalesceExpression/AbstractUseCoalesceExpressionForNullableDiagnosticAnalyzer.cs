@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
         }
 

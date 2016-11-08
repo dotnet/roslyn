@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
             var internalMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
             internalMethod.Invoke(context, new object[] { new Action<OperationAnalysisContext>(AnalyzeOperation), ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression) });

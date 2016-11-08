@@ -36,8 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public override void Initialize(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
+        protected override void InitializeWorker(AnalysisContext context)
+        {
+            context.EnableConcurrentExecution();
+            context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
+        }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {

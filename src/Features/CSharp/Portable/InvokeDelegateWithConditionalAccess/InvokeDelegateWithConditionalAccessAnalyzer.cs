@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);

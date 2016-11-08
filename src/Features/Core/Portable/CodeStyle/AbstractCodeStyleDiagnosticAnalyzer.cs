@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 primaryDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
@@ -69,5 +69,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 severity,
                 isEnabledByDefault: true,
                 customTags: customTags);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            // Code style analyzers should not run on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            InitializeWorker(context);
+        }
+
+        protected abstract void InitializeWorker(AnalysisContext context);
     }
 }

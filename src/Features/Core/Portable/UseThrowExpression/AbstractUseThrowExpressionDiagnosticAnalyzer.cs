@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
-    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
@@ -54,8 +55,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected abstract bool IsSupported(ParseOptions options);
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             s_registerOperationActionInfo.Invoke(context, new object[]
             {
                 new Action<OperationAnalysisContext>(AnalyzeOperation),

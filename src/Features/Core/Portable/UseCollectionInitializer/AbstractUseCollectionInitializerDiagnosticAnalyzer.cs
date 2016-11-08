@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
         }
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.RegisterCompilationStartAction(compilationContext =>

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());

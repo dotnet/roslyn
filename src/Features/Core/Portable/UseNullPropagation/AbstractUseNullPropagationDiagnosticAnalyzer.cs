@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
