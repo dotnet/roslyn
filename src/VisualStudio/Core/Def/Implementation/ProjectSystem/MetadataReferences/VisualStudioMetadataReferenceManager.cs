@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Manages metadata references for VS projects. 
     /// </summary>
     /// <remarks>
-    /// The references correspond to hierarchy nodes in the Solution Explorer. 
     /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see cref="PortableExecutableReference"/>) 
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageService"/>.
