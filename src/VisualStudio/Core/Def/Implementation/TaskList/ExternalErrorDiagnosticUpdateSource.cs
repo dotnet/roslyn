@@ -28,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
 
-        private InprogressState _state = null;
+        private readonly object _gate;
+        private InprogressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
@@ -63,13 +64,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
 
+            _gate = new object();
+
             registrationService.Register(this);
         }
 
         public event EventHandler<bool> BuildStarted;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public bool IsInProgress => _state != null;
+        public bool IsInProgress => BuildInprogressState != null;
 
         public ImmutableArray<DiagnosticData> GetBuildErrors()
         {
@@ -78,13 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public bool SupportedDiagnosticId(ProjectId projectId, string id)
         {
-            return _state?.SupportedDiagnosticId(projectId, id) ?? false;
+            return BuildInprogressState?.SupportedDiagnosticId(projectId, id) ?? false;
         }
 
         public void ClearErrors(ProjectId projectId)
         {
             // capture state if it exists
-            var state = _state;
+            var state = BuildInprogressState;
 
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
@@ -153,10 +156,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // get local copy of inprogress state
-            var inprogressState = _state;
+            var inprogressState = BuildInprogressState;
 
             // building is done. reset the state.
-            Interlocked.CompareExchange(ref _state, null, inprogressState);
+            ClearInprogressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
@@ -342,17 +345,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
+        private InprogressState BuildInprogressState
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _stateDoNotAccessDirectly;
+                }
+            }
+        }
+
+        private void ClearInprogressState()
+        {
+            lock (_gate)
+            {
+                _stateDoNotAccessDirectly = null;
+            }
+        }
+
         private InprogressState GetOrCreateInprogressState()
         {
-            if (_state == null)
+            if (_stateDoNotAccessDirectly == null)
             {
-                // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                Interlocked.CompareExchange(ref _state, new InprogressState(this, _workspace.CurrentSolution), null);
+                lock (_gate)
+                {
+                    if (_stateDoNotAccessDirectly == null)
+                    {
+                        // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+                        // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+                        // between build and diagnostic service, but this at least make us to consistent inside of our code.
+                        _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
+                    }
+                }
             }
 
-            return _state;
+            return _stateDoNotAccessDirectly;
         }
 
         private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
@@ -400,8 +428,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _solution = solution;
 
                 // let people know build has started
-                // TODO: to be more accurate, it probably needs to be counted. but for now,
-                //       I think the way it is doing probably enough.
                 _owner.RaiseBuildStarted(started: true);
             }
 
