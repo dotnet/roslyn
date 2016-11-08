@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(DiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var conflictDict = new Dictionary<ValueTuple<string, int>, SourceNamedTypeSymbol>();
+            var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
             try
             {
                 foreach (var childDeclaration in declaration.Children)
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    var key = new ValueTuple<string, int>(t.Name, t.Arity);
+                    var key = (t.Name, t.Arity);
                     SourceNamedTypeSymbol other;
                     if (conflictDict.TryGetValue(key, out other))
                     {

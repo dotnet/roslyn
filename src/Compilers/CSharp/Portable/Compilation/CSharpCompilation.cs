@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             MetadataReference reference;
-            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
+            return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>

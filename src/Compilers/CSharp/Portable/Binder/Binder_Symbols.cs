@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)type != null)
                 {
                     // pass args in a value tuple to avoid allocating a closure
-                    var args = ValueTuple.Create(this, diagnostics, syntax);
+                    var args = (this, diagnostics, syntax);
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
                         argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.Item2, typePart, argTuple.Item3, hasBaseReceiver: false);
