@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
