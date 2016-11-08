@@ -10,19 +10,6 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Email the results of aborted / failed jobs to our infrastructure alias
-static void addEmailPublisher(def myJob) {
-  myJob.with {
-    publishers {
-      extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        // trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-      }
-    }
-  }
-}
-
 // Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
 // vs. polling
 static void addBuildEventWebHook(def myJob) {
@@ -68,7 +55,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
-    addEmailPublisher(myJob)
+    // TODO: Add once external email sending is available again
+    // addEmailPublisher(myJob)
   }
 
   addBuildEventWebHook(myJob)
