@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
         public CSharpChangeSignatureCommandHandler(IWaitIndicator waitIndicator)
             : base(waitIndicator)
         {
-
         }
     }
 }
