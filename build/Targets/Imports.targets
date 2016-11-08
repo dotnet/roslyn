@@ -48,6 +48,13 @@
         <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
+    <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
+      <!-- Need to include PDB in deployment directory for debugging, and in some cases correctness when
+           stack traces are involved -->
+      <PropertyGroup>
+        <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
+      </PropertyGroup>
+    </When>
     <When Condition="'$(RoslynProjectType)' == 'Custom' or $(RoslynProjectType) == 'DeploymentTest'">
       <!-- Do nothing -->
     </When>
