@@ -2526,7 +2526,7 @@ End Class
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        Public Async Function TestIntroduceVariableTextDoesntSpanLines() As Task
+        Public Async Function TestIntroduceVariableTextDoesntSpanLines1() As Task
             Dim code = "
 Class C
     Sub M()
@@ -2537,6 +2537,21 @@ c""|]
     End Sub
 End Class"
             Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
+        End Function
+
+        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestIntroduceVariableTextDoesntSpanLines2() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim s = """" + [|$""a
+
+b
+c""|]
+    End Sub
+End Class"
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_for_0, "$""a b c"""), index:=0)
         End Function
 
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
@@ -2710,5 +2725,35 @@ End Class
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
+        <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestGenerateLocalConflictingName1() As Task
+            Await TestAsync(
+"class Program
+    class MySpan
+        public Start as integer
+    end class
+
+    sub Method(span as MySpan)
+        dim pos as integer = span.Start
+        while pos < [|span.Start|]
+            dim start as integer = pos
+        end while
+    end sub
+end class",
+"class Program
+    class MySpan
+        public Start as integer
+    end class
+
+    sub Method(span as MySpan)
+        dim pos as integer = span.Start
+        Dim {|Rename:start1|} As Integer = span.Start
+        while pos < start1
+            dim start as integer = pos
+        end while
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

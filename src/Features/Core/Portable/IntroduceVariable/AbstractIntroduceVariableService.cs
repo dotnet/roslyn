@@ -251,7 +251,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             HashSet<ISymbol> symbols, CancellationToken cancellationToken)
         {
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-            if (symbol != null)
+
+            // Ignore an annonymous type property.  It's ok if they have a name that 
+            // matches the name of the local we're introducing.
+            if (symbol != null &&
+                !IsAnonymousTypeProperty(symbol))
             {
                 symbols.Add(symbol);
             }
@@ -264,6 +268,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
             }
         }
+
+        private static bool IsAnonymousTypeProperty(ISymbol symbol)
+            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,
