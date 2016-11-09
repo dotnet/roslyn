@@ -575,4 +575,13 @@
     <value>Method</value>
     <comment>{locked:method} unless the capitalization should be handled differently</comment>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
 </root>
