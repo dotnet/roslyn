@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
