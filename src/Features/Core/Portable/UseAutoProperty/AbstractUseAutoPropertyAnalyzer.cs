@@ -9,6 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
+    internal static class Constants
+    {
+        public const string SymbolEquivalenceKey = nameof(SymbolEquivalenceKey);
+    }
+
     internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : 
         AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
@@ -244,10 +249,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(result.SymbolEquivalenceKey), result.SymbolEquivalenceKey);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                Constants.SymbolEquivalenceKey, result.SymbolEquivalenceKey);
 
             // Fade out the field/variable we are going to remove.
-            var diagnostic1 = Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, nodeToFade.GetLocation());
+            var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
             compilationContext.ReportDiagnostic(diagnostic1);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var equivalenceKey = diagnostic.Properties["SymbolEquivalenceKey"];
+                var equivalenceKey = diagnostic.Properties[Constants.SymbolEquivalenceKey];
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
