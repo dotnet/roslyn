@@ -704,6 +704,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var discarded = (DiscardedDesignationSyntax)node;
                         return new DeconstructionVariable(new BoundDiscardedExpression(discarded, declType), node);
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    {
+                        var discarded = (DiscardedDesignationSyntax)node;
+                        return new DeconstructionVariable(BindDiscardedExpression(discarded, type, diagnostics), node);
+                    }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)node;
@@ -717,6 +722,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+        }
+
+        private BoundExpression BindDiscardedExpression(
+            DiscardedDesignationSyntax designation,
+            TypeSyntax typeSyntax,
+            DiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+
+            if (!isVar)
+            {
+                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                {
+                    // An explicit type can only be provided next to the wildcard
+                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
+                    hasErrors = true;
+                }
+            }
+
+            return new BoundDiscardedExpression(designation, isVar ? null : declType, hasErrors);
         }
 
         /// <summary>
