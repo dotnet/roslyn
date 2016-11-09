@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 {
-    [ExportWorkspaceServiceFactory(typeof(IGeneratedCodeRecognitionService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IGeneratedCodeRecognitionService)), Shared]
     internal class GeneratedCodeRecognitionService : IGeneratedCodeRecognitionService
     {
         public bool IsGeneratedCode(Document document, CancellationToken cancellationToken)
