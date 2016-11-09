@@ -79,7 +79,7 @@
       "suppressParent": "all"
     },
     "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
-    "Microsoft.Build": "14.3.0",
+    "Microsoft.Build": "15.1.0-preview-000370-00",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"

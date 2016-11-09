@@ -1,15 +1,17 @@
 {
-    "dependencies": {
-        "xunit": "2.1.0",
-        "xunit.runner.console": "2.2.0-beta1-build3239",
-        "System.Collections.Immutable": "1.2.0",
-        "Microsoft.Build": "14.3.0",
-        "Moq": "4.2.1402.2112"
-    },
-    "frameworks": {
-        "net46": { }
-    },
-    "runtimes": {
-        "win7": { }
-    }
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239",
+    "System.Collections.Immutable": "1.2.0",
+    "Microsoft.Build": "15.1.0-preview-000370-00",
+    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000370-00",
+    "Microsoft.Build.Utilities.Core": "15.1.0-preview-000370-00",
+    "Moq": "4.2.1402.2112"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": {}
+  }
 }

@@ -1,6 +1,6 @@
 ﻿{
     "dependencies": {
-        "Microsoft.Build": "15.1.0-preview-000370-00 ",
+        "Microsoft.Build": "15.1.0-preview-000370-00",
         "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
         "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "15.0.25726-Preview5",
         "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
