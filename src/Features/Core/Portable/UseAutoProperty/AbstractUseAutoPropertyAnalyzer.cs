@@ -24,15 +24,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
         }
 
-        //private readonly static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-        //    UseAutoProperty, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
-        //    "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
-
-        //private readonly static DiagnosticDescriptor s_fadedTokenDescriptor = new DiagnosticDescriptor(
-        //    UseAutoPropertyFadedToken, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
-        //    "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-        //    customTags: new[] { WellKnownDiagnosticTags.Unnecessary });
-
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
