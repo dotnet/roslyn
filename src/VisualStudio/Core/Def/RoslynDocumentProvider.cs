@@ -40,11 +40,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return;
             }
 
-            var view = GetTextViewFromFrame(frame);
-            if (view != null)
+            // Schedule hookup of the non-Roslyn document view on foreground task scheduler.
+            InvokeBelowInputPriority(() =>
             {
-                _documentTrackingService?.OnNonRoslynViewOpened(view);
-            }
+                var view = GetTextViewFromFrame(frame);
+                if (view != null)
+                {
+                    _documentTrackingService?.OnNonRoslynViewOpened(view);
+                }
+            });
         }
 
         private ITextView GetTextViewFromFrame(IVsWindowFrame frame)
