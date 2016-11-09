@@ -1566,11 +1566,17 @@
     <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
   </AbstractNode>
 
+  <Node Name="BoundDiscardedValue" Base="BoundExpression">
+    <!-- A discarded value, when a designator uses `_`. When the type is given as `var, it is without
+         a type before type inference, and it is replaced byt a BoundDiscardedValue with a type
+         after inference. -->
+  </Node>
+
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. -->
-    <Field Name="Variable" Type="Symbol" Null="disallow"/>
-    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         a field that is a member of the script class. Variable is null if `_` is used. -->
+    <Field Name="Variable" Type="Symbol" Null="allow"/>
+    <!-- VariableAccess is an access to the declared variable, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
          from the Symbol to facilitate lowerings in which the variable is no longer a simple
          variable access (e.g. in the expression evaluator). It is expected to be logically side-effect

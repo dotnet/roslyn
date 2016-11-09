@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (this.IsTrueIdentifier())
                         {
                             var identifier = ParseIdentifierToken();
-                            node = _syntaxFactory.DeclarationPattern(type, identifier);
+                            node = _syntaxFactory.DeclarationPattern(type, _syntaxFactory.SingleVariableDesignation(identifier));
                         }
                     }
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                         {
                             var identifier = ParseIdentifierToken();
-                            node = _syntaxFactory.DeclarationPattern(type, identifier);
+                            node = _syntaxFactory.DeclarationPattern(type, _syntaxFactory.SingleVariableDesignation(identifier));
                         }
                     }
                     if (node == null)
