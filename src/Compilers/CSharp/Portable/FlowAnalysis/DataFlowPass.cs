@@ -576,6 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This reflects the Dev10 compiler's rules for when a variable initialization is considered a "use"
         /// for the purpose of suppressing the warning about unused variables.
+        /// Updated to apply the same rule within elements of tuple conversions and literals.
         /// </summary>
         internal static bool WriteConsideredUse(TypeSymbol type, BoundExpression value)
         {
@@ -606,10 +607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        if (boundConversion.ConversionKind == ConversionKind.ImplicitTupleLiteral ||
-                            boundConversion.ConversionKind == ConversionKind.ExplicitTupleLiteral ||
-                            boundConversion.ConversionKind == ConversionKind.ImplicitTuple ||
-                            boundConversion.ConversionKind == ConversionKind.ExplicitTuple)
+                        if (boundConversion.Conversion.IsTupleLiteralConversion ||
+                            boundConversion.Conversion.IsTupleConversion)
                         {
                             var underlyingConversions = boundConversion.Conversion.UnderlyingConversions;
                             if (underlyingConversions.Any(c => IsUserDefinedOrIntPtrConversion(c)))
@@ -627,8 +626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
 
                 case BoundKind.TupleLiteral:
-                    throw ExceptionUtilities.UnexpectedValue(value.Kind);
-
                 case BoundKind.ConvertedTupleLiteral:
                     Debug.Assert(type == null || type.IsTupleType);
                     var typeIsTuple = type?.IsTupleType == true;

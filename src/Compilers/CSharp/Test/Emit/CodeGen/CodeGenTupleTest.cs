@@ -3658,7 +3658,10 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
                 );
         }
 
@@ -3771,7 +3774,10 @@ namespace System
             comp.VerifyDiagnostics(
                 // (7,39): error CS0229: Ambiguity between '(string, string).Item1' and '(string, string).Item1'
                 //         System.Console.WriteLine($"{x.Item1}");
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = ("Alice", "Bob");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
                 );
         }
 
@@ -18582,6 +18588,7 @@ public class C
         var x10 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         D.M2((1, 2));
         D.M3((1, null));
+        System.Console.Write($""{x1} {x2} {x9} {x10}"");
     }
 }
 ";
@@ -18616,10 +18623,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(10, 14),
                 // (11,14): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
                 //         D.M3((1, null));
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14),
-                // (6,20): warning CS0219: The variable 'x1' is assigned but its value is never used
-                //         (int, int) x1 = (1, 2);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(1, null)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(11, 14)
                 );
         }
 
@@ -18633,6 +18637,7 @@ public class C
     void M()
     {
         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        System.Console.Write(x9);
     }
 }
 namespace System
@@ -20044,24 +20049,23 @@ public class C
 
         (string, string) t3 = (null, null);
         (string, string) t4 = (""hello"", ""world"");
+        (S, (S, S)) t5 = (new S(), (new S(), new S()));
 
         // No warnings
 
-        (int, int) t5 = (1, 2);
-        M(t5.Item1);
-
-        (C, int) refTuple = (new C(), 2);
+        (C, int) tuple = (new C(), 2);
 
         (int, int) t6 = ((C, int))(new C(), 2); // implicit tuple conversion with a user conversion on an element
-        (int, int) t61 = ((C, int))refTuple;
+        (int, int) t61 = ((C, int))tuple;
 
         (int, int) t7 = (new C(), 2); // implicit tuple literal conversion with a user conversion on an element 
-        (int, int) t71 = refTuple;
+        (int, int) t71 = tuple;
 
         (int, int) t8 = ((int, int))(((C, int))(new C(), 2)); // explicit tuple conversion with a user conversion on an element 
-        (int, int) t81 = ((int, int))refTuple;
+        (int, int) t81 = ((int, int))tuple;
 
         (C, C) t9 = (new C(), new C());
+        (C, (C, C)) t10 = (new C(), (new C(), new C()));
 
         int[] array = new int[] { 42 };
         unsafe
@@ -20073,6 +20077,7 @@ public class C
                 (string, (int*, int*)) t16 = (null, (p, p));
             }
         }
+        (S, (S, S)) t17 = (new S(), (new S() { /* object initializer */ }, new S()));
     }
 
     public static implicit operator int(C c)
@@ -20080,6 +20085,7 @@ public class C
         return 0;
     }
 }
+public struct S { }
 ";
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
@@ -20094,7 +20100,10 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t3").WithArguments("t3").WithLocation(11, 26),
                 // (12,26): warning CS0219: The variable 't4' is assigned but its value is never used
                 //         (string, string) t4 = ("hello", "world");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t4").WithArguments("t4").WithLocation(12, 26)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t4").WithArguments("t4").WithLocation(12, 26),
+                // (13,21): warning CS0219: The variable 't5' is assigned but its value is never used
+                //         (S, (S, S)) t5 = (new S(), (new S(), new S()));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t5").WithArguments("t5").WithLocation(13, 21)
                 );
         }
     }
