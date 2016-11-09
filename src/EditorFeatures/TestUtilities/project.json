@@ -38,6 +38,10 @@
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.Text.Logic": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
     "Microsoft.VisualStudio.Text.UI": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
