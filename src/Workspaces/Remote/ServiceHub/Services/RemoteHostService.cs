@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
-        public async Task SynchronizeAsync(byte[] solutionChecksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(byte[] solutionChecksum)
         {
             var checksum = new Checksum(solutionChecksum);
 

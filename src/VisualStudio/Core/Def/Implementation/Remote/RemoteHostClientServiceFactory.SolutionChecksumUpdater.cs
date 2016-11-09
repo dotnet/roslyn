@@ -18,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly RemoteHostClientService _service;
             private readonly SemaphoreSlim _event;
 
-            // hold onto last snapshot
             private CancellationTokenSource _globalOperationCancellationSource;
-            private bool _synchronize;
 
             public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
                 base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
@@ -50,11 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // cancel updating solution checksum if a global operation (such as loading solution, building solution and etc) has started
                 await UpdateSolutionChecksumAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
 
-                // check whether we had bulk change that require asset synchronization
-                if (_synchronize)
-                {
-                    await SynchronizeAssets().ConfigureAwait(false);
-                }
+                // update primary solution in remote host
+                await SynchronizePrimaryWorkspace().ConfigureAwait(false);
             }
 
             protected override void PauseOnGlobalOperation()
@@ -84,15 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
-                // special bulk update case
-                if (e.Kind == WorkspaceChangeKind.SolutionAdded ||
-                    e.Kind == WorkspaceChangeKind.ProjectAdded)
-                {
-                    _synchronize = true;
-                    EnqueueChecksumUpdate();
-                    return;
-                }
-
                 // record that we are busy
                 UpdateLastAccessTime();
 
@@ -115,10 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 await _service.Workspace.CurrentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task SynchronizeAssets()
+            private async Task SynchronizePrimaryWorkspace()
             {
-                _synchronize = false;
-
                 var remoteHostClient = await _service.GetRemoteHostClientAsync(ShutdownCancellationToken).ConfigureAwait(false);
                 if (remoteHostClient == null)
                 {
@@ -131,7 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
                     {
                         // ask remote host to sync initial asset
-                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync).ConfigureAwait(false);
+                        var checksum = await solution.State.GetChecksumAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync, new object[] { checksum.ToArray() }).ConfigureAwait(false);
                     }
                 }
             }
