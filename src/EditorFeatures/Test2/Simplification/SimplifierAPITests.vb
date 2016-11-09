@@ -151,7 +151,7 @@ Public Class SimplifierAPITests
 
     Private Function GetDocument() As Document
         CreateFiles(GetSimpleCSharpSolutionFiles())
-        Dim sol = Create(properties:=New Dictionary(Of String, String) From {{"Configuration", "Release"}}).OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result
+        Dim sol = Create(properties:=New Dictionary(Of String, String) From {{"Configuration", "Release"}}, fullPathToMSBuildDirectory:=TestHelpers.GetMSBuildDirectory()).OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result
         Return sol.Projects.First.Documents.First
     End Function
 

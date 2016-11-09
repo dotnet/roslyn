@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -29,15 +30,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
         // used to serialize access to public methods
         private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
 
-        private MSBuildProjectLoader _loader;
+        private readonly MSBuildProjectLoader _loader;
+        private readonly string _fullPathToMSBuildDirectory;
         private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
 
         private MSBuildWorkspace(
             HostServices hostServices,
-            ImmutableDictionary<string, string> properties)
+            ImmutableDictionary<string, string> properties,
+            string fullPathToMSBuildDirectory)
             : base(hostServices, "MSBuildWorkspace")
         {
             _loader = new MSBuildProjectLoader(this, properties);
+
+            if (fullPathToMSBuildDirectory != null)
+            {
+                _fullPathToMSBuildDirectory = fullPathToMSBuildDirectory;
+                AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
+            }
         }
 
         /// <summary>
@@ -45,7 +54,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public static MSBuildWorkspace Create()
         {
-            return Create(ImmutableDictionary<string, string>.Empty);
+            return Create(fullPathToMSBuildDirectory: null);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
+        /// <param name="fullPathToMSBuildDirectory">The full path to the location of MSBuild.</param>
+        public static MSBuildWorkspace Create(string fullPathToMSBuildDirectory)
+        {
+            return Create(ImmutableDictionary<string, string>.Empty, fullPathToMSBuildDirectory);
         }
 
         /// <summary>
@@ -55,7 +73,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties)
         {
-            return Create(properties, DesktopMefHostServices.DefaultServices);
+            return Create(properties, fullPathToMSBuildDirectory: null);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
+        /// <param name="properties">An optional set of MSBuild properties used when interpreting project files.
+        /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
+        /// <param name="fullPathToMSBuildDirectory">The full path to the location of MSBuild.</param>
+        public static MSBuildWorkspace Create(IDictionary<string, string> properties, string fullPathToMSBuildDirectory)
+        {
+            return Create(properties, DesktopMefHostServices.DefaultServices, fullPathToMSBuildDirectory);
         }
 
         /// <summary>
@@ -64,7 +93,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
         public static MSBuildWorkspace Create(HostServices hostServices)
         {
-            return Create(ImmutableDictionary<string, string>.Empty, hostServices);
+            return Create(hostServices, fullPathToMSBuildDirectory: null);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
+        /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
+        /// <param name="fullPathToMSBuildDirectory">The full path to the location of MSBuild.</param>
+        public static MSBuildWorkspace Create(HostServices hostServices, string fullPathToMSBuildDirectory)
+        {
+            return Create(ImmutableDictionary<string, string>.Empty, hostServices, fullPathToMSBuildDirectory);
         }
 
         /// <summary>
@@ -74,6 +113,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties, HostServices hostServices)
+        {
+            return Create(properties, hostServices, fullPathToMSBuildDirectory: null);
+        }
+
+        /// <summary>
+        /// Create a new instance of a workspace that can be populated by opening solution and project files.
+        /// </summary>
+        /// <param name="properties">The MSBuild properties used when interpreting project files.
+        /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
+        /// <param name="hostServices">The <see cref="HostServices"/> used to configure this workspace.</param>
+        /// <param name="fullPathToMSBuildDirectory">The full path to the location of MSBuild.</param>
+        public static MSBuildWorkspace Create(IDictionary<string, string> properties, HostServices hostServices, string fullPathToMSBuildDirectory)
         {
             if (properties == null)
             {
@@ -85,7 +136,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(hostServices));
             }
 
-            return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
+            return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary(), fullPathToMSBuildDirectory);
         }
 
         /// <summary>
@@ -161,6 +212,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
+        }
+
+        private Assembly AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var assemblyName = new AssemblyName(args.Name);
+
+            if (!assemblyName.Name.StartsWith("Microsoft.Build."))
+            {
+                return null;
+            }
+
+            string fullPathToAssembly = Path.Combine(_fullPathToMSBuildDirectory, assemblyName.Name + ".dll");
+
+            try
+            {
+                return Assembly.LoadFrom(fullPathToAssembly);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         #region Open Solution & Project

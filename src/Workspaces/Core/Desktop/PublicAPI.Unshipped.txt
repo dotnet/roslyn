@@ -1,1 +1,5 @@
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Diagnostics.get -> System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.WorkspaceDiagnostic>
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices, string fullPathToMSBuildDirectory) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices, string fullPathToMSBuildDirectory) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, string fullPathToMSBuildDirectory) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(string fullPathToMSBuildDirectory) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
