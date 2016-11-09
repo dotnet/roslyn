@@ -9,6 +9,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
+    internal static class Constants
+    {
+        public const string SymbolEquivalenceKey = nameof(SymbolEquivalenceKey);
+    }
+
     internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : 
         AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
@@ -23,15 +28,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
         {
         }
-
-        //private readonly static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-        //    UseAutoProperty, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
-        //    "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
-
-        //private readonly static DiagnosticDescriptor s_fadedTokenDescriptor = new DiagnosticDescriptor(
-        //    UseAutoPropertyFadedToken, FeaturesResources.Use_auto_property, FeaturesResources.Use_auto_property,
-        //    "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-        //    customTags: new[] { WellKnownDiagnosticTags.Unnecessary });
 
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
@@ -253,10 +249,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(result.SymbolEquivalenceKey), result.SymbolEquivalenceKey);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                Constants.SymbolEquivalenceKey, result.SymbolEquivalenceKey);
 
             // Fade out the field/variable we are going to remove.
-            var diagnostic1 = Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, nodeToFade.GetLocation());
+            var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
             compilationContext.ReportDiagnostic(diagnostic1);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
