@@ -147,14 +147,14 @@ exit /b 1
 @REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 @REM left some floating around).
 
-taskkill /F /IM vbcscompiler.exe 2> nul
+taskkill /F /IM vbcscompiler.exe > nul
 if ERRORLEVEL 1 GOTO ActuallyFail
 
-taskkill /F /IM msbuild.exe 2> nul
+taskkill /F /IM msbuild.exe > nul
 if ERRORLEVEL 1 GOTO ActuallyFail
 
-taskkill /F /IM csc.exe 2> nul
+taskkill /F /IM csc.exe > nul
 if ERRORLEVEL 1 GOTO ActuallyFail
 
-taskkill /F /IM vbc.exe 2> nul
+taskkill /F /IM vbc.exe > nul
 if ERRORLEVEL 1 GOTO ActuallyFail
