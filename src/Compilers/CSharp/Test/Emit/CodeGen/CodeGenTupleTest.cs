@@ -20037,39 +20037,64 @@ public class C
 {
     void M(int x)
     {
-        (int, int) t1 = default((int, int)); // warning
-        (int, int) t2 = (1, 2); // warning
+        // Warnings
 
-        (int, int) t3 = (1, 2); // used
-        M(t3.Item1);
+        (int, int) t1 = default((int, int));
+        (int, int) t2 = (1, 2);
 
-        (int, int) t4 = (new C(), 2); // user conversion
-        ((int, int), int) t5 = (new C(), 2); // user conversion
-        (Error, int) t6 = (1, 2);
-        (int, C) t7 = (1, new C());
+        (string, string) t3 = (null, null);
+        (string, string) t4 = (""hello"", ""world"");
+
+        // No warnings
+
+        (int, int) t5 = (1, 2);
+        M(t5.Item1);
+
+        (C, int) refTuple = (new C(), 2);
+
+        (int, int) t6 = ((C, int))(new C(), 2); // implicit tuple conversion with a user conversion on an element
+        (int, int) t61 = ((C, int))refTuple;
+
+        (int, int) t7 = (new C(), 2); // implicit tuple literal conversion with a user conversion on an element 
+        (int, int) t71 = refTuple;
+
+        (int, int) t8 = ((int, int))(((C, int))(new C(), 2)); // explicit tuple conversion with a user conversion on an element 
+        (int, int) t81 = ((int, int))refTuple;
+
+        (C, C) t9 = (new C(), new C());
+
+        int[] array = new int[] { 42 };
+        unsafe
+        {
+            fixed (int* p = &array[0])
+            {
+                (int*, int*) t14 = (p, p); // converted tuple literal with a pointer type
+                (string, int*) t15 = (null, p); // implicit tuple literal conversion on a converted tuple literal with a pointer type
+                (string, (int*, int*)) t16 = (null, (p, p));
+            }
+        }
     }
 
     public static implicit operator int(C c)
     {
         return 0;
     }
-    public static implicit operator (int, int)(C p)
-    {
-        return (0, 0);
-    }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (14,10): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
-                //         (Error, int) t6 = (1, 2);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(14, 10),
-                // (6,20): warning CS0219: The variable 't1' is assigned but its value is never used
-                //         (int, int) t1 = default((int, int)); // warning
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(6, 20),
-                // (7,20): warning CS0219: The variable 't2' is assigned but its value is never used
-                //         (int, int) t2 = (1, 2); // warning
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(7, 20)
+                // (8,20): warning CS0219: The variable 't1' is assigned but its value is never used
+                //         (int, int) t1 = default((int, int));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(8, 20),
+                // (9,20): warning CS0219: The variable 't2' is assigned but its value is never used
+                //         (int, int) t2 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(9, 20),
+                // (11,26): warning CS0219: The variable 't3' is assigned but its value is never used
+                //         (string, string) t3 = (null, null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t3").WithArguments("t3").WithLocation(11, 26),
+                // (12,26): warning CS0219: The variable 't4' is assigned but its value is never used
+                //         (string, string) t4 = ("hello", "world");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t4").WithArguments("t4").WithLocation(12, 26)
                 );
         }
     }

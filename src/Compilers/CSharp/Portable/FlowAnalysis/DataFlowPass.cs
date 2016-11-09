@@ -582,7 +582,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (value == null || value.HasAnyErrors) return true;
             if ((object)type != null && type.IsReferenceType && type.SpecialType != SpecialType.System_String)
             {
-                //if (value.ConstantValue != ConstantValue.Null) { throw new Exception();  }
                 return value.ConstantValue != ConstantValue.Null;
             }
 
@@ -602,11 +601,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // conversions. A cast from int to IntPtr is also treated as an explicit
                         // user-defined conversion. Therefore the IntPtr ConversionKind is included
                         // here.
-                        if (boundConversion.ConversionKind.IsUserDefinedConversion() ||
-                            boundConversion.ConversionKind == ConversionKind.IntPtr)
+                        if (IsUserDefinedOrIntPtrConversion(boundConversion.Conversion))
                         {
                             return true;
                         }
+
+                        if (boundConversion.ConversionKind == ConversionKind.ImplicitTupleLiteral ||
+                            boundConversion.ConversionKind == ConversionKind.ExplicitTupleLiteral ||
+                            boundConversion.ConversionKind == ConversionKind.ImplicitTuple ||
+                            boundConversion.ConversionKind == ConversionKind.ExplicitTuple)
+                        {
+                            var underlyingConversions = boundConversion.Conversion.UnderlyingConversions;
+                            if (underlyingConversions.Any(c => IsUserDefinedOrIntPtrConversion(c)))
+                            {
+                                return true;
+                            }
+                        }
+
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
                 case BoundKind.DefaultOperator:
@@ -614,17 +625,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
-                case BoundKind.ConvertedTupleLiteral:
-                    var typePresent = type != null;
-                    Debug.Assert(!typePresent || type.IsTupleType);
-                    var typeTupleTypes = typePresent ? ((TupleTypeSymbol)type).TupleElementTypes : ImmutableArray<TypeSymbol>.Empty;
-                    var valueTupleArguments = ((BoundConvertedTupleLiteral)value).Arguments;
 
-                    Debug.Assert(!typePresent || valueTupleArguments.Length == typeTupleTypes.Length);
+                case BoundKind.TupleLiteral:
+                    throw ExceptionUtilities.UnexpectedValue(value.Kind);
+
+                case BoundKind.ConvertedTupleLiteral:
+                    Debug.Assert(type == null || type.IsTupleType);
+                    var typeIsTuple = type?.IsTupleType == true;
+                    var typeTupleTypes = typeIsTuple ? ((TupleTypeSymbol)type).TupleElementTypes : ImmutableArray<TypeSymbol>.Empty;
+                    var valueTupleArguments = ((BoundTupleExpression)value).Arguments;
+
+                    Debug.Assert(!typeIsTuple || valueTupleArguments.Length == typeTupleTypes.Length);
 
                     for (int i = 0; i < valueTupleArguments.Length; i++)
                     {
-                        if (WriteConsideredUse(typePresent ? typeTupleTypes[i] : null, valueTupleArguments[i]))
+                        if (WriteConsideredUse(typeIsTuple ? typeTupleTypes[i] : null, valueTupleArguments[i]))
                         {
                             return true;
                         }
@@ -634,6 +649,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return true;
             }
+        }
+
+        private static bool IsUserDefinedOrIntPtrConversion(Conversion conversion)
+        {
+            return conversion.Kind.IsUserDefinedConversion() || conversion.Kind == ConversionKind.IntPtr;
         }
 
         private void NoteWrite(BoundExpression n, BoundExpression value, bool read)
