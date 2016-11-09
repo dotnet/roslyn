@@ -8,8 +8,5 @@ set NuGetExe=%NuGetExeFolder%\NuGet.exe
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%NuGetExeFolder%\nuget.config" -Project2ProjectTimeOut 1200
 
 REM Download NuGet.exe if we haven't already
-if not exist "%NuGetExe%" (
-    echo Downloading NuGet %NuGetExeVersion%
-    powershell -noprofile -executionPolicy Bypass -file "%~dp0download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" || goto :DownloadNuGetFailed
-)
+powershell -noprofile -executionPolicy Bypass -file "%~dp0download-nuget.ps1" "%NuGetExeVersion%" "%NuGetExeFolder%" "%NuGetExeFolder%\Binaries"
 
