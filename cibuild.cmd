@@ -105,6 +105,7 @@ if defined TestPerfRun (
         )
     )
 
+    call :TerminateBuildProcesses
     .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
     exit /b 0
 )
@@ -137,6 +138,7 @@ exit /b 0
 :BuildFailed
 echo Build failed with ERRORLEVEL %ERRORLEVEL%
 call :TerminateBuildProcesses
+:ActuallyFail
 exit /b 1
 
 :TerminateBuildProcesses
@@ -146,4 +148,13 @@ exit /b 1
 @REM left some floating around).
 
 taskkill /F /IM vbcscompiler.exe 2> nul
+if ERRORLEVEL 1 GOTO ActuallyFail
+
 taskkill /F /IM msbuild.exe 2> nul
+if ERRORLEVEL 1 GOTO ActuallyFail
+
+taskkill /F /IM csc.exe 2> nul
+if ERRORLEVEL 1 GOTO ActuallyFail
+
+taskkill /F /IM vbc.exe 2> nul
+if ERRORLEVEL 1 GOTO ActuallyFail
