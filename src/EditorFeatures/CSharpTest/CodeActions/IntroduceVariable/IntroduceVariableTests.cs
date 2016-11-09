@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     public class IntroduceVariableTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new IntroduceVariableCodeRefactoringProvider();
-        }
+            => new IntroduceVariableCodeRefactoringProvider();
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -2850,7 +2848,7 @@ class C
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestIntroduceVariableTextDoesntSpanLines()
+        public async Task TestIntroduceVariableTextDoesntSpanLines1()
         {
             await TestSmartTagTextAsync(
 @"class C
@@ -2865,6 +2863,25 @@ c""|];
 }",
 string.Format(FeaturesResources.Introduce_local_constant_for_0, @"@""a b c"""),
 index: 2);
+        }
+
+        [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceVariableTextDoesntSpanLines2()
+        {
+            await TestSmartTagTextAsync(
+@"class C
+{
+    void M()
+    {
+        var s = [|$@""a
+
+b
+c""|];
+    }
+}",
+string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""),
+index: 0);
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -3872,8 +3889,8 @@ class C
     var i = (1, [|""hello""|]).ToString();
 }";
 
-var expected =
-@"class C
+            var expected =
+            @"class C
 {
     private const string {|Rename:V|} = ""hello"";
     var i = (1, V).ToString();
@@ -4018,6 +4035,41 @@ var expected =
                 parseOptions: TestOptions.Regular,
                 withScriptOption: true)
             );
+        }
+
+        [WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestGenerateLocalConflictingName1()
+        {
+            await TestAsync(
+@"class Program
+{
+    class MySpan { public int Start { get; } public int End { get; } }
+    void Method(MySpan span)
+    {
+        int pos = span.Start;
+        while (pos < [|span.End|])
+        {
+            int spanEnd = span.End;
+            int end = pos;
+        }
+    }
+}",
+@"
+class Program
+{
+    class MySpan { public int Start { get; } public int End { get; } }
+    void Method(MySpan span)
+    {
+        int pos = span.Start;
+        int {|Rename:end1|} = span.End;
+        while (pos < end1)
+        {
+            int spanEnd = span.End;
+            int end = pos;
+        }
+    }
+}");
         }
     }
 }

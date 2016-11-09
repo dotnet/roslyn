@@ -351,36 +351,35 @@ End Module"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestLocalFromMultipleExpressionsInObjectInitializer() As Task
             Dim code =
-<File>
+"
 Module Program
     Structure FooStruct
         Dim FooMember1 As String
         Dim FooMember2 As String
     End Structure
     Sub Main(x As Integer)
-        Dim f1 = New FooStruct With {.FooMember1 = [|"t" + "test"|], .FooMember2 = "t" + "test"}
-        Dim f2 = New FooStruct With {.FooMember1 = "t" + "test", .FooMember2 = "t" + "test"}
-        Dim str As String = "t" + "test"
+        Dim f1 = New FooStruct With {.FooMember1 = [|""t"" + ""test""|], .FooMember2 = ""t"" + ""test""}
+        Dim f2 = New FooStruct With {.FooMember1 = ""t"" + ""test"", .FooMember2 = ""t"" + ""test""}
+        Dim str As String = ""t"" + ""test""
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Structure FooStruct
         Dim FooMember1 As String
         Dim FooMember2 As String
     End Structure
     Sub Main(x As Integer)
-        Const {|Rename:V|} As String = "t" + "test"
+        Const {|Rename:V|} As String = ""t"" + ""test""
         Dim f1 = New FooStruct With {.FooMember1 = V, .FooMember2 = V}
         Dim f2 = New FooStruct With {.FooMember1 = V, .FooMember2 = V}
         Dim str As String = V
     End Sub
 End Module
-</File>
-
+"
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
 
@@ -724,27 +723,27 @@ index:=3)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestIntroduceLocalForConstantExpressionWithTrailingTrivia() As Task
             Await TestAsync(
-<File>
+"
 Class C
     Private Function GetX() As Object
-        Return [|"c d
-" + ' comment 1
-"a
-b" ' comment 2|]
+        Return [|""c d
+"" + ' comment 1
+""a
+b"" ' comment 2|]
     End Function
 End Class
-</File>,
-<File>
+",
+"
 Class C
     Private Function GetX() As Object
-        Const {|Rename:V|} As String = "c d
-" + ' comment 1
-"a
-b"
+        Const {|Rename:V|} As String = ""c d
+"" + ' comment 1
+""a
+b""
         Return V ' comment 2
     End Function
 End Class
-</File>,
+",
 index:=3,
 compareTokens:=False)
         End Function
@@ -752,14 +751,14 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestIntroduceFieldWithTrailingTrivia() As Task
             Await TestAsync(
-<File>
+"
 Class C
     Private Sub S()
         Dim x = 1 + [|2|] ' comment
     End Sub
 End Class
-</File>,
-<File>
+",
+"
 Class C
     Private Const {|Rename:V|} As Integer = 2
 
@@ -767,7 +766,7 @@ Class C
         Dim x = 1 + V ' comment
     End Sub
 End Class
-</File>,
+",
 index:=1,
 compareTokens:=False)
         End Function
@@ -776,23 +775,23 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestFormattingForPartialExpression() As Task
             Dim code =
-<File>
+"
 Module Program
     Sub Main()
         Dim i = [|1 + 2|] + 3
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
         Const {|Rename:V|} As Integer = 1 + 2
         Dim i = V + 3
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=2, compareTokens:=False)
         End Function
@@ -974,7 +973,7 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestRangeArgumentLowerBound2() As Task
             Dim code =
-<File>
+"
 Module M
     Sub Main()
         Dim x() As Integer
@@ -982,10 +981,10 @@ Module M
         Dim a = [|0|] + 1
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module M
     Sub Main()
         Dim x() As Integer
@@ -994,7 +993,7 @@ Module M
         Dim a = V + 1
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
@@ -1146,7 +1145,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNestedMultiLineIf1() As Task
             Dim code =
-<File>
+"
 Imports System
 
 Module Program
@@ -1154,10 +1153,10 @@ Module Program
         If True Then If True Then Console.WriteLine([|1|]) Else Console.WriteLine(2) Else Console.WriteLine(3)
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
 
 Module Program
@@ -1175,7 +1174,7 @@ Module Program
         End If
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
@@ -1184,7 +1183,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNestedMultiLineIf2() As Task
             Dim code =
-<File>
+"
 Imports System
 
 Module Program
@@ -1192,10 +1191,10 @@ Module Program
         If True Then If True Then Console.WriteLine(1) Else Console.WriteLine([|2|]) Else Console.WriteLine(3)
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
 
 Module Program
@@ -1213,7 +1212,7 @@ Module Program
         End If
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
@@ -1222,7 +1221,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNestedMultiLineIf3() As Task
             Dim code =
-<File>
+"
 Imports System
 
 Module Program
@@ -1230,10 +1229,10 @@ Module Program
         If True Then If True Then Console.WriteLine(1) Else Console.WriteLine(2) Else Console.WriteLine([|3|])
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
 
 Module Program
@@ -1246,7 +1245,7 @@ Module Program
         End If
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
@@ -1692,7 +1691,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestImplicitMemberAccess4() As Task
             Dim code =
-<File>
+"
 Imports System
 Public Class C1
     Public FieldInt As Long
@@ -1704,10 +1703,10 @@ Public Class C2
         Dim x = 1 + [|New C1() With {.FieldStr = .FieldInt.ToString()}|]
     End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
 Public Class C1
     Public FieldInt As Long
@@ -1720,7 +1719,7 @@ Public Class C2
         Dim x = 1 + c11
     End Sub
 End Class
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -1796,22 +1795,22 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestDoNotMergeAmpersand() As Task
             Dim code =
-<File>
+"
 Module Module1
-    Public Sub foo(Optional ByVal arg = ([|"a"|]) &amp; "b")
+    Public Sub foo(Optional ByVal arg = ([|""a""|]) & ""b"")
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Module1
-    Private Const {|Rename:V|} As String = "a"
+    Private Const {|Rename:V|} As String = ""a""
 
-    Public Sub foo(Optional ByVal arg = V &amp; "b")
+    Public Sub foo(Optional ByVal arg = V & ""b"")
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -1820,31 +1819,31 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestVenusGeneration1() As Task
             Dim code =
-<File>
+"
 Class C
     Sub Foo()
-#ExternalSource ("Foo", 1)
+#ExternalSource (""Foo"", 1)
         Console.WriteLine([|5|])
 #End ExternalSource
    End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Class C
     Sub Foo()
-#ExternalSource ("Foo", 1)
+#ExternalSource (""Foo"", 1)
         Const {|Rename:V|} As Integer = 5
         Console.WriteLine(V)
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
-            Await TestExactActionSetOfferedAsync(code.NormalizedValue,
-                                      {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
-                                       String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
+            Await TestExactActionSetOfferedAsync(code,
+                {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
+                String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -1853,9 +1852,9 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestVenusGeneration2() As Task
             Dim code =
-<Text>
+"
 Class C
-#ExternalSource ("Foo", 1)
+#ExternalSource (""Foo"", 1)
     Sub Foo()
         If False Then
             Console.WriteLine([|5|])
@@ -1863,9 +1862,9 @@ Class C
     End Sub
 #End ExternalSource
 End Class
-</Text>
+"
 
-            Await TestExactActionSetOfferedAsync(code.NormalizedValue,
+            Await TestExactActionSetOfferedAsync(code,
                                       {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
                                        String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
         End Function
@@ -1874,23 +1873,23 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestVenusGeneration3() As Task
             Dim code =
-<File>
+"
 Class C
     Sub Foo()
-#ExternalSource ("Foo", 1)
+#ExternalSource (""Foo"", 1)
         If False Then
             Console.WriteLine([|5|])
         End If
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Class C
     Sub Foo()
-#ExternalSource ("Foo", 1)
+#ExternalSource (""Foo"", 1)
         If False Then
             Const {|Rename:V|} As Integer = 5
             Console.WriteLine(V)
@@ -1898,9 +1897,9 @@ Class C
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
-            Await TestExactActionSetOfferedAsync(code.NormalizedValue,
+            Await TestExactActionSetOfferedAsync(code,
                                       {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
                                        String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
@@ -1976,7 +1975,7 @@ parseOptions:=GetScriptOptions())
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingInRefLocation() As Task
             Dim markup =
-<File>
+"
 Module A
     Sub Main()
         Foo([|1|])
@@ -1986,7 +1985,7 @@ Module A
     Sub Foo(x As String)
     End Sub
 End Module
-</File>
+"
 
             Await TestMissingAsync(markup)
         End Function
@@ -2038,7 +2037,7 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestTrailingTrivia() As Task
             Dim code =
-<File>
+"
 Module M
     Sub Main()
         Dim a = 1 +
@@ -2046,10 +2045,10 @@ Module M
 
         End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module M
     Private Const {|Rename:V|} As Integer = 2
 
@@ -2059,7 +2058,7 @@ Module M
 
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2114,17 +2113,17 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestIntroLocalInSingleLineLambda() As Task
             Dim code =
-<File>
+"
 Module Program
     Sub Main()
         Dim x = Function() [|Sub()
                            End Sub|]
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
         Dim {|Rename:p|} = Sub()
@@ -2132,7 +2131,7 @@ Module Program
         Dim x = Function() p
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2141,16 +2140,16 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestSingleToMultilineLambdaLineBreaks() As Task
             Dim code =
-<File>
+"
 Module Program
     Sub Main()
         Dim a = Function(c) [|c!foo|]
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
         Dim a = Function(c)
@@ -2159,7 +2158,7 @@ Module Program
                 End Function
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2168,31 +2167,31 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestEscapeKeywordsIfNeeded1() As Task
             Dim code =
-<File>
+"
 Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Take([|From x In ""|])
+        Take([|From x In """"|])
     End Sub
     Sub Take(x)
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim {|Rename:enumerable1|} As IEnumerable(Of Char) = From x In ""
+        Dim {|Rename:enumerable1|} As IEnumerable(Of Char) = From x In """"
         [Take](enumerable1)
     End Sub
     Sub Take(x)
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2201,10 +2200,10 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInsertAfterPreprocessor1() As Task
             Dim code =
-<File>
+"
 Public Class Index_vbhtml
     Public Sub Execute()
-#ExternalSource ("Home\Index.vbhtml", 1)
+#ExternalSource (""Home\Index.vbhtml"", 1)
         Dim i = [|1 + 2|] + 3
         If True Then
             Dim j = 1 + 2 + 3
@@ -2212,13 +2211,13 @@ Public Class Index_vbhtml
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Public Class Index_vbhtml
     Public Sub Execute()
-#ExternalSource ("Home\Index.vbhtml", 1)
+#ExternalSource (""Home\Index.vbhtml"", 1)
         Const {|Rename:V|} As Integer = 1 + 2
         Dim i = V + 3
         If True Then
@@ -2227,7 +2226,7 @@ Public Class Index_vbhtml
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2236,10 +2235,10 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInsertAfterPreprocessor2() As Task
             Dim code =
-<File>
+"
 Public Class Index_vbhtml
     Public Sub Execute()
-#ExternalSource ("Home\Index.vbhtml", 1)
+#ExternalSource (""Home\Index.vbhtml"", 1)
         Dim i = 1 + 2 + 3
         If True Then
             Dim j = [|1 + 2|] + 3
@@ -2247,13 +2246,13 @@ Public Class Index_vbhtml
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Public Class Index_vbhtml
     Public Sub Execute()
-#ExternalSource ("Home\Index.vbhtml", 1)
+#ExternalSource (""Home\Index.vbhtml"", 1)
         Dim i = 1 + 2 + 3
         If True Then
             Const {|Rename:V|} As Integer = 1 + 2
@@ -2262,7 +2261,7 @@ Public Class Index_vbhtml
 #End ExternalSource
     End Sub
 End Class
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2271,7 +2270,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestDontRemoveParenthesesIfOperatorPrecedenceWouldBeBroken() As Task
             Dim code =
-<File>
+"
 Imports System
  
 Module Program
@@ -2279,10 +2278,10 @@ Module Program
         Console.WriteLine(5 - ([|1|] + 2))
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
  
 Module Program
@@ -2291,7 +2290,7 @@ Module Program
         Console.WriteLine(5 - (V + 2))
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=2, compareTokens:=False)
         End Function
@@ -2300,27 +2299,27 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestDontSimplifyParentUnlessEntireInnerNodeIsSelected() As Task
             Dim code =
-<File>
+"
 Imports System
  
 Module Program
     Sub Main()
-        Dim s = "Text"
+        Dim s = ""Text""
         Dim x = 42
         If ([|s.Length|].CompareTo(x) > 0 AndAlso
             s.Length.CompareTo(x) > 0) Then
         End If
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
  
 Module Program
     Sub Main()
-        Dim s = "Text"
+        Dim s = ""Text""
         Dim x = 42
         Dim {|Rename:length|} As Integer = s.Length
         If (length.CompareTo(x) > 0 AndAlso
@@ -2328,7 +2327,7 @@ Module Program
         End If
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=1, compareTokens:=False)
         End Function
@@ -2337,7 +2336,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestIntroduceLocalWithTriviaInMultiLineStatements() As Task
             Dim code =
-<File>
+"
 Imports System
  
 Module Program
@@ -2347,10 +2346,10 @@ Module Program
                    2)
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
  
 Module Program
@@ -2361,7 +2360,7 @@ Module Program
                    2)
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=3, compareTokens:=False)
         End Function
@@ -2370,7 +2369,7 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnNothingLiteral() As Task
             Await TestMissingAsync(
-<File>
+"
 Imports System
 Module Program
     Sub Main(args As String())
@@ -2381,14 +2380,14 @@ Module Program
     Sub M(i As Integer)
     End Sub
 End Module
-</File>)
+")
         End Function
 
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInParentConditionalAccessExpressions() As Task
             Dim code =
-<File>
+"
 Imports System
 Class C
     Function F(Of T)(x As T) As T
@@ -2396,9 +2395,9 @@ Class C
         Return x
     End Function
 End Class
-</File>
+"
             Dim expected =
-<File>
+"
 Imports System
 Class C
     Function F(Of T)(x As T) As T
@@ -2407,7 +2406,7 @@ Class C
         Return x
     End Function
 End Class
-</File>
+"
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
@@ -2416,7 +2415,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingAcrossMultipleParentConditionalAccessExpressions() As Task
             Await TestMissingAsync(
-<File>
+"
 Imports System
 Class C
     Function F(Of T)(x As T) As T
@@ -2424,14 +2423,14 @@ Class C
         Return x
     End Function
 End Class
-</File>)
+")
         End Function
 
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnInvocationExpressionInParentConditionalAccessExpressions() As Task
             Await TestMissingAsync(
-<File>
+"
 Imports System
 Class C
     Function F(Of T)(x As T) As T
@@ -2439,29 +2438,29 @@ Class C
         Return x
     End Function
 End Class
-</File>)
+")
         End Function
 
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestMissingOnMemberBindingExpressionInParentConditionalAccessExpressions() As Task
             Await TestMissingAsync(
-<File>
+"
 Imports System
 Class C
     Sub F()
-        Dim s as String = "Text"
+        Dim s as String = ""Text""
         Dim l = s?.[|Length|]
     End Sub
 End Class
-</File>)
+")
         End Function
 
         <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestReplaceAllFromInsideIfBlock() As Task
             Dim code =
-<File>
+"
 Imports System
 Module DataTipInfoGetterModule
     Friend Function GetInfoAsync() As DebugDataTipInfo
@@ -2488,10 +2487,10 @@ Friend Class DebugDataTipInfo
     Public Sub New(span As Object)
     End Sub
 End Class
-</File>
+"
 
             Dim expected =
-<File>
+"
 Imports System
 Module DataTipInfoGetterModule
     Friend Function GetInfoAsync() As DebugDataTipInfo
@@ -2519,14 +2518,14 @@ Friend Class DebugDataTipInfo
     Public Sub New(span As Object)
     End Sub
 End Class
-</File>
+"
 
             Await TestAsync(code, expected, index:=1, compareTokens:=False)
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        Public Async Function TestIntroduceVariableTextDoesntSpanLines() As Task
+        Public Async Function TestIntroduceVariableTextDoesntSpanLines1() As Task
             Dim code = "
 Class C
     Sub M()
@@ -2539,29 +2538,44 @@ End Class"
             Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
         End Function
 
+        <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestIntroduceVariableTextDoesntSpanLines2() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim s = """" + [|$""a
+
+b
+c""|]
+    End Sub
+End Class"
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_for_0, "$""a b c"""), index:=0)
+        End Function
+
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNoConstantForInterpolatedStrings1() As Task
             Dim code =
-<File>
+"
 Module Program
     Sub Main()
         Dim args As String() = Nothing
-        Console.WriteLine([|$"{DateTime.Now.ToString()}Text{args(0)}"|])
+        Console.WriteLine([|$""{DateTime.Now.ToString()}Text{args(0)}""|])
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
         Dim args As String() = Nothing
-        Dim {|Rename:v|} As String = $"{DateTime.Now.ToString()}Text{args(0)}"
+        Dim {|Rename:v|} As String = $""{DateTime.Now.ToString()}Text{args(0)}""
         Console.WriteLine(v)
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
@@ -2570,25 +2584,25 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNoConstantForInterpolatedStrings2() As Task
             Dim code =
-<File>
+"
 Module Program
     Sub Main()
-        Console.WriteLine([|$"Text{{s}}"|])
-        Console.WriteLine($"Text{{s}}")
+        Console.WriteLine([|$""Text{{s}}""|])
+        Console.WriteLine($""Text{{s}}"")
     End Sub
 End Module
-</File>
+"
 
             Dim expected =
-<File>
+"
 Module Program
     Sub Main()
-        Dim {|Rename:v|} As String = $"Text{{s}}"
+        Dim {|Rename:v|} As String = $""Text{{s}}""
         Console.WriteLine(v)
         Console.WriteLine(v)
     End Sub
 End Module
-</File>
+"
 
             Await TestAsync(code, expected, index:=1, compareTokens:=False)
         End Function
@@ -2630,20 +2644,20 @@ End Namespace"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInAutoPropertyInitializerEqualsClause() As Task
             Dim code =
-<File>
+"
 Imports System
 Class C
-    Property Name As String = [|"Roslyn"|]
+    Property Name As String = [|""Roslyn""|]
 End Class
-</File>
+"
             Dim expected =
-<File>
+"
 Imports System
 Class C
-    Private Const {|Rename:V|} As String = "Roslyn"
+    Private Const {|Rename:V|} As String = ""Roslyn""
     Property Name As String = V
 End Class
-</File>
+"
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
@@ -2651,20 +2665,20 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInAutoPropertyWithCollectionInitializerAfterEqualsClause() As Task
             Dim code =
-<File>
+"
 Imports System
 Class C
     Property Grades As Integer() = [|{90, 73}|]
 End Class
-</File>
+"
             Dim expected =
-<File>
+"
 Imports System
 Class C
     Private Shared ReadOnly {|Rename:p|} As Integer() = {90, 73}
     Property Grades As Integer() = p
 End Class
-</File>
+"
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
@@ -2672,20 +2686,20 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInAutoPropertyInitializerAsClause() As Task
             Dim code =
-<File>
+"
 Imports System
 Class C
-        Public Property Items As New List(Of String) From {[|"M"|], "T", "W"}
+        Public Property Items As New List(Of String) From {[|""M""|], ""T"", ""W""}
 End Class
-</File>
+"
             Dim expected =
-<File>
+"
 Imports System
 Class C
-    Private Const {|Rename:V|} As String = "M"
-    Public Property Items As New List(Of String) From {V, "T", "W"}
+    Private Const {|Rename:V|} As String = ""M""
+    Public Property Items As New List(Of String) From {V, ""T"", ""W""}
 End Class
-</File>
+"
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
@@ -2693,22 +2707,52 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestInAutoPropertyObjectCreationExpressionWithinAsClause() As Task
             Dim code =
-<File>
+"
 Imports System
 Class C
         Property Orders As New List(Of Object)([|500|])
 End Class
-</File>
+"
             Dim expected =
-<File>
+"
 Imports System
 Class C
     Private Const {|Rename:V|} As Integer = 500
     Property Orders As New List(Of Object)(V)
 End Class
-</File>
+"
             Await TestAsync(code, expected, index:=0, compareTokens:=False)
         End Function
 
+        <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestGenerateLocalConflictingName1() As Task
+            Await TestAsync(
+"class Program
+    class MySpan
+        public Start as integer
+    end class
+
+    sub Method(span as MySpan)
+        dim pos as integer = span.Start
+        while pos < [|span.Start|]
+            dim start as integer = pos
+        end while
+    end sub
+end class",
+"class Program
+    class MySpan
+        public Start as integer
+    end class
+
+    sub Method(span as MySpan)
+        dim pos as integer = span.Start
+        Dim {|Rename:start1|} As Integer = span.Start
+        while pos < start1
+            dim start as integer = pos
+        end while
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
