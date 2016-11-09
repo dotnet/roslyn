@@ -37,10 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
         }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IsExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {

@@ -40,11 +40,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
         }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(AnalyzeNode, GetObjectCreationSyntaxKind());
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, GetObjectCreationSyntaxKind());
 
         protected abstract TSyntaxKind GetObjectCreationSyntaxKind();
 

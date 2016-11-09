@@ -38,19 +38,18 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
         }
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(OnCompilationStart);
+
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(compilationContext =>
+            var ienumerableType = context.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+            if (ienumerableType != null)
             {
-                var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
-                if (ienumerableType != null)
-                {
-                    context.RegisterSyntaxNodeAction(
-                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                        GetObjectCreationSyntaxKind());
-                }
-            });
+                context.RegisterSyntaxNodeAction(
+                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                    GetObjectCreationSyntaxKind());
+            }
         }
 
         protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
