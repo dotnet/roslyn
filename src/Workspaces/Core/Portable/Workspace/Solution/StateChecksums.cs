@@ -22,11 +22,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Info => (Checksum)Children[0];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[1];
 
-        public SolutionStateChecksums With(Checksum infoChecksum = null, ProjectChecksumCollection projectChecksums = null)
-        {
-            return new SolutionStateChecksums(infoChecksum ?? Info, projectChecksums ?? Projects);
-        }
-
         public void Find(
             SolutionState state,
             HashSet<Checksum> searchingChecksumsLeft,
@@ -110,27 +105,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[6];
 
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
-
-        public ProjectStateChecksums With(
-            Checksum infoChecksum = null,
-            Checksum compilationOptionsChecksum = null,
-            Checksum parseOptionsChecksum = null,
-            DocumentChecksumCollection documentChecksums = null,
-            ProjectReferenceChecksumCollection projectReferenceChecksums = null,
-            MetadataReferenceChecksumCollection metadataReferenceChecksums = null,
-            AnalyzerReferenceChecksumCollection analyzerReferenceChecksums = null,
-            TextDocumentChecksumCollection additionalDocumentChecksums = null)
-        {
-            return new ProjectStateChecksums(
-                infoChecksum ?? Info,
-                compilationOptionsChecksum ?? CompilationOptions,
-                parseOptionsChecksum ?? ParseOptions,
-                documentChecksums ?? Documents,
-                projectReferenceChecksums ?? ProjectReferences,
-                metadataReferenceChecksums ?? MetadataReferences,
-                analyzerReferenceChecksums ?? AnalyzerReferences,
-                additionalDocumentChecksums ?? AdditionalDocuments);
-        }
 
         public void Find(
             ProjectState state,
@@ -260,11 +234,6 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public Checksum Info => (Checksum)Children[0];
         public Checksum Text => (Checksum)Children[1];
-
-        public DocumentStateChecksums With(Checksum infoChecksum = null, Checksum textChecksum = null)
-        {
-            return new DocumentStateChecksums(infoChecksum ?? Info, textChecksum ?? Text);
-        }
 
         public void Find(
             TextDocumentState state,
