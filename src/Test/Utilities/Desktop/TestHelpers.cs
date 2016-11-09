@@ -152,21 +152,17 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
         public static string GetMSBuildDirectory()
         {
-            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-            using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "15.0";
+
+            string msbuildDirectory = Environment.GetEnvironmentVariable("MSBuildDirectory");
+
+            if (msbuildDirectory == null)
             {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
+                var vsInstallPath = VSInstall.GetInstallPath(vsVersion, new[] { "Microsoft.Component.MSBuild" });
+                msbuildDirectory = Path.Combine(vsInstallPath, "MSBuild", vsVersion, "bin");
             }
 
-            return null;
+            return msbuildDirectory;
         }
-
     }
 }
