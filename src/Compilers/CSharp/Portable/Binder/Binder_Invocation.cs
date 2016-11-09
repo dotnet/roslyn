@@ -1211,6 +1211,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
                 }
+                else if (argument.Kind == BoundKind.DiscardedExpression && argument.Type == null)
+                {
+                    newArguments[i] = ((BoundDiscardedExpression)argument).Update(CreateErrorType("var"));
+                }
             }
 
             return newArguments.ToImmutableAndFree();

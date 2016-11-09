@@ -8695,11 +8695,28 @@ tryAgain:
             }
             else
             {
-                var identifier = this.EatToken(SyntaxKind.IdentifierToken);
-                result = _syntaxFactory.SingleVariableDesignation(identifier);
+                result = ParseSimpleDesignation();
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Parse a single variable designation (e.g. `x`) or a wildcard designation (e.g. `_`)
+        /// </summary>
+        /// <returns></returns>
+        private VariableDesignationSyntax ParseSimpleDesignation()
+        {
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)
+            {
+                var underscore = this.EatContextualToken(SyntaxKind.UnderscoreToken);
+                return _syntaxFactory.DiscardedDesignation(underscore);
+            }
+            else
+            {
+                var identifier = this.EatToken(SyntaxKind.IdentifierToken);
+                return _syntaxFactory.SingleVariableDesignation(identifier);
+            }
         }
 
         /// <summary>
@@ -9949,10 +9966,10 @@ tryAgain:
                 if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword && IsPossibleOutVarDeclaration())
                 {
                     TypeSyntax typeSyntax = ParseType();
-                    SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
+                    var designation = CheckFeatureAvailability(ParseSimpleDesignation(), MessageID.IDS_FeatureOutVar);
                     expression = _syntaxFactory.DeclarationExpression(
                                                     typeSyntax,
-                                                    _syntaxFactory.SingleVariableDesignation(identifier));
+                                                    designation);
                 }
                 else
                 {

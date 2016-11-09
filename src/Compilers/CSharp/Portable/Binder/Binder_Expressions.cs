@@ -2340,6 +2340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
+                else if (argument.Kind == BoundKind.DiscardedExpression && argument.Type == null)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    Debug.Assert((object)parameterType != null);
+                    arguments[arg] = ((BoundDiscardedExpression)argument).Update(parameterType);
+                }
             }
         }
 

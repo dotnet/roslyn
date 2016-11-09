@@ -260,8 +260,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
                 {
-                    BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).SetInferredType(foundTypes[i], this, diagnostics);
-                    variables[i] = new DeconstructionVariable(local, local.Syntax);
+                    switch (variable.Single.Kind)
+                    {
+                        case BoundKind.DeconstructionVariablePendingInference:
+                            {
+                                var pending = (DeconstructionVariablePendingInference)variable.Single;
+                                BoundExpression local = pending.SetInferredType(foundTypes[i], this, diagnostics);
+                                variables[i] = new DeconstructionVariable(local, local.Syntax);
+                            }
+                            break;
+                        case BoundKind.DiscardedExpression:
+                            {
+                                var pending = (BoundDiscardedExpression)variable.Single;
+                                if ((object)pending.Type == null)
+                                {
+                                    variables[i] = new DeconstructionVariable(pending.Update(foundTypes[i]), pending.Syntax);
+                                }
+                            }
+                            break;
+                    }
                 }
             }
         }
@@ -281,11 +298,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
+                    switch (variable.Single.Kind)
                     {
-                        BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
-                        variables[i] = new DeconstructionVariable(local, local.Syntax);
+                        case BoundKind.DeconstructionVariablePendingInference:
+                            BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
+                            variables[i] = new DeconstructionVariable(local, local.Syntax);
+                            break;
+                        case BoundKind.DiscardedExpression:
+                            var pending = (BoundDiscardedExpression)variable.Single;
+                            if ((object)pending.Type == null)
+                            {
+                                Binder.Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, variable.Single.Syntax, "_");
+                                variables[i] = new DeconstructionVariable(pending.Update(CreateErrorType("var")), pending.Syntax);
+                            }
+                            break;
                     }
+
+                    // at this point we expect to have a type for every lvalue
+                    Debug.Assert((object)variables[i].Single.Type != null);
                 }
             }
         }
@@ -692,6 +722,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var single = (SingleVariableDesignationSyntax)node;
                         return new DeconstructionVariable(BindDeconstructionDeclarationVariable(type, single, diagnostics), node);
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    {
+                        var discarded = (DiscardedDesignationSyntax)node;
+                        return new DeconstructionVariable(BindDiscardedExpression(discarded, type, diagnostics), node);
+                    }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)node;
@@ -705,6 +740,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+        }
+
+        private BoundExpression BindDiscardedExpression(
+            DiscardedDesignationSyntax designation,
+            TypeSyntax typeSyntax,
+            DiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+
+            if (!isVar)
+            {
+                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                {
+                    // An explicit type can only be provided next to the wildcard
+                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
+                    hasErrors = true;
+                }
+            }
+
+            return new BoundDiscardedExpression(designation, isVar ? null : declType, hasErrors);
         }
 
         /// <summary>
