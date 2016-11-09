@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 case SyntaxKind.ForStatement: return BlockTypes.Loop;
                 case SyntaxKind.ForEachStatement: return BlockTypes.Loop;
-                case SyntaxKind.ForEachComponentStatement: return BlockTypes.Loop;
+                case SyntaxKind.ForEachVariableStatement: return BlockTypes.Loop;
                 case SyntaxKind.WhileStatement: return BlockTypes.Loop;
                 case SyntaxKind.DoStatement: return BlockTypes.Loop;
 

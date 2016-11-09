@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Instrument)
             {
                 CommonForEachStatementSyntax forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-                if (forEachSyntax is ForEachComponentStatementSyntax)
+                if (forEachSyntax is ForEachVariableStatementSyntax)
                 {
                     iterationVarDecl = _instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
                 }

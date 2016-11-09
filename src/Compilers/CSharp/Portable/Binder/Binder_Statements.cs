@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                    result = BindDeconstructionDeclarationStatement((DeconstructionDeclarationStatementSyntax)node, diagnostics);
-                    break;
                 case SyntaxKind.LocalFunctionStatement:
                     result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
                     break;
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindFor((ForStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     result = BindForEach((CommonForEachStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.BreakStatement:
@@ -283,7 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                     binder = this.GetBinder(node);
@@ -1729,9 +1725,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
-            if (node.Left.Kind() == SyntaxKind.TupleExpression)
+            if (node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindDeconstructionAssignment(node, diagnostics);
+                return BindDeconstruction(node, diagnostics);
             }
 
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);

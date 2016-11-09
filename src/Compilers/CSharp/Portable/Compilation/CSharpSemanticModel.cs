@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
-            SyntaxNode parent;
+            DeclarationExpressionSyntax parent;
 
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
@@ -521,15 +521,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else if (SyntaxFacts.IsVariableComponentType(expression, out parent))
+            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out parent))
             {
-                var declaration = (TypedVariableComponentSyntax)parent;
-                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                if (parent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
                 {
                     return SymbolInfo.None;
                 }
 
-                return TypeFromVariable((SingleVariableDesignationSyntax)declaration.Designation, cancellationToken);
+                return TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
             }
 
             return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);

@@ -31,3 +31,4 @@ Our build process depends on being able to correctly classify our projects.  Thi
 
 This could be done using MSBuild targets but the logic is hard to follow and complicates the build.  It's easier to verify here.
 
+

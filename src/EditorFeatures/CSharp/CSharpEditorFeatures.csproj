@@ -85,7 +85,7 @@
     <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
+    <Compile Include="ChangeSignature\CSharpChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />

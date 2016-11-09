@@ -64,7 +64,7 @@ msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\Deployment\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\Exes\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
 copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
@@ -120,7 +120,7 @@ echo Running RepoUtil
 
 REM Verify the state of our project.jsons
 echo Running BuildBoss
-.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

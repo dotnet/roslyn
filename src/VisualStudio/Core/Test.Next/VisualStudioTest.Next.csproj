@@ -199,5 +199,4 @@
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

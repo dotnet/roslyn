@@ -18,37 +18,6 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\..\Binaries\Debug\amd64</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <OutDir>..\..\..\..\..\Binaries\Release\amd64</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
   <ItemGroup>
     <Content Include="Analyzers\FaultyAnalyzer.cs" />
     <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
