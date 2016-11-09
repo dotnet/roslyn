@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         string FilePath { get; }
 
         /// <summary>
+        /// Exception thrown attempting to load the project.
+        /// </summary>
+        Exception LoadException { get; }
+
+        /// <summary>
         /// Gets the project file info asynchronously.
         /// </summary>
         Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);

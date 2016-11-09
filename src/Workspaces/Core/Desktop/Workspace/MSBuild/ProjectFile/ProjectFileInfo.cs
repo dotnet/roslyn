@@ -42,13 +42,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public IReadOnlyList<ProjectFileReference> ProjectReferences { get; }
 
+        /// <summary>
+        /// An exception produced by the build system.
+        /// </summary>
+        public Exception BuildException { get; }
+
         public ProjectFileInfo(
             string outputPath,
             string assemblyName,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
-            IEnumerable<ProjectFileReference> projectReferences)
+            IEnumerable<ProjectFileReference> projectReferences,
+            Exception buildException)
         {
             this.OutputFilePath = outputPath;
             this.AssemblyName = assemblyName;
@@ -56,6 +62,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
+            this.BuildException = buildException;
         }
     }
 }

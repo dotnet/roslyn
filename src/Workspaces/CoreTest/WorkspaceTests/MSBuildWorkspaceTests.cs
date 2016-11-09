@@ -1278,7 +1278,7 @@ class C1
             Assert.Equal(1, project.Solution.ProjectIds.Count);
             Assert.Equal(0, project.ProjectReferences.Count());
             Assert.Equal(1, project.AllProjectReferences.Count());
-            Assert.Equal(2, diags.Count);
+            Assert.Equal(1, diags.Count);
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2914,6 +2914,51 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            string message = null;
+
+            ws.WorkspaceFailed += (sender, args) =>
+            {
+                message = args.Diagnostic.Message;
+            };
+
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.NotNull(message);
+            Assert.True(message.StartsWith("Cannot open"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenSolution_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            string message = null;
+
+            ws.WorkspaceFailed += (sender, args) =>
+            {
+                message = args.Diagnostic.Message;
+            };
+
+            var solution = await ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln"));
+
+            Assert.NotNull(message);
+            Assert.True(message.StartsWith("Cannot open"));
+
+            Assert.Equal(1, solution.ProjectIds.Count);
+            Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

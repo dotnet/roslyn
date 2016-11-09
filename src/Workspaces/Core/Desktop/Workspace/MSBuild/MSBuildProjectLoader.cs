@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Determines if unrecognized projects are skipped when solutions or projects are opened.
         /// 
-        /// An project is unrecognized if it either has 
+        /// A project is unrecognized if it either has 
         ///   a) an invalid file path, 
         ///   b) a non-existent project file,
         ///   c) has an unrecognized file extension or 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         {
                             // projects get added to 'loadedProjects' as side-effect
                             // never prefer metadata when loading solution, all projects get loaded if they can.
-                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, reportBuildFailures: ReportMode.Log, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader);
 
             var loadedProjects = new LoadState(projectPathToProjectIdMap);
-            var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
+
+            var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, ReportMode.Log, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             var result = loadedProjects.Projects.Reverse().ToImmutableArray();
             Debug.Assert(result[0].Id == id);
@@ -303,42 +304,46 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, ReportMode reportBuildFailures, LoadState loadedProjects, CancellationToken cancellationToken)
         {
             var projectId = loadedProjects.GetProjectId(projectFilePath);
             if (projectId == null)
             {
-                projectId = await this.LoadProjectAsync(projectFilePath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                projectId = await this.LoadProjectAsync(projectFilePath, loader, preferMetadata, reportBuildFailures, loadedProjects, cancellationToken).ConfigureAwait(false);
             }
 
             return projectId;
         }
 
-        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, ReportMode reportBuildFailures, LoadState loadedProjects, CancellationToken cancellationToken)
         {
             Debug.Assert(projectFilePath != null);
             Debug.Assert(loader != null);
 
             var projectId = loadedProjects.GetOrCreateProjectId(projectFilePath);
-
             var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
+            if (projectFile.LoadException != null)
+            {
+                ReportFailure(reportBuildFailures, string.Format(WorkspaceDesktopResources.Cannot_open_project_0_because_msbuild_failed_with_message_1, projectFilePath, projectFile.LoadException.Message));
+                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
+                return projectId;
+            }
+
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+            if (projectFileInfo.BuildException != null)
+            {
+                ReportFailure(reportBuildFailures, string.Format(WorkspaceDesktopResources.Cannot_open_project_0_because_msbuild_failed_with_message_1, projectFilePath, projectFileInfo.BuildException.Message));
+                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
+                return projectId;
+            }
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
             var outputFilePath = projectFileInfo.OutputFilePath;
             var outputDirectory = Path.GetDirectoryName(outputFilePath);
 
-            VersionStamp version;
-            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
-            {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
-            }
-            else
-            {
-                version = VersionStamp.Create();
-            }
+            var version = GetProjectVersion(projectFilePath);
 
             // translate information from command line args
             var commandLineParser = _workspace.Services.GetLanguageServices(loader.Language).GetService<ICommandLineParserService>();
@@ -418,13 +423,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var assemblyName = commandLineArgs.CompilationName;
             if (string.IsNullOrWhiteSpace(assemblyName))
             {
-                assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-                // if this is still unreasonable, use a fixed name.
-                if (string.IsNullOrWhiteSpace(assemblyName))
-                {
-                    assemblyName = "assembly";
-                }
+                assemblyName = GetAssemblyNameFromProjectPath(projectFilePath);
             }
 
             // make sure that doc-comments at least get parsed.
@@ -463,6 +462,58 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     hostObjectType: null));
 
             return projectId;
+        }
+
+        private static VersionStamp GetProjectVersion(string projectFilePath)
+        {
+            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
+            {
+                return VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
+            }
+            else
+            {
+                return VersionStamp.Create();
+            }
+        }
+
+        private ProjectInfo CreateEmptyProjectInfo(ProjectId projectId, string projectFilePath, string language)
+        {
+            var languageService = _workspace.Services.GetLanguageServices(language);
+            var parseOptions = languageService.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
+            var compilationOptions = languageService.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
+            var version = GetProjectVersion(projectFilePath);
+
+            return ProjectInfo.Create(
+                projectId,
+                version,
+                projectName,
+                assemblyName: GetAssemblyNameFromProjectPath(projectFilePath),
+                language: language,
+                filePath: projectFilePath,
+                outputFilePath: string.Empty,
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
+                metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
+                analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
+                additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                isSubmission: false,
+                hostObjectType: null);
+        }
+
+        private static string GetAssemblyNameFromProjectPath(string projectFilePath)
+        {
+            var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
+
+            // if this is still unreasonable, use a fixed name.
+            if (string.IsNullOrWhiteSpace(assemblyName))
+            {
+                assemblyName = "assembly";
+            }
+
+            return assemblyName;
         }
 
         private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
@@ -553,7 +604,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (TryGetLoaderFromProjectPath(fullPath, reportMode, out loader))
                     {
                         // load the project
-                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, ReportMode.Log, loadedProjects, cancellationToken).ConfigureAwait(false);
 
                         // If that other project already has a reference on us, this will cause a circularity.
                         // This check doesn't need to be in the "already loaded" path above, since in any circularity this path

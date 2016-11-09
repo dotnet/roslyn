@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
+        private readonly Exception _loadException;
 
-        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject)
+        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, Exception loadException)
         {
             _loader = loader;
             _loadedProject = loadedProject;
+            _loadException = loadException;
         }
 
         ~ProjectFile()
@@ -43,6 +45,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _loadedProject.FullPath; }
         }
 
+        public Exception LoadException
+        {
+            get { return _loadException; }
+        }
+
         public string GetPropertyValue(string name)
         {
             return _loadedProject.GetPropertyValue(name);
@@ -52,7 +59,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
 
-        protected async Task<ProjectInstance> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
+        public struct BuildInfo
+        {
+            public readonly ProjectInstance Project;
+            public readonly Exception Exception;
+
+            public BuildInfo(ProjectInstance project, Exception exception)
+            {
+                this.Project = project;
+                this.Exception = exception;
+            }
+        }
+
+        protected async Task<BuildInfo> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
         {
             // prepare for building
             var buildTargets = new BuildTargets(_loadedProject, "Compile");
@@ -67,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             if (!executedProject.Targets.ContainsKey("Compile"))
             {
-                return executedProject;
+                return new BuildInfo(executedProject, null);
             }
 
             var hostServices = new Microsoft.Build.Execution.HostServices();
@@ -75,18 +94,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
-            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
-
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, buildTargets.Targets, hostServices);
-
-            var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-            if (result.Exception != null)
+            try
             {
-                throw result.Exception;
-            }
+                var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
 
-            return executedProject;
+                var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, buildTargets.Targets, hostServices);
+
+                var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+
+                return new BuildInfo(executedProject, result.Exception);
+            }
+            catch (Exception e)
+            {
+                return new BuildInfo(project: null, exception: e);
+            }
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
