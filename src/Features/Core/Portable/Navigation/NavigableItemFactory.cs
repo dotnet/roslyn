@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -29,15 +30,16 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol, 
-            ImmutableArray<TaggedText>? displayTaggedParts)
+            ImmutableArray<TaggedText>? displayTaggedParts,
+            CancellationToken cancellationToken)
         {
-            var locations = GetPreferredSourceLocations(solution, symbol);
+            var locations = GetPreferredSourceLocations(solution, symbol, cancellationToken);
             return locations.Select(loc => GetItemFromSymbolLocation(
                 solution, symbol, loc, displayTaggedParts));
         }
 
         public static IEnumerable<Location> GetPreferredSourceLocations(
-            Solution solution, ISymbol symbol)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Prefer non-generated source locations over generated ones.
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Navigation
             var candidateLocationGroups = from c in sourceLocations
                                           let doc = solution.GetDocument(c.SourceTree)
                                           where doc != null
-                                          group c by generatedCodeRecognitionService.IsGeneratedCode(doc);
+                                          group c by generatedCodeRecognitionService.IsGeneratedCode(doc, cancellationToken);
 
             var generatedSourceLocations = candidateLocationGroups.SingleOrDefault(g => g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
             var nonGeneratedSourceLocations = candidateLocationGroups.SingleOrDefault(g => !g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
@@ -67,14 +69,19 @@ namespace Microsoft.CodeAnalysis.Navigation
                 : locations.Where(loc => loc.IsInSource);
         }
 
-        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(Solution solution, IEnumerable<INavigableItem> navigableItems)
+        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
+            Solution solution, 
+            IEnumerable<INavigableItem> navigableItems,
+            CancellationToken cancellationToken)
         {
             var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+            var hasNonGeneratedCodeItem = navigableItems.Any(
+                n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken));
+
             return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document))
-                : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+                ? navigableItems.Where(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken))
+                : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken));
         }
 
         public static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(Project project, ISymbol symbol)

@@ -144,7 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(
+                        this.CurrentSolution.GetDocument(hostDocument.Id), CancellationToken.None);
                 }
                 else
                 {
@@ -234,7 +235,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
+                solution, referencedSymbols, CancellationToken.None);
 
             foreach (var presenter in _referencedSymbolsPresenters)
             {

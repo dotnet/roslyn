@@ -1704,10 +1704,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
 
+        public bool IsComment(SyntaxTrivia trivia)
+            => trivia.IsRegularOrDocComment();
+
         public bool IsDocumentationComment(SyntaxNode node)
-        {
-            return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
-        }
+            => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
         public bool IsUsingOrExternOrImport(SyntaxNode node)
         {

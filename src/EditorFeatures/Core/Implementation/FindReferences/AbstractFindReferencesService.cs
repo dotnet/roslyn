@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // Otherwise, fall back to displaying SymbolFinder based references.
             var result = this.FindReferencedSymbolsAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
-            return TryDisplayReferences(result);
+            return TryDisplayReferences(result, waitContext.CancellationToken);
         }
 
         /// <summary>
@@ -172,14 +172,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return false;
         }
 
-        private bool TryDisplayReferences(Tuple<IEnumerable<ReferencedSymbol>, Solution> result)
+        private bool TryDisplayReferences(
+            Tuple<IEnumerable<ReferencedSymbol>, Solution> result, CancellationToken cancellationToken)
         {
             if (result != null && result.Item1 != null)
             {
                 var solution = result.Item2;
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 var definitionsAndReferences = factory.CreateDefinitionsAndReferences(
-                    solution, result.Item1);
+                    solution, result.Item1, cancellationToken);
 
                 foreach (var presenter in _referenceSymbolPresenters)
                 {
@@ -208,7 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // After the FAR engine is done call into any third party extensions to see
             // if they want to add results.
-            await findReferencesProgress.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+            await findReferencesProgress.CallThirdPartyExtensionsAsync(
+                context.CancellationToken).ConfigureAwait(true);
         }
 
         private async Task<ProgressAdapter> FindReferencesWorkerAsync(

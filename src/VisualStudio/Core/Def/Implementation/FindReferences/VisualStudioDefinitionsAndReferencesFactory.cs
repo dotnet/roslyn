@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.FindReferences;
@@ -29,12 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         }
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition)
+            Solution solution, ISymbol definition, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             string filePath;
             int lineNumber, charOffset;
-            if (!symbolNavigationService.WouldNavigateToSymbol(definition, solution, out filePath, out lineNumber, out charOffset))
+            if (!symbolNavigationService.WouldNavigateToSymbol(
+                    definition, solution, cancellationToken,
+                    out filePath, out lineNumber, out charOffset))
             {
                 return null;
             }

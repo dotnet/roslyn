@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
@@ -85,12 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 }
             }
 
-            public async Task CallThirdPartyExtensionsAsync()
+            public async Task CallThirdPartyExtensionsAsync(CancellationToken cancellationToken)
             {
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Keys)
                 {
-                    var item = factory.GetThirdPartyDefinitionItem(_solution, definition);
+                    var item = factory.GetThirdPartyDefinitionItem(
+                        _solution, definition, cancellationToken);
                     if (item != null)
                     {
                         // ConfigureAwait(true) because we want to come back on the 

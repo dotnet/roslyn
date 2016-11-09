@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
                 FixAllContext fixAllContext)
             {
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, fixAllContext.CancellationToken))
+                var cancellationToken = fixAllContext.CancellationToken;
+
+                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, cancellationToken))
                 {
                     var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
                     var projectsToFix = ImmutableArray<Project>.Empty;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Document:
-                            if (document != null && !generatedCodeServices.IsGeneratedCode(document))
+                            if (document != null && !generatedCodeServices.IsGeneratedCode(document, cancellationToken))
                             {
                                 var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                                 var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
@@ -82,19 +84,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             var tasks = new Task[projectsToFix.Length];
                             for (int i = 0; i < projectsToFix.Length; i++)
                             {
-                                fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                cancellationToken.ThrowIfCancellationRequested();
                                 var projectToFix = projectsToFix[i];
                                 tasks[i] = Task.Run(async () =>
                                 {
                                     var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
                                     foreach (var diagnostic in projectDiagnostics)
                                     {
-                                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                        cancellationToken.ThrowIfCancellationRequested();
                                         diagnostics.Add(diagnostic);
                                     }
 
                                     progressTracker.ItemCompleted();
-                                }, fixAllContext.CancellationToken);
+                                }, cancellationToken);
                             }
 
                             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -107,14 +109,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
                     }
 
-                    return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             private async static Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
                 ImmutableArray<Diagnostic> diagnostics,
                 ImmutableArray<Project> projects,
-                Func<Document, bool> isGeneratedCode, CancellationToken cancellationToken)
+                Func<Document, CancellationToken, bool> isGeneratedCode,
+                CancellationToken cancellationToken)
             {
                 var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
 
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var document = documentAndDiagnostics.Key;
-                    if (!isGeneratedCode(document))
+                    if (!isGeneratedCode(document, cancellationToken))
                     {
                         var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
                         builder.Add(document, diagnosticsForDocument);

@@ -621,7 +621,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        protected bool TryGetElementFromSource(CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
+        protected bool TryGetElementFromSource(
+            CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
         {
             element = null;
 
@@ -652,7 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     {
                         var document = project.GetDocument(location.SourceTree);
 
-                        if (generatedCodeRecognitionService?.IsGeneratedCode(document) == false)
+                        if (generatedCodeRecognitionService?.IsGeneratedCode(document, CancellationToken.None) == false)
                         {
                             chosenLocation = location;
                             chosenDocumentId = document.Id;

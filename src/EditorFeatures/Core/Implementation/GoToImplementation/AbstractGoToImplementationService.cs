@@ -113,7 +113,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
         }
 
-        private bool TryGoToImplementations(IEnumerable<ISymbol> candidateImplementations, SymbolMappingResult mapping, CancellationToken cancellationToken, out string message)
+        private bool TryGoToImplementations(
+            IEnumerable<ISymbol> candidateImplementations,
+            SymbolMappingResult mapping,
+            CancellationToken cancellationToken,
+            out string message)
         {
             var implementations = candidateImplementations
                 .Where(s => !s.IsAbstract && s.Locations.Any(l => l.IsInSource))
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             {
                 // We have multiple symbols, so we'll build a list of all preferred locations for all the symbols
                 var navigableItems = implementations.SelectMany(
-                    implementation => CreateItemsForImplementation(implementation, mapping.Solution));
+                    implementation => CreateItemsForImplementation(implementation, mapping.Solution, cancellationToken));
 
                 var presenter = _navigableItemPresenters.First();
 
@@ -146,14 +150,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
         }
 
-        private static IEnumerable<INavigableItem> CreateItemsForImplementation(ISymbol implementation, Solution solution)
+        private static IEnumerable<INavigableItem> CreateItemsForImplementation(
+            ISymbol implementation, Solution solution, CancellationToken cancellationToken)
         {
             var symbolDisplayService = solution.Workspace.Services.GetLanguageServices(implementation.Language).GetRequiredService<ISymbolDisplayService>();
 
             return NavigableItemFactory.GetItemsFromPreferredSourceLocations(
                 solution,
                 implementation,
-                displayTaggedParts: symbolDisplayService.ToDisplayParts(implementation).ToTaggedText());
+                displayTaggedParts: symbolDisplayService.ToDisplayParts(implementation).ToTaggedText(),
+                cancellationToken: cancellationToken);
         }
 
         private bool TryExternalGotoDefinition(Document document, int position, CancellationToken cancellationToken, out string message)

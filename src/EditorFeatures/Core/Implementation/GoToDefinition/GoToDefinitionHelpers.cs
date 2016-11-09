@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             var solution = project.Solution;
             if (symbol is IAliasSymbol &&
-                NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                NavigableItemFactory.GetPreferredSourceLocations(solution, symbol, cancellationToken).All(
+                    l => project.Solution.GetDocument(l.SourceTree) == null))
             {
                 symbol = ((IAliasSymbol)symbol).Target;
             }
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             symbol = definition ?? symbol;
 
-            if (thirdPartyNavigationAllowed && TryThirdPartyNavigation(symbol, solution))
+            if (thirdPartyNavigationAllowed && TryThirdPartyNavigation(symbol, solution, cancellationToken))
             {
                 return true;
             }
@@ -65,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             var options = project.Solution.Options;
 
-            var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
+            var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
+                solution, symbol, cancellationToken).ToArray();
+
             var displayParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(project, symbol);
             var title = displayParts.JoinText();
 
@@ -160,7 +163,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 var definitions = await definitionProvider.Value.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (definitions != null && definitions.Any())
                 {
-                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(document.Project.Solution, definitions);
+                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(
+                        document.Project.Solution, definitions, cancellationToken);
                     if (preferredDefinitions.Any())
                     {
                         return preferredDefinitions;
@@ -178,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 var definitions = await definitionProvider.Value.FindDefinitionsAsync(project, symbol, cancellationToken).ConfigureAwait(false);
                 if (definitions != null && definitions.Any())
                 {
-                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(project.Solution, definitions);
+                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(
+                        project.Solution, definitions, cancellationToken);
                     if (preferredDefinitions.Any())
                     {
                         return preferredDefinitions;
@@ -202,12 +207,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             return false;
         }
 
-        private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution)
+        private static bool TryThirdPartyNavigation(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
             // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution);
+            return symbolNavigationService.TrySymbolNavigationNotify(
+                symbol, solution, cancellationToken);
         }
     }
 }

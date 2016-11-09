@@ -1399,6 +1399,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
 
+        Public Function IsComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsComment
+            Return trivia.IsRegularOrDocComment()
+        End Function
+
         Public Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
             Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function

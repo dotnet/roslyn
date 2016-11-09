@@ -42,13 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             return FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation);
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
             var symbol = await FindSymbolAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             var items = symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null)
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null, cancellationToken: cancellationToken)
                 : null;
             if (items == null || items.IsEmpty())
             {
