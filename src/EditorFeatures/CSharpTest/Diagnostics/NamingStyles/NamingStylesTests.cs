@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
+using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -14,7 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
-            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpNamingStyleDiagnosticAnalyzer(), new CSharpNamingStyleCodeFixProvider());
+            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                new CSharpNamingStyleDiagnosticAnalyzer(),
+                new NamingStyleCodeFixProvider());
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()

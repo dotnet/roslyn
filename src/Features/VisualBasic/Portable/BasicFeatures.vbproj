@@ -110,7 +110,6 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
