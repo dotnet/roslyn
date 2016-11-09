@@ -27,6 +27,7 @@
       <Visible>false</Visible>
     </Content>
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\GeneratedCodeUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
@@ -68,7 +69,6 @@
     <Compile Include="DiagnosticAnalyzer\SourceTextValueProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProviderFactory.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationAnalysisValueProvider.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.GeneratedCodeUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisContextInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisValueProvider.cs" />
