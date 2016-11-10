@@ -397,9 +397,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         protected override string TryGetDescription(
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
-            SyntaxNode contextNode, bool checkForExistingUsing)
+            SyntaxNode contextNode,
+            bool checkForExistingUsing,
+            CancellationToken cancellationToken)
         {
-            var root = GetCompilationUnitSyntaxNode(contextNode);
+            var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
             // See if this is a reference to a type from a reference that has a specific alias
             // associated with it.  If that extern alias hasn't already been brought into scope
@@ -750,7 +752,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return true;
         }
 
-        private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(SyntaxNode contextNode, CancellationToken cancellationToken = default(CancellationToken))
+        private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(
+            SyntaxNode contextNode, CancellationToken cancellationToken)
         {
             return (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
         }

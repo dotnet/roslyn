@@ -251,7 +251,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                 namespaceSymbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
-                checkForExistingImport As Boolean) As String
+                checkForExistingImport As Boolean,
+                cancellationToken As CancellationToken) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 
