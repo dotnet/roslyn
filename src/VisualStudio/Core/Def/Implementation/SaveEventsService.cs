@@ -30,12 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public SaveEventsService(
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ICommandHandlerServiceFactory commandHandlerServiceFactory,
-            SVsServiceProvider serviceProvider)
+            [Import(typeof(SVsRunningDocumentTable))] IVsRunningDocumentTable runningDocTable,
+            [Import(typeof(SVsTextManager))] IVsTextManager textManager)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _commandHandlerServiceFactory = commandHandlerServiceFactory;
-            _runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
+            _runningDocumentTable = runningDocTable;
+            _textManager = textManager;
         }
 
         public void StartSendingSaveEvents()
