@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         SyntaxNode AddImports(
             SyntaxNode root, SyntaxNode contextLocation, 
             IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst);
+
+        /// <summary>
+        /// Given a context location in a provided syntax tree, returns the appropriate container
+        /// that <paramref name="import"/> should should be added to.
+        /// </summary>
+        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
     }
 
     internal static class IAddImportServiceExtensions

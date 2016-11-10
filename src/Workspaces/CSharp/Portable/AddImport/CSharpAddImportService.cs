@@ -17,8 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     [ExportLanguageService(typeof(IAddImportService), LanguageNames.CSharp), Shared]
     internal class CSharpAddImportService : IAddImportService
     {
-        private static Func<UsingDirectiveSyntax, bool> s_isUsing = u => u.Alias == null;
-        private static Func<UsingDirectiveSyntax, bool> s_isAlias = u => u.Alias != null;
+        private static readonly Func<UsingDirectiveSyntax, bool> s_isUsing = u => u.Alias == null;
+        private static readonly Func<UsingDirectiveSyntax, bool> s_isAlias = u => u.Alias != null;
+
+        private static readonly Func<SyntaxNode, bool> s_hasAliases = n => GetUsings(n).Any(s_isAlias);
+        private static readonly Func<SyntaxNode, bool> s_hasUsings = n => GetUsings(n).Any(s_isUsing);
+        private static readonly Func<SyntaxNode, bool> s_hasExterns = n => GetExterns(n).Any();
+
+        private static readonly Func<SyntaxNode, bool> s_hasAnyImports = n => GetUsings(n).Any() || GetExterns(n).Any();
+
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
+        {
+            contextLocation = contextLocation ?? root;
+            GetContainers(root, contextLocation,
+                out var externContainer, out var usingContainer, out var aliasContainer);
+
+            switch (import)
+            {
+                case ExternAliasDirectiveSyntax e: return externContainer;
+                case UsingDirectiveSyntax u: return s_isAlias(u) ? aliasContainer : usingContainer;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public SyntaxNode AddImports(
             SyntaxNode root,
@@ -27,22 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             bool placeSystemNamespaceFirst)
         {
             contextLocation = contextLocation ?? root;
-
-            var applicableContainer = GetFirstApplicableContainer(contextLocation);
-            var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
-
-            // The node we'll add to if we can't find a specific namespace with imports of 
-            // the type we're trying to add.  This will be the closest namespace with any
-            // imports in it, or the root if there are no such namespaces.
-            var fallbackNode = contextSpine.FirstOrDefault(s_hasAnyImports) ?? root;
-
-            // The specific container to add each type of import to.  We look for a container
-            // that already has an import of the same type as the node we want to add to.
-            // If we can find one, we add to that container.  If not, we call back to the 
-            // innermost node with any imports.
-            var externContainer = contextSpine.FirstOrDefault(s_hasExterns) ?? fallbackNode;
-            var usingContainer = contextSpine.FirstOrDefault(s_hasUsings) ?? fallbackNode;
-            var aliasContainer = contextSpine.FirstOrDefault(s_hasAliases) ?? fallbackNode;
+            GetContainers(root, contextLocation, 
+                out var externContainer, out var usingContainer, out var aliasContainer);
 
             var externAliases = newImports.OfType<ExternAliasDirectiveSyntax>().ToArray();
             var usingDirectives = newImports.OfType<UsingDirectiveSyntax>().Where(u => u.Alias == null).ToArray();
@@ -57,8 +64,24 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return newRoot;
         }
 
-        private Func<SyntaxNode, bool> s_hasAnyImports =
-            n => GetUsings(n).Any() || GetExterns(n).Any();
+        private static void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode aliasContainer)
+        {
+            var applicableContainer = GetFirstApplicableContainer(contextLocation);
+            var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
+
+            // The node we'll add to if we can't find a specific namespace with imports of 
+            // the type we're trying to add.  This will be the closest namespace with any
+            // imports in it, or the root if there are no such namespaces.
+            var fallbackNode = contextSpine.FirstOrDefault(s_hasAnyImports) ?? root;
+
+            // The specific container to add each type of import to.  We look for a container
+            // that already has an import of the same type as the node we want to add to.
+            // If we can find one, we add to that container.  If not, we call back to the 
+            // innermost node with any imports.
+            externContainer = contextSpine.FirstOrDefault(s_hasExterns) ?? fallbackNode;
+            usingContainer = contextSpine.FirstOrDefault(s_hasUsings) ?? fallbackNode;
+            aliasContainer = contextSpine.FirstOrDefault(s_hasAliases) ?? fallbackNode;
+        }
 
         private static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode node)
         {
@@ -79,15 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 default: return default(SyntaxList<ExternAliasDirectiveSyntax>);
             }
         }
-
-        private static Func<SyntaxNode, bool> s_hasAliases =
-            n => GetUsings(n).Any(s_isAlias);
-
-        private static Func<SyntaxNode, bool> s_hasUsings =
-            n => GetUsings(n).Any(s_isUsing);
-
-        private static Func<SyntaxNode, bool> s_hasExterns =
-            n => GetExterns(n).Any();
 
         private static SyntaxNode GetFirstApplicableContainer(SyntaxNode contextNode)
         {
