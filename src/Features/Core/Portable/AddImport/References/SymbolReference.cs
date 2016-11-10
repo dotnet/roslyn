@@ -69,10 +69,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node,
+                bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                string description = TryGetDescription(document.Project, node, semanticModel);
+                string description = TryGetDescription(document.Project, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -103,9 +104,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected virtual string TryGetDescription(
-                Project project, SyntaxNode node, SemanticModel semanticModel)
+                Project project, SyntaxNode node, 
+                SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                return provider.TryGetDescription(SymbolResult.Symbol, semanticModel, node, this.CheckForExistingImport(project));
+                return provider.TryGetDescription(
+                    SymbolResult.Symbol, semanticModel, node, 
+                    this.CheckForExistingImport(project), cancellationToken);
             }
         }
     }
