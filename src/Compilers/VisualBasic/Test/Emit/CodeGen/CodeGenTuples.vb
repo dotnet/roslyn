@@ -15407,12 +15407,12 @@ End Class
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
 
-            comp.AssertTheseDiagnostics(
-<errors>
-BC30508: 'M' cannot expose type 'C.C2' in namespace '&lt;Default&gt;' through class 'C'.
+            Dim expectedErrors = <errors><![CDATA[
+BC30508: 'M' cannot expose type 'C.C2' in namespace '<Default>' through class 'C'.
     Public Function M() As (C2, Integer)
                            ~~~~~~~~~~~~~
-</errors>)
+                 ]]></errors>
+            comp.AssertTheseDiagnostics(expectedErrors)
         End Sub
 
         <Fact>

@@ -32,6 +32,7 @@ End Class]]></Text>.NormalizedValue()
 
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToImplementedMethod_WithTuples() As Task
             Dim markup = <Text><![CDATA[
