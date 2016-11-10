@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, Exception loadException)
-                : base(loader, project, loadException)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, string errorMessage)
+                : base(loader, project, errorMessage)
             {
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         docs,
                         additionalDocs,
                         this.GetProjectReferences(buildInfo.Project),
-                        buildInfo.Exception);
+                        buildInfo.ErrorMessage);
                 }
                 else
                 {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                         additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                         projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
-                        buildException: buildInfo.Exception);
+                        errorMessage: buildInfo.ErrorMessage);
                 }
             }
 

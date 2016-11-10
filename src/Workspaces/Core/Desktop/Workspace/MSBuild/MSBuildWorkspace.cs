@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
 
         private MSBuildProjectLoader _loader;
+        private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
 
         private MSBuildWorkspace(
             HostServices hostServices,
@@ -94,6 +95,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableDictionary<string, string> Properties
         {
             get { return _loader.Properties; }
+        }
+
+        /// <summary>
+        /// Diagnostics logged while opening solutions, projects and documents.
+        /// </summary>
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics
+        {
+            get { return _diagnostics; }
+        }
+
+        protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
+        {
+            ImmutableInterlocked.Update(ref _diagnostics, d => d.Add(diagnostic));
+            base.OnWorkspaceFailed(diagnostic);
         }
 
         /// <summary>

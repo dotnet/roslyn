@@ -43,9 +43,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public IReadOnlyList<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
-        /// An exception produced by the build system.
+        /// The error message produced when a failure occurred attempting to get the info. 
+        /// If a failure occurred some or all of the information may be inaccurate or incomplete.
         /// </summary>
-        public Exception BuildException { get; }
+        public string ErrorMessage { get; }
 
         public ProjectFileInfo(
             string outputPath,
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
-            Exception buildException)
+            string errorMessage)
         {
             this.OutputFilePath = outputPath;
             this.AssemblyName = assemblyName;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
-            this.BuildException = buildException;
+            this.ErrorMessage = errorMessage;
         }
     }
 }

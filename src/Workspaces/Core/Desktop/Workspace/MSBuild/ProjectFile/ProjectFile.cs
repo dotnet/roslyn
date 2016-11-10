@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
-        private readonly Exception _loadException;
+        private readonly string _errorMessage;
 
-        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, Exception loadException)
+        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage)
         {
             _loader = loader;
             _loadedProject = loadedProject;
-            _loadException = loadException;
+            _errorMessage = errorMessage;
         }
 
         ~ProjectFile()
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _loadedProject.FullPath; }
         }
 
-        public Exception LoadException
+        public string ErrorMessage
         {
-            get { return _loadException; }
+            get { return _errorMessage; }
         }
 
         public string GetPropertyValue(string name)
@@ -62,24 +62,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public struct BuildInfo
         {
             public readonly ProjectInstance Project;
-            public readonly Exception Exception;
+            public readonly string ErrorMessage;
 
-            public BuildInfo(ProjectInstance project, Exception exception)
+            public BuildInfo(ProjectInstance project, string errorMessage)
             {
                 this.Project = project;
-                this.Exception = exception;
+                this.ErrorMessage = errorMessage;
             }
         }
 
         protected async Task<BuildInfo> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
         {
-            // prepare for building
-            var buildTargets = new BuildTargets(_loadedProject, "Compile");
-
-            // don't execute anything after CoreCompile target, since we've
-            // already done everything we need to compute compiler inputs by then.
-            buildTargets.RemoveAfter("CoreCompile", includeTargetInRemoval: false);
-
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var executedProject = _loadedProject.CreateProjectInstance();
@@ -94,19 +87,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
-            try
+            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
+
+            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+
+            BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+
+            if (result.OverallResult == BuildResultCode.Failure)
             {
-                var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
-
-                var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, buildTargets.Targets, hostServices);
-
-                var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-                return new BuildInfo(executedProject, result.Exception);
+                return new BuildInfo(executedProject, result.Exception?.Message ?? "");
             }
-            catch (Exception e)
+            else
             {
-                return new BuildInfo(project: null, exception: e);
+                return new BuildInfo(executedProject, null);
             }
         }
 

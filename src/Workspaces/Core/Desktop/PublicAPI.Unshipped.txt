@@ -1,0 +1,1 @@
+Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Diagnostics.get -> System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.WorkspaceDiagnostic>

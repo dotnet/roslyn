@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         string FilePath { get; }
 
         /// <summary>
-        /// Exception thrown attempting to load the project.
+        /// The error message produced when a failure occurred attempting to access the project file. 
+        /// If a failure occurred the projectd file info will be inaccessible.
         /// </summary>
-        Exception LoadException { get; }
+        string ErrorMessage { get; }
 
         /// <summary>
         /// Gets the project file info asynchronously.

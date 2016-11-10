@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
         protected override ProjectFile CreateProjectFile(LoadedProjectInfo info)
         {
-            return new VisualBasicProjectFile(this, info.Project, info.Exception);
+            return new VisualBasicProjectFile(this, info.Project, info.ErrorMessage);
         }
 
         internal class VisualBasicProjectFile : ProjectFile
         {
-            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, Exception loadException) 
-                : base(loader, loadedProject, loadException)
+            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage) 
+                : base(loader, loadedProject, errorMessage)
             {
             }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     documents,
                     additionalDocuments,
                     projectRefeferences,
-                    buildInfo.Exception);
+                    buildInfo.ErrorMessage);
             }
 
             private IEnumerable<DocumentFileInfo> GetDocuments(IEnumerable<ITaskItem> sources, ProjectInstance executedProject)

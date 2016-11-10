@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         {
                             // projects get added to 'loadedProjects' as side-effect
                             // never prefer metadata when loading solution, all projects get loaded if they can.
-                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, reportBuildFailures: ReportMode.Log, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var loadedProjects = new LoadState(projectPathToProjectIdMap);
 
-            var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, ReportMode.Log, loadedProjects, cancellationToken).ConfigureAwait(false);
+            var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             var result = loadedProjects.Projects.Reverse().ToImmutableArray();
             Debug.Assert(result[0].Id == id);
@@ -304,18 +304,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, ReportMode reportBuildFailures, LoadState loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
         {
             var projectId = loadedProjects.GetProjectId(projectFilePath);
             if (projectId == null)
             {
-                projectId = await this.LoadProjectAsync(projectFilePath, loader, preferMetadata, reportBuildFailures, loadedProjects, cancellationToken).ConfigureAwait(false);
+                projectId = await this.LoadProjectAsync(projectFilePath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
             }
 
             return projectId;
         }
 
-        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, ReportMode reportBuildFailures, LoadState loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
         {
             Debug.Assert(projectFilePath != null);
             Debug.Assert(loader != null);
@@ -324,19 +324,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
-            if (projectFile.LoadException != null)
+            if (projectFile.ErrorMessage != null)
             {
-                ReportFailure(reportBuildFailures, string.Format(WorkspaceDesktopResources.Cannot_open_project_0_because_msbuild_failed_with_message_1, projectFilePath, projectFile.LoadException.Message));
+                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFile.ErrorMessage));
+
+                // if we failed during load there won't be any project file info, so bail early with empty project.
                 loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
                 return projectId;
             }
 
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-            if (projectFileInfo.BuildException != null)
+            if (projectFileInfo.ErrorMessage != null)
             {
-                ReportFailure(reportBuildFailures, string.Format(WorkspaceDesktopResources.Cannot_open_project_0_because_msbuild_failed_with_message_1, projectFilePath, projectFileInfo.BuildException.Message));
-                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
-                return projectId;
+                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFileInfo.ErrorMessage));
             }
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
@@ -462,6 +462,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     hostObjectType: null));
 
             return projectId;
+        }
+
+        private static string GetMsbuildFailedMessage(string projectFilePath, string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return string.Format(WorkspaceDesktopResources.Msbuild_failed_when_processing_the_file_0, projectFilePath);
+            }
+            else
+            {
+                return string.Format(WorkspaceDesktopResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
+            }
         }
 
         private static VersionStamp GetProjectVersion(string projectFilePath)
@@ -604,7 +616,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (TryGetLoaderFromProjectPath(fullPath, reportMode, out loader))
                     {
                         // load the project
-                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, ReportMode.Log, loadedProjects, cancellationToken).ConfigureAwait(false);
+                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
                         // If that other project already has a reference on us, this will cause a circularity.
                         // This check doesn't need to be in the "already loaded" path above, since in any circularity this path

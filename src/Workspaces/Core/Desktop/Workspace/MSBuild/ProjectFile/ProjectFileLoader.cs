@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public struct LoadedProjectInfo
         {
             public readonly MSB.Evaluation.Project Project;
-            public readonly Exception Exception;
+            public readonly string ErrorMessage;
 
-            public LoadedProjectInfo(MSB.Evaluation.Project project, Exception exception)
+            public LoadedProjectInfo(MSB.Evaluation.Project project, string errorMessage)
             {
                 this.Project = project;
-                this.Exception = exception;
+                this.ErrorMessage = errorMessage;
             }
         }
 
@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 return new LoadedProjectInfo(
                     new MSB.Evaluation.Project(xml, properties, toolsVersion: null, projectCollection: collection),
-                    exception: null);
+                    errorMessage: null);
             }
             catch (Exception e)
             {
-                return new LoadedProjectInfo(project: null, exception: e);
+                return new LoadedProjectInfo(project: null, errorMessage: e.Message);
             }
         }
 
