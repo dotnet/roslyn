@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Provider = provider;
             TextSpan = span;
-            Fixes = fixes;
+            Fixes = fixes.NullToEmpty();
             FixAllState = fixAllState;
-            SupportedScopes = supportedScopes;
+            SupportedScopes = supportedScopes.NullToEmpty();
             FirstDiagnostic = firstDiagnostic;
         }
     }
