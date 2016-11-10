@@ -230,11 +230,11 @@ namespace Roslyn.Test.Utilities
             cursorPosition = pos.Value;
         }
 
+        public static void GetPosition(string input, out string output, out int? cursorPosition)
+            => GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
+
         public static void GetPosition(string input, out string output, out int cursorPosition)
-        {
-            IList<TextSpan> spans;
-            GetPositionAndSpans(input, out output, out cursorPosition, out spans);
-        }
+            => GetPositionAndSpans(input, out output, out cursorPosition, out var spans);
 
         public static void GetPositionAndSpan(string input, out string output, out int? cursorPosition, out TextSpan? textSpan)
         {
