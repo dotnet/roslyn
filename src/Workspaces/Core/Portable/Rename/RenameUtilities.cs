@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -34,16 +35,17 @@ namespace Microsoft.CodeAnalysis.Rename
             int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var symbols = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken)
-                                       .GetSymbols(includeType: false)
-                                       .ToArray();
+            var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken);
+            var symbols = semanticInfo.DeclaredSymbol != null
+                ? ImmutableArray.Create<ISymbol>(semanticInfo.DeclaredSymbol)
+                : semanticInfo.GetSymbols(includeType: false);
 
             // if there are more than one symbol, then remove the alias symbols.
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbols
             if (symbols.Length > 1)
             {
-                symbols = symbols.Where(s => s.Kind != SymbolKind.Alias).ToArray();
+                symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
             }
 
             if (symbols.Length == 0)

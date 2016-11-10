@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             else
             {
                 symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                                      .GetAnySymbol(includeType: false);
+                                      .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
                 {
