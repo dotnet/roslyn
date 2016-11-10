@@ -276,7 +276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
-            // PROTOTYPE(wildcards): handle wildcard designation here
             switch (node.Designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
