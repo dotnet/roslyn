@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var newContainer = container is NamespaceDeclarationSyntax n
                 ? (SyntaxNode)n.AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst, Formatter.Annotation)
-                : ((CompilationUnitSyntax)container).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst, Formatter.Annotation);
+                : ((CompilationUnitSyntax)container).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
 
             var newRoot = root.ReplaceNode(container, newContainer);
             var newDocument = document.WithSyntaxRoot(newRoot);
