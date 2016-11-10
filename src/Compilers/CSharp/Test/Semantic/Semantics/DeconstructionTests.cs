@@ -600,9 +600,12 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS1525: Invalid expression term '.'
+                // (6,11): error CS1525: Invalid expression term 'int'
                 //         ((int, string)).ToString();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 11),
+                // (6,16): error CS1525: Invalid expression term 'string'
+                //         ((int, string)).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(6, 16)
                 );
         }
 
@@ -1322,9 +1325,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2)").WithArguments("tuples", "7").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x1, x2)").WithArguments("tuples", "7").WithLocation(6, 13),
                 // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int x3, int x4) = Pair.Create(1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4)").WithArguments("tuples", "7").WithLocation(7, 9),
@@ -1431,9 +1434,21 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,28): error CS1001: Identifier expected
+                // (6,10): error CS8184: A declaration is not allowed in this context.
                 //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 28)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 10),
+                // (6,18): error CS8184: A declaration is not allowed in this context.
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
+                // (6,14): error CS0165: Use of unassigned local variable 'x1'
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
+                // (6,25): error CS0165: Use of unassigned local variable 'x2'
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
                 );
         }
 
@@ -2442,9 +2457,8 @@ class C1
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                // this is no longer considered a declaration statement,
+                // but rather is an assignment expression. So no error.
                 );
         }
 
