@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         }
 
         protected override string TryGetDescription(
+            Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             SyntaxNode contextNode,
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
 
             var usingDirective = TryGetUsingDirective(
-                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             if (usingDirective != null)
             {
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 checkForExistingExternAlias: true);
 
             var usingDirective = TryGetUsingDirective(
-                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var newImports = ArrayBuilder<SyntaxNode>.GetInstance();
             try
@@ -552,15 +553,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         }
 
         private UsingDirectiveSyntax TryGetUsingDirective(
+            Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             CompilationUnitSyntax root,
             SyntaxNode contextNode)
         {
-            var namespaceToAddTo = GetFirstContainingNamespaceWithUsings(contextNode);
-            var usingDirectives = namespaceToAddTo?.Usings ?? root.Usings;
+            var addImportService = document.GetLanguageService<IAddImportService>();
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
+            var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
+
+            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
+            var namespaceToAddTo = container as NamespaceDeclarationSyntax;
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked
             // up off of an extern alias.
@@ -663,19 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var aliasName = nameSyntax as AliasQualifiedNameSyntax;
             return aliasName.WithAlias(alias);
-        }
-
-        private NamespaceDeclarationSyntax GetFirstContainingNamespaceWithUsings(SyntaxNode contextNode)
-        {
-            var usingDirective = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if (usingDirective != null)
-            {
-                contextNode = usingDirective.Parent;
-            }
-
-            return contextNode.GetAncestors<NamespaceDeclarationSyntax>()
-                              .Where(n => n.Usings.Count > 0)
-                              .FirstOrDefault();
         }
 
         private static bool TryGetExternAliasString(

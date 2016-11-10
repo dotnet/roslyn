@@ -248,6 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         End Function
 
         Protected Overrides Function TryGetDescription(
+                document As Document,
                 namespaceSymbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,

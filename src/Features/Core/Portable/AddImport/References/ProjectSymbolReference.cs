@@ -73,15 +73,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override string TryGetDescription(
-                Project project, SyntaxNode node, 
+                Document document, SyntaxNode node, 
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var description = base.TryGetDescription(project, node, semanticModel, cancellationToken);
+                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
                 }
 
+                var project = document.Project;
                 return project.Id == _project.Id
                     ? description
                     : string.Format(FeaturesResources.Add_reference_to_0, _project.Name);
