@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
+            syntaxKindsMissing.Add(SyntaxKind.DiscardedDesignation);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
