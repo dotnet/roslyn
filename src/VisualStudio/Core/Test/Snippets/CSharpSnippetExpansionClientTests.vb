@@ -57,6 +57,38 @@ using G.H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
+        <WorkItem(4457, "https://github.com/dotnet/roslyn/issues/4457")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Async Function TestAddImport_InsideNamespace() As Task
+            Dim originalCode = "
+using A;
+
+namespace N
+{
+    using B;
+
+    class C
+    {
+        $$
+    }
+}"
+            Dim namespacesToAdd = {"D"}
+            Dim expectedUpdatedCode = "
+using A;
+
+namespace N
+{
+    using B;
+    using D;
+
+    class C
+    {
+        
+    }
+}"
+            Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TestAddImport_AddsOnlyNewAliasAndNamespacePairs() As Task
             Dim originalCode = <![CDATA[using A = B.C;
@@ -311,7 +343,16 @@ using G=   H.I;
             End Using
         End Function
 
-        Private Async Function TestSnippetAddImportsAsync(originalCode As String, namespacesToAdd As String(), placeSystemNamespaceFirst As Boolean, expectedUpdatedCode As String) As Tasks.Task
+        Private Async Function TestSnippetAddImportsAsync(
+                markupCode As String,
+                namespacesToAdd As String(),
+                placeSystemNamespaceFirst As Boolean,
+                expectedUpdatedCode As String) As Tasks.Task
+
+            Dim originalCode As String = Nothing
+            Dim position As Integer?
+            MarkupTestFile.GetPosition(markupCode, originalCode, position)
+
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
                                        <Document><%= originalCode %></Document>
@@ -338,6 +379,7 @@ using G=   H.I;
 
                 Dim updatedDocument = expansionClient.AddImports(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    If(position, 0),
                     snippetNode,
                     placeSystemNamespaceFirst, CancellationToken.None)
 
