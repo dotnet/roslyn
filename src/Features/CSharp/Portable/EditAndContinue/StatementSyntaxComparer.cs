@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
+            ForEachComponentStatement,
             UsingStatement,
             FixedStatement,
             LockStatement,
@@ -334,6 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ForEachStatement:
                     return Label.ForEachStatement;
+
+                case SyntaxKind.ForEachVariableStatement:
+                    return Label.ForEachComponentStatement;
 
                 case SyntaxKind.UsingStatement:
                     return Label.UsingStatement;
@@ -581,10 +585,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.ForEachStatement:
-                    var leftForEach = (ForEachStatementSyntax)leftNode;
-                    var rightForEach = (ForEachStatementSyntax)rightNode;
-                    distance = ComputeWeightedDistance(leftForEach, rightForEach);
-                    return true;
+                    {
+                        var leftForEach = (ForEachStatementSyntax)leftNode;
+                        var rightForEach = (ForEachStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
+                        return true;
+                    }
 
                 case SyntaxKind.UsingStatement:
                     var leftUsing = (UsingStatementSyntax)leftNode;
@@ -770,6 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.DoStatement:

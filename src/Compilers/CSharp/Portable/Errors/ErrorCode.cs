@@ -6,6 +6,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         Void = InternalErrorCode.Void,
         Unknown = InternalErrorCode.Unknown,
+
+        #region diagnostics introduced in C# 4 and earlier
         //FTL_InternalError = 1,
         //FTL_FailedToLoadResource = 2,
         //FTL_NoMemory = 3,
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_MissingOptionArg = 5,
         ERR_NoMetadataFile = 6,
         //FTL_ComPlusInit = 7,
-        //FTL_MetadataImportFailure = 8,    no longer used in Roslyn. 
+        //FTL_MetadataImportFailure = 8,    no longer used in Roslyn.
         FTL_MetadataCantOpenFile = 9,
         //ERR_FatalError = 10,
         //ERR_CantImportBase = 11,
@@ -119,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDelegateConstructor = 148,
         ERR_MethodNameExpected = 149,
         ERR_ConstantExpected = 150,
-        // ERR_SwitchGoverningTypeValueExpected shares the same error code (CS0151) with ERR_IntegralTypeValueExpected in Dev10 compiler.
+        // ERR_V6SwitchGoverningTypeValueExpected shares the same error code (CS0151) with ERR_IntegralTypeValueExpected in Dev10 compiler.
         // However ERR_IntegralTypeValueExpected is currently unused and hence being removed. If we need to generate this error in future
-        // we can use error code CS0166. CS0166 was originally reserved for ERR_SwitchFallInto in Dev10, but was never used. 
-        ERR_SwitchGoverningTypeValueExpected = 151,
+        // we can use error code CS0166. CS0166 was originally reserved for ERR_SwitchFallInto in Dev10, but was never used.
+        ERR_V6SwitchGoverningTypeValueExpected = 151,
         ERR_DuplicateCaseLabel = 152,
         ERR_InvalidGotoCase = 153,
         ERR_PropertyLacksGet = 154,
@@ -730,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantHaveWin32ResAndIcon = 1565,
         ERR_CantReadResource = 1566,
         //ERR_AutoResGen = 1567,
-        //ERR_DocFileGen = 1569,
+        ERR_DocFileGen = 1569,
         WRN_XMLParseError = 1570,
         WRN_DuplicateParamTag = 1571,
         WRN_UnmatchedParamTag = 1572,
@@ -1004,17 +1006,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDynamicQuery = 1979,
         ERR_DynamicAttributeMissing = 1980,
         WRN_IsDynamicIsConfusing = 1981,
-        ERR_DynamicNotAllowedInAttribute = 1982,                    // Replaced by ERR_BadAttributeParamType in Roslyn.
+        //ERR_DynamicNotAllowedInAttribute = 1982,                    // Replaced by ERR_BadAttributeParamType in Roslyn.
         ERR_BadAsyncReturn = 1983,
         ERR_BadAwaitInFinally = 1984,
         ERR_BadAwaitInCatch = 1985,
         ERR_BadAwaitArg = 1986,
         ERR_BadAsyncArgType = 1988,
         ERR_BadAsyncExpressionTree = 1989,
-        ERR_WindowsRuntimeTypesMissing = 1990,
+        //ERR_WindowsRuntimeTypesMissing = 1990, // unused in Roslyn
         ERR_MixingWinRTEventWithRegular = 1991,
         ERR_BadAwaitWithoutAsync = 1992,
-        ERR_MissingAsyncTypes = 1993,
+        //ERR_MissingAsyncTypes = 1993, // unused in Roslyn
         ERR_BadAsyncLacksBody = 1994,
         ERR_BadAwaitInQuery = 1995,
         ERR_BadAwaitInLock = 1996,
@@ -1058,7 +1060,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        // unused 2044-2999
+        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_CannotEmbedWithoutPdb = 2045,
+        // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1086,10 +1090,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CLS_VolatileField = 3026,
         WRN_CLS_BadInterface = 3027,
         FTL_BadChecksumAlgorithm = 3028,
+        #endregion diagnostics introduced in C# 4 and earlier
 
         // unused 3029-3999
 
-        // Errors introduced in C# 5 are in the range 4000-4999
+        #region diagnostics introduced in C# 5
         // 4000 unused
         ERR_BadAwaitArgIntrinsic = 4001,
         // 4002 unused
@@ -1127,13 +1132,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitWithoutAsyncLambda = 4034,
         // ERR_BadAwaitWithoutAsyncAnonMeth = 4035,         Merged with ERR_BadAwaitWithoutAsyncLambda in Roslyn
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
+        #endregion diagnostics introduced in C# 5
 
-        // available 4037-4999
+        // unused 4037-4999
 
+        #region diagnostics introduced in C# 6
         // WRN_UnknownOption = 5000,   //unused in Roslyn
         ERR_NoEntryPoint = 5001,
 
-        // available 5002-6999
+        // huge gap here; available 5002-6999
 
         ERR_UnexpectedAliasedName = 7000,
         ERR_UnexpectedGenericName = 7002,
@@ -1233,9 +1240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
+        #endregion diagnostics introduced in C# 6
 
-        // available 7102-8000
+        // huge gap here; unused 7103-8000
 
+        #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,
@@ -1286,8 +1295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
-        ERR_FeatureIsUnimplemented = 8060,
-        ERR_FeatureNotAvailableInVersion7 = 8061,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
@@ -1324,76 +1331,114 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
+        #endregion diagnostics introduced in Roslyn (C# 6)
+
+        #region diagnostics introduced in C# 6 updates
         WRN_AttributeIgnoredWhenPublicSigning = 8105,
         ERR_OptionMustBeAbsolutePath = 8106,
-        ERR_ReturnTypesDontMatch = 8107,
+        #endregion diagnostics introduced in C# 6 updates
+
+        ERR_FeatureNotAvailableInVersion7 = 8107,
+
+        #region diagnostics for local functions introduced in C# 7
         ERR_DynamicLocalFunctionParamsParameter = 8108,
-        ERR_CantInferVoid = 8109,
         ERR_ExpressionTreeContainsLocalFunction = 8110,
+        #endregion diagnostics for local functions introduced in C# 7
 
-        // gap here
+        #region diagnostics for instrumentation
 
-        // diagnostics for pattern-matching
-        ERR_PatternNullableType = 8150,
-        ERR_BadIsPatternExpression = 8151,
-        // Please reserve IDs up to 8199 for pattern-matching
+        ERR_InvalidInstrumentationKind = 8111,
 
-        // huge gap here???
+        #endregion
 
-        // diagnostics for ref locals and ref returns
-        ERR_AutoPropertyCannotBeRefReturning = 8890,
-        ERR_RefPropertyMustHaveGetAccessor = 8891,
-        ERR_RefPropertyCannotHaveSetAccessor = 8892,
-        ERR_CantChangeRefReturnOnOverride = 8893,
-        ERR_MustNotHaveRefReturn = 8894,
-        ERR_MustHaveRefReturn = 8895,
-        ERR_RefReturnMustHaveIdentityConversion = 8896,
-        ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8897,
-        ERR_VoidReturningMethodCannotReturnByRef = 8898,
-        ERR_BadIteratorReturnRef = 8899,
-        ERR_BadRefReturnExpressionTree = 8900,
-        ERR_RefReturningCallInExpressionTree = 8901,
+        // Available = 8112, 8113, 8114, 8115
 
-        // more diagnostics for ref locals and ref returns
-        ERR_RefReturnLvalueExpected = 8910,
-        ERR_RefReturnNonreturnableLocal = 8911,
-        ERR_RefReturnNonreturnableLocal2 = 8912,
-        ERR_RefReturnRangeVariable = 8913,
-        ERR_RefReturnRangeVariable2 = 8914,
-        ERR_RefReturnReadonly = 8916,
-        ERR_RefReturnReadonlyStatic = 8917,
-        ERR_RefReturnReadonly2 = 8918,
-        ERR_RefReturnReadonlyStatic2 = 8919,
-        ERR_RefReturnCall = 8920,
-        ERR_RefReturnCall2 = 8921,
-        ERR_RefReturnParameter = 8922,
-        ERR_RefReturnParameter2 = 8923,
-        ERR_RefReturnLocal = 8924,
-        ERR_RefReturnLocal2 = 8925,
-        ERR_RefReturnStructThis = 8926,
+        #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
+        ERR_PatternNullableType = 8116,
+        ERR_BadIsPatternExpression = 8117,
+        ERR_SwitchExpressionValueExpected = 8119,
+        ERR_PatternIsSubsumed = 8120,
+        ERR_PatternWrongType = 8121,
+        ERR_ExpressionTreeContainsIsMatch = 8122,
+        #endregion diagnostics for pattern-matching introduced in C# 7
 
-        // more diagnostics for ref locals and ref returns
-        ERR_MustBeRefAssignable = 8930,
-        ERR_MustBeRefAssignableLocal = 8931,
-        ERR_InitializeByValueVariableWithReference = 8932,
-        ERR_InitializeByReferenceVariableWithValue = 8933,
-        ERR_RefAssignmentMustHaveIdentityConversion = 8934,
-        ERR_ByReferenceVariableMustBeInitialized = 8935,
+        #region tuple diagnostics introduced in C# 7
+        WRN_TupleLiteralNameMismatch = 8123,
+        ERR_TupleTooFewElements = 8124,
+        ERR_TupleReservedElementName = 8125,
+        ERR_TupleReservedElementNameAnyPosition = 8126,
+        ERR_TupleDuplicateElementName = 8127,
+        ERR_PredefinedTypeMemberNotFoundInAssembly = 8128,
+        ERR_MissingDeconstruct = 8129,
+        ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable = 8130,
+        ERR_DeconstructRequiresExpression = 8131,
+        ERR_DeconstructWrongCardinality = 8132,
+        ERR_CannotDeconstructDynamic = 8133,
+        ERR_DeconstructTooFewElements = 8134,
+        ERR_ConversionNotTupleCompatible = 8135,
+        ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
+        ERR_TupleElementNamesAttributeMissing = 8137,
+        ERR_ExplicitTupleElementNamesAttribute = 8138,
+        ERR_CantChangeTupleNamesOnOverride = 8139,
+        ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
+        ERR_ImplBadTupleNames = 8141,
+        ERR_PartialMethodInconsistentTupleNames = 8142,
+        ERR_ExpressionTreeContainsTupleLiteral = 8143,
+        ERR_ExpressionTreeContainsTupleConversion = 8144,
 
-        // more diagnostics for ref locals and ref returns
-        ERR_AnonDelegateCantUseLocal = 8940,
-        ERR_BadIteratorLocalType = 8941,
-        ERR_BadAsyncLocalType = 8942,
-        ERR_RefReturningCallAndAwait = 8943,
-        ERR_NoOriginalMember = 8944,
-        ERR_DuplicateReplace = 8945,
-        ERR_PartialReplace = 8946,
-        ERR_TupleTooFewElements = 8200,
-        ERR_TupleReservedMemberName = 8201,
-        ERR_TupleReservedMemberNameAnyPosition = 8202,
-        ERR_TupleDuplicateMemberName = 8203,
-        ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
+        #endregion tuple diagnostics introduced in C# 7
 
-        ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+        #region diagnostics for ref locals and ref returns introduced in C# 7
+        ERR_AutoPropertyCannotBeRefReturning = 8145,
+        ERR_RefPropertyMustHaveGetAccessor = 8146,
+        ERR_RefPropertyCannotHaveSetAccessor = 8147,
+        ERR_CantChangeRefReturnOnOverride = 8148,
+        ERR_MustNotHaveRefReturn = 8149,
+        ERR_MustHaveRefReturn = 8150,
+        ERR_RefReturnMustHaveIdentityConversion = 8151,
+        ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8152,
+        ERR_RefReturningCallInExpressionTree = 8153,
+        ERR_BadIteratorReturnRef = 8154,
+        ERR_BadRefReturnExpressionTree = 8155,
+        ERR_RefReturnLvalueExpected = 8156,
+        ERR_RefReturnNonreturnableLocal = 8157,
+        ERR_RefReturnNonreturnableLocal2 = 8158,
+        ERR_RefReturnRangeVariable = 8159,
+        ERR_RefReturnReadonly = 8160,
+        ERR_RefReturnReadonlyStatic = 8161,
+        ERR_RefReturnReadonly2 = 8162,
+        ERR_RefReturnReadonlyStatic2 = 8163,
+        ERR_RefReturnCall = 8164,
+        ERR_RefReturnCall2 = 8165,
+        ERR_RefReturnParameter = 8166,
+        ERR_RefReturnParameter2 = 8167,
+        ERR_RefReturnLocal = 8168,
+        ERR_RefReturnLocal2 = 8169,
+        ERR_RefReturnStructThis = 8170,
+        ERR_InitializeByValueVariableWithReference = 8171,
+        ERR_InitializeByReferenceVariableWithValue = 8172,
+        ERR_RefAssignmentMustHaveIdentityConversion = 8173,
+        ERR_ByReferenceVariableMustBeInitialized = 8174,
+        ERR_AnonDelegateCantUseLocal = 8175,
+        ERR_BadIteratorLocalType = 8176,
+        ERR_BadAsyncLocalType = 8177,
+        ERR_RefReturningCallAndAwait = 8178,
+        #endregion diagnostics for ref locals and ref returns introduced in C# 7
+
+        ERR_PredefinedValueTupleTypeNotFound = 8179,
+        ERR_SemiOrLBraceOrArrowExpected = 8180,
+        ERR_NewWithTupleTypeSyntax = 8181,
+        ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
+
+        // Available  = 8183-8195
+
+        #region diagnostics for out var
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
+        ERR_ExpressionTreeContainsOutVariable = 8198,
+        ERR_VarInvocationLvalueReserved = 8199,
+        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
+        #endregion diagnostics for out var
     }
 }

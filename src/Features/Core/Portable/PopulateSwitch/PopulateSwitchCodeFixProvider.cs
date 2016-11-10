@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,13 +14,16 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
@@ -38,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_missing_switch_cases,
+                        FeaturesResources.Add_missing_cases,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: true, includeDefaultCase: false)),
                     context.Diagnostics);
             }
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        FeaturesResources.Add_default_switch_case,
+                        FeaturesResources.Add_default_case,
                         c => AddMissingSwitchCasesAsync(context, includeMissingCases: false, includeDefaultCase: true)),
                     context.Diagnostics);
             }
@@ -75,7 +81,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var switchNode = root.FindNode(span);
-            var switchStatement = (ISwitchStatement)model.GetOperation(switchNode, cancellationToken);
+            var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
+            var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
             var enumType = switchStatement.Value.Type;
 
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -107,8 +114,32 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
+            // Make sure we didn't cause any braces to be imbalanced when we added members
+            // to the switch.
+            AddMissingBraces(document, ref root, ref switchNode);
+
             var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
+
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private void AddMissingBraces(
+            Document document,
+            ref SyntaxNode root,
+            ref SyntaxNode switchNode)
+        {
+            // Parsing of the switch may have caused imbalanced braces.  i.e. the switch
+            // may have consumed a brace that was intended for a higher level construct.
+            // So balance the tree first, then do the switch replacement.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            SyntaxNode newRoot;
+            SyntaxNode newSwitchNode;
+            syntaxFacts.AddFirstMissingCloseBrace(
+                root, switchNode, out newRoot, out newSwitchNode);
+
+            root = newRoot;
+            switchNode = newSwitchNode;
         }
 
         private int InsertPosition(ISwitchStatement switchStatement)

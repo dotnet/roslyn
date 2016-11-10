@@ -325,6 +325,8 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference MinCorlibRef => TestReferences.NetFx.Minimal.mincorlib;
 
+        public static MetadataReference MinAsyncCorlibRef => TestReferences.NetFx.Minimal.minasynccorlib;
+
         public static MetadataReference ValueTupleRef => TestReferences.NetFx.ValueTuple.tuplelib;
 
         private static MetadataReference s_msvbRef;
@@ -523,6 +525,11 @@ namespace Roslyn.Test.Utilities
                 return s_systemRuntimePP7Ref;
             }
         }
+
+        public static Lazy<MetadataReference> SystemRuntimeNetstandard13FacadeRef { get; } =
+            new Lazy<MetadataReference>(() => AssemblyMetadata.CreateFromImage(
+                TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime)
+                .GetReference(display: "System.Runtime.dll"));
 
         private static MetadataReference s_FSharpTestLibraryRef;
         public static MetadataReference FSharpTestLibraryRef

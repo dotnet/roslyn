@@ -1483,6 +1483,7 @@ class C
         }
 
         [WorkItem(995976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995976")]
+        [WorkItem(10649, "https://github.com/dotnet/roslyn/issues/10649")]
         [Fact]
         public void AsyncAndLambda()
         {
@@ -1522,7 +1523,7 @@ class C
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
 @"{
-  // Code size        7 (0x7)
+  // Code size       12 (0xc)
   .maxstack  1
   .locals init (int V_0,
                 int V_1,
@@ -1530,8 +1531,9 @@ class C
                 C.<M>d__2 V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__2.x""
-  IL_0006:  ret
+  IL_0001:  ldfld      ""C.<>c__DisplayClass2_0 C.<M>d__2.<>8__1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass2_0.x""
+  IL_000b:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
 @"{

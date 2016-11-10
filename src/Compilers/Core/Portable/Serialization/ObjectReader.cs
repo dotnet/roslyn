@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -334,12 +334,125 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            Type elementType = this.ReadType();
+            var elementKind = (DataKind)_reader.ReadByte();
+
+            // optimization for primitive type array
+            Type elementType;
+            if (s_reverseTypeMap.TryGetValue(elementKind, out elementType))
+            {
+                return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
+            }
+
+            // custom type case
+            elementType = this.ReadType(elementKind);
+
             Array array = Array.CreateInstance(elementType, length);
             for (int i = 0; i < length; i++)
             {
                 var value = this.ReadValue();
                 array.SetValue(value, i);
+            }
+
+            return array;
+        }
+
+        private Array ReadPrimitiveTypeArrayElements(Type type, DataKind kind, int length)
+        {
+            Debug.Assert(s_reverseTypeMap[kind] == type);
+
+            // optimizations for supported array type by binary reader
+            if (type == typeof(byte))
+            {
+                return _reader.ReadBytes(length);
+            }
+
+            if (type == typeof(char))
+            {
+                return _reader.ReadChars(length);
+            }
+
+            // optimizations for string where object reader/writer has its own mechanism to
+            // reduce duplicated strings
+            if (type == typeof(string))
+            {
+                return ReadPrimitiveTypeArrayElements(length, ReadString);
+            }
+
+            if (type == typeof(bool))
+            {
+                return ReadBooleanArray(length);
+            }
+
+            // otherwise, read elements directly from underlying binary writer
+            switch (kind)
+            {
+                case DataKind.Int8:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSByte);
+                case DataKind.Int16:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt16);
+                case DataKind.Int32:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt32);
+                case DataKind.Int64:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadInt64);
+                case DataKind.UInt16:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt16);
+                case DataKind.UInt32:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt32);
+                case DataKind.UInt64:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadUInt64);
+                case DataKind.Float4:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadSingle);
+                case DataKind.Float8:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDouble);
+                case DataKind.Decimal:
+                    return ReadPrimitiveTypeArrayElements(length, _reader.ReadDecimal);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private bool[] ReadBooleanArray(int length)
+        {
+            if (length == 0)
+            {
+                //  simple check
+                return Array.Empty<bool>();
+            }
+
+            var array = new bool[length];
+            var wordLength = BitVector.WordsRequired(length);
+
+            var count = 0;
+            for (var i = 0; i < wordLength; i++)
+            {
+                var word = _reader.ReadUInt32();
+
+                for (var p = 0; p < BitVector.BitsPerWord; p++)
+                {
+                    if (count >= length)
+                    {
+                        return array;
+                    }
+
+                    array[count++] = BitVector.IsTrue(word, p);
+                }
+            }
+
+            return array;
+        }
+
+        private static T[] ReadPrimitiveTypeArrayElements<T>(int length, Func<T> read)
+        {
+            if (length == 0)
+            {
+                // quick check
+                return Array.Empty<T>();
+            }
+
+            var array = new T[length];
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = read();
             }
 
             return array;
@@ -487,7 +600,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_no_binder_supplied, typeName));
 #endif
         }
 
@@ -496,7 +609,7 @@ namespace Roslyn.Utilities
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.Cannot_deserialize_type_0_it_has_no_deserialization_reader, typeName));
 #endif
         }
     }

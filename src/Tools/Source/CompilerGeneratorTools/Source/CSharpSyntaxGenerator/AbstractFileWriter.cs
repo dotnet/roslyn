@@ -115,10 +115,15 @@ namespace CSharpSyntaxGenerator
             return field.Type != "SyntaxToken" && !IsAnyList(field.Type) && !IsOverride(field) && !IsNew(field);
         }
 
-        protected static string GetFieldType(Field field)
+        protected static string GetFieldType(Field field, bool green)
         {
             if (IsAnyList(field.Type))
-                return "CSharpSyntaxNode";
+            {
+                return green
+                    ? "GreenNode"
+                    : "SyntaxNode";
+            }
+
             return field.Type;
         }
 

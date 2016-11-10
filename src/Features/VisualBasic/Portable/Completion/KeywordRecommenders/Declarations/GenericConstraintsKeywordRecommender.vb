@@ -18,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim targetToken = context.TargetToken
 
             Dim recommendations As New List(Of RecommendedKeyword)
-            recommendations.Add(New RecommendedKeyword("Class", VBFeaturesResources.GenericConstraintsClassKeywordToolTip))
-            recommendations.Add(New RecommendedKeyword("Structure", VBFeaturesResources.GenericConstraintsStructureKeywordToolTip))
-            recommendations.Add(New RecommendedKeyword("New", VBFeaturesResources.GenericConstraintsNewKeywordToolTip))
+            recommendations.Add(New RecommendedKeyword("Class", VBFeaturesResources.Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_reference_type))
+            recommendations.Add(New RecommendedKeyword("Structure", VBFeaturesResources.Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_value_type))
+            recommendations.Add(New RecommendedKeyword("New", VBFeaturesResources.Specifies_a_constructor_constraint_on_a_generic_type_parameter))
 
             If targetToken.IsChildToken(Of TypeParameterSingleConstraintClauseSyntax)(Function(constraint) constraint.AsKeyword) Then
                 Return recommendations

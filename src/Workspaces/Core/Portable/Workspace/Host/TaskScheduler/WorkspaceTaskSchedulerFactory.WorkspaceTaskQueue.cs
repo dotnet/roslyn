@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _queue = new SimpleTaskQueue(taskScheduler);
             }
 
-            public T3 ScheduleTask<T1, T2, T3>(Func<T1, T2, T3> taskScheduler, string taskName, T1 arg1, T2 arg2) where T3 : Task
+            private T3 ScheduleTask<T1, T2, T3>(Func<T1, T2, T3> taskScheduler, string taskName, T1 arg1, T2 arg2) where T3 : Task
             {
                 taskName = taskName ?? GetType().Name + ".Task";
                 var asyncToken = _factory.BeginAsyncOperation(taskName);

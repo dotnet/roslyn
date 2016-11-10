@@ -13,9 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var expression = BindExpression(node.Expression, diagnostics);
-            var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
+            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
+            var expressionType = expression.Type;
+            if ((object)expressionType == null)
+            {
+                expressionType = CreateErrorType();
+                if (!hasErrors)
+                {
+                    // value expected
+                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Expression.Location, expression.Display);
+                    hasErrors = true;
+                }
+            }
+
+            var pattern = BindPattern(node.Pattern, expression, expressionType, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
@@ -97,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundPattern BindConstantPattern(
+        private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
             BoundExpression operand,
             TypeSymbol operandType,
@@ -109,25 +121,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
-        internal BoundPattern BindConstantPattern(
+        internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            BoundExpression left,
-            TypeSymbol leftType,
-            ExpressionSyntax right,
+            BoundExpression operand,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
             bool hasErrors,
             DiagnosticBag diagnostics,
             out bool wasExpression,
             bool wasSwitchCase)
         {
-            var expression = BindValue(right, diagnostics, BindValueKind.RValue);
+            var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
+            ConstantValue constantValueOpt = null;
+            var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!node.HasErrors && expression.ConstantValue == null)
+            if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, right.Location);
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, expression, hasErrors);
+            return new BoundConstantPattern(node, convertedExpression, constantValueOpt, hasErrors);
+        }
+
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        {
+            // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
+            // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
+            // to that effect later.
+            BoundExpression convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+
+            if (convertedExpression.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)convertedExpression;
+                var operand = conversion.Operand;
+                if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                {
+                    // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                    var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                    convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
+                    discardedDiagnostics.Free();
+                }
+                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                    && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                {
+                    // A boxed constant (or string converted to object) is a special case because we prefer
+                    // to compare to the pre-converted value by casting the input value to the type of the constant
+                    // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
+                    // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
+                    // input value among many constant tests.
+                    convertedExpression = operand;
+                }
+                else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                {
+                    convertedExpression = operand;
+                }
+            }
+
+            constantValue = convertedExpression.ConstantValue;
+            return convertedExpression;
         }
 
         private bool CheckValidPatternType(
@@ -139,7 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar,
             DiagnosticBag diagnostics)
         {
-            if (operandType?.IsErrorType() == true || patternType?.IsErrorType() == true)
+            Debug.Assert((object)operandType != null);
+            Debug.Assert((object)patternType != null);
+            if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
             }
@@ -149,10 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
                 return true;
             }
-            else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
+            else if (patternType.IsStatic)
             {
-                // It is an error to use pattern-matching with a null, method group, or lambda
-                Error(diagnostics, ErrorCode.ERR_BadIsPatternExpression, operand.Syntax);
+                Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, patternType);
                 return true;
             }
             else if (!isVar)
@@ -160,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion =
                     operand != null
-                    ? this.Conversions.ClassifyConversionForCast(operand, patternType, ref useSiteDiagnostics)
-                    : this.Conversions.ClassifyConversionForCast(operandType, patternType, ref useSiteDiagnostics);
+                    ? this.Conversions.ClassifyConversionFromExpression(operand, patternType, ref useSiteDiagnostics, forCast: true)
+                    : this.Conversions.ClassifyConversionFromType(operandType, patternType, ref useSiteDiagnostics, forCast: true);
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
                 switch (conversion.Kind)
                 {
@@ -179,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //case ConversionKind.ImplicitConstant:
                     //case ConversionKind.ImplicitNumeric:
                     default:
-                        Error(diagnostics, ErrorCode.ERR_NoExplicitConv, typeSyntax, operandType, patternType);
+                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
                         return true;
                 }
             }
@@ -194,18 +247,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null || operandType != (object)null);
+            Debug.Assert(operand != null && operandType != (object)null);
+
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != (object)null) declType = operandType;
+            if (isVar)
+            {
+                declType = operandType;
+            }
+
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType();
+                declType = this.CreateErrorType("var");
             }
 
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
@@ -216,40 +274,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
-                                                  isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
+                                                   isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
-            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
-            // This occurs through the semantic model.  In that case concoct a plausible result.
-            if (localSymbol == (object)null)
+            if (localSymbol != (object)null)
             {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                    ContainingMemberOrLambda,
-                    this,
-                    RefKind.None,
-                    typeSyntax,
-                    identifier,
-                    LocalDeclarationKind.PatternVariable);
+                if (InConstructorInitializer || InFieldInitializer)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+                }
+
+                localSymbol.SetType(declType);
+
+                // Check for variable declaration errors.
+                hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                    && declType.IsRestrictedType()
+                    && !hasErrors)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
+                    hasErrors = true;
+                }
+
+                return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
             }
-
-            if (isVar) localSymbol.SetTypeSymbol(operandType);
-
-            // Check for variable declaration errors.
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-
-            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declType.IsRestrictedType()
-                && !hasErrors)
+            else
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                hasErrors = true;
+                // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
+                Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(node);
+                DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
+                expressionVariableField.SetType(declType, tempDiagnostics);
+                tempDiagnostics.Free();
+                BoundExpression receiver = SynthesizeReceiver(node, expressionVariableField, diagnostics);
+                var variableAccess = new BoundFieldAccess(node, receiver, expressionVariableField, null, hasErrors);
+                return new BoundDeclarationPattern(node, expressionVariableField, variableAccess, boundDeclType, isVar, hasErrors);
             }
-
-            DeclareLocalVariable(localSymbol, identifier, declType);
-            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
+
     }
 }

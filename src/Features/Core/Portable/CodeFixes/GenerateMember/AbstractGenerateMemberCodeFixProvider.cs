@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             foreach (var name in names)
             {
                 var codeActions = await GetCodeActionsAsync(context.Document, name, context.CancellationToken).ConfigureAwait(false);
-                if (codeActions == null || codeActions.IsEmpty())
+                if (codeActions.IsDefaultOrEmpty)
                 {
                     continue;
                 }
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             }
         }
 
-        protected abstract Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
 
         protected virtual SyntaxNode GetTargetNode(SyntaxNode node)
         {

@@ -7,32 +7,42 @@ Source generators provide a mechanism through which source code can be generated
 and added to the compilation. The additional source can be based on the content of the compilation,
 enabling some meta-programming scenarios.
 
+Like all pre-release features, code generators will need to be specially enabled, either by passing
+`/features:replace` directly to `csc` or by setting the `<Features>replace</Features>` flag in the project file.
+
 Scenarios
 ---------
 * Generate `BoundNode` classes from record definitions.
 * Implement `System.ComponentModel.INotifyPropertyChanged`.
 * Support code contracts defined through attributes.
 * Generate types from structured data similar to F# Type Providers.
+* Serialization/deserialization (see https://github.com/agocke/json-serializer)
 
 General
 -------
 Source generators are implementations of `Microsoft.CodeAnalysis.SourceGenerator`.
-```
+```csharp
     public abstract class SourceGenerator
     {
         public abstract void Execute(SourceGeneratorContext context);
     }
 ```
 `SourceGenerator` implementations are defined in external assemblies passed to the compiler
-using the same `-analyzer:` option used for diagnostic analyzers. An assembly can
-contain a mix of diagnostic analyzers and source generators.
+using the same `-analyzer:` option used for diagnostic analyzers. Valid source generators
+must:
+
+1. Implement `Microsoft.CodeAnalysis.SourceGenerator`
+1. Be decorated with the `Microsoft.CodeAnalysis.SourceGeneratorAttribute` to indicate 
+   supported languages.
+
+An assembly can contain a mix of diagnostic analyzers and source generators.
 Since generators are loaded from external assemblies, a generator cannot be used to build
 the assembly in which it is defined.
 
 `SourceGenerator` has a single `Execute` method that is called by the host -- either the IDE
 or the command-line compiler. `Execute` provides
 access to the `Compilation` and allows adding source and reporting diagnostics.
-```
+```csharp
     public abstract class SourceGeneratorContext
     {
         public abstract Compilation Compilation { get; }
@@ -64,7 +74,7 @@ Source generators are executed by the command-line compilers and the IDE. The ge
 are obtained from the `AnalyzerReference.GetSourceGenerators` for each analyzer reference
 specified on the command-line or in the project. `GetSourceGenerators` uses reflection to find types that
 inherit from `SourceGenerator` and instantiates those types.
-```
+```csharp
     public abstract class AnalyzerReference
     {
         ...
@@ -77,7 +87,7 @@ and returns the collection of `SyntaxTrees` and `Diagnostics`.
 (`GenerateSource` is called by the command-line compilers and IDE.)
 If `writeToDisk` is true, the generated source is persisted to `outputPath`. Regardless of whether the tree is persisted
 to disk, `SyntaxTree.FilePath` is set.
-```
+```csharp
     public static class SourceGeneratorExtensions
     {
         public static ImmutableArray<SyntaxTree> GenerateSource(
@@ -111,8 +121,8 @@ To redefine members in generated source, there are new language keywords: `repla
 
 `replace` and `original` are contextual keywords: `replace` is a keyword only when used as a member modifier;
 `original` is a keyword only when used within a `replace` method (similar to parser handling of `async` and `await`).
-```
-original.cs:
+```csharp
+// original.cs:
     partial class C
     {
         void F() { }
@@ -121,7 +131,7 @@ original.cs:
         event EventHandler E;
     }
 
-replace.cs:    
+// replace.cs:    
     partial class C
     {
         replace void F() { original(); }

@@ -1,8 +1,10 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SourceStrictComplexParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class SourceStrictComplexParameterSymbol : SourceComplexParameterSymbol
     {
         private readonly Binder _tempBinder;
 
@@ -13,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
-            bool hasByRefBeforeCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,

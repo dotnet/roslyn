@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class SyntaxToken
@@ -17,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Class TriviaInfo
             Implements IObjectWritable, IObjectReadable
 
-            Private Sub New(leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode)
+            Private Sub New(leadingTrivia As GreenNode, trailingTrivia As GreenNode)
                 Me._leadingTrivia = leadingTrivia
                 Me._trailingTrivia = trailingTrivia
             End Sub
@@ -25,28 +21,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private Const s_maximumCachedTriviaWidth As Integer = 40
             Private Const s_triviaInfoCacheSize As Integer = 64
 
-            Private Shared ReadOnly s_triviaKeyHasher As Func(Of VisualBasicSyntaxNode, Integer) =
-            Function(key) Hash.Combine(key.ToFullString(), CShort(key.Kind))
+            Private Shared ReadOnly s_triviaKeyHasher As Func(Of GreenNode, Integer) =
+            Function(key) Hash.Combine(key.ToFullString(), CShort(key.RawKind))
 
-            Private Shared ReadOnly s_triviaKeyEquality As Func(Of VisualBasicSyntaxNode, TriviaInfo, Boolean) =
-            Function(key, value) (key Is value._leadingTrivia) OrElse ((key.Kind = value._leadingTrivia.Kind) AndAlso (key.FullWidth = value._leadingTrivia.FullWidth) AndAlso (key.ToFullString() = value._leadingTrivia.ToFullString()))
+            Private Shared ReadOnly s_triviaKeyEquality As Func(Of GreenNode, TriviaInfo, Boolean) =
+            Function(key, value) (key Is value._leadingTrivia) OrElse ((key.RawKind = value._leadingTrivia.RawKind) AndAlso (key.FullWidth = value._leadingTrivia.FullWidth) AndAlso (key.ToFullString() = value._leadingTrivia.ToFullString()))
 
-            Private Shared ReadOnly s_triviaInfoCache As CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo) = New CachingFactory(Of VisualBasicSyntaxNode, TriviaInfo)(s_triviaInfoCacheSize, Nothing, s_triviaKeyHasher, s_triviaKeyEquality)
+            Private Shared ReadOnly s_triviaInfoCache As CachingFactory(Of GreenNode, TriviaInfo) = New CachingFactory(Of GreenNode, TriviaInfo)(s_triviaInfoCacheSize, Nothing, s_triviaKeyHasher, s_triviaKeyEquality)
 
-            Private Shared Function ShouldCacheTriviaInfo(leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As Boolean
+            Private Shared Function ShouldCacheTriviaInfo(leadingTrivia As GreenNode, trailingTrivia As GreenNode) As Boolean
                 Debug.Assert(leadingTrivia IsNot Nothing)
 
                 If trailingTrivia Is Nothing Then
 
                     ' Leading doc comment (which may include whitespace). No trailing trivia.
-                    Return leadingTrivia.Kind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
+                    Return leadingTrivia.RawKind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
                         leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
                 Else
 
                     ' Leading whitespace and a trailing single space.
-                    Return leadingTrivia.Kind = SyntaxKind.WhitespaceTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
-                         trailingTrivia.Kind = SyntaxKind.WhitespaceTrivia AndAlso trailingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
+                    Return leadingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
+                         trailingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso trailingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
                          trailingTrivia.FullWidth = 1 AndAlso trailingTrivia.ToFullString() = " " AndAlso
                          leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
@@ -54,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             End Function
 
-            Public Shared Function Create(leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As TriviaInfo
+            Public Shared Function Create(leadingTrivia As GreenNode, trailingTrivia As GreenNode) As TriviaInfo
                 Debug.Assert(leadingTrivia IsNot Nothing)
 
                 ' PERF: Cache common kinds of TriviaInfo
@@ -81,12 +77,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return New TriviaInfo(leadingTrivia, trailingTrivia)
             End Function
 
-            Public _leadingTrivia As VisualBasicSyntaxNode
-            Public _trailingTrivia As VisualBasicSyntaxNode
+            Public _leadingTrivia As GreenNode
+            Public _trailingTrivia As GreenNode
 
             Public Sub New(reader As ObjectReader)
-                Me._leadingTrivia = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
-                Me._trailingTrivia = DirectCast(reader.ReadValue(), VisualBasicSyntaxNode)
+                Me._leadingTrivia = DirectCast(reader.ReadValue(), GreenNode)
+                Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
 
             Public Function GetReader() As Func(Of ObjectReader, Object) Implements IObjectReadable.GetReader
@@ -99,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
         End Class
 
-        Protected Sub New(kind As SyntaxKind, text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode)
+        Protected Sub New(kind As SyntaxKind, text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode)
             MyBase.New(kind, text.Length)
             Me.SetFlags(NodeFlags.IsNotMissing)
 
@@ -113,13 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
         End Sub
 
-        Protected Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode)
+        Protected Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode)
             MyBase.New(kind, errors, text.Length)
             Me.SetFlags(NodeFlags.IsNotMissing)
 
@@ -133,13 +129,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
         End Sub
 
-        Protected Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode)
+        Protected Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode)
             MyBase.New(kind, errors, annotations, text.Length)
             Me.SetFlags(NodeFlags.IsNotMissing)
 
@@ -153,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If precedingTrivia IsNot Nothing Then
                 ' Don't propagate NoMissing in Init
                 AdjustFlagsAndWidth(precedingTrivia)
-                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+                Me._trailingTriviaOrTriviaInfo = TriviaInfo.Create(precedingTrivia, DirectCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             End If
 
             ClearFlagIfMissing()
@@ -170,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim info = TryCast(Me._trailingTriviaOrTriviaInfo, TriviaInfo)
 
-            Dim followingTrivia = If(info IsNot Nothing, info._trailingTrivia, TryCast(Me._trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode))
+            Dim followingTrivia = If(info IsNot Nothing, info._trailingTrivia, TryCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
             Dim precedingTrivia = If(info IsNot Nothing, info._leadingTrivia, Nothing)
 
             If followingTrivia IsNot Nothing Then
@@ -211,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the leading trivia as GreenNode array.
-        Friend NotOverridable Overrides Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetLeadingTrivia() As GreenNode
             Dim t = TryCast(_trailingTriviaOrTriviaInfo, TriviaInfo)
             If t IsNot Nothing Then
                 Return t._leadingTrivia
@@ -235,8 +231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Get the following trivia as GreenNode array.
-        Friend NotOverridable Overrides Function GetTrailingTrivia() As VisualBasicSyntaxNode
-            Dim arr = TryCast(_trailingTriviaOrTriviaInfo, VisualBasicSyntaxNode)
+        Friend NotOverridable Overrides Function GetTrailingTrivia() As GreenNode
+            Dim arr = TryCast(_trailingTriviaOrTriviaInfo, GreenNode)
             If arr IsNot Nothing Then
                 Return arr
             End If
@@ -259,41 +255,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim leadingTrivia = GetLeadingTrivia()
             If leadingTrivia IsNot Nothing Then
-                Dim triviaList = New SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
+                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
             Dim trailingTrivia = GetTrailingTrivia()
             If trailingTrivia IsNot Nothing Then
-                Dim triviaList = New SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
+                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
                 For i = 0 To triviaList.Count - 1
                     DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
                 Next
             End If
         End Sub
 
-        Friend Overrides Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-
-            Dim leadingTrivia = GetLeadingTrivia()
-            If leadingTrivia IsNot Nothing Then
-                leadingTrivia.WriteTo(writer) 'Append leading trivia
+        Protected Overrides Sub WriteTokenTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
+            If leading Then
+                Dim leadingTrivia = GetLeadingTrivia()
+                If leadingTrivia IsNot Nothing Then
+                    leadingTrivia.WriteTo(writer, True, True) 'Append leading trivia
+                End If
             End If
 
-            writer.Write(_text) 'Append text of token itself
+            writer.Write(Me.Text) 'Append text of token itself
 
-            Dim trailingTrivia = GetTrailingTrivia()
-            If trailingTrivia IsNot Nothing Then
-                trailingTrivia.WriteTo(writer) ' Append trailing trivia
+            If trailing Then
+                Dim trailingTrivia = GetTrailingTrivia()
+                If trailingTrivia IsNot Nothing Then
+                    trailingTrivia.WriteTo(writer, True, True) ' Append trailing trivia
+                End If
             End If
-        End Sub
-
-        ''' <summary>
-        ''' Add this token to the token list builder.
-        ''' </summary>
-        Friend NotOverridable Overrides Sub CollectConstituentTokensAndDiagnostics(tokenListBuilder As SyntaxListBuilder(Of SyntaxToken),
-                                                                    nonTokenDiagnostics As IList(Of DiagnosticInfo))
-            tokenListBuilder.Add(Me)
         End Sub
 
         Public NotOverridable Overrides Function Accept(visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
@@ -397,15 +388,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia prepended to the existing preceding trivia
         ''' </summary>
-        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As T
+        Public Shared Function AddLeadingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia())
-            Dim leadingTrivia As VisualBasicSyntaxNode
+            Dim oldTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetLeadingTrivia())
+            Dim leadingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then
                 leadingTrivia = newTrivia.Node
@@ -423,15 +414,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Create a new token with the trivia appended to the existing following trivia
         ''' </summary>
-        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As T
+        Public Shared Function AddTrailingTrivia(Of T As SyntaxToken)(token As T, newTrivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As T
             Debug.Assert(token IsNot Nothing)
 
             If newTrivia.Node Is Nothing Then
                 Return token
             End If
 
-            Dim oldTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
-            Dim trailingTrivia As VisualBasicSyntaxNode
+            Dim oldTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(token.GetTrailingTrivia())
+            Dim trailingTrivia As GreenNode
 
             If oldTrivia.Node Is Nothing Then
                 trailingTrivia = newTrivia.Node
@@ -446,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return DirectCast(token.WithTrailingTrivia(trailingTrivia), T)
         End Function
 
-        Friend Shared Function Create(kind As SyntaxKind, Optional leading As VisualBasicSyntaxNode = Nothing, Optional trailing As VisualBasicSyntaxNode = Nothing, Optional text As String = Nothing) As SyntaxToken
+        Friend Shared Function Create(kind As SyntaxKind, Optional leading As GreenNode = Nothing, Optional trailing As GreenNode = Nothing, Optional text As String = Nothing) As SyntaxToken
 
             ' use default token text if text is nothing. If it's empty or anything else, use the given one
             Dim tokenText = If(text Is Nothing, SyntaxFacts.GetText(kind), text)

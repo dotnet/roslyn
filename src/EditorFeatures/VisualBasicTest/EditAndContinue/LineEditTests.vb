@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 
@@ -326,7 +325,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -349,7 +348,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -373,7 +372,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar(Of T)()"},
-                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
+                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -883,7 +882,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Foo As Integer = 1 +  1"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field))
         End Sub
 #End Region
 

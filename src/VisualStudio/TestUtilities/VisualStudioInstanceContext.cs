@@ -11,22 +11,20 @@ namespace Roslyn.VisualStudio.Test.Utilities
     /// </summary>
     public sealed class VisualStudioInstanceContext : IDisposable
     {
-        private readonly VisualStudioInstance _instance;
+        public VisualStudioInstance Instance { get; }
         private readonly VisualStudioInstanceFactory _instanceFactory;
 
         internal VisualStudioInstanceContext(VisualStudioInstance instance, VisualStudioInstanceFactory instanceFactory)
         {
-            _instance = instance;
+            this.Instance = instance;
             _instanceFactory = instanceFactory;
         }
-
-        public VisualStudioInstance Instance => _instance;
 
         public void Dispose()
         {
             try
             {
-                _instance.Cleanup();
+                this.Instance.CleanUp();
                 _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
             }
             catch (Exception)

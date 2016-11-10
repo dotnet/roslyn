@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="module">The metadata of the module before editing.</param>
         /// <param name="debugInformationProvider">
         /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
+        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
         /// </param>
         /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
         /// <remarks>
@@ -203,8 +205,9 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, AddedOrChangedMethodInfo> AddedOrChangedMethods;
 
         /// <summary>
-        /// Local variable names for methods from metadata,
-        /// indexed by method row.
+        /// Reads EnC debug information of a method from the initial baseline PDB.
+        /// The function shall throw <see cref="System.IO.InvalidDataException"/> if the debug information can't be read for the specified method.
+        /// This exception is caught and converted to an emit diagnostic. Other exceptions are passed through.
         /// </summary>
         internal readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
 

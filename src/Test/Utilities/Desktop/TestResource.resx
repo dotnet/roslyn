@@ -318,6 +318,10 @@ namespace My
                         goto default;
                         break;
                     }
+                case 4 when true:
+                    break;
+                case int i:
+                    break;
                 default:
                     {
                         return;
@@ -326,7 +330,8 @@ namespace My
             while (i &lt; 10)
             {
                 ++i;
-                if (true) continue;
+                if (i is int q) continue;
+                void LocalFcn() => throw null;
                 break;
             }
             do

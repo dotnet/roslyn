@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ProjectGuid>{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
+    <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <ItemGroup>
+    <None Include="Microsoft.CSharp.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Microsoft.VisualBasic.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+    <!-- A reference to the entire .NET Framework is automatically included -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs">
+      <Link>BuildServerConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs">
+      <Link>CommandLineUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
+      <Link>CompilerOptionParseUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs">
+      <Link>IReadOnlySet.cs</Link>
+    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
+      <Link>UnicodeCharacterUtilities.cs</Link>
+    </Compile>
+    <Compile Include="CanonicalError.cs" />
+    <Compile Include="ValidateBootstrap.cs" />
+    <Compile Include="CommandLineBuilderExtension.cs" />
+    <Compile Include="Csc.cs" />
+    <Compile Include="Csi.cs" />
+    <Compile Include="ErrorString.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ErrorString.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ICompilerOptionsHostObject.cs" />
+    <Compile Include="ICscHostObject5.cs" />
+    <Compile Include="InteractiveCompiler.cs" />
+    <Compile Include="IVbcHostObject6.cs" />
+    <Compile Include="ManagedCompiler.cs" />
+    <Compile Include="PropertyDictionary.cs" />
+    <Compile Include="RCWForCurrentContext.cs" />
+    <Compile Include="Utilities.cs" />
+    <Compile Include="Vbc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ErrorString.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
+</Project>

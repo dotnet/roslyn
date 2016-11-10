@@ -1,10 +1,13 @@
-﻿{
-  "dependencies": {
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": { }
-  }
+{
+    "dependencies": {
+        "xunit": "2.1.0",
+        "xunit.runner.console": "2.2.0-beta1-build3239",
+        "Moq": "4.2.1402.2112"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Block:
                 case BoundKind.ThrowStatement:
                 case BoundKind.LabeledStatement:
+                case BoundKind.LocalFunctionStatement:
                     base.VisitStatement(statement);
                     break;
                 case BoundKind.StatementList:
@@ -232,7 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReachable(BoundStatement statement)
         {
-            if (!this.State.Alive && !this.State.Reported && !statement.WasCompilerGenerated && statement.Syntax.Span.Length != 0)
+            if (!this.State.Alive &&
+                !this.State.Reported &&
+                !statement.WasCompilerGenerated &&
+                statement.Syntax.Span.Length != 0)
             {
                 var firstToken = statement.Syntax.GetFirstToken();
                 Diagnostics.Add(ErrorCode.WRN_UnreachableCode, new SourceLocation(firstToken));
@@ -306,15 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
-        protected override void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
-        {
-            _labelsDefined.Add(label);
-            base.VisitSwitchSectionLabel(label, node);
-
-            // switch statement labels are always considered to be referenced
-            _labelsUsed.Add(label);
-        }
-
         public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
         {
             base.VisitSwitchSection(node);
@@ -333,6 +328,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        {
+            return base.VisitPatternSwitchStatement(node);
+        }
+
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.PatternSwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
                 this.State.Reported = true;

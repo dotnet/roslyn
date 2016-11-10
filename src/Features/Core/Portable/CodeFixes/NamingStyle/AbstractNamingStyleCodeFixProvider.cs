@@ -1,13 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
+using System.Composition;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,12 +15,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
-    internal abstract class AbstractNamingStyleCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
+    internal class NamingStyleCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId); }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds { get; }
+            = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -44,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        string.Format(FeaturesResources.FixNamingViolation, fixedName),
+                        string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
                         async c => await Renamer.RenameSymbolAsync(
                             solution,
                             symbol,
                             fixedName,
-                            document.Options,
-                            c).ConfigureAwait(false), 
-                        nameof(AbstractNamingStyleCodeFixProvider)), 
+                            await document.GetOptionsAsync(c).ConfigureAwait(false),
+                            c).ConfigureAwait(false),
+                        nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
             }
         }

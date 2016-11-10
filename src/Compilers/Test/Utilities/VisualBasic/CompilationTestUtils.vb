@@ -355,10 +355,11 @@ Friend Module CompilationUtils
                                                         Optional includeSystemCore As Boolean = False,
                                                         Optional appendDefaultHeader As Boolean = True,
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
                                                         <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
-        Dim references As New List(Of MetadataReference)
+        Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
             references.Add(MsvbRef)
         End If
@@ -1199,10 +1200,14 @@ Friend Module CompilationUtils
     End Sub
 
     <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol) As ImmutableArray(Of SynthesizedAttributeData)
+    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
         Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        Dim context = New ModuleCompilationState()
-        DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
+        If Not forReturnType Then
+            Dim context = New ModuleCompilationState()
+            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
+        Else
+            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
+        End If
         Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
     End Function
 

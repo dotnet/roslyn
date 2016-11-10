@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 End If
 
                 If doBlock.Kind <> SyntaxKind.SimpleDoLoopBlock Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Loop", VBFeaturesResources.LoopKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Loop", VBFeaturesResources.Terminates_a_loop_that_is_introduced_with_a_Do_statement))
                 Else
-                    Return {New RecommendedKeyword("Loop", VBFeaturesResources.LoopKeywordToolTip),
-                            New RecommendedKeyword("Loop Until", VBFeaturesResources.LoopUntilKeywordToolTip),
-                            New RecommendedKeyword("Loop While", VBFeaturesResources.LoopWhileKeywordToolTip)}
+                    Return {New RecommendedKeyword("Loop", VBFeaturesResources.Terminates_a_loop_that_is_introduced_with_a_Do_statement),
+                            New RecommendedKeyword("Loop Until", VBFeaturesResources.Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition),
+                            New RecommendedKeyword("Loop While", VBFeaturesResources.Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition)}
                 End If
             End If
 

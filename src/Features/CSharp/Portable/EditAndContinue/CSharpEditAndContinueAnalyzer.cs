@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -270,13 +271,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     declarationBody = constructor.Initializer;
                     partnerDeclarationBodyOpt = partnerConstructor?.Initializer;
                 }
-                else
-                {
-                    Debug.Assert(!(declarationBody is BlockSyntax));
+            }
 
-                    // let's find a labeled node that encompasses the body:
-                    position = declarationBody.SpanStart;
-                }
+            if (!declarationBody.FullSpan.Contains(position))
+            {
+                // invalid position, let's find a labeled node that encompasses the body:
+                position = declarationBody.SpanStart;
             }
 
             SyntaxNode node;
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             SyntaxNode root = GetEncompassingAncestor(containerOpt);
 
-            while (node != root)
+            while (node != root && node != null)
             {
                 SyntaxNode body;
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
@@ -1345,6 +1345,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
+                case SyntaxKind.ForEachVariableStatement:
+                    return ((ForEachVariableStatementSyntax)node).Variable.Span;
+
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
+                case SyntaxKind.SimpleAssignmentExpression:
+                    return node.Span;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -1395,113 +1408,113 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.GlobalStatement:
-                    return CSharpFeaturesResources.GlobalStatement;
+                    return CSharpFeaturesResources.global_statement;
 
                 case SyntaxKind.ExternAliasDirective:
-                    return CSharpFeaturesResources.UsingNamespace;
+                    return CSharpFeaturesResources.using_namespace;
 
                 case SyntaxKind.UsingDirective:
                     // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
                     // None of these changes are allowed anyways, so let's keep it simple.
-                    return CSharpFeaturesResources.UsingDirective;
+                    return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return FeaturesResources.Namespace;
+                    return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:
-                    return FeaturesResources.Class;
+                    return FeaturesResources.class_;
 
                 case SyntaxKind.StructDeclaration:
-                    return CSharpFeaturesResources.Struct;
+                    return CSharpFeaturesResources.struct_;
 
                 case SyntaxKind.InterfaceDeclaration:
-                    return FeaturesResources.Interface;
+                    return FeaturesResources.interface_;
 
                 case SyntaxKind.EnumDeclaration:
-                    return FeaturesResources.Enum;
+                    return FeaturesResources.enum_;
 
                 case SyntaxKind.DelegateDeclaration:
-                    return FeaturesResources.Delegate;
+                    return FeaturesResources.delegate_;
 
                 case SyntaxKind.FieldDeclaration:
                     var declaration = (FieldDeclarationSyntax)node;
-                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? FeaturesResources.ConstField : FeaturesResources.Field;
+                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? FeaturesResources.const_field : FeaturesResources.field;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    return CSharpFeaturesResources.EventField;
+                    return CSharpFeaturesResources.event_field;
 
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
                     return GetTopLevelDisplayNameImpl(node.Parent, editKind);
 
                 case SyntaxKind.MethodDeclaration:
-                    return FeaturesResources.Method;
+                    return FeaturesResources.method;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return CSharpFeaturesResources.ConversionOperator;
+                    return CSharpFeaturesResources.conversion_operator;
 
                 case SyntaxKind.OperatorDeclaration:
-                    return FeaturesResources.Operator;
+                    return FeaturesResources.operator_;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    return FeaturesResources.Constructor;
+                    return FeaturesResources.constructor;
 
                 case SyntaxKind.DestructorDeclaration:
-                    return CSharpFeaturesResources.Destructor;
+                    return CSharpFeaturesResources.destructor;
 
                 case SyntaxKind.PropertyDeclaration:
-                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? FeaturesResources.AutoProperty : FeaturesResources.Property;
+                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? FeaturesResources.auto_property : FeaturesResources.property_;
 
                 case SyntaxKind.IndexerDeclaration:
-                    return CSharpFeaturesResources.Indexer;
+                    return CSharpFeaturesResources.indexer;
 
                 case SyntaxKind.EventDeclaration:
-                    return FeaturesResources.Event;
+                    return FeaturesResources.event_;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    return FeaturesResources.EnumValue;
+                    return FeaturesResources.enum_value;
 
                 case SyntaxKind.GetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return CSharpFeaturesResources.PropertyGetter;
+                        return CSharpFeaturesResources.property_getter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return CSharpFeaturesResources.IndexerGetter;
+                        return CSharpFeaturesResources.indexer_getter;
                     }
 
                 case SyntaxKind.SetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return CSharpFeaturesResources.PropertySetter;
+                        return CSharpFeaturesResources.property_setter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return CSharpFeaturesResources.IndexerSetter;
+                        return CSharpFeaturesResources.indexer_setter;
                     }
 
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return FeaturesResources.EventAccessor;
+                    return FeaturesResources.event_accessor;
 
                 case SyntaxKind.TypeParameterConstraintClause:
-                    return FeaturesResources.TypeConstraint;
+                    return FeaturesResources.type_constraint;
 
                 case SyntaxKind.TypeParameterList:
                 case SyntaxKind.TypeParameter:
-                    return FeaturesResources.TypeParameter;
+                    return FeaturesResources.type_parameter;
 
                 case SyntaxKind.Parameter:
-                    return FeaturesResources.Parameter;
+                    return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.AttributeTarget : FeaturesResources.Attribute;
+                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
-                    return FeaturesResources.Attribute;
+                    return FeaturesResources.attribute;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -1514,79 +1527,113 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.TryStatement:
-                    return CSharpFeaturesResources.TryBlock;
+                    return CSharpFeaturesResources.try_block;
 
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.CatchDeclaration:
-                    return CSharpFeaturesResources.CatchClause;
+                    return CSharpFeaturesResources.catch_clause;
 
                 case SyntaxKind.CatchFilterClause:
-                    return CSharpFeaturesResources.FilterClause;
+                    return CSharpFeaturesResources.filter_clause;
 
                 case SyntaxKind.FinallyClause:
-                    return CSharpFeaturesResources.FinallyClause;
+                    return CSharpFeaturesResources.finally_clause;
 
                 case SyntaxKind.FixedStatement:
-                    return CSharpFeaturesResources.FixedStatement;
+                    return CSharpFeaturesResources.fixed_statement;
 
                 case SyntaxKind.UsingStatement:
-                    return CSharpFeaturesResources.UsingStatement;
+                    return CSharpFeaturesResources.using_statement;
 
                 case SyntaxKind.LockStatement:
-                    return CSharpFeaturesResources.LockStatement;
+                    return CSharpFeaturesResources.lock_statement;
 
                 case SyntaxKind.ForEachStatement:
-                    return CSharpFeaturesResources.ForEachStatement;
+                    return CSharpFeaturesResources.foreach_statement;
 
                 case SyntaxKind.CheckedStatement:
-                    return CSharpFeaturesResources.CheckedStatement;
+                    return CSharpFeaturesResources.checked_statement;
 
                 case SyntaxKind.UncheckedStatement:
-                    return CSharpFeaturesResources.UncheckedStatement;
+                    return CSharpFeaturesResources.unchecked_statement;
 
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
-                    return CSharpFeaturesResources.YieldStatement;
+                    return CSharpFeaturesResources.yield_statement;
 
                 case SyntaxKind.AwaitExpression:
-                    return CSharpFeaturesResources.AwaitExpression;
+                    return CSharpFeaturesResources.await_expression;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
-                    return CSharpFeaturesResources.Lambda;
+                    return CSharpFeaturesResources.lambda;
 
                 case SyntaxKind.AnonymousMethodExpression:
-                    return CSharpFeaturesResources.AnonymousMethod;
+                    return CSharpFeaturesResources.anonymous_method;
 
                 case SyntaxKind.FromClause:
-                    return CSharpFeaturesResources.FromClause;
+                    return CSharpFeaturesResources.from_clause;
 
                 case SyntaxKind.JoinClause:
                 case SyntaxKind.JoinIntoClause:
-                    return CSharpFeaturesResources.JoinClause;
+                    return CSharpFeaturesResources.join_clause;
 
                 case SyntaxKind.LetClause:
-                    return CSharpFeaturesResources.LetClause;
+                    return CSharpFeaturesResources.let_clause;
 
                 case SyntaxKind.WhereClause:
-                    return CSharpFeaturesResources.WhereClause;
+                    return CSharpFeaturesResources.where_clause;
 
                 case SyntaxKind.OrderByClause:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    return CSharpFeaturesResources.OrderByClause;
+                    return CSharpFeaturesResources.orderby_clause;
 
                 case SyntaxKind.SelectClause:
-                    return CSharpFeaturesResources.SelectClause;
+                    return CSharpFeaturesResources.select_clause;
 
                 case SyntaxKind.GroupClause:
-                    return CSharpFeaturesResources.GroupByClause;
+                    return CSharpFeaturesResources.groupby_clause;
 
                 case SyntaxKind.QueryBody:
-                    return CSharpFeaturesResources.QueryBody;
+                    return CSharpFeaturesResources.query_body;
 
                 case SyntaxKind.QueryContinuation:
-                    return CSharpFeaturesResources.IntoClause;
+                    return CSharpFeaturesResources.into_clause;
+
+                case SyntaxKind.IsPatternExpression:
+                    return CSharpFeaturesResources.is_pattern;
+
+                case SyntaxKind.ForEachVariableStatement:
+                    return CSharpFeaturesResources.deconstruction;
+
+                case SyntaxKind.SimpleAssignmentExpression:
+                    if (((AssignmentExpressionSyntax)node).IsDeconstruction())
+                    {
+                        return CSharpFeaturesResources.deconstruction;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    }
+
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                    return CSharpFeaturesResources.tuple;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    return CSharpFeaturesResources.local_function;
+
+                case SyntaxKind.DeclarationExpression:
+                    return CSharpFeaturesResources.out_var;
+
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                    return CSharpFeaturesResources.ref_local_or_expression;
+
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.DeclarationPattern:
+                    return CSharpFeaturesResources.v7_switch;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -3021,8 +3068,61 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
+            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+        }
+
+        /// <summary>
+        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
+        /// </summary>
+        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
+        {
+            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
+                return;
+            }
+
+            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
+            if (foundCSharp7Syntax != null)
+            {
+                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
+            }
+        }
+
+        /// <summary>
+        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
+        /// </summary>
+        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.UpdateAroundActiveStatement,
+                default(TextSpan), // no span since the offending node is in the old syntax
+                oldCSharp7Syntax,
+                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
+        }
+
+        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
+        {
+            switch (n.Kind())
+            {
+                case SyntaxKind.IsPatternExpression:
+                case SyntaxKind.ForEachVariableStatement:
+                case SyntaxKind.TupleType:
+                case SyntaxKind.TupleExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.DeclarationExpression:
+                case SyntaxKind.RefType:
+                case SyntaxKind.RefExpression:
+                case SyntaxKind.DeclarationPattern:
+                    return true;
+                case SyntaxKind.SimpleAssignmentExpression:
+                    return ((AssignmentExpressionSyntax)n).IsDeconstruction();
+                default:
+                    return false;
+            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3133,6 +3233,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        internal override void ReportSemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
+            if (foundNode != null)
+            {
+                AddRudeUpdateInCSharp7Method(diagnostics, foundNode);
+            }
+            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
+            }
+        }
+
+        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
+            {
+                var switchExpression = ((SwitchStatementSyntax)node).Expression;
+                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
+
+                if (!IsValidV6SwitchGoverningType(governingType))
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
+        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
+        /// corresponding to one of those types. These types were permitted as the governing
+        /// type of a switch statement in C# 6.
+        /// </summary>
+        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
+        {
+            Debug.Assert(type != null);
+
+            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                type = ((INamedTypeSymbol)type).TypeArguments[0];
+            }
+
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
+            }
+
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Char:
+                case SpecialType.System_String:
+                case SpecialType.System_Boolean:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         #endregion

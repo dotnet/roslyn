@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Roslyn.VisualStudio.IntegrationTests;
+using Microsoft.CodeAnalysis;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild : IDisposable
@@ -14,10 +14,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 
         public CSharpBuild(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
+            _visualStudio = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
-            var solution = _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.CSharp);
+            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
         public void Dispose()
@@ -38,7 +38,7 @@ class Program
     }
 }";
 
-            _visualStudio.Instance.EditorWindow.Text = editorText;
+            _visualStudio.Instance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

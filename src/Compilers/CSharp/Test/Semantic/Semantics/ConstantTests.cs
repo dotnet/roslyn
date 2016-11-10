@@ -176,7 +176,7 @@ class Program
     }
 }
 ";
-            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics(
     // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
     //     public S2()
@@ -2839,15 +2839,18 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         void f() { if () const int i = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "void f() { if () const int i = 0; }").WithArguments("local functions", "localFunctions").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(6, 14),
                 // (6,24): error CS1525: Invalid expression term ')'
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
                 // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26),
+                // (6,36): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         void f() { if () const int i = 0; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 36),
                 // (6,14): warning CS0168: The variable 'f' is declared but never used
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
@@ -2867,12 +2870,6 @@ class C
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
-    //         const Func<int> a = () => { const int b = a(); return 1; };
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51),
-    // (6,51): error CS0110: The evaluation of the constant value for 'a' involves a circular definition
-    //         const Func<int> a = () => { const int b = a(); return 1; };
-    Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("a").WithLocation(6, 51),
     // (6,51): error CS0133: The expression being assigned to 'b' must be constant
     //         const Func<int> a = () => { const int b = a(); return 1; };
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
@@ -2910,7 +2907,10 @@ void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
     // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
     // void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18)
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18),
+    // (2,28): warning CS0219: The variable 'i' is assigned but its value is never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(2, 28)
                 );
         }
 
@@ -2949,28 +2949,27 @@ void f() { if () const int i = 0; }
     }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
-    //         const string y1 = (string)(object)"y";
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
-    // (9,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //         const string x2 = (object)null;
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(9, 27),
-    // (10,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //         const string y2 = (object)"y";
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""y""").WithArguments("object", "string").WithLocation(10, 27),
-    // (13,27): error CS0134: 'y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
-    //         const object y3 = "y";
-    Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""y""").WithArguments("y3", "object").WithLocation(13, 27),
-    // (19,13): error CS0150: A constant value is expected
-    //             case (string)(object)"b":
-    Diagnostic(ErrorCode.ERR_ConstantExpected, @"case (string)(object)""b"":").WithLocation(19, 13),
-    // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //             case (object)null:
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-    // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-    //             case (object)"b":
-    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18)
-                );
+                // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
+                //         const string y1 = (string)(object)"y";
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
+                // (9,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         const string x2 = (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(9, 27),
+                // (10,27): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         const string y2 = (object)"y";
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""y""").WithArguments("object", "string").WithLocation(10, 27),
+                // (13,27): error CS0134: 'y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //         const object y3 = "y";
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""y""").WithArguments("y3", "object").WithLocation(13, 27),
+                // (19,18): error CS0150: A constant value is expected
+                //             case (string)(object)"b":
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(string)(object)""b""").WithLocation(19, 18),
+                // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
+                // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //             case (object)"b":
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18));
         }
     }
 

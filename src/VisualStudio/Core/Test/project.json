@@ -1,9 +1,59 @@
 ﻿{
-  "dependencies": { },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "dependencies": {
+        "BasicUndo": "0.9.3",
+        "Microsoft.VisualStudio.InteractiveWindow": {
+            "version": "2.0.0-beta5-60820-04",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.RemoteControl": {
+            "version": "14.0.249-master2E2DC10C",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Shell.14.0": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Editor": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.Intellisense": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal" : {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Progression": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+            "version": "14.3.25420",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

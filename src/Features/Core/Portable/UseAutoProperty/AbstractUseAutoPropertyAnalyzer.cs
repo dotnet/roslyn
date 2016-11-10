@@ -1,32 +1,33 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : DiagnosticAnalyzer
+    internal static class Constants
+    {
+        public const string SymbolEquivalenceKey = nameof(SymbolEquivalenceKey);
+    }
+
+    internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : 
+        AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TExpression : SyntaxNode
     {
-        public const string UseAutoProperty = nameof(UseAutoProperty);
-        public const string UseAutoPropertyFadedToken = nameof(UseAutoPropertyFadedToken);
+        private static readonly LocalizableString s_title =
+            new LocalizableResourceString(nameof(FeaturesResources.Use_auto_property), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
-        private readonly static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            UseAutoProperty, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
-            "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
-
-        private readonly static DiagnosticDescriptor s_fadedTokenDescriptor = new DiagnosticDescriptor(
-            UseAutoPropertyFadedToken, FeaturesResources.UseAutoProperty, FeaturesResources.UseAutoProperty,
-            "Language", DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-            customTags: new[] { WellKnownDiagnosticTags.Unnecessary });
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor, s_fadedTokenDescriptor);
+        protected AbstractUseAutoPropertyAnalyzer()
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
+        {
+        }
 
         protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
@@ -36,19 +37,17 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(csac =>
-            {
-                var analysisResults = new ConcurrentBag<AnalysisResult>();
-                var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
-
-                csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
-                RegisterIneligibleFieldsAction(csac, ineligibleFields);
-
-                csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
-            });
-        }
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(csac =>
+               {
+                   var analysisResults = new ConcurrentBag<AnalysisResult>();
+                   var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
+               
+                   csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
+                   RegisterIneligibleFieldsAction(csac, ineligibleFields);
+               
+                   csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
+               });
 
         private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
         {
@@ -250,10 +249,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var variableDeclarator = result.VariableDeclarator;
             var nodeToFade = GetNodeToFade(result.FieldDeclaration, variableDeclarator);
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(result.SymbolEquivalenceKey), result.SymbolEquivalenceKey);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                Constants.SymbolEquivalenceKey, result.SymbolEquivalenceKey);
 
             // Fade out the field/variable we are going to remove.
-            var diagnostic1 = Diagnostic.Create(s_fadedTokenDescriptor, nodeToFade.GetLocation());
+            var diagnostic1 = Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, nodeToFade.GetLocation());
             compilationContext.ReportDiagnostic(diagnostic1);
 
             // Now add diagnostics to both the field and the property saying we can convert it to 
@@ -261,10 +261,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // them when performing the code fix.
             IEnumerable<Location> additionalLocations = new Location[] { propertyDeclaration.GetLocation(), variableDeclarator.GetLocation() };
 
-            var diagnostic2 = Diagnostic.Create(s_descriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
+            var diagnostic2 = Diagnostic.Create(HiddenDescriptor, propertyDeclaration.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic2);
 
-            var diagnostic3 = Diagnostic.Create(s_descriptor, nodeToFade.GetLocation(), additionalLocations, properties);
+            var diagnostic3 = Diagnostic.Create(HiddenDescriptor, nodeToFade.GetLocation(), additionalLocations, properties);
             compilationContext.ReportDiagnostic(diagnostic3);
         }
 

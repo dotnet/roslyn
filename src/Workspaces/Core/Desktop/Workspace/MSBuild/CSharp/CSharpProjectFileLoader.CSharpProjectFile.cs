@@ -181,19 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
-
-                string errorMessage;
-                int errorCode;
-                compilerInputs.EndInitialization(out errorMessage, out errorCode);
+                compilerInputs.EndInitialization(out var errorMessage, out var errorCode);
             }
 
             private class CSharpCompilerInputs :
-#if !MSBUILD12
                 MSB.Tasks.Hosting.ICscHostObject4,
                 MSB.Tasks.Hosting.IAnalyzerHostObject
-#else
-                MSB.Tasks.Hosting.ICscHostObject4
-#endif
             {
                 private readonly CSharpProjectFile _projectFile;
 
@@ -250,6 +243,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (string.Equals(_debugType, "full", StringComparison.OrdinalIgnoreCase))
                         {
                             this.CommandLineArgs.Add("/debug:full");
+                        }
+                        else if (string.Equals(_debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                        }
+                        else if (string.Equals(_debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
                         }
                     }
 

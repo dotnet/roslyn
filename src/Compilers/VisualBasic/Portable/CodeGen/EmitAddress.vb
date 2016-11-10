@@ -3,7 +3,6 @@
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
@@ -113,6 +112,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableAddress(DirectCast(expression, BoundPseudoVariable))
+
+                Case BoundKind.Call
+                    Dim [call] = DirectCast(expression, BoundCall)
+                    Debug.Assert([call].Method.ReturnsByRef)
+                    EmitCallExpression([call], UseKind.UsedAsAddress)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
@@ -232,6 +236,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim local = DirectCast(expression, BoundLocal).LocalSymbol
                     Return Not IsStackLocal(local) OrElse local.IsByRef
 
+                Case BoundKind.Call
+                    Dim method = DirectCast(expression, BoundCall).Method
+                    Return method.ReturnsByRef
+
                 Case BoundKind.Dup
                     ' For a dupped local we assume that if the dup 
                     ' is created for byref local it does have home
@@ -307,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Return True
 
                     Case BoundKind.Dup
-                        ' If this is a Dub of ByRef local we can use the address directly 
+                        ' If this is a Dup of ByRef local we can use the address directly 
                         Return DirectCast(expression, BoundDup).IsReference
 
                     Case BoundKind.MeReference, BoundKind.MyClassReference
@@ -423,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Function
 
-        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As SyntaxNode)
             _builder.EmitOpCode(ILOpCode.Ldsflda)
             EmitSymbolToken(field, syntaxNode)
         End Sub

@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
     internal struct ParameterName : IEquatable<ParameterName>
     {
-        //public static readonly IEqualityComparer<ParameterName> OrdinalComparer = new ParameterNameEqualityComparer(StringComparer.Ordinal);
-        //public static readonly IEqualityComparer<ParameterName> OrdinalIgnoreCaseComparer = new ParameterNameEqualityComparer(StringComparer.OrdinalIgnoreCase);
-
         /// <summary>
         /// The name the underlying naming system came up with based on the argument itself.
         /// This might be a name like "_value".  We pass this along because it can help
@@ -54,25 +50,5 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
             return NameBasedOnArgument.GetHashCode();
         }
-
-        //private class ParameterNameEqualityComparer: IEqualityComparer<ParameterName>
-        //{
-        //    private readonly StringComparer _comparer;
-
-        //    public ParameterNameEqualityComparer(StringComparer comparer)
-        //    {
-        //        this._comparer = comparer;
-        //    }
-
-        //    public bool Equals(ParameterName x, ParameterName y)
-        //    {
-        //        return _comparer.Equals(x.BestNameForParameter, y.BestNameForParameter);
-        //    }
-
-        //    public int GetHashCode(ParameterName obj)
-        //    {
-        //        return _comparer.GetHashCode(obj.BestNameForParameter);
-        //    }
-        //}
     }
 }

@@ -309,21 +309,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        ' Check is a symbol has a speakable name.
-        Private Shared Function HasSpeakableName(sym As Symbol) As Boolean
-            ' TODO: this probably should move to Symbol -- e.g., Symbol.CanBeBoundByName
-            If sym.Kind = SymbolKind.Method Then
-                Select Case DirectCast(sym, MethodSymbol).MethodKind
-                    Case MethodKind.Ordinary, MethodKind.ReducedExtension, MethodKind.DelegateInvoke, MethodKind.UserDefinedOperator, MethodKind.Conversion, MethodKind.DeclareMethod
-                        Return True
-                    Case Else
-                        Return False
-                End Select
-            End If
-
-            Return True
-        End Function
-
         ''' <summary>
         ''' This class handles binding of members of namespaces and types.
         ''' The key member is Lookup, which handles looking up a name

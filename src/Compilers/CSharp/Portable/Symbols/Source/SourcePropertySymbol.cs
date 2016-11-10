@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
         private readonly bool _isExpressionBodied;
         private readonly bool _isAutoProperty;
-        private readonly RefKind refKind;
+        private readonly RefKind _refKind;
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-
-        private SourcePropertySymbol _replacedBy;
-        private SourcePropertySymbol _replaced;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -69,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
             _containingType = containingType;
             _syntaxRef = syntax.GetReference();
+            syntax.Type.SkipRef(out _refKind);
 
             SyntaxTokenList modifiers = syntax.Modifiers;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
@@ -109,19 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
             _isExpressionBodied = false;
 
-            var refKeyword = default(SyntaxToken);
-            switch (syntax.Kind())
-            {
-                case SyntaxKind.PropertyDeclaration:
-                    refKeyword = ((PropertyDeclarationSyntax)syntax).RefKeyword;
-                    break;
-
-                case SyntaxKind.IndexerDeclaration:
-                    refKeyword = ((IndexerDeclarationSyntax)syntax).RefKeyword;
-                    break;
-            }
-            this.refKind = refKeyword.Kind().GetRefKind();
-
             bool hasAccessorList = syntax.AccessorList != null;
             var propertySyntax = syntax as PropertyDeclarationSyntax;
             var arrowExpression = propertySyntax != null
@@ -152,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (accessor.Body != null)
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         notRegularProperty = false;
                     }
@@ -165,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(hasExpressionBody, notRegularProperty, location, diagnostics);
+                CheckInitializer(notRegularProperty, location, diagnostics);
             }
 
             if (notRegularProperty || hasInitializer)
@@ -182,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(bodyBinder.Compilation,
                         WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, syntax: syntax);
 
-                        if (this.refKind != RefKind.None && !_containingType.IsInterface)
+                        if (this._refKind != RefKind.None && !_containingType.IsInterface)
                         {
                             diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, location, this);
                         }
@@ -258,9 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.Equals(overriddenPropertyType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                    if (_lazyType.Equals(overriddenPropertyType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
+                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, this.ContainingAssembly);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -299,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PropertyWithNoAccessors, location, this);
                     }
-                    else if (refKind != RefKind.None)
+                    else if (_refKind != RefKind.None)
                     {
                         if (getSyntax == null)
                         {
@@ -322,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (((object)_getMethod != null) && ((object)_setMethod != null))
                 {
-                    if (refKind != RefKind.None)
+                    if (_refKind != RefKind.None)
                     {
                         diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
                     }
@@ -383,7 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CheckInitializer(
-            bool hasExpressionBody,
             bool isAutoProperty,
             Location location,
             DiagnosticBag diagnostics)
@@ -415,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.refKind;
+                return _refKind;
             }
         }
 
@@ -446,14 +430,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.IsPointerType() ==
-                         (((BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax()).Type.Kind() == SyntaxKind.PointerType));
-
                     return _lazyType.IsPointerType();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-                return syntax.Type.Kind() == SyntaxKind.PointerType;
+                RefKind refKind;
+                var typeSyntax = syntax.Type.SkipRef(out refKind);
+                return typeSyntax.Kind() == SyntaxKind.PointerType;
             }
         }
 
@@ -575,31 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsNew
         {
             get { return (_modifiers & DeclarationModifiers.New) != 0; }
-        }
-
-        internal sealed override bool IsReplace
-        {
-            get { return (_modifiers & DeclarationModifiers.Replace) != 0; }
-        }
-
-        internal sealed override Symbol Replaced
-        {
-            get { return _replaced; }
-        }
-
-        internal sealed override Symbol ReplacedBy
-        {
-            get { return _replacedBy; }
-        }
-
-        internal sealed override void SetReplaced(Symbol replaced)
-        {
-            this._replaced = (SourcePropertySymbol)replaced;
-        }
-
-        internal sealed override void SetReplacedBy(Symbol replacedBy)
-        {
-            this._replacedBy = (SourcePropertySymbol)replacedBy;
         }
 
         public override MethodSymbol GetMethod
@@ -757,8 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |=
-                    DeclarationModifiers.Extern |
-                    DeclarationModifiers.Replace;
+                    DeclarationModifiers.Extern;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
@@ -1087,10 +1044,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            if (Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length, _refKind));
+            }
+
+            if (Type.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 
@@ -1187,6 +1150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -1318,7 +1285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeSymbol ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            var type = binder.BindType(syntax.Type, diagnostics);
+            RefKind refKind;
+            var typeSyntax = syntax.Type.SkipRef(out refKind);
+            var type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))

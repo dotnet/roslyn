@@ -241,11 +241,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 return ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
-            public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
-            {
-                return ImmutableArray<SourceGenerator>.Empty;
-            }
-
             public ImmutableArray<CodeFixProvider> GetFixers()
             {
                 return ImmutableArray.Create<CodeFixProvider>(Fixer);
@@ -280,19 +275,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public void LogException(object source, Exception exception)
             {
                 Messages.Add(source.GetType().Name, ToLogFormat(exception));
-            }
-
-            public bool TryLogException(object source, Exception exception)
-            {
-                try
-                {
-                    Messages.Add(source.GetType().Name, ToLogFormat(exception));
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
             }
 
             private static string ToLogFormat(Exception exception)

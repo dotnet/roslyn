@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,14 +17,12 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 {
-
     internal static class AddImportDiagnosticIds
     {
         /// <summary>
@@ -253,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
-            if (!syntaxFacts.IsMemberAccessExpressionName(node))
+            if (!syntaxFacts.IsNameOfMemberAccessExpression(node))
             {
                 return false;
             }
@@ -339,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return null;
         }
 
-        protected override ISet<INamespaceSymbol> GetNamespacesInScope(
+        protected override ISet<INamespaceSymbol> GetImportNamespacesInScope(
             SemanticModel semanticModel,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -397,32 +394,56 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return $"using { string.Join(".", nameParts) };";
         }
 
-        protected override string GetDescription(
-            INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel, SyntaxNode contextNode, bool checkForExistingUsing)
+        protected override string TryGetDescription(
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode contextNode,
+            bool checkForExistingUsing,
+            CancellationToken cancellationToken)
         {
-            var root = GetCompilationUnitSyntaxNode(contextNode);
+            var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
-            // No localization necessary
-            string externAliasString;
-            if (TryGetExternAliasString(namespaceSymbol, semanticModel, root, out externAliasString))
+            // See if this is a reference to a type from a reference that has a specific alias
+            // associated with it.  If that extern alias hasn't already been brought into scope
+            // then add that one.
+            var externAlias = TryGetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode,
+                checkForExistingExternAlias: true);
+            if (externAlias != null)
             {
-                return $"extern alias {externAliasString};";
+                return $"extern alias {externAlias.Identifier.ValueText};";
             }
 
-            string namespaceString;
-            if (TryGetNamespaceString(namespaceSymbol, root, false, null, checkForExistingUsing, out namespaceString))
+            var usingDirective = TryGetUsingDirective(
+                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+
+            if (usingDirective != null)
             {
-                return $"using {namespaceString};";
+                var displayString = namespaceOrTypeSymbol.ToDisplayString();
+                return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
+                    ? $"using {displayString};"
+                    : $"using static {displayString};";
             }
 
-            string staticNamespaceString;
-            if (TryGetStaticNamespaceString(namespaceSymbol, root, false, null, out staticNamespaceString))
-            {
-                return $"using static {staticNamespaceString};";
-            }
-
-            // We can't find a string to show to the user, we should not show this codefix.
             return null;
+        }
+
+        private bool HasExistingUsingDirective(
+            CompilationUnitSyntax root,
+            NamespaceDeclarationSyntax namespaceToAddTo,
+            UsingDirectiveSyntax usingDirective)
+        {
+            var usings = namespaceToAddTo?.Usings ?? root.Usings;
+
+            foreach (var existingUsing in usings)
+            {
+                if (SyntaxFactory.AreEquivalent(usingDirective, existingUsing))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected override async Task<Document> AddImportAsync(
@@ -439,71 +460,68 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode,
-            INamespaceOrTypeSymbol namespaceOrTypeSymbol, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var simpleUsingDirective = GetUsingDirective(root, namespaceOrTypeSymbol, semanticModel, fullyQualify: false);
-            var externAliasUsingDirective = GetExternAliasUsingDirective(root, namespaceOrTypeSymbol, semanticModel);
 
-            if (externAliasUsingDirective != null)
+            var firstContainingNamespaceWithUsings = GetFirstContainingNamespaceWithUsings(contextNode);
+            var namespaceToUpdate = firstContainingNamespaceWithUsings;
+
+            var externAliasDirective = TryGetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode,
+                checkForExistingExternAlias: true);
+
+            var usingDirective = TryGetUsingDirective(
+                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+
+            if (externAliasDirective != null)
             {
-                root = root.AddExterns(
-                    externAliasUsingDirective
-                        .WithAdditionalAnnotations(Formatter.Annotation));
+                AddExterns(ref root, ref namespaceToUpdate, externAliasDirective);
             }
 
-            if (simpleUsingDirective == null)
+            if (usingDirective != null)
             {
-                return root;
+                AddUsingDirective(ref root, ref namespaceToUpdate,
+                    placeSystemNamespaceFirst, usingDirective);
             }
 
-            // Because of the way usings can be nested inside of namespace declarations,
-            // we need to check if the usings must be fully qualified so as not to be
-            // ambiguous with the containing namespace. 
-            if (UsingsAreContainedInNamespace(contextNode))
-            {
-                // When we add usings we try and place them, as best we can, where the user
-                // wants them according to their settings.  This means we can't just add the fully-
-                // qualified usings and expect the simplifier to take care of it, the usings have to be
-                // simplified before we attempt to add them to the document.
-                // You might be tempted to think that we could call 
-                //   AddUsings -> Simplifier -> SortUsings
-                // But this will clobber the users using settings without asking.  Instead we create a new
-                // Document and check if our using can be simplified.  Worst case we need to back out the 
-                // fully qualified change and reapply with the simple name.
-                var fullyQualifiedUsingDirective = GetUsingDirective(root, namespaceOrTypeSymbol, semanticModel, fullyQualify: true);
-                var newRoot = root.AddUsingDirective(
-                                fullyQualifiedUsingDirective, contextNode, placeSystemNamespaceFirst,
-                                Formatter.Annotation);
-                var newUsing = newRoot
-                    .DescendantNodes().OfType<UsingDirectiveSyntax>()
-                    .Where(uds => uds.IsEquivalentTo(fullyQualifiedUsingDirective, topLevel: true))
-                    .Single();
-                newRoot = newRoot.TrackNodes(newUsing);
-                var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
-                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return firstContainingNamespaceWithUsings != null
+                ? root.ReplaceNode(firstContainingNamespaceWithUsings, namespaceToUpdate)
+                : root;
+        }
 
-                newRoot = (CompilationUnitSyntax)await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var simplifiedUsing = newRoot.GetCurrentNode(newUsing);
-                if (simplifiedUsing.Name.IsEquivalentTo(newUsing.Name, topLevel: true))
-                {
-                    // Not fully qualifying the using causes to refer to a different namespace so we need to keep it as is.
-                    return (CompilationUnitSyntax)await documentWithSyntaxRoot.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // It does not matter if it is fully qualified or simple so lets return the simple name.
-                    return root.AddUsingDirective(
-                        simplifiedUsing.WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
-                        Formatter.Annotation);
-                }
+        private void AddUsingDirective(
+            ref CompilationUnitSyntax root,
+            ref NamespaceDeclarationSyntax namespaceToUpdate,
+            bool placeSystemNamespaceFirst,
+            UsingDirectiveSyntax usingDirective)
+        {
+            IList<UsingDirectiveSyntax> directives = new[] { usingDirective };
+            if (namespaceToUpdate != null)
+            {
+                namespaceToUpdate = namespaceToUpdate.AddUsingDirectives(
+                    directives, placeSystemNamespaceFirst);
             }
             else
             {
-                // simple form
-                return root.AddUsingDirective(
-                    simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
-                    Formatter.Annotation);
+                root = root.AddUsingDirectives(
+                    directives, placeSystemNamespaceFirst);
+            }
+        }
+
+        private void AddExterns(
+            ref CompilationUnitSyntax root,
+            ref NamespaceDeclarationSyntax namespaceToUpdate,
+            ExternAliasDirectiveSyntax externAliasDirective)
+        {
+            if (namespaceToUpdate != null)
+            {
+                namespaceToUpdate = namespaceToUpdate.AddExterns(externAliasDirective);
+            }
+            else
+            {
+                root = root.AddExterns(externAliasDirective);
             }
         }
 
@@ -546,65 +564,155 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 : SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
         }
 
-        private static ExternAliasDirectiveSyntax GetExternAliasUsingDirective(CompilationUnitSyntax root, INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel)
+        private static ExternAliasDirectiveSyntax TryGetExternAliasDirective(
+            INamespaceOrTypeSymbol namespaceSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode contextNode,
+            bool checkForExistingExternAlias)
         {
             string externAliasString;
-            if (TryGetExternAliasString(namespaceSymbol, semanticModel, root, out externAliasString))
+            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out externAliasString))
             {
-                return SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(externAliasString));
+                return SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(externAliasString))
+                                    .WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             return null;
         }
 
-        private UsingDirectiveSyntax GetUsingDirective(CompilationUnitSyntax root, INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel, bool fullyQualify)
+        private UsingDirectiveSyntax TryGetUsingDirective(
+            INamespaceOrTypeSymbol namespaceOrTypeSymbol,
+            SemanticModel semanticModel,
+            CompilationUnitSyntax root,
+            SyntaxNode contextNode)
         {
-            if (namespaceSymbol is INamespaceSymbol)
+            var namespaceToAddTo = GetFirstContainingNamespaceWithUsings(contextNode);
+            var usingDirectives = namespaceToAddTo?.Usings ?? root.Usings;
+
+            var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
+
+            // Replace the alias that GenerateTypeSyntax added if we want this to be looked
+            // up off of an extern alias.
+            var externAliasDirective = TryGetExternAliasDirective(
+                namespaceOrTypeSymbol, semanticModel, contextNode,
+                checkForExistingExternAlias: false);
+
+            var externAlias = externAliasDirective?.Identifier.ValueText;
+            if (externAlias != null)
             {
-                string namespaceString;
-                string externAliasString;
-                TryGetExternAliasString(namespaceSymbol, semanticModel, root, out externAliasString);
-                if (externAliasString != null)
+                nameSyntax = AddOrReplaceAlias(nameSyntax, SyntaxFactory.IdentifierName(externAlias));
+            }
+            else
+            {
+                // The name we generated will have the global:: alias on it.  We only need
+                // that if the name of our symbol is actually ambiguous in this context.
+                // If so, keep global:: on it, otherwise remove it.
+                //
+                // Note: doing this has a couple of benefits.  First, it's easy for us to see
+                // if we have an existing using for this with the same syntax.  Second,
+                // it's easy to sort usings properly.  If "global::" was attached to the 
+                // using directive, then it would make both of those operations more difficult
+                // to achieve.
+                nameSyntax = RemoveGlobalAliasIfUnnecessary(semanticModel, nameSyntax, namespaceToAddTo);
+            }
+
+            var usingDirective = SyntaxFactory.UsingDirective(nameSyntax)
+                                              .WithAdditionalAnnotations(Formatter.Annotation);
+
+            if (HasExistingUsingDirective(root, namespaceToAddTo, usingDirective))
+            {
+                return null;
+            }
+
+            return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
+                ? usingDirective
+                : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+        }
+
+        private NameSyntax RemoveGlobalAliasIfUnnecessary(
+            SemanticModel semanticModel,
+            NameSyntax nameSyntax,
+            NamespaceDeclarationSyntax namespaceToAddTo)
+        {
+            var aliasQualifiedName = nameSyntax.DescendantNodesAndSelf()
+                                               .OfType<AliasQualifiedNameSyntax>()
+                                               .FirstOrDefault();
+            if (aliasQualifiedName != null)
+            {
+                var rightOfAliasName = aliasQualifiedName.Name.Identifier.ValueText;
+                if (!ConflictsWithExistingMember(semanticModel, namespaceToAddTo, rightOfAliasName))
                 {
-                    if (TryGetNamespaceString(namespaceSymbol, root, false, externAliasString, 
-                        checkForExistingUsing: true, namespaceString: out namespaceString))
+                    // Strip off the alias.
+                    return nameSyntax.ReplaceNode(aliasQualifiedName, aliasQualifiedName.Name);
+                }
+            }
+
+            return nameSyntax;
+        }
+
+        private bool ConflictsWithExistingMember(
+            SemanticModel semanticModel,
+            NamespaceDeclarationSyntax namespaceToAddTo,
+            string rightOfAliasName)
+        {
+            if (namespaceToAddTo != null)
+            {
+                var containingNamespaceSymbol = semanticModel.GetDeclaredSymbol(namespaceToAddTo);
+
+                while (containingNamespaceSymbol != null && !containingNamespaceSymbol.IsGlobalNamespace)
+                {
+                    if (containingNamespaceSymbol.GetMembers(rightOfAliasName).Any())
                     {
-                        return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString).WithAdditionalAnnotations(Simplifier.Annotation));
+                        // A containing namespace had this name in it.  We need to stay globally qualified.
+                        return true;
                     }
 
-                    return null;
-                }
-
-                if (TryGetNamespaceString(namespaceSymbol, root, fullyQualify, null,
-                    checkForExistingUsing: true, namespaceString: out namespaceString))
-                {
-                    return SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceString).WithAdditionalAnnotations(Simplifier.Annotation));
+                    containingNamespaceSymbol = containingNamespaceSymbol.ContainingNamespace;
                 }
             }
 
-            if (namespaceSymbol is ITypeSymbol)
-            {
-                string staticNamespaceString;
-                if (TryGetStaticNamespaceString(namespaceSymbol, root, fullyQualify, null, out staticNamespaceString))
-                {
-                    return SyntaxFactory.UsingDirective(
-                        SyntaxFactory.Token(SyntaxKind.UsingKeyword),
-                        SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                        null,
-                        SyntaxFactory.ParseName(staticNamespaceString).WithAdditionalAnnotations(Simplifier.Annotation),
-                        SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                }
-            }
-
-            return null;
+            // Didn't conflict with anything.  We shoudl remove the global:: alias.
+            return false;
         }
 
-        private bool UsingsAreContainedInNamespace(SyntaxNode contextNode)
+        private NameSyntax AddOrReplaceAlias(
+            NameSyntax nameSyntax, IdentifierNameSyntax alias)
         {
-            return contextNode.GetAncestor<NamespaceDeclarationSyntax>()?.DescendantNodes().OfType<UsingDirectiveSyntax>().FirstOrDefault() != null;
+            var simpleName = nameSyntax as SimpleNameSyntax;
+            if (simpleName != null)
+            {
+                return SyntaxFactory.AliasQualifiedName(alias, simpleName);
+            }
+
+            var qualifiedName = nameSyntax as QualifiedNameSyntax;
+            if (qualifiedName != null)
+            {
+                return qualifiedName.WithLeft(AddOrReplaceAlias(qualifiedName.Left, alias));
+            }
+
+            var aliasName = nameSyntax as AliasQualifiedNameSyntax;
+            return aliasName.WithAlias(alias);
         }
 
-        private static bool TryGetExternAliasString(INamespaceOrTypeSymbol namespaceSymbol, SemanticModel semanticModel, CompilationUnitSyntax root, out string externAliasString)
+        private NamespaceDeclarationSyntax GetFirstContainingNamespaceWithUsings(SyntaxNode contextNode)
+        {
+            var usingDirective = contextNode.GetAncestor<UsingDirectiveSyntax>();
+            if (usingDirective != null)
+            {
+                contextNode = usingDirective.Parent;
+            }
+
+            return contextNode.GetAncestors<NamespaceDeclarationSyntax>()
+                              .Where(n => n.Usings.Count > 0)
+                              .FirstOrDefault();
+        }
+
+        private static bool TryGetExternAliasString(
+            INamespaceOrTypeSymbol namespaceSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode contextNode,
+            bool checkForExistingExternAlias,
+            out string externAliasString)
         {
             externAliasString = null;
             var metadataReference = semanticModel.Compilation.GetMetadataReference(namespaceSymbol.ContainingAssembly);
@@ -625,74 +733,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 return false;
             }
 
+            // Just default to using the first alias we see for this symbol.
             externAliasString = aliases.First();
-            return ShouldAddExternAlias(aliases, root);
+            return !checkForExistingExternAlias || ShouldAddExternAlias(externAliasString, contextNode);
         }
 
-        private static bool TryGetNamespaceString(
-            INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, bool fullyQualify, string alias,
-            bool checkForExistingUsing, out string namespaceString)
+        private static bool ShouldAddExternAlias(string alias, SyntaxNode contextNode)
         {
-            if (namespaceSymbol is ITypeSymbol)
+            foreach (var externAlias in contextNode.GetEnclosingExternAliasDirectives())
             {
-                namespaceString = null;
-                return false;
+                // We already have this extern alias in scope.  No need to add it.
+                if (externAlias.Identifier.ValueText == alias)
+                {
+                    return false;
+                }
             }
 
-            namespaceString = fullyQualify
-                    ? namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                    : namespaceSymbol.ToDisplayString();
-
-            if (alias != null)
-            {
-                namespaceString = alias + "::" + namespaceString;
-            }
-
-            return checkForExistingUsing
-                ? ShouldAddUsing(namespaceString, root)
-                : true;
+            return true;
         }
 
-        private static bool TryGetStaticNamespaceString(INamespaceOrTypeSymbol namespaceSymbol, CompilationUnitSyntax root, bool fullyQualify, string alias, out string namespaceString)
-        {
-            if (namespaceSymbol is INamespaceSymbol)
-            {
-                namespaceString = null;
-                return false;
-            }
-
-            namespaceString = fullyQualify
-                    ? namespaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                    : namespaceSymbol.ToDisplayString();
-
-            if (alias != null)
-            {
-                namespaceString = alias + "::" + namespaceString;
-            }
-
-            return ShouldAddStaticUsing(namespaceString, root);
-        }
-
-        private static bool ShouldAddExternAlias(ImmutableArray<string> aliases, CompilationUnitSyntax root)
-        {
-            var identifiers = root.DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Select(e => e.Identifier.ToString());
-            var externAliases = aliases.Where(a => identifiers.Contains(a));
-            return !externAliases.Any();
-        }
-
-        private static bool ShouldAddUsing(string usingDirective, CompilationUnitSyntax root)
-        {
-            var simpleUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
-            return !simpleUsings.Any(u => u.Name.ToString() == usingDirective);
-        }
-
-        private static bool ShouldAddStaticUsing(string usingDirective, CompilationUnitSyntax root)
-        {
-            var staticUsings = root.Usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword));
-            return !staticUsings.Any(u => u.Name.ToString() == usingDirective);
-        }
-
-        private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(SyntaxNode contextNode, CancellationToken cancellationToken = default(CancellationToken))
+        private static CompilationUnitSyntax GetCompilationUnitSyntaxNode(
+            SyntaxNode contextNode, CancellationToken cancellationToken)
         {
             return (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
         }

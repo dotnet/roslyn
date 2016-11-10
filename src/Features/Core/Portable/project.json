@@ -1,7 +1,10 @@
 {
   "dependencies": {
+    "System.Reflection": "4.1.0"
   },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {
+      "imports": [ "portable-net45+win8", "dotnet" ]
+    }
   }
 }

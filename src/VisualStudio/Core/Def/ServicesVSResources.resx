@@ -117,397 +117,403 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ElementIsNotValid" xml:space="preserve">
+  <data name="Element_is_not_valid" xml:space="preserve">
     <value>Element is not valid.</value>
   </data>
-  <data name="YouMustSelectAtLeastOneMember" xml:space="preserve">
+  <data name="You_must_select_at_least_one_member" xml:space="preserve">
     <value>You must select at least one member.</value>
   </data>
-  <data name="InterfaceNameConflictsWithTypeName" xml:space="preserve">
+  <data name="Interface_name_conflicts_with_an_existing_type_name" xml:space="preserve">
     <value>Interface name conflicts with an existing type name.</value>
   </data>
-  <data name="InterfaceNameIsNotAValidIdentifier" xml:space="preserve">
+  <data name="Interface_name_is_not_a_valid_0_identifier" xml:space="preserve">
     <value>Interface name is not a valid {0} identifier.</value>
   </data>
-  <data name="IllegalCharactersInPath" xml:space="preserve">
+  <data name="Illegal_characters_in_path" xml:space="preserve">
     <value>Illegal characters in path.</value>
   </data>
-  <data name="FileNameMustHaveTheExtension" xml:space="preserve">
+  <data name="File_name_must_have_the_0_extension" xml:space="preserve">
     <value>File name must have the "{0}" extension.</value>
   </data>
   <data name="Debugger" xml:space="preserve">
     <value>Debugger</value>
   </data>
-  <data name="DeterminingBreakpointLocation" xml:space="preserve">
+  <data name="Determining_breakpoint_location" xml:space="preserve">
     <value>Determining breakpoint location...</value>
   </data>
-  <data name="DeterminingAutos" xml:space="preserve">
+  <data name="Determining_autos" xml:space="preserve">
     <value>Determining autos...</value>
   </data>
-  <data name="ResolvingBreakpointLocation" xml:space="preserve">
+  <data name="Resolving_breakpoint_location" xml:space="preserve">
     <value>Resolving breakpoint location...</value>
   </data>
-  <data name="ValidatingBreakpointLocation" xml:space="preserve">
+  <data name="Validating_breakpoint_location" xml:space="preserve">
     <value>Validating breakpoint location...</value>
   </data>
-  <data name="GettingDataTipText" xml:space="preserve">
+  <data name="Getting_DataTip_text" xml:space="preserve">
     <value>Getting DataTip text...</value>
   </data>
-  <data name="PreviewUnavailable" xml:space="preserve">
+  <data name="Preview_unavailable" xml:space="preserve">
     <value>Preview unavailable</value>
   </data>
-  <data name="Overrides" xml:space="preserve">
+  <data name="Overrides_" xml:space="preserve">
     <value>Overrides</value>
   </data>
-  <data name="OverriddenBy" xml:space="preserve">
+  <data name="Overridden_By" xml:space="preserve">
     <value>Overridden By</value>
   </data>
-  <data name="Inherits" xml:space="preserve">
+  <data name="Inherits_" xml:space="preserve">
     <value>Inherits</value>
   </data>
-  <data name="InheritedBy" xml:space="preserve">
+  <data name="Inherited_By" xml:space="preserve">
     <value>Inherited By</value>
   </data>
-  <data name="Implements" xml:space="preserve">
+  <data name="Implements_" xml:space="preserve">
     <value>Implements</value>
   </data>
-  <data name="ImplementedBy" xml:space="preserve">
+  <data name="Implemented_By" xml:space="preserve">
     <value>Implemented By</value>
   </data>
-  <data name="MaximumNumberOfDocumentsAreOpen" xml:space="preserve">
+  <data name="Maximum_number_of_documents_are_open" xml:space="preserve">
     <value>Maximum number of documents are open.</value>
   </data>
-  <data name="FailedToCreateDocumentInMiscellaneousFiles" xml:space="preserve">
+  <data name="Failed_to_create_document_in_miscellaneous_files_project" xml:space="preserve">
     <value>Failed to create document in miscellaneous files project.</value>
   </data>
-  <data name="InvalidAccess" xml:space="preserve">
+  <data name="Invalid_access" xml:space="preserve">
     <value>Invalid access.</value>
   </data>
-  <data name="ReferencesNotFound" xml:space="preserve">
+  <data name="The_following_references_were_not_found_0_Please_locate_and_add_them_manually" xml:space="preserve">
     <value>The following references were not found. {0}Please locate and add them manually.</value>
   </data>
-  <data name="EndPositionMustBeGreaterThanStart" xml:space="preserve">
+  <data name="End_position_must_be_start_position" xml:space="preserve">
     <value>End position must be &gt;= start position</value>
   </data>
-  <data name="NotAValidValue" xml:space="preserve">
+  <data name="Not_a_valid_value" xml:space="preserve">
     <value>Not a valid value</value>
   </data>
-  <data name="WorkspaceUndoNotSupported" xml:space="preserve">
+  <data name="given_workspace_doesn_t_support_undo" xml:space="preserve">
     <value>given workspace doesn't support undo</value>
   </data>
-  <data name="AddAReference" xml:space="preserve">
+  <data name="Add_a_reference_to_0" xml:space="preserve">
     <value>Add a reference to '{0}'</value>
   </data>
-  <data name="EventTypeIsInvalid" xml:space="preserve">
+  <data name="Event_type_is_invalid" xml:space="preserve">
     <value>Event type is invalid</value>
   </data>
-  <data name="MemberInsertionFailed" xml:space="preserve">
+  <data name="Can_t_find_where_to_insert_member" xml:space="preserve">
     <value>Can't find where to insert member</value>
   </data>
-  <data name="ElementRenameFailed" xml:space="preserve">
+  <data name="Can_t_rename_other_elements" xml:space="preserve">
     <value>Can't rename 'other' elements</value>
   </data>
-  <data name="UnknownRenameType" xml:space="preserve">
+  <data name="Unknown_rename_type" xml:space="preserve">
     <value>Unknown rename type</value>
   </data>
-  <data name="SymbolTypeIdInvalid" xml:space="preserve">
+  <data name="IDs_are_not_supported_for_this_symbol_type" xml:space="preserve">
     <value>IDs are not supported for this symbol type.</value>
   </data>
-  <data name="CreateNodeIdFailed" xml:space="preserve">
+  <data name="Can_t_create_a_node_id_for_this_symbol_kind_colon_0" xml:space="preserve">
     <value>Can't create a node id for this symbol kind: '{0}'</value>
   </data>
-  <data name="Library_ProjectReferences" xml:space="preserve">
+  <data name="Project_References" xml:space="preserve">
     <value>Project References</value>
   </data>
-  <data name="Library_BaseTypes" xml:space="preserve">
+  <data name="Base_Types" xml:space="preserve">
     <value>Base Types</value>
   </data>
-  <data name="MiscellaneousFiles" xml:space="preserve">
+  <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
   </data>
-  <data name="CouldNotFindProject" xml:space="preserve">
+  <data name="Could_not_find_project_0" xml:space="preserve">
     <value>Could not find project '{0}'</value>
   </data>
-  <data name="CouldNotFindLocationOfFol" xml:space="preserve">
+  <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="ErrorWhileReading" xml:space="preserve">
+  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
     <value>Error while reading '{0}': {1}</value>
   </data>
-  <data name="Library_Assembly" xml:space="preserve">
+  <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
-  <data name="Library_Exceptions" xml:space="preserve">
+  <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
-  <data name="Library_MemberOf" xml:space="preserve">
+  <data name="Member_of_0" xml:space="preserve">
     <value>Member of {0}</value>
   </data>
-  <data name="Library_Parameters" xml:space="preserve">
+  <data name="Parameters_colon1" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="Library_Project" xml:space="preserve">
+  <data name="Project" xml:space="preserve">
     <value>Project </value>
   </data>
-  <data name="Library_Remarks" xml:space="preserve">
+  <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>
-  <data name="Library_Returns" xml:space="preserve">
+  <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Library_Summary" xml:space="preserve">
+  <data name="Summary_colon" xml:space="preserve">
     <value>Summary:</value>
   </data>
-  <data name="Library_TypeParameters" xml:space="preserve">
+  <data name="Type_Parameters_colon" xml:space="preserve">
     <value>Type Parameters:</value>
   </data>
-  <data name="FileAlreadyExists" xml:space="preserve">
+  <data name="File_already_exists" xml:space="preserve">
     <value>File already exists</value>
   </data>
-  <data name="FilePathCannotUseReservedKeywords" xml:space="preserve">
+  <data name="File_path_cannot_use_reserved_keywords" xml:space="preserve">
     <value>File path cannot use reserved keywords</value>
   </data>
-  <data name="IllegalPathForDocument" xml:space="preserve">
+  <data name="DocumentPath_is_illegal" xml:space="preserve">
     <value>DocumentPath is illegal</value>
   </data>
-  <data name="IllegalPathForProject" xml:space="preserve">
+  <data name="Project_Path_is_illegal" xml:space="preserve">
     <value>Project Path is illegal</value>
   </data>
-  <data name="PathCannotHaveEmptyFileName" xml:space="preserve">
+  <data name="Path_cannot_have_empty_filename" xml:space="preserve">
     <value>Path cannot have empty filename</value>
   </data>
-  <data name="DocumentIdNotFromWorkspace" xml:space="preserve">
+  <data name="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace" xml:space="preserve">
     <value>The given DocumentId did not come from the Visual Studio workspace.</value>
   </data>
-  <data name="ProjectNavBarTooltipWithShortcut" xml:space="preserve">
+  <data name="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to" xml:space="preserve">
     <value>Project: {0} ({1})
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="NavBarTooltip" xml:space="preserve">
+  <data name="_0_Use_the_dropdown_to_view_and_navigate_to_other_items_in_this_file" xml:space="preserve">
     <value>{0}
 
 Use the dropdown to view and navigate to other items in this file.</value>
   </data>
-  <data name="ProjectNavBarTooltipWithoutShortcut" xml:space="preserve">
+  <data name="Project_colon_0_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to" xml:space="preserve">
     <value>Project: {0}
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="ERR_CantReadRulesetFileTitle" xml:space="preserve">
+  <data name="ErrorReadingRuleset" xml:space="preserve">
     <value>ErrorReadingRuleset</value>
   </data>
-  <data name="ERR_CantReadRulesetFileMessage" xml:space="preserve">
+  <data name="Error_reading_ruleset_file_0_1" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
-  <data name="WRN_AnalyzerChangedTitle" xml:space="preserve">
+  <data name="AnalyzerChangedOnDisk" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
   </data>
-  <data name="WRN_AnalyzerChangedMessage" xml:space="preserve">
+  <data name="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted" xml:space="preserve">
     <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
   </data>
-  <data name="DiagnosticsTableSourceName" xml:space="preserve">
+  <data name="CSharp_VB_Diagnostics_Table_Data_Source" xml:space="preserve">
     <value>C#/VB Diagnostics Table Data Source</value>
   </data>
-  <data name="TodoTableSourceName" xml:space="preserve">
+  <data name="CSharp_VB_Todo_List_Table_Data_Source" xml:space="preserve">
     <value>C#/VB Todo List Table Data Source</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="DeselectAll" xml:space="preserve">
+  <data name="Deselect_All" xml:space="preserve">
     <value>_Deselect All</value>
   </data>
-  <data name="ExtractInterface" xml:space="preserve">
+  <data name="Extract_Interface" xml:space="preserve">
     <value>Extract Interface</value>
   </data>
-  <data name="GeneratedName" xml:space="preserve">
+  <data name="Generated_name_colon" xml:space="preserve">
     <value>Generated name:</value>
   </data>
-  <data name="NewFileName" xml:space="preserve">
+  <data name="New_file_name_colon" xml:space="preserve">
     <value>New _file name:</value>
   </data>
-  <data name="NewInterfaceName" xml:space="preserve">
+  <data name="New_interface_name_colon" xml:space="preserve">
     <value>New _interface name:</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="SelectAll" xml:space="preserve">
+  <data name="Select_All" xml:space="preserve">
     <value>_Select All</value>
   </data>
-  <data name="SelectPublicMembersToFormInterface" xml:space="preserve">
+  <data name="Select_public_members_to_form_interface" xml:space="preserve">
     <value>Select public _members to form interface</value>
   </data>
-  <data name="Access" xml:space="preserve">
+  <data name="Access_colon" xml:space="preserve">
     <value>_Access:</value>
   </data>
-  <data name="AddToExistingFile" xml:space="preserve">
+  <data name="Add_to_existing_file" xml:space="preserve">
     <value>Add to _existing file</value>
   </data>
-  <data name="ChangeSignature" xml:space="preserve">
+  <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
   </data>
-  <data name="CreateNewFile" xml:space="preserve">
+  <data name="Create_new_file" xml:space="preserve">
     <value>_Create new file</value>
   </data>
-  <data name="Default" xml:space="preserve">
+  <data name="Default_" xml:space="preserve">
     <value>Default</value>
   </data>
-  <data name="FileName" xml:space="preserve">
+  <data name="File_Name_colon" xml:space="preserve">
     <value>File Name:</value>
   </data>
-  <data name="GenerateType" xml:space="preserve">
+  <data name="Generate_Type" xml:space="preserve">
     <value>Generate Type</value>
   </data>
-  <data name="Kind" xml:space="preserve">
+  <data name="Kind_colon" xml:space="preserve">
     <value>_Kind:</value>
   </data>
-  <data name="Location" xml:space="preserve">
+  <data name="Location_colon" xml:space="preserve">
     <value>Location:</value>
   </data>
   <data name="Modifier" xml:space="preserve">
     <value>Modifier</value>
   </data>
-  <data name="Name" xml:space="preserve">
+  <data name="Name_colon1" xml:space="preserve">
     <value>Name:</value>
   </data>
   <data name="Parameter" xml:space="preserve">
     <value>Parameter</value>
   </data>
-  <data name="Parameters" xml:space="preserve">
+  <data name="Parameters_colon2" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="PreviewMethodSignature" xml:space="preserve">
+  <data name="Preview_method_signature_colon" xml:space="preserve">
     <value>Preview method signature:</value>
   </data>
-  <data name="PreviewReferenceChanges" xml:space="preserve">
+  <data name="Preview_reference_changes" xml:space="preserve">
     <value>Preview reference changes</value>
   </data>
-  <data name="Project" xml:space="preserve">
+  <data name="Project_colon" xml:space="preserve">
     <value>_Project:</value>
   </data>
   <data name="Type" xml:space="preserve">
     <value>Type</value>
   </data>
-  <data name="TypeDetails" xml:space="preserve">
+  <data name="Type_Details_colon" xml:space="preserve">
     <value>Type Details:</value>
   </data>
-  <data name="Remove" xml:space="preserve">
+  <data name="Re_move" xml:space="preserve">
     <value>Re_move</value>
   </data>
   <data name="Restore" xml:space="preserve">
     <value>_Restore</value>
   </data>
-  <data name="LearnMoreLinkText" xml:space="preserve">
+  <data name="More_about_0" xml:space="preserve">
     <value>More about {0}</value>
   </data>
-  <data name="NavigationMustBePerformedOnTheForegroundThread" xml:space="preserve">
+  <data name="Navigation_must_be_performed_on_the_foreground_thread" xml:space="preserve">
     <value>Navigation must be performed on the foreground thread.</value>
   </data>
-  <data name="PreviewChangesAddedPrefix" xml:space="preserve">
+  <data name="bracket_plus_bracket" xml:space="preserve">
     <value>[+] </value>
   </data>
-  <data name="PreviewChangesDeletedPrefix" xml:space="preserve">
+  <data name="bracket_bracket" xml:space="preserve">
     <value>[-] </value>
   </data>
-  <data name="PreviewChangesMetadataReference" xml:space="preserve">
+  <data name="Reference_to_0_in_project_1" xml:space="preserve">
     <value>Reference to '{0}' in project '{1}'</value>
   </data>
-  <data name="PreviewChangesUnknownReferenceName" xml:space="preserve">
+  <data name="Unknown1" xml:space="preserve">
     <value>&lt;Unknown&gt;</value>
   </data>
-  <data name="PreviewChangesAnalyzerReference" xml:space="preserve">
+  <data name="Analyzer_reference_to_0_in_project_1" xml:space="preserve">
     <value>Analyzer reference to '{0}' in project '{1}'</value>
   </data>
-  <data name="PreviewChangesProjectReference" xml:space="preserve">
+  <data name="Project_reference_to_0_in_project_1" xml:space="preserve">
     <value>Project reference to '{0}' in project '{1}'</value>
   </data>
-  <data name="WRN_AnalyzerDependencyConflictTitle" xml:space="preserve">
+  <data name="AnalyzerDependencyConflict" xml:space="preserve">
     <value>AnalyzerDependencyConflict</value>
   </data>
-  <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
+  <data name="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly" xml:space="preserve">
     <value>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</value>
   </data>
-  <data name="ReferenceCountPlural" xml:space="preserve">
+  <data name="_0_references" xml:space="preserve">
     <value>{0} references</value>
   </data>
-  <data name="ReferenceCountSingular" xml:space="preserve">
+  <data name="_1_reference" xml:space="preserve">
     <value>1 reference</value>
   </data>
-  <data name="CodefixOrRefactoringEncounteredError" xml:space="preserve">
+  <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
     <value>'{0}' encountered an error and has been disabled.</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>
   </data>
-  <data name="EnableAndIgnore" xml:space="preserve">
+  <data name="Enable_and_ignore_future_errors" xml:space="preserve">
     <value>Enable and ignore future errors</value>
   </data>
-  <data name="NoChanges" xml:space="preserve">
+  <data name="No_Changes" xml:space="preserve">
     <value>No Changes</value>
   </data>
-  <data name="DiagnosticIdHyperlinkTooltipText" xml:space="preserve">
+  <data name="Get_help_for_0_1_2_3" xml:space="preserve">
     <value>Get help for '{0}'{1}{2}{3}</value>
   </data>
-  <data name="FromBing" xml:space="preserve">
+  <data name="from_Bing" xml:space="preserve">
     <value> from Bing</value>
   </data>
-  <data name="CurrentBlock" xml:space="preserve">
+  <data name="Current_block" xml:space="preserve">
     <value>Current block</value>
   </data>
-  <data name="DeterminingCurrentBlock" xml:space="preserve">
+  <data name="Determining_current_block" xml:space="preserve">
     <value>Determining current block.</value>
   </data>
-  <data name="WorkspaceOutputPaneTitle" xml:space="preserve">
+  <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="BuildTableSourceName" xml:space="preserve">
+  <data name="CSharp_VB_Build_Table_Data_Source" xml:space="preserve">
     <value>C#/VB Build Table Data Source</value>
   </data>
-  <data name="WRN_MissingAnalyzerReferenceTitle" xml:space="preserve">
+  <data name="MissingAnalyzerReference" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
   </data>
-  <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
+  <data name="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well" xml:space="preserve">
     <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
   </data>
-  <data name="SuppressionStateColumnHeader" xml:space="preserve">
+  <data name="Suppression_State" xml:space="preserve">
     <value>Suppression State</value>
   </data>
-  <data name="SuppressionStateActive" xml:space="preserve">
+  <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
-  <data name="SuppressionStateSuppressed" xml:space="preserve">
+  <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
-  <data name="SuppressMultipleOccurrences" xml:space="preserve">
+  <data name="NotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
+    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
+  </data>
+  <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
-  <data name="ComputingSuppressionFix" xml:space="preserve">
+  <data name="Computing_suppressions_fix" xml:space="preserve">
     <value>Computing suppressions fix...</value>
   </data>
-  <data name="ApplyingSuppressionFix" xml:space="preserve">
+  <data name="Applying_suppressions_fix" xml:space="preserve">
     <value>Applying suppressions fix...</value>
   </data>
-  <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
+  <data name="Remove_suppressions" xml:space="preserve">
     <value>Remove suppressions</value>
   </data>
-  <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
+  <data name="Computing_remove_suppressions_fix" xml:space="preserve">
     <value>Computing remove suppressions fix...</value>
   </data>
-  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
+  <data name="Applying_remove_suppressions_fix" xml:space="preserve">
     <value>Applying remove suppressions fix...</value>
   </data>
-  <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
+  <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
-  <data name="SynchronizeClassView" xml:space="preserve">
+  <data name="Synchronize_0" xml:space="preserve">
     <value>Synchronize {0}</value>
   </data>
-  <data name="SynchronizingWithClassView" xml:space="preserve">
+  <data name="Synchronizing_with_0" xml:space="preserve">
     <value>Synchronizing with {0}...</value>
   </data>
-  <data name="FullSolutionAnalysisOff" xml:space="preserve">
+  <data name="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance" xml:space="preserve">
     <value>Visual Studio has suspended some advanced features to improve performance.</value>
   </data>
   <data name="Installing_0" xml:space="preserve">
@@ -516,10 +522,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Installing_0_completed" xml:space="preserve">
     <value>Installing '{0}' completed</value>
   </data>
-  <data name="Package_install_failed_0" xml:space="preserve">
+  <data name="Package_install_failed_colon_0" xml:space="preserve">
     <value>Package install failed: {0}</value>
   </data>
-  <data name="Unknown" xml:space="preserve">
+  <data name="Unknown2" xml:space="preserve">
     <value>&lt;Unknown&gt;</value>
   </data>
   <data name="No" xml:space="preserve">
@@ -528,101 +534,98 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="ChooseASymbolSpecificationAndNamingStyle" xml:space="preserve">
+  <data name="Choose_a_Symbol_Specification_and_a_Naming_Style" xml:space="preserve">
     <value>Choose a Symbol Specification and a Naming Style.</value>
   </data>
-  <data name="EnterATitleForThisNamingRule" xml:space="preserve">
+  <data name="Enter_a_title_for_this_Naming_Rule" xml:space="preserve">
     <value>Enter a title for this Naming Rule.</value>
   </data>
-  <data name="EnterATitleForThisNamingStyle" xml:space="preserve">
+  <data name="Enter_a_title_for_this_Naming_Style" xml:space="preserve">
     <value>Enter a title for this Naming Style.</value>
   </data>
-  <data name="EnterATitleForThisSymbolSpecification" xml:space="preserve">
+  <data name="Enter_a_title_for_this_Symbol_Specification" xml:space="preserve">
     <value>Enter a title for this Symbol Specification.</value>
   </data>
-  <data name="AccessibilitiesLabel" xml:space="preserve">
+  <data name="Accessibilities_can_match_any" xml:space="preserve">
     <value>Accessibilities (can match any)</value>
   </data>
-  <data name="CapitalizationLabel" xml:space="preserve">
+  <data name="Capitalization_colon" xml:space="preserve">
     <value>Capitalization:</value>
   </data>
-  <data name="CapitalizationStyleExample_AllLower" xml:space="preserve">
+  <data name="all_lower" xml:space="preserve">
     <value>all lower</value>
   </data>
-  <data name="CapitalizationStyleExample_AllUpper" xml:space="preserve">
+  <data name="ALL_UPPER" xml:space="preserve">
     <value>ALL UPPER</value>
   </data>
-  <data name="CapitalizationStyleExample_CamelCase" xml:space="preserve">
+  <data name="camel_Case_Name" xml:space="preserve">
     <value>camel Case Name</value>
   </data>
-  <data name="CapitalizationStyleExample_FirstWordUpper" xml:space="preserve">
+  <data name="First_word_upper" xml:space="preserve">
     <value>First word upper</value>
   </data>
-  <data name="CapitalizationStyleExample_PascalCase" xml:space="preserve">
+  <data name="Pascal_Case_Name" xml:space="preserve">
     <value>Pascal Case Name</value>
   </data>
-  <data name="CustomTagsLabel" xml:space="preserve">
-    <value>Custom Tags (must match all)</value>
-  </data>
-  <data name="EnforcementLevelEntryLabel" xml:space="preserve">
+  <data name="Severity_colon" xml:space="preserve">
     <value>Severity:</value>
   </data>
-  <data name="ModifiersLabel" xml:space="preserve">
+  <data name="Modifiers_must_match_all" xml:space="preserve">
     <value>Modifiers (must match all)</value>
   </data>
-  <data name="NameEntryLabel" xml:space="preserve">
+  <data name="Name_colon2" xml:space="preserve">
     <value>Name:</value>
   </data>
-  <data name="NamingRuleDialogTitle" xml:space="preserve">
+  <data name="Naming_Rule" xml:space="preserve">
     <value>Naming Rule</value>
   </data>
-  <data name="NamingStyleDialogTitle" xml:space="preserve">
+  <data name="Naming_Style" xml:space="preserve">
     <value>Naming Style</value>
   </data>
-  <data name="NamingStyleEntryLabel" xml:space="preserve">
+  <data name="Naming_Style_colon" xml:space="preserve">
     <value>Naming Style:</value>
   </data>
-  <data name="NamingStylesExplanationPart1" xml:space="preserve">
+  <data name="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled" xml:space="preserve">
     <value>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</value>
   </data>
-  <data name="NamingStylesExplanationPart2" xml:space="preserve">
+  <data name="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule" xml:space="preserve">
     <value>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</value>
   </data>
-  <data name="NamingStyleTitleLabel" xml:space="preserve">
+  <data name="Naming_Style_Title_colon" xml:space="preserve">
     <value>Naming Style Title:</value>
   </data>
-  <data name="ParentRuleEntryLabel" xml:space="preserve">
+  <data name="Parent_Rule_colon" xml:space="preserve">
     <value>Parent Rule:</value>
   </data>
-  <data name="RequiredPrefixLabel" xml:space="preserve">
+  <data name="Required_Prefix_colon" xml:space="preserve">
     <value>Required Prefix:</value>
   </data>
-  <data name="RequiredSuffixLabel" xml:space="preserve">
+  <data name="Required_Suffix_colon" xml:space="preserve">
     <value>Required Suffix:</value>
   </data>
-  <data name="SampleIdentifierLabel" xml:space="preserve">
+  <data name="Sample_Identifier_colon" xml:space="preserve">
     <value>Sample Identifier:</value>
   </data>
-  <data name="SymbolKindsLabel" xml:space="preserve">
+  <data name="Symbol_Kinds_can_match_any" xml:space="preserve">
     <value>Symbol Kinds (can match any)</value>
   </data>
-  <data name="SymbolSpecificationDialogTitle" xml:space="preserve">
+  <data name="Symbol_Specification" xml:space="preserve">
     <value>Symbol Specification</value>
   </data>
-  <data name="SymbolSpecificationEntryLabel" xml:space="preserve">
+  <data name="Symbol_Specification_colon" xml:space="preserve">
     <value>Symbol Specification:</value>
   </data>
-  <data name="SymbolSpecificationTitleLabel" xml:space="preserve">
+  <data name="Symbol_Specification_Title_colon" xml:space="preserve">
     <value>Symbol Specification Title:</value>
   </data>
-  <data name="WordSeparatorLabel" xml:space="preserve">
+  <data name="Word_Separator_colon" xml:space="preserve">
     <value>Word Separator:</value>
   </data>
-  <data name="IdentifierWord_Example" xml:space="preserve">
+  <data name="example" xml:space="preserve">
     <value>example</value>
     <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
   </data>
-  <data name="IdentifierWord_Identifier" xml:space="preserve">
+  <data name="identifier" xml:space="preserve">
     <value>identifier</value>
     <comment>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</comment>
   </data>
@@ -638,16 +641,16 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Uninstall_0" xml:space="preserve">
     <value>Uninstall '{0}'</value>
   </data>
-  <data name="Package_uninstall_failed_0" xml:space="preserve">
+  <data name="Package_uninstall_failed_colon_0" xml:space="preserve">
     <value>Package uninstall failed: {0}</value>
   </data>
-  <data name="IntellisenseBuildFailedMessage" xml:space="preserve">
+  <data name="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled" xml:space="preserve">
     <value>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</value>
   </data>
-  <data name="IntellisenseBuildFailedTitle" xml:space="preserve">
+  <data name="Project_loading_failed" xml:space="preserve">
     <value>Project loading failed.</value>
   </data>
-  <data name="IntellisenseBuildFailedDescription" xml:space="preserve">
+  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows" xml:space="preserve">
     <value>To see what caused the issue, please try below.
 
 1. Close Visual Studio
@@ -658,45 +661,159 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
-  <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
+  <data name="Additional_information_colon" xml:space="preserve">
     <value>Additional information:</value>
   </data>
-  <data name="Installing_0_failed_Additional_information_1" xml:space="preserve">
+  <data name="Installing_0_failed_Additional_information_colon_1" xml:space="preserve">
     <value>Installing '{0}' failed.
 
 Additional information: {1}</value>
   </data>
-  <data name="Uninstalling_0_failed_Additional_information_1" xml:space="preserve">
+  <data name="Uninstalling_0_failed_Additional_information_colon_1" xml:space="preserve">
     <value>Uninstalling '{0}' failed.
 
 Additional information: {1}</value>
   </data>
-  <data name="MoveDownAutomationText" xml:space="preserve">
+  <data name="Move_0_below_1" xml:space="preserve">
     <value>Move {0} below {1}</value>
     <comment>{0} and {1} are parameter descriptions</comment>
   </data>
-  <data name="MoveUpAutomationText" xml:space="preserve">
+  <data name="Move_0_above_1" xml:space="preserve">
     <value>Move {0} above {1}</value>
     <comment>{0} and {1} are parameter descriptions</comment>
   </data>
-  <data name="RemoveAutomationText" xml:space="preserve">
+  <data name="Remove_0" xml:space="preserve">
     <value>Remove {0}</value>
     <comment>{0} is a parameter description</comment>
   </data>
-  <data name="RestoreAutomationText" xml:space="preserve">
+  <data name="Restore_0" xml:space="preserve">
     <value>Restore {0}</value>
     <comment>{0} is a parameter description</comment>
   </data>
-  <data name="Reenable" xml:space="preserve">
+  <data name="Re_enable" xml:space="preserve">
     <value>Re-enable</value>
   </data>
-  <data name="LearnMore" xml:space="preserve">
+  <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
   </data>
-  <data name="PreferFrameworkType" xml:space="preserve">
+  <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
   </data>
-  <data name="PreferPredefinedType" xml:space="preserve">
+  <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
+  </data>
+  <data name="Copy_to_Clipboard" xml:space="preserve">
+    <value>Copy to Clipboard</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="in_0_line_1" xml:space="preserve">
+    <value>in {0}:line {1}</value>
+  </data>
+  <data name="Unknown_parameters" xml:space="preserve">
+    <value>&lt;Unknown Parameters&gt;</value>
+  </data>
+  <data name="End_of_inner_exception_stack" xml:space="preserve">
+    <value>--- End of inner exception stack trace ---</value>
+  </data>
+  <data name="For_locals_parameters_and_members" xml:space="preserve">
+    <value>For locals, parameters and members</value>
+  </data>
+  <data name="For_member_access_expressions" xml:space="preserve">
+    <value>For member access expressions</value>
+  </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Expression_preferences_colon" xml:space="preserve">
+    <value>Expression preferences:</value>
+  </data>
+  <data name="Block_Structure_Guides" xml:space="preserve">
+    <value>Block Structure Guides</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
+    <value>Show guides for code level constructs</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show guides for declaration level constructs</value>
+  </data>
+  <data name="Show_outlining_for_code_level_constructs" xml:space="preserve">
+    <value>Show outlining for code level constructs</value>
+  </data>
+  <data name="Show_outlining_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show outlining for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show outlining for declaration level constructs</value>
+  </data>
+  <data name="Variable_preferences_colon" xml:space="preserve">
+    <value>Variable preferences:</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
+  <data name="For_methods" xml:space="preserve">
+    <value>For methods</value>
+  </data>
+  <data name="Code_block_preferences_colon" xml:space="preserve">
+    <value>Code block preferences:</value>
+  </data>
+  <data name="For_accessors" xml:space="preserve">
+    <value>For accessors</value>
+  </data>
+  <data name="For_constructors" xml:space="preserve">
+    <value>For constructors</value>
+  </data>
+  <data name="For_indexers" xml:space="preserve">
+    <value>For indexers</value>
+  </data>
+  <data name="For_operators" xml:space="preserve">
+    <value>For operators</value>
+  </data>
+  <data name="For_properties" xml:space="preserve">
+    <value>For properties</value>
+  </data>
+  <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
+    <value>Some naming rules are incomplete. Please complete or remove them.</value>
+  </data>
+  <data name="Manage_specifications" xml:space="preserve">
+    <value>Manage specifications</value>
+  </data>
+  <data name="Manage_styles" xml:space="preserve">
+    <value>Manage styles</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="Specification" xml:space="preserve">
+    <value>Specification</value>
+  </data>
+  <data name="Style" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
+    <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
+  </data>
+  <data name="Prefer_collection_initializer" xml:space="preserve">
+    <value>Prefer collection initializer</value>
+  </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
+  <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
+    <value>Collapse #regions when collapsing to definitions</value>
+  </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
   </data>
 </root>

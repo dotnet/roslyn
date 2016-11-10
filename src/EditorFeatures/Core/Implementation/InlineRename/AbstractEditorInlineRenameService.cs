@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var triggerToken = GetTriggerToken(document, position, cancellationToken);
             if (triggerToken == default(SyntaxToken))
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouMustRenameAnIdentifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
             return GetRenameInfo(_refactorNotifyServices, document, triggerToken, cancellationToken);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFactsService.IsKeyword(triggerToken))
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouMustRenameAnIdentifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // see https://github.com/dotnet/roslyn/issues/10898
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // 2) renaming tuple fields seems a complex enough thing to require some design
             if (triggerSymbol.ContainingType?.IsTupleType == true)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // If rename is invoked on a member group reference in a nameof expression, then the
@@ -101,19 +101,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (symbolForVar == null)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
-            var symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbolAndProjectId = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol == null)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (symbol.Kind == SymbolKind.DynamicType)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
@@ -152,22 +153,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // We enable the parameter in RaiseEvent, if the Event is declared with a signature. If the Event is declared as a 
                 // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.RenamingAnonymousTypeMemberNotSupported);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
             }
 
             if (symbol.IsErrorType())
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.PleaseResolveErrorsInYourCodeBeforeRenaming);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameOperators);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_operators);
             }
 
             var symbolLocations = symbol.Locations;
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (location.IsInMetadata)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameElementsInMetadata);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
                 }
                 else if (location.IsInSource)
                 {
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
                         {
-                            return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameElementsFromPrevSubmissions);
+                            return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                         }
                     }
                     else
@@ -204,23 +205,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                             if (buffer.IsReadOnly(originalSpan) || !navigationService.CanNavigateToSpan(workspace, document.Id, location.SourceSpan))
                             {
-                                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                             }
                         }
                     }
                 }
                 else
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
-            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, forceRenameOverloads, cancellationToken);
+            return new SymbolInlineRenameInfo(
+                refactorNotifyServices, document, triggerToken.Span, 
+                symbolAndProjectId, forceRenameOverloads, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
 

@@ -193,7 +193,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As PresentationItem)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             AssertNoAsynchronousOperationsRunning()
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
@@ -219,7 +219,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If Not CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = displayText) Then
+                If Not CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Didn't find '" & displayText & "' in completion.")
                 End If
             Next
@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             For Each displayText In displayTexts
-                If CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = displayText) Then
+                If CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText) Then
                     Assert.False(True, "Found '" & displayText & "' in completion.")
                 End If
             Next
@@ -256,7 +256,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.Item.DisplayText)
+                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
             End If
 
 #If False Then
@@ -267,7 +267,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim itemDescription = Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync(document, CancellationToken.None)
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, Me.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
         End Function
@@ -327,7 +328,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 suffix)
         End Function
 
-        Private Function GetDisplayText(parts As IEnumerable(Of SymbolDisplayPart)) As String
+        Private Function GetDisplayText(parts As IEnumerable(Of TaggedText)) As String
             Return String.Join(String.Empty, parts.Select(Function(p) p.ToString()))
         End Function
 

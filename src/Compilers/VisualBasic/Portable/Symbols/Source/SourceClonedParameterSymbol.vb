@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             )
                 MyBase.New(originalParam, newOwner, newOrdinal)
                 _type = type
-                _customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
+                _customModifiers = customModifiers.NullToEmpty()
                 _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
 
                 Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse IsByRef)

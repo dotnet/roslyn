@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseStatement(text, offset, options);
         }
 
-        private StatementSyntax ParseStatementExperimental(string text)
-        {
-            return ParseStatement(text, offset: 0, options: TestOptions.ExperimentalParseOptions);
-        }
-
         [Fact]
         public void TestName()
         {
@@ -209,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithTuple()
         {
             var text = "(int, int) a;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular.WithTuplesFeature());
+            var statement = this.ParseStatement(text, options: TestOptions.Regular);
 
             (text).ToString();
 
@@ -738,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -747,9 +742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ds = (LocalDeclarationStatementSyntax)statement;
             Assert.Equal(0, ds.Modifiers.Count);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.Declaration.Type);
-            Assert.Equal("T", ds.Declaration.Type.ToString());
+            Assert.Equal("ref T", ds.Declaration.Type.ToString());
             Assert.Equal(1, ds.Declaration.Variables.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
@@ -765,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -774,9 +768,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ds = (LocalDeclarationStatementSyntax)statement;
             Assert.Equal(0, ds.Modifiers.Count);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.Declaration.Type);
-            Assert.Equal("T", ds.Declaration.Type.ToString());
+            Assert.Equal("ref T", ds.Declaration.Type.ToString());
             Assert.Equal(1, ds.Declaration.Variables.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
@@ -786,9 +779,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
-            Assert.NotNull(initializer.RefKeyword);
-            Assert.NotNull(initializer.Value);
-            Assert.Equal("b", initializer.Value.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
+            Assert.Equal("ref b", initializer.Value.ToString());
 
             Assert.NotNull(ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
@@ -798,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -807,9 +799,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var ds = (LocalDeclarationStatementSyntax)statement;
             Assert.Equal(0, ds.Modifiers.Count);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.Declaration.Type);
-            Assert.Equal("T", ds.Declaration.Type.ToString());
+            Assert.Equal("ref T", ds.Declaration.Type.ToString());
             Assert.Equal(2, ds.Declaration.Variables.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
@@ -819,9 +810,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
-            Assert.NotNull(initializer.RefKeyword);
-            Assert.NotNull(initializer.Value);
-            Assert.Equal("b", initializer.Value.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
+            Assert.Equal("ref b", initializer.Value.ToString());
 
             Assert.NotNull(ds.Declaration.Variables[1].Identifier);
             Assert.Equal("c", ds.Declaration.Variables[1].Identifier.ToString());
@@ -830,9 +820,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
-            Assert.NotNull(initializer.RefKeyword);
-            Assert.NotNull(initializer.Value);
-            Assert.Equal("d", initializer.Value.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
+            Assert.Equal("ref d", initializer.Value.ToString());
 
             Assert.NotNull(ds.SemicolonToken);
             Assert.False(ds.SemicolonToken.IsMissing);
@@ -1639,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1652,10 +1641,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ForKeyword, fs.ForKeyword.Kind());
             Assert.NotNull(fs.OpenParenToken);
 
-            Assert.NotNull(fs.RefKeyword);
             Assert.NotNull(fs.Declaration);
             Assert.NotNull(fs.Declaration.Type);
-            Assert.Equal("T", fs.Declaration.Type.ToString());
+            Assert.Equal("ref T", fs.Declaration.Type.ToString());
             Assert.Equal(2, fs.Declaration.Variables.Count);
 
             Assert.NotNull(fs.Declaration.Variables[0].Identifier);
@@ -1663,18 +1651,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var initializer = fs.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
-            Assert.NotNull(initializer.RefKeyword);
-            Assert.NotNull(initializer.Value);
-            Assert.Equal("b", initializer.Value.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
+            Assert.Equal("ref b", initializer.Value.ToString());
 
             Assert.NotNull(fs.Declaration.Variables[1].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[1].Identifier.ToString());
             initializer = fs.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
-            Assert.NotNull(initializer.RefKeyword);
-            Assert.NotNull(initializer.Value);
-            Assert.Equal("d", initializer.Value.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
+            Assert.Equal("ref d", initializer.Value.ToString());
 
             Assert.Equal(0, fs.Initializers.Count);
             Assert.NotNull(fs.FirstSemicolonToken);
@@ -2468,8 +2454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestContextualKeywordAsLocalVariableType(SyntaxKind.PartialKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AsyncKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
-            TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
-            TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
         }
 
         private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)
@@ -2611,9 +2595,13 @@ class C
             var source = @"
 class C1
 {
-static void Test(int arg1, (byte, byte) arg2)
+    static void Test(int arg1, (byte, byte) arg2)
     {
-        (int, int) t1 = new(int, int)();
+        (int, int)? t1 = new(int, int)?();
+        (int, int)? t1a = new(int, int)?((1,1));
+        (int, int)? t1b = new(int, int)?[1];
+        (int, int)? t1c = new(int, int)?[] {(1,1)};
+
         (int, int)? t2 = default((int a, int b));
 
         (int, int) t3 = (a: (int)arg1, b: (int)arg1);
@@ -2629,14 +2617,48 @@ static void Test(int arg1, (byte, byte) arg2)
                 from j in ""ee""
                 select (i, j);
 
-            foreach ((int, int) e in new (int, int)[10])
-            {
-            }
+        foreach ((int, int) e in new (int, int)[10])
+        {
         }
+    }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(684860, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/266237")]
+        public void DevDiv266237()
+        {
+            var source = @"
+class Program
+{
+    static void Go()
+    {
+        using (var p = new P
+        {
+
+        }
+
+    protected override void M()
+    {
+
+    }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            tree.GetDiagnostics(tree.GetRoot()).Verify(
+                // (9,10): error CS1026: ) expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(9, 10),
+                // (9,10): error CS1002: ; expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 10),
+                // (9,10): error CS1513: } expected
+                //         }
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 10));
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

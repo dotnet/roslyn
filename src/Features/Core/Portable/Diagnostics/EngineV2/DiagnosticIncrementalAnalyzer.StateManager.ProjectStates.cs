@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     _owner = owner;
                     _stateMap = new ConcurrentDictionary<ProjectId, Entry>(concurrencyLevel: 2, capacity: 10);
+                }
+
+                public IEnumerable<StateSet> GetStateSets()
+                {
+                    // return existing state sets
+                    return _stateMap.Values.SelectMany(e => e.AnalyzerMap.Values).ToImmutableArray();
                 }
 
                 public IEnumerable<StateSet> GetStateSets(ProjectId projectId)

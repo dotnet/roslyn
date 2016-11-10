@@ -1,12 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
     <ProjectGuid>{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}</ProjectGuid>
@@ -43,10 +40,8 @@
       <Name>PdbUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'"></PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -60,22 +55,48 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicCompilationUtils.cs" />
-    <Compile Include="CompilationTestUtils.cs" />
-    <Compile Include="CompilingTestBase.cs" />
+    <Compile Include="..\CSharp\CompilingTestBase.cs">
+      <Link>CompilingTestBase.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\CSharpTrackingDiagnosticAnalyzer.cs">
+      <Link>CSharpTrackingDiagnosticAnalyzer.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\DiagnosticTestUtilities.cs">
+      <Link>DiagnosticTestUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\ScriptTestFixtures.cs">
+      <Link>ScriptTestFixtures.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SemanticModelTestBase.cs">
+      <Link>SemanticModelTestBase.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SymbolUtilities.cs">
+      <Link>SymbolUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\SyntaxTreeExtensions.cs">
+      <Link>SyntaxTreeExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\TestOptions.cs">
+      <Link>TestOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\BasicCompilationUtils.cs">
+      <Link>BasicCompilationUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\CompilationTestUtils.cs">
+      <Link>CompilationTestUtils.cs</Link>
+    </Compile>
     <Compile Include="CSharpTestBase.cs" />
-    <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticExtensions.cs" />
-    <Compile Include="DiagnosticTestUtilities.cs" />
+    <Compile Include="..\CSharp\DiagnosticExtensions.cs">
+      <Link>DiagnosticExtensions.cs</Link>
+    </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="LocalVariableDeclaratorsCollector.cs" />
-    <Compile Include="MetadataTestHelpers.cs" />
+    <Compile Include="..\CSharp\LocalVariableDeclaratorsCollector.cs">
+      <Link>LocalVariableDeclaratorsCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\MetadataTestHelpers.cs">
+      <Link>MetadataTestHelpers.cs</Link>
+    </Compile>
     <Compile Include="MockCSharpCompiler.cs" />
-    <Compile Include="ScriptTestFixtures.cs" />
-    <Compile Include="SemanticModelTestBase.cs" />
-    <Compile Include="SymbolUtilities.cs" />
-    <Compile Include="SyntaxTreeExtensions.cs" />
-    <Compile Include="TestOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -93,8 +114,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

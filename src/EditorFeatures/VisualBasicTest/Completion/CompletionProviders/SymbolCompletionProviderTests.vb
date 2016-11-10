@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
 
-        Private Async Function VerifyNSATIsAbsentAsync(markup As String) As Threading.Tasks.Task
+        Private Async Function VerifyNSATIsAbsentAsync(markup As String) As Task
             ' Verify namespace 'System' is absent
             Await VerifyItemIsAbsentAsync(markup, "System")
 
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyItemIsAbsentAsync(markup, "String")
         End Function
 
-        Private Async Function VerifyNSATExistsAsync(markup As String) As Threading.Tasks.Task
+        Private Async Function VerifyNSATExistsAsync(markup As String) As Task
             ' Verify namespace 'System' is absent
             Await VerifyItemExistsAsync(markup, "System")
 
@@ -694,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 #Region "SymbolCompletionProviderTests"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
+        Public Async Function IsCommitCharacterTest() As Task
             Const code = "
 Imports System
 Class C
@@ -707,12 +706,12 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
+        Public Async Function IsTextualTriggerCharacterTest() As Task
             Await TestCommonIsTextualTriggerCharacterAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
+        Public Async Function SendEnterThroughToEditorTest() As Task
             Const code = "
 Imports System
 Class C
@@ -1328,7 +1327,7 @@ Class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function LabelAfterGoto3() As Threading.Tasks.Task
+        Public Async Function LabelAfterGoto3() As Task
             Dim test = <Text>
 Class C
     Sub M()
@@ -1343,7 +1342,11 @@ Class C
             ' We don't trigger intellisense within numeric literals, so we 
             ' explicitly test only the "nothing typed" case.
             ' This is also the Dev12 behavior for suggesting labels.
-            Await VerifyAtPositionAsync(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
+            Await VerifyAtPositionAsync(
+                text, position, usePreviousCharAsTrigger:=True,
+                expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
+                sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
+                glyph:=Nothing, matchPriority:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -1529,7 +1532,7 @@ Class SomeClass(Of T)
 End Class
                        ]]></Text>
 
-            Await VerifyItemExistsAsync(test.Value, "T", $"T {FeaturesResources.In} SomeClass(Of T)")
+            Await VerifyItemExistsAsync(test.Value, "T", $"T {FeaturesResources.in_} SomeClass(Of T)")
         End Function
 
         <WorkItem(542225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")>
@@ -2592,7 +2595,7 @@ End Class
 
         <WorkItem(645898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645898")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function EscapedKeywordAttributeCommit() As Threading.Tasks.Task
+        Public Async Function EscapedKeywordAttributeCommit() As Task
             Dim markup = <Text>
 Imports System
 Class classattribute : Inherits Attribute
@@ -2843,7 +2846,7 @@ End Class</Code>.Value
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
-{WorkspacesResources.Usage}
+{WorkspacesResources.Usage_colon}
   {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Foo()"
 
             Await VerifyItemWithMscorlib45Async(code, "Foo", description, LanguageNames.VisualBasic)
@@ -5218,7 +5221,7 @@ Class C
 
         <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_KeywordIdentifiersCommitEscaped() As Threading.Tasks.Task
+        Public Async Function Inherits_KeywordIdentifiersCommitEscaped() As Task
             Const markup = "
 Public Class [Inherits]
 End Class
@@ -5377,7 +5380,7 @@ Interface IFoo
 
         <WorkItem(547291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547291")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_CommitGenericOnParen() As Threading.Tasks.Task
+        Public Async Function Inherits_CommitGenericOnParen() As Task
             Const markup = "
 Class G(Of T)
 End Class
@@ -5419,7 +5422,7 @@ End Class
 
         <WorkItem(622563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622563")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_CommitNonGenericOnParen() As Threading.Tasks.Task
+        Public Async Function Inherits_CommitNonGenericOnParen() As Task
             Const markup = "
 Class G
 End Class
@@ -5590,7 +5593,7 @@ end class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.Field}) C.x As Integer")
+            Await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.field}) C.x As Integer")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5613,14 +5616,38 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"({FeaturesResources.Field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext
+            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericOnTab() As Task
+            Dim text =
+<code>
+Class G(Of T)
+End Class
+
+Class DG
+    Function Bar() as $$
+End Class</code>.Value
+
+            Dim expected =
+<code>
+Class G(Of T)
+End Class
+
+Class DG
+    Function Bar() as G(Of
+End Class</code>.Value
+
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing, "")
         End Function
 
         <WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
         <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitGenericOnParen() As Threading.Tasks.Task
+        Public Async Function CommitGenericOnParen() As Task
             Dim text =
 <code>
 Class G(Of T)
@@ -5744,9 +5771,369 @@ End Module
             Await VerifyItemExistsAsync(text, "D")
         End Function
 
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_TopLevel() As Task
+            Dim source = <code><![CDATA[
+Namespace $$
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_Nested() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Namespace $$
+    End Namespace
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_TopLevelNoPeers() As Task
+            Dim source = <code><![CDATA[
+Imports System;
+
+Namespace $$
+
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "String")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_TopLevelWithPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+End Namespace
+
+Namespace $$
+
+]]></code>.Value
+
+
+            Await VerifyItemExistsAsync(source, "A")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_NestedWithNoPeers() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace $$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyNoItemsExistAsync(source)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_NestedWithPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+    End Namespace
+
+    Namespace $$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_ExcludesCurrentDeclaration() As Task
+            Dim source = <code><![CDATA[Namespace N$$S]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "NS")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_WithNested() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace $$
+    
+        Namespace B
+        End Namespace
+    
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_WithNestedAndMatchingPeer() As Task
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A
+
+    Namespace $$
+
+        Namespace B
+        End Namespace
+
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_InnerCompletionPosition() As Task
+            Dim source = <code><![CDATA[
+Namespace Sys$$tem
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Unqualified_IncompleteDeclaration() As Task
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+
+        Namespace $$
+
+        Namespace C1
+        End Namespace
+
+    End Namespace
+
+    Namespace B.C2
+    End Namespace
+
+End Namespace
+
+Namespace A.B.C3
+End Namespace
+
+]]></code>.Value
+
+            ' Ideally, all the C* namespaces would be recommended but, because of how the parser
+            ' recovers from the missing end statement, they end up with the following qualified names...
+            '
+            '     C1 => A.B.?.C1
+            '     C2 => A.B.B.C2
+            '     C3 => A.A.B.C3
+            '
+            ' ...none of which are found by the current algorithm.
+            Await VerifyItemIsAbsentAsync(source, "C1")
+            Await VerifyItemIsAbsentAsync(source, "C2")
+            Await VerifyItemIsAbsentAsync(source, "C3")
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+
+            ' Because of the above, B does end up in the completion list
+            ' since A.B.B appears to be a peer of the New declaration
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_NoPeers() As Task
+
+            Dim source = <code><![CDATA[Namespace A.$$]]></code>.Value
+            Await VerifyNoItemsExistAsync(source)
+
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_TopLevelWithPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A.$$
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_NestedWithPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B.C
+    End Namespace
+
+    Namespace B.$$
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+            Await VerifyItemExistsAsync(source, "C")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_WithNested() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.$$
+
+    Namespace B
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_WithNestedAndMatchingPeer() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A.B
+End Namespace
+
+Namespace A.$$
+
+    Namespace B
+    End Namespace
+
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_InnerCompletionPosition() As Task
+            Dim source = <code><![CDATA[
+Namespace Sys$$tem.Runtime
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_Qualified_IncompleteDeclaration() As Task
+
+            Dim source = <code><![CDATA[
+Namespace A
+
+    Namespace B
+
+        Namespace C.$$
+
+        Namespace C.D1
+        End Namespace
+
+    End Namespace
+
+    Namespace B.C.D2
+    End Namespace
+
+End Namespace
+
+Namespace A.B.C.D3
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "A")
+            Await VerifyItemIsAbsentAsync(source, "B")
+            Await VerifyItemIsAbsentAsync(source, "C")
+
+            ' Ideally, all the D* namespaces would be recommended but, because of how the parser
+            ' recovers from the end statement, they end up with the following qualified names...
+            '
+            '     D1 => A.B.C.C.?.D1
+            '     D2 => A.B.B.C.D2
+            '     D3 => A.A.B.C.D3
+            '
+            ' ...none of which are found by the current algorithm.
+            Await VerifyItemIsAbsentAsync(source, "D1")
+            Await VerifyItemIsAbsentAsync(source, "D2")
+            Await VerifyItemIsAbsentAsync(source, "D3")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnKeyword() As Task
+            Dim source = <code><![CDATA[
+Name$$space System
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnNestedKeyword() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Name$$space Runtime
+    End Namespace
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
+        End Function
+
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Threading.Tasks.Task
+        Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Task
             Dim text =
 <code><![CDATA[
 Class Await
@@ -5768,7 +6155,7 @@ End Class]]></code>.Value
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitWithCloseBracketLeavesOpeningBracket2() As Threading.Tasks.Task
+        Public Async Function CommitWithCloseBracketLeavesOpeningBracket2() As Task
             Dim text =
 <code><![CDATA[
 Class [Class]
@@ -5799,7 +6186,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "ToString", experimental:=True)
+            Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5813,7 +6200,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "ToString", experimental:=True)
+            Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
@@ -6719,7 +7106,7 @@ End Class]]>
 
         <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function VerifyDelegateEscapedWhenCommitted() As Threading.Tasks.Task
+        Public Async Function VerifyDelegateEscapedWhenCommitted() As Task
             Dim text =
 <code><![CDATA[
 Imports System
@@ -7148,5 +7535,142 @@ End Class
             Await VerifyItemExistsAsync(text, "x")
         End Function
 
+        <WorkItem(153633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/153633")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumMembers() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "A")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TupleElements() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim t = (Alice:=1, Item2:=2, ITEM3:=3, 4, 5, 6, 7, 8, Bob:=9)
+        t.$$
+    End Sub
+End Module
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Sub New(item1 As T1, item2 As T2)
+        End Sub
+    End Structure
+
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        Public Dim Rest As TRest
+
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return ""
+        End Function
+
+        Public Overrides Function GetHashCode As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function CompareTo(value As Object) As Integer
+            Return 0
+        End Function
+
+        Public Overrides Function GetType As Type
+            Return Nothing
+        End Function
+    End Structure
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Alice")
+            Await VerifyItemExistsAsync(text, "Bob")
+            Await VerifyItemExistsAsync(text, "CompareTo")
+            Await VerifyItemExistsAsync(text, "Equals")
+            Await VerifyItemExistsAsync(text, "GetHashCode")
+            Await VerifyItemExistsAsync(text, "GetType")
+            For index = 2 To 8
+                Await VerifyItemExistsAsync(text, "Item" + index.ToString())
+            Next
+            Await VerifyItemExistsAsync(text, "ToString")
+
+            Await VerifyItemIsAbsentAsync(text, "Item1")
+            Await VerifyItemIsAbsentAsync(text, "Item9")
+            Await VerifyItemIsAbsentAsync(text, "Rest")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WinformsInstanceMembers() As Task
+            ' Setting the the preprocessor symbol _MyType=WindowsForms will cause the
+            ' compiler to automatically generate the My Template. See
+            ' GroupClassTests.vb for the compiler layer equivalent of these tests.
+            Dim input =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
+
+                        <Document name="Form.vb">
+                            <![CDATA[
+Namespace Global.System.Windows.Forms
+    Public Class Form
+        Implements IDisposable
+
+        Public Sub InstanceMethod()
+        End Sub
+
+        Public Shared Sub SharedMethod()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public ReadOnly Property IsDisposed As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+    End Class
+End Namespace
+    ]]></Document>
+                        <Document name="types.vb"><![CDATA[
+Imports System
+
+Namespace Global.WindowsApplication1
+    Public Class Form2
+        Inherits System.Windows.Forms.Form
+    End Class
+End Namespace
+
+Namespace Global.WindowsApplication1
+    Public Class Form1
+        Inherits System.Windows.Forms.Form
+
+ Private Sub Foo()
+        Form2.$$
+    End Sub
+    End Class
+End Namespace
+    ]]></Document>
+
+                    </Project>
+                </Workspace>
+
+            Using workspace = Await TestWorkspace.CreateAsync(input)
+                Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
+                Dim position = workspace.DocumentWithCursor.CursorPosition.Value
+                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                                        glyph:=Nothing, matchPriority:=Nothing)
+            End Using
+
+        End Function
     End Class
 End Namespace

@@ -32,7 +32,7 @@ class C
         [Fact]
         public void SetGetOnlyAutoPropInConstructor()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P { get; }
@@ -47,7 +47,7 @@ class C
         [Fact]
         public void GetOnlyAutoPropBadOverride()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 
 class Base
 {
@@ -81,7 +81,7 @@ class C : Base
         [Fact]
         public void SetGetOnlyAutoPropOutOfConstructor()
         {
-            CreateExperimentalCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P { get; }
@@ -159,9 +159,9 @@ struct S
     // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
     //     int a { get { return 1; } set {} }
     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-    // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+    // (4,9): warning CS0169: The field 'S.a' is never used
     //     int a = 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9)
     );
         }
 
@@ -203,7 +203,7 @@ struct S
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
     // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -226,7 +226,7 @@ struct S
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -259,7 +259,7 @@ struct S
 {
     int P { get; } = 0;
 }";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
                 // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
@@ -274,7 +274,7 @@ struct S
 {
     public int P { get; }
 }";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics();
         }
@@ -288,7 +288,7 @@ struct S
     public int Q { set; } = 0;
     public int R { set; }
 }";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
 // (4,20): error CS8034: Auto-implemented properties must have get accessors.
@@ -306,7 +306,7 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
 {
     public ref int P { get; }
 }";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
 // (3,20): error CS8080: Auto-implemented properties cannot return by reference
@@ -1742,7 +1742,7 @@ class C : I
 }
 ";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2875,7 +2875,7 @@ unsafe class Test
     }
     ";
 
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
                 //         ref int P { set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithArguments("C.P").WithLocation(4, 17));
@@ -2892,7 +2892,7 @@ unsafe class Test
     }
     ";
 
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
                 //         ref int P { get { return ref field; } set { } } 
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P.set").WithLocation(5, 47));

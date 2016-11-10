@@ -3837,7 +3837,7 @@ class D {
 
             Assert.Null(semanticInfo.Symbol);
 
-            // Should bind to "field" with a candidateReason (not a typeornamespace>)Skip:
+            // Should bind to "field" with a candidateReason (not a typeornamespace>)
             Assert.NotEqual(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.NotEqual(0, semanticInfo.CandidateSymbols.Length);
 
@@ -8505,7 +8505,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8545,7 +8545,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8586,12 +8586,12 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Double", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -10467,7 +10467,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAValue, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { private get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10623,7 +10623,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 MyClass.Property { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10665,7 +10665,7 @@ public class Test
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10897,13 +10897,13 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -10963,13 +10963,13 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -12442,12 +12442,12 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());
@@ -12476,12 +12476,12 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());
@@ -14875,7 +14875,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberAccessExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -14906,7 +14906,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberBindingExpressionSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
             Assert.Null(semanticInfo.ConvertedType);
@@ -14943,7 +14943,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<InvocationExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
 
             Assert.Equal("string", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
@@ -14974,7 +14974,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15036,7 +15036,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15067,7 +15067,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<ElementBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ElementBindingExpressionSyntax>(sourceCode);
 
             Assert.Equal("char", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15097,7 +15097,7 @@ get
 {
 }
 }= new /*<bind>*/BaselineLog/*</bind>*/();
-", parseOptions: TestOptions.ExperimentalParseOptions);
+", parseOptions: TestOptions.Regular);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Null(semanticInfo.Type);
@@ -15177,6 +15177,40 @@ public class C {
             var qe = tree.GetRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
             var infoSymbol2 = semanticModel.GetSymbolInfo(qe.Body.SelectOrGroup).Symbol;
             Assert.Equal(expectedNames[i++], infoSymbol2.Name);
+        }
+
+        [Fact]
+        public void TestIncompleteMember()
+        {
+            // Note: binding information in an incomplete member is not available.
+            // When https://github.com/dotnet/roslyn/issues/7536 is fixed this test
+            // will have to be updated.
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public /*<bind>*/K/*</bind>*/
+}
+
+class K
+{ }
+";
+            var semanticInfo = GetSemanticInfoForTest(sourceCode);
+
+            Assert.Equal("K", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("K", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("K", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
         }
     }
 }

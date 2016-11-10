@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static IEnumerable<string> GetTargetDependents(MSB.Evaluation.Project project, string targetName)
         {
-            MSB.Execution.ProjectTargetInstance targetInstance;
-            if (project.Targets.TryGetValue(targetName, out targetInstance))
+            if (project.Targets.TryGetValue(targetName, out var targetInstance))
             {
                 return SplitTargets(project.ExpandString(targetInstance.DependsOnTargets));
             }

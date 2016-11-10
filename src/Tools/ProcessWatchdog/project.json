@@ -1,11 +1,13 @@
 ﻿{
-  "dependencies": {
-    "CommandLineParser": "2.0.273-beta"
-  },
-  "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": {}
-  }
+    "dependencies": {
+        "CommandLineParser": "2.0.273-beta",
+        "System.Collections.Immutable": "1.2.0",
+        "System.Reflection.Metadata": "1.4.1-beta-24430-01",
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundReceiver = fieldInit.Field.IsStatic ? null :
                                         new BoundThisReference(syntax, fieldInit.Field.ContainingType);
 
-            // Mark this as CompilerGenerated so that the local rewriter doesn't add a sequence point.
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
                     new BoundAssignmentOperator(syntax,
@@ -98,26 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldInit.InitialValue,
                         fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
-                { WasCompilerGenerated = true };
+                { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
 
-            Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
-            Debug.Assert(syntax.Parent.Kind() == SyntaxKind.EqualsValueClause);
-            switch (syntax.Parent.Parent.Kind())
-            {
-                case SyntaxKind.VariableDeclarator:
-                    var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
-                    boundStatement = LocalRewriter.AddSequencePoint(declaratorSyntax, boundStatement);
-                    break;
-
-                case SyntaxKind.PropertyDeclaration:
-                    var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
-                    boundStatement = LocalRewriter.AddSequencePoint(declaration, boundStatement);
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
-            }
-
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
             return boundStatement;
         }
 

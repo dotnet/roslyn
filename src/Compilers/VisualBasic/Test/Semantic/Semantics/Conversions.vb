@@ -1484,8 +1484,8 @@ End Class
 
             Assert.NotEqual(modifiedArrayInt32, arrayInt32)
             Assert.NotEqual(arrayInt32, modifiedArrayInt32)
-            Assert.True(arrayInt32.IsSameTypeIgnoringCustomModifiers(modifiedArrayInt32))
-            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(arrayInt32))
+            Assert.True(arrayInt32.IsSameTypeIgnoringAll(modifiedArrayInt32))
+            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringAll(arrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(arrayInt32, modifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(modifiedArrayInt32, arrayInt32)))
 
@@ -1495,8 +1495,8 @@ End Class
 
             Assert.NotEqual(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)
             Assert.NotEqual(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)
-            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfModifiedArrayInt32))
-            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfArrayInt32))
+            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringAll(enumerableOfModifiedArrayInt32))
+            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringAll(enumerableOfArrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)))
 
@@ -4776,7 +4776,7 @@ Module Module1
         TestSng(value2)
         TestDbl(value)
 
-        Dim value3 As System.IComparable = "5/23/2016"
+        Dim value3 As System.IComparable = "2016-5-23"
         TestDate(value3)
         TestChar(value3)
     End Sub
@@ -4866,7 +4866,7 @@ End Module
 1
 1
 23
-5")
+2")
 
             verifier.VerifyIL("Module1.TestArray",
             <![CDATA[

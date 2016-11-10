@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
@@ -18,12 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly IVsHierarchyItem _parentItem;
         private readonly IContextMenuController _contextMenuController;
 
+
         public AnalyzersFolderItem(
             Workspace workspace,
             ProjectId projectId,
             IVsHierarchyItem parentItem,
             IContextMenuController contextMenuController)
-            : base(SolutionExplorerShim.AnalyzersFolderItem_Name)
+            : base(SolutionExplorerShim.Analyzers)
         {
             _workspace = workspace;
             _projectId = projectId;
@@ -70,11 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public override IContextMenuController ContextMenuController
         {
             get { return _contextMenuController; }
-        }
-
-        internal Project GetProject()
-        {
-            return _workspace.CurrentSolution.GetProject(_projectId);
         }
 
         /// <summary>

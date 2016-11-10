@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -15,11 +15,13 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
@@ -61,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public PackageInstallerService(
             VisualStudioWorkspaceImpl workspace,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
-                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
-                              AddImportOptions.SuggestForTypesInNuGetPackages)
+            : base(workspace, SymbolSearchOptions.Enabled,
+                              SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
+                              SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -101,20 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
-        protected override void StopWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!IsEnabled)
-            {
-                return;
-            }
-
-            // Stop listening to workspace changes.
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _packageServices.SourcesChanged -= OnSourceProviderSourcesChanged;
-        }
-
         protected override void StartWorking()
         {
             this.AssertIsForeground();
@@ -125,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
+            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
+                WorkspaceChangeKind.SolutionAdded, null, null));
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -166,11 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 {
                     var description = string.Format(ServicesVSResources.Install_0, packageName);
 
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    var textBuffer = textSnapshot?.TextBuffer;
-                    var undoManager = GetUndoManager(textBuffer);
+                    var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
+                        workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
                 }
@@ -204,11 +191,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_0, e.Message);
+                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Installing_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.
@@ -245,11 +232,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_0, e.Message);
+                dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService?.SendNotification(
-                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_1, packageName, e.Message),
+                    string.Format(ServicesVSResources.Uninstalling_0_failed_Additional_information_colon_1, packageName, e.Message),
                     severity: NotificationSeverity.Error);
 
                 // fall through.
@@ -429,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 installedPackages.ContainsKey(packageName);
         }
 
-        public IEnumerable<string> GetInstalledVersions(string packageName)
+        public ImmutableArray<string> GetInstalledVersions(string packageName)
         {
             ThisCanBeCalledOnAnyThread();
 
@@ -454,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
             });
 
-            return versionsAndSplits.Select(v => v.Version).ToList();
+            return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
         private int CompareSplit(string[] split1, string[] split2)

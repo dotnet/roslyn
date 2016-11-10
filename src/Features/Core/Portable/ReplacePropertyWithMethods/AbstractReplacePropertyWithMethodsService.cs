@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -52,6 +50,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             referenceReplacer.Do();
         }
 
+        private delegate TExpressionSyntax GetWriteValue(ReferenceReplacer replacer, SyntaxNode parent);
+
         private struct ReferenceReplacer
         {
             private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> _service;
@@ -94,11 +94,86 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _identifierName = (TIdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
-                if (_syntaxFacts.IsMemberAccessExpressionName(_expression))
+                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }
             }
+
+            // To avoid allocating lambdas each time we hit a reference, we instead
+            // statically cache the lambdas here and invoke them on demand with the 
+            // data they need when we hit a reference.
+
+            // Note: the reason for these lambdas is so that as we rewrite the tree
+            // we see the results of the rewrite as we go higher up.  For example,
+            // if we have:
+            //
+            //      this.Prop = this.Prop + 1;
+            //
+            // then when we hit "this.Prop" on the left of the equals, we'll want
+            // to see the results of the tree *after* we've replaced "this.Prop + 1"
+            // with "this.GetProp() + 1".  If we don't do this, and instead examine
+            // the "this.Prop" in the original tree, then we won't see that other
+            // rewrite.
+            //
+            // The SyntaxEditor API works by passing in these callbacks when we 
+            // replace a node N.  It will call us back with what N looks like after
+            // all teh rewrites that occurred underneath it.
+            // 
+            // In order to avoid allocating each time we hit a reference, we just
+            // create these statically and pass them in.
+
+            private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
+                (replacer, parent) =>
+                {
+                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
+                };
+
+            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement = 
+                (replacer, parent) =>
+                {
+                    // We're being read from and written to (i.e. Prop++), we need to replace with a
+                    // Get and a Set call.
+                    var readExpression = replacer.GetReadExpression(
+                        keepTrivia: false, conflictMessage: null);
+                    var literalOne = replacer.Generator.LiteralExpression(1);
+
+                    var writeValue = replacer._syntaxFacts.IsOperandOfIncrementExpression(replacer._expression)
+                        ? replacer.Generator.AddExpression(readExpression, literalOne)
+                        : replacer.Generator.SubtractExpression(readExpression, literalOne);
+
+                    return (TExpressionSyntax)writeValue;
+                };
+
+            private static GetWriteValue getWriteValueForCompoundAssignment = 
+                (replacer, parent) =>
+                {
+                    // We're being read from and written to from a compound assignment 
+                    // (i.e. Prop *= X), we need to replace with a Get and a Set call.
+
+                    var readExpression = replacer.GetReadExpression(
+                        keepTrivia: false, conflictMessage: null);
+
+                    // Convert "Prop *= X" into "Prop * X".
+                    return replacer._service.UnwrapCompoundAssignment(
+                        parent, readExpression);
+                };
+
+            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+                (parent, generator, args) =>
+                {
+                    var replacer = args.Replacer;
+
+                    var writeValue = args.GetWriteValue(replacer, parent);
+                    var writeExpression = replacer.GetWriteExpression(
+                        writeValue, args.KeepTrivia, args.ConflictMessage);
+                    if (replacer._expression.Parent is TStatementSyntax)
+                    {
+                        writeExpression = replacer.Generator.ExpressionStatement(writeExpression);
+                    }
+
+                    return writeExpression;
+                };
 
             private SyntaxGenerator Generator => _editor.Generator;
 
@@ -110,7 +185,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // Code wasn't legal (you can't reference a property in an out/ref position in C#).
                     // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
                     ReplaceRead(
-                        FeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+                        keepTrivia: true,
+                        conflictMessage: FeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
                 }
                 else if (_syntaxFacts.IsAttributeNamedArgumentIdentifier(_expression))
                 {
@@ -124,31 +200,31 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
-                    ReplaceWrite(writeValue: (TExpressionSyntax)_syntaxFacts.GetRightHandSideOfAssignment(_expression.Parent));
+                    ReplaceWrite(
+                        getWriteValueForLeftSideOfAssignment,
+                        keepTrivia: true,
+                        conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsLeftSideOfAnyAssignment(_expression))
                 {
-                    HandleCompoundAssignExpression();
+                    ReplaceWrite(
+                        getWriteValueForCompoundAssignment,
+                        keepTrivia: true,
+                        conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
-                    // We're being read from and written to (i.e. Prop++), we need to replace with a
-                    // Get and a Set call.
-                    var readExpression = GetReadExpression(conflictMessage: null);
-                    var literalOne = Generator.LiteralExpression(1);
-
-                    var writeValue = _syntaxFacts.IsOperandOfIncrementExpression(_expression)
-                        ? Generator.AddExpression(readExpression, literalOne)
-                        : Generator.SubtractExpression(readExpression, literalOne);
-
-                    ReplaceWrite((TExpressionSyntax)writeValue);
+                    ReplaceWrite(
+                        getWriteValueForIncrementOrDecrement,
+                        keepTrivia: true,
+                        conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(_expression.Parent)) //.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
                 {
                     // If we have:   new { this.Prop }.  We need ot convert it to:
                     //               new { Prop = this.GetProp() }
                     var declarator = _expression.Parent;
-                    var readExpression = GetReadExpression(conflictMessage: null);
+                    var readExpression = GetReadExpression(keepTrivia: true, conflictMessage: null);
 
                     var newDeclarator = Generator.NamedAnonymousObjectMemberDeclarator(
                         _identifierName.WithoutTrivia(),
@@ -159,50 +235,66 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 else
                 {
                     // No writes.  Replace this with an appropriate read.
-                    ReplaceRead(conflictMessage: null);
+                    ReplaceRead(keepTrivia: true, conflictMessage: null);
                 }
             }
 
-            private void ReplaceRead(string conflictMessage)
+            private void ReplaceRead(bool keepTrivia, string conflictMessage)
             {
-                var readExpression = GetReadExpression(conflictMessage);
-                _editor.ReplaceNode(_expression, readExpression);
+                _editor.ReplaceNode(
+                    _expression,
+                    GetReadExpression(keepTrivia, conflictMessage));
             }
 
-            private void ReplaceWrite(TExpressionSyntax writeValue)
+            private void ReplaceWrite(
+                GetWriteValue getWriteValue,
+                bool keepTrivia,
+                string conflictMessage)
             {
-                var writeExpression = GetWriteExpression(writeValue);
-                if (_expression.Parent is TStatementSyntax)
-                {
-                    writeExpression = Generator.ExpressionStatement(writeExpression);
-                }
-
-                _editor.ReplaceNode(_expression.Parent, writeExpression);
+                // Call this overload so we can see this node after already replacing any 
+                // references in the writing side of it.
+                _editor.ReplaceNode(
+                    _expression.Parent, 
+                    replaceParentCallback,
+                    new ReplaceParentArgs(this, getWriteValue, keepTrivia, conflictMessage));
             }
 
             private TExpressionSyntax GetReadExpression(
-                string conflictMessage)
+                bool keepTrivia, string conflictMessage)
             {
                 if (ShouldReadFromBackingField())
                 {
                     var newIdentifierToken = AddConflictAnnotation(Generator.Identifier(_propertyBackingField.Name), conflictMessage);
-                    var newIdentifierName = Generator.IdentifierName(newIdentifierToken).WithTriviaFrom(_identifierName);
+                    var newIdentifierName = Generator.IdentifierName(newIdentifierToken);
+
+                    if (keepTrivia)
+                    {
+                        newIdentifierName = newIdentifierName.WithTriviaFrom(_identifierName);
+                    }
 
                     return _expression.ReplaceNode(_identifierName, newIdentifierName);
                 }
                 else
                 {
-                    return GetGetInvocationExpression(conflictMessage);
+                    return GetGetInvocationExpression(keepTrivia, conflictMessage);
                 }
             }
 
-            private SyntaxNode GetWriteExpression(TExpressionSyntax writeValue)
+            private SyntaxNode GetWriteExpression(
+                TExpressionSyntax writeValue,
+                bool keepTrivia,
+                string conflictMessage)
             {
                 if (ShouldWriteToBackingField())
                 {
-                    var newIdentifierName = 
-                        Generator.IdentifierName(_propertyBackingField.Name)
-                                 .WithTriviaFrom(_identifierName);
+                    var newIdentifierName = (TIdentifierNameSyntax)Generator.IdentifierName(_propertyBackingField.Name);
+
+                    if (keepTrivia)
+                    {
+                        newIdentifierName = newIdentifierName.WithTriviaFrom(_identifierName);
+                    }
+
+                    newIdentifierName = AddConflictAnnotation(newIdentifierName, conflictMessage);
 
                     return Generator.AssignmentStatement(
                         _expression.ReplaceNode(_identifierName, newIdentifierName),
@@ -210,32 +302,39 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
                 else
                 {
-                    return GetSetInvocationExpression(writeValue);
+                    return GetSetInvocationExpression(writeValue, keepTrivia, conflictMessage);
                 }
             }
 
             private TExpressionSyntax GetGetInvocationExpression(
-                string conflictMessage)
+                bool keepTrivia, string conflictMessage)
             {
-                return GetInvocationExpression(_desiredGetMethodName, argument: null, conflictMessage: conflictMessage);
+                return GetInvocationExpression(_desiredGetMethodName, argument: null, keepTrivia: keepTrivia, conflictMessage: conflictMessage);
             }
 
             private TExpressionSyntax GetInvocationExpression(
-                string desiredName, SyntaxNode argument, string conflictMessage)
+                string desiredName, SyntaxNode argument, bool keepTrivia, string conflictMessage)
             {
                 var newIdentifier = AddConflictAnnotation(
                     Generator.Identifier(desiredName), conflictMessage);
 
-                var updatedExpression = _expression.ReplaceNode(
-                    _identifierName,
-                    Generator.IdentifierName(newIdentifier)
-                             .WithLeadingTrivia(_identifierName.GetLeadingTrivia()));
+                var newIdentifierName = Generator.IdentifierName(newIdentifier);
+                if (keepTrivia)
+                {
+                    newIdentifierName = newIdentifierName.WithLeadingTrivia(_identifierName.GetLeadingTrivia());
+                }
+
+                var updatedExpression = _expression.ReplaceNode(_identifierName, newIdentifierName);
 
                 var arguments = argument == null
                     ? SpecializedCollections.EmptyEnumerable<SyntaxNode>()
                     : SpecializedCollections.SingletonEnumerable(argument);
-                var invocation = Generator.InvocationExpression(updatedExpression, arguments)
-                                          .WithTrailingTrivia(_identifierName.GetTrailingTrivia());
+
+                var invocation = Generator.InvocationExpression(updatedExpression, arguments);
+                if (keepTrivia)
+                {
+                    invocation = invocation.WithTrailingTrivia(_identifierName.GetTrailingTrivia());
+                }
 
                 return (TExpressionSyntax)invocation;
             }
@@ -246,28 +345,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             }
 
             private SyntaxNode GetSetInvocationExpression(
-                TExpressionSyntax writeValue, string conflictMessage = null)
+                TExpressionSyntax writeValue, bool keepTrivia, string conflictMessage)
             {
                 return GetInvocationExpression(_desiredSetMethodName, 
-                    argument: Generator.Argument(writeValue), conflictMessage: conflictMessage);
+                    argument: Generator.Argument(writeValue),
+                    keepTrivia: keepTrivia,
+                    conflictMessage: conflictMessage);
             }
 
             private bool ShouldWriteToBackingField()
             {
                 return _propertyBackingField != null && _property.SetMethod == null;
-            }
-
-            private void HandleCompoundAssignExpression()
-            {
-                // We're being read from and written to from a compound assignment 
-                // (i.e. Prop *= X), we need to replace with a Get and a Set call.
-
-                var readExpression = GetReadExpression(conflictMessage: null);
-
-                // Convert "Prop *= X" into "Prop * X".
-                var writeValue = _service.UnwrapCompoundAssignment(_expression.Parent, readExpression);
-
-                ReplaceWrite(writeValue);
             }
 
             private static TIdentifierNameSyntax AddConflictAnnotation(TIdentifierNameSyntax name, string conflictMessage)
@@ -285,6 +373,22 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
 
                 return token;
+            }
+
+            private struct ReplaceParentArgs
+            {
+                public readonly ReferenceReplacer Replacer;
+                public readonly GetWriteValue GetWriteValue;
+                public readonly bool KeepTrivia;
+                public readonly string ConflictMessage;
+
+                public ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string conflictMessage)
+                {
+                    Replacer = replacer;
+                    GetWriteValue = getWriteValue;
+                    KeepTrivia = keepTrivia;
+                    ConflictMessage = conflictMessage;
+                }
             }
         }
     }

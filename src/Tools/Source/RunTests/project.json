@@ -1,12 +1,14 @@
 {
-  "dependencies": { 
-    "Newtonsoft.Json": "8.0.2",
-    "RestSharp": "105.2.3"
-  },
-  "frameworks": {
-    "net46": { }
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "dependencies": {
+        "Newtonsoft.Json": "8.0.3",
+        "RestSharp": "105.2.3",
+        "System.Collections.Immutable": "1.2.0",
+        "System.Reflection.Metadata": "1.4.1-beta-24430-01",
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

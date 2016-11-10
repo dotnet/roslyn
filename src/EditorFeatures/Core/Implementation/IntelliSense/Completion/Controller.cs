@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -125,33 +124,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItem;
-                var viewSpan = modelOpt.GetViewBufferSpan(selectedItem.Item.Span);
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(viewSpan, this.TextView.TextSnapshot)
+                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Span);
+                var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
-                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
+                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
 
-        private bool StartNewModelComputation(CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(
+            CompletionService completionService, bool filterItems, bool dismissIfEmptyAllowed)
         {
             return StartNewModelComputation(
-                completionService,
-                CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
+                completionService, CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
         }
 
-        private bool StartNewModelComputation(CompletionService completionService, CompletionTrigger trigger, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(
+            CompletionService completionService,
+            CompletionTrigger trigger,
+            bool filterItems,
+            bool dismissIfEmptyAllowed)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
 
+            if (completionService == null)
+            {
+                return false;
+            }
+
             if (this.TextView.Selection.Mode == TextSelectionMode.Box)
             {
-                Trace.WriteLine("Box selection, cannot have completion");
-
                 // No completion with multiple selection
                 return false;
             }
@@ -160,8 +166,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var caret = TextView.GetCaretPoint(SubjectBuffer);
             if (!caret.HasValue)
             {
-                Trace.WriteLine("Caret is not mappable to subject buffer, cannot have completion");
-
                 return false;
             }
 
@@ -179,18 +183,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
                 ? CompletionFilterReason.BackspaceOrDelete
-                : CompletionFilterReason.TypeChar;
+                : trigger.Kind == CompletionTriggerKind.Other
+                    ? CompletionFilterReason.Other
+                    : CompletionFilterReason.TypeChar;
 
+            FilterToSomeOrAllItems(filterItems, dismissIfEmptyAllowed, filterReason);
+
+            return true;
+        }
+
+        private void FilterToSomeOrAllItems(bool filterItems, bool dismissIfEmptyAllowed, CompletionFilterReason filterReason)
+        {
             if (filterItems)
             {
-                sessionOpt.FilterModel(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.FilterModel(
+                    filterReason,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed,
+                    filterState: null);
             }
             else
             {
-                sessionOpt.IdentifyBestMatchAndFilterToAllItems(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.IdentifyBestMatchAndFilterToAllItems(
+                    filterReason,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed);
             }
-
-            return true;
         }
 
         private CompletionService GetCompletionService()
@@ -198,7 +216,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
-                Trace.WriteLine("Failed to get a workspace, cannot have a completion session.");
                 return null;
             }
 
@@ -220,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(PresentationItem item)
+        private void CommitItem(CompletionItem item)
         {
             AssertIsForeground();
 
@@ -228,14 +245,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(this.sessionOpt);
             Contract.ThrowIfNull(this.sessionOpt.Computation.InitialUnfilteredModel);
 
+            var model = sessionOpt.InitialUnfilteredModel;
+
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (item.IsSuggestionModeItem)
+            if (item == model.SuggestionModeItem)
             {
                 this.StopModelComputation();
                 return;
             }
 
-            this.Commit(item, this.sessionOpt.Computation.InitialUnfilteredModel, commitChar: null);
+            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
         }
 
         private const int MaxMRUSize = 10;

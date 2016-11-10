@@ -9,16 +9,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitLocalDeclaration(node As BoundLocalDeclaration) As BoundNode
 
-            ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a 
-            ' BoundAsNewLocalDeclaration to simplify things. 
-            '
-            ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a 
-            ' temporary.
-            Dim placeholder As BoundWithLValueExpressionPlaceholder = Nothing
+            Dim localSymbol = node.LocalSymbol
+            Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
+            Dim initializerOpt As BoundExpression = node.InitializerOpt
+            Dim hasInitializer As Boolean = (initializerOpt IsNot Nothing)
 
-            If node.InitializerOpt IsNot Nothing Then
-                If node.InitializerOpt.Kind = BoundKind.ObjectCreationExpression OrElse node.InitializerOpt.Kind = BoundKind.NewT Then
-                    Dim objectCreationExpression = DirectCast(node.InitializerOpt, BoundObjectCreationExpressionBase)
+            ' only if we have initializer we will produce something
+            Dim result As BoundStatement = Nothing
+
+            If localSymbol.IsStatic Then
+                staticLocalBackingFields = CreateBackingFieldsForStaticLocal(localSymbol, hasInitializer)
+            End If
+
+            If hasInitializer Then
+                ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a 
+                ' BoundAsNewLocalDeclaration to simplify things. 
+                '
+                ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a 
+                ' temporary.
+                Dim placeholder As BoundWithLValueExpressionPlaceholder = Nothing
+
+                If initializerOpt.Kind = BoundKind.ObjectCreationExpression OrElse initializerOpt.Kind = BoundKind.NewT Then
+                    Dim objectCreationExpression = DirectCast(initializerOpt, BoundObjectCreationExpressionBase)
 
                     If objectCreationExpression.InitializerOpt IsNot Nothing AndAlso
                         objectCreationExpression.InitializerOpt.Kind = BoundKind.ObjectInitializerExpression Then
@@ -29,34 +41,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(objectInitializer.PlaceholderOpt IsNot Nothing)
 
                             placeholder = objectInitializer.PlaceholderOpt
-                            AddPlaceholderReplacement(placeholder, New BoundLocal(node.Syntax, node.LocalSymbol, node.LocalSymbol.Type))
+                            AddPlaceholderReplacement(placeholder, VisitExpressionNode(New BoundLocal(node.Syntax, localSymbol, localSymbol.Type)))
                         End If
                     End If
                 End If
-            End If
 
-            Dim localSymbol = node.LocalSymbol
-            Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
-            Dim initializerOpt As BoundExpression = node.InitializerOpt
-            Dim hasInitializer As Boolean = (initializerOpt IsNot Nothing)
-
-            If localSymbol.IsStatic Then
-                staticLocalBackingFields = CreateBackingFieldsForStaticLocal(localSymbol, hasInitializer)
-            End If
-
-            ' only if we have initializer we will produce something
-            Dim result As BoundStatement = Nothing
-
-            If hasInitializer Then
                 ' Create an initializer for the local if the local is not a constant. 
                 If Not localSymbol.IsConst Then
                     Dim rewrittenInitializer As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(initializerOpt)
                     result = RewriteLocalDeclarationAsInitializer(node, rewrittenInitializer, staticLocalBackingFields, placeholder Is Nothing)
                 End If
-            End If
 
-            If placeholder IsNot Nothing Then
-                RemovePlaceholderReplacement(placeholder)
+                If placeholder IsNot Nothing Then
+                    RemovePlaceholderReplacement(placeholder)
+                End If
             End If
 
             Return result
@@ -118,34 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, result, canThrow:=True)
             End If
 
-            Return MarkInitializerSequencePoint(result, node.Syntax)
-        End Function
-
-        Private Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode) As BoundStatement
-            Debug.Assert(syntax.IsKind(SyntaxKind.ModifiedIdentifier))
-            Debug.Assert(syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
-
-            If Not GenerateDebugInfo Then
-                Return rewrittenStatement
+            If Instrument(node) Then
+                result = _instrumenter.InstrumentLocalInitialization(node, result)
             End If
 
-            Dim modifiedIdentifier = DirectCast(syntax, ModifiedIdentifierSyntax)
-            If modifiedIdentifier.ArrayBounds IsNot Nothing Then
-                ' Dim [|a(1)|], b(1) As Integer
-                Return New BoundSequencePoint(syntax, rewrittenStatement)
-            End If
-
-            Dim declarator = DirectCast(syntax.Parent, VariableDeclaratorSyntax)
-            If declarator.Names.Count > 1 Then
-                Debug.Assert(declarator.AsClause.IsKind(SyntaxKind.AsNewClause))
-
-                ' Dim [|a|], b As New C()
-                Return New BoundSequencePoint(syntax, rewrittenStatement)
-            End If
-
-            ' Dim [|a = 1|]
-            ' Dim [|a As New C()|]
-            Return New BoundSequencePoint(declarator, rewrittenStatement)
+            Return result
         End Function
 
         Private Function CreateBackingFieldsForStaticLocal(localSymbol As LocalSymbol, hasInitializer As Boolean) As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField)
@@ -248,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   Nothing,
                                   flag.Type)
 
-            Dim conditionalFlagInit = RewriteIfStatement(syntax, syntax, flagIsNothing, interlockedCompareExchangeFlagWithNewInstance.ToStatement(), Nothing, generateDebugInfo:=False)
+            Dim conditionalFlagInit = RewriteIfStatement(syntax, flagIsNothing, interlockedCompareExchangeFlagWithNewInstance.ToStatement(), Nothing, instrumentationTargetOpt:=Nothing)
 
             statements.Add(conditionalFlagInit)
 
@@ -309,15 +284,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                           ctorIncompleteInitialization.ContainingType))
 
             Dim conditionalValueInit =
-                RewriteIfStatement(syntax, syntax,
+                RewriteIfStatement(syntax,
                                    flagStateIsZero,
                                    New BoundStatementList(syntax, ImmutableArray.Create(flagStateAssignTwo, rewrittenInitialization)),
-                                   RewriteIfStatement(syntax, syntax,
+                                   RewriteIfStatement(syntax,
                                                       flagStateIsTwo,
                                                       throwIncompleteInitialization,
                                                       Nothing,
-                                                      generateDebugInfo:=False),
-                                   generateDebugInfo:=False)
+                                                      instrumentationTargetOpt:=Nothing),
+                                   instrumentationTargetOpt:=Nothing)
 
             Dim locals As ImmutableArray(Of LocalSymbol)
             Dim statementsInTry As ImmutableArray(Of BoundStatement)

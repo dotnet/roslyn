@@ -4,21 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public async Task SuggestionTagsForUnnecessaryCode()
+        public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
 @"<Workspace>
@@ -97,6 +100,14 @@ class Program
 
             using (var workspace = await TestWorkspace.CreateAsync(workspaceXml))
             {
+                var options = new Dictionary<OptionKey, object>();
+                var language = workspace.Projects.Single().Language;
+                var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+                var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+                options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
+
+                workspace.ApplyOptions(options);
+
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
                 {
                     {
@@ -119,17 +130,17 @@ class Program
                 var third = spans[2];
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, first.Tag.ToolTipContent);
+                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
                 Assert.Equal(40, first.Span.Start);
                 Assert.Equal(25, first.Span.Length);
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-                Assert.Equal(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle, second.Tag.ToolTipContent);
+                Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
                 Assert.Equal(82, second.Span.Start);
                 Assert.Equal(60, second.Span.Length);
 
-                Assert.Equal(PredefinedErrorTypeNames.Suggestion, third.Tag.ErrorType);
-                Assert.Equal(WorkspacesResources.NameCanBeSimplified, third.Tag.ToolTipContent);
+                Assert.Equal(PredefinedErrorTypeNames.SyntaxError, third.Tag.ErrorType);
+                Assert.Equal(WorkspacesResources.Name_can_be_simplified, third.Tag.ToolTipContent);
                 Assert.Equal(196, third.Span.Start);
                 Assert.Equal(5, third.Span.Length);
             }

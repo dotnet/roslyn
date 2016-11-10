@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
-using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Roslyn.Test.Utilities
 {
@@ -189,7 +189,7 @@ namespace Roslyn.Test.Utilities
             if (instrCnt != 0)
             {
                 var il = block.RegularInstructions.ToImmutableArray();
-                new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
+                new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, Array.Empty<ILVisualizer.HandlerSpan>(), block.Start);
             }
 
             if (block.BranchCode != ILOpCode.Nop)
@@ -218,7 +218,7 @@ namespace Roslyn.Test.Utilities
         private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb)
         {
             var il = block.RegularInstructions.ToImmutableArray();
-            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, SpecializedCollections.EmptyArray<HandlerSpan>(), block.Start);
+            new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, Array.Empty<HandlerSpan>(), block.Start);
 
             // switch (N, t1, t2... tN)
             //  IL ==> ILOpCode.Switch < unsigned int32 > < int32 >... < int32 >

@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -56,7 +57,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = await CreateTestWorkspaceAsync(markup, languageName, TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+            var workspace = await CreateTestWorkspaceAsync(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+        }
+
+        public static async Task<RenameTrackingTestState> CreateFromWorkspaceXmlAsync(
+            string workspaceXml,
+            string languageName,
+            bool onBeforeGlobalSymbolRenamedReturnValue = true,
+            bool onAfterGlobalSymbolRenamedReturnValue = true)
+        {
+            var workspace = await TestWorkspace.CreateAsync(
+                workspaceXml,
+                exportProvider: EditorServicesUtil.CreateExportProvider());
+
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -191,14 +205,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             // There should only be one code action
             Assert.Equal(1, actions.Count);
 
-            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), actions[0].Title);
 
             if (invokeAction)
             {
                 var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].Apply(this.Workspace, new ProgressTracker(), CancellationToken.None);
+                operations[0].TryApply(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

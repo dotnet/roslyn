@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             If endStatement.Parent.Kind = SyntaxKind.PropertyBlock Then
                 context.RegisterCodeFix(
                     New MyCodeAction(
-                        VBFeaturesResources.InsertTheMissingEndProper,
+                        VBFeaturesResources.Insert_the_missing_End_Property_statement,
                         Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent, PropertyBlockSyntax), c)),
                     context.Diagnostics)
                 Return
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                 If endStatement?.Parent?.Parent.Kind = SyntaxKind.PropertyBlock Then
                     context.RegisterCodeFix(
                         New MyCodeAction(
-                            VBFeaturesResources.InsertTheMissingEndProper,
+                            VBFeaturesResources.Insert_the_missing_End_Property_statement,
                             Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent.Parent, PropertyBlockSyntax), c)),
                         context.Diagnostics)
                     Return
@@ -165,11 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Dim gen = document.GetLanguageService(Of SyntaxGenerator)()
 
             If getter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             If setter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             Dim updatedDocument = Await document.ReplaceNodeAsync(node, updatedProperty.WithAdditionalAnnotations(Formatter.Annotation), cancellationToken).ConfigureAwait(False)
@@ -179,15 +179,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         Public Function GetDescription(node As SyntaxNode) As String
             Dim endBlockSyntax = TryCast(node, EndBlockStatementSyntax)
             If endBlockSyntax IsNot Nothing Then
-                Return String.Format(VBFeaturesResources.InsertTheMissing, "End " + SyntaxFacts.GetText(endBlockSyntax.BlockKeyword.Kind))
+                Return String.Format(VBFeaturesResources.Insert_the_missing_0, "End " + SyntaxFacts.GetText(endBlockSyntax.BlockKeyword.Kind))
             End If
 
             Dim loopStatement = TryCast(node, LoopStatementSyntax)
             If loopStatement IsNot Nothing Then
-                Return String.Format(VBFeaturesResources.InsertTheMissing, SyntaxFacts.GetText(SyntaxKind.LoopKeyword))
+                Return String.Format(VBFeaturesResources.Insert_the_missing_0, SyntaxFacts.GetText(SyntaxKind.LoopKeyword))
             End If
 
-            Return String.Format(VBFeaturesResources.InsertTheMissing, SyntaxFacts.GetText(SyntaxKind.NextKeyword))
+            Return String.Format(VBFeaturesResources.Insert_the_missing_0, SyntaxFacts.GetText(SyntaxKind.NextKeyword))
         End Function
 
         Private Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)

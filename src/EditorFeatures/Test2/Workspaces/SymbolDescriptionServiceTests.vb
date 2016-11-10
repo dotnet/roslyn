@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
             Await TestCSharpAsync(workspace,
                        StringFromLines("dynamic",
-                                       FeaturesResources.RepresentsAnObjectWhoseOperations))
+                                       FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime))
         End Function
 
         <WorkItem(543912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543912")>
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.LocalConstant}) int x = 2")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.local_constant}) int x = 2")
         End Function
 
 #End Region
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"T {FeaturesResources.In} Foo(Of T)")
+            Await TestBasicAsync(workspace, $"T {FeaturesResources.in_} Foo(Of T)")
         End Function
 
         <Fact>
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"T {FeaturesResources.In} Outer(Of T)")
+            Await TestBasicAsync(workspace, $"T {FeaturesResources.in_} Outer(Of T)")
         End Function
 
         <Fact>
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"T {FeaturesResources.In} Outer(Of T)")
+            Await TestBasicAsync(workspace, $"T {FeaturesResources.in_} Outer(Of T)")
         End Function
 
         <Fact>
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestBasicAsync(workspace,
                       StringFromLines("Structure System.Nullable(Of T As Structure)",
                                       String.Empty,
-                                      $"T {FeaturesResources.Is} Integer"))
+                                      $"T {FeaturesResources.is_} Integer"))
         End Function
 
         <Fact>
@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.Field}) Foo.field As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Foo.field As Integer")
         End Function
 
         <Fact>
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.LocalVariable}) x As String")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.local_variable}) x As String")
         End Function
 
         <Fact>
@@ -604,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.Parameter}) x As String")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.parameter}) x As String")
         End Function
 
         <Fact>
@@ -681,7 +681,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Class CC(Of T$$ As IEnumerable(Of Integer))",
                                                 "End Class")
-            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As IEnumerable(Of Integer))"
+            Dim expectedDescription = $"T {FeaturesResources.in_} CC(Of T As IEnumerable(Of Integer))"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Interface IMyInterface(Of T$$ As IEnumerable(Of Integer))",
                                                 "End Interface")
-            Dim expectedDescription = $"T {FeaturesResources.In} IMyInterface(Of T As IEnumerable(Of Integer))"
+            Dim expectedDescription = $"T {FeaturesResources.in_} IMyInterface(Of T As IEnumerable(Of Integer))"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -702,7 +702,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Async Function TestReferenceTypeConstraintOnClass() As Task
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Class)",
                                                 "End Class")
-            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As Class)"
+            Dim expectedDescription = $"T {FeaturesResources.in_} CC(Of T As Class)"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Async Function TestValueTypeConstraintOnClass() As Task
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Structure)",
                                                 "End Class")
-            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As Structure)"
+            Dim expectedDescription = $"T {FeaturesResources.in_} CC(Of T As Structure)"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -722,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Async Function TestValueTypeConstraintOnStructure() As Task
             Dim workspace = WrapCodeInWorkspace("Structure S(Of T$$ As Class)",
                                                 "End Structure")
-            Dim expectedDescription = $"T {FeaturesResources.In} S(Of T As Class)"
+            Dim expectedDescription = $"T {FeaturesResources.in_} S(Of T As Class)"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -732,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Async Function TestMultipleConstraintsOnClass() As Task
             Dim workspace = WrapCodeInWorkspace("Public Class CC(Of T$$ As {IComparable, IDisposable, Class, New})",
                                                 "End Class")
-            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As {{Class, IComparable, IDisposable, New}})"
+            Dim expectedDescription = $"T {FeaturesResources.in_} CC(Of T As {{Class, IComparable, IDisposable, New}})"
 
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                 "End Class")
             Dim expectedDescription = StringFromLines("Interface System.Collections.Generic.IEnumerable(Of Out T)",
                                                       String.Empty,
-                                                      $"T {FeaturesResources.Is} Integer")
+                                                      $"T {FeaturesResources.is_} Integer")
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
 
@@ -758,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                 "End Class")
             Dim expectedDescription = StringFromLines("Interface System.Collections.Generic.IEnumerable(Of Out T)",
                                                       String.Empty,
-                                                      $"T {FeaturesResources.Is} IEnumerable(Of Integer)")
+                                                      $"T {FeaturesResources.is_} IEnumerable(Of Integer)")
             Await TestBasicAsync(workspace, expectedDescription)
         End Function
 
@@ -880,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.Field}) C.x As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) C.x As Integer")
         End Function
 
         <WorkItem(538806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538806")>
@@ -900,7 +900,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.LocalVariable}) y As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.local_variable}) y As Integer")
         End Function
 
         <WorkItem(543911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543911")>
@@ -918,7 +918,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"({FeaturesResources.LocalConstant}) b As Integer = 2")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.local_constant}) b As Integer = 2")
         End Function
 
 #End Region

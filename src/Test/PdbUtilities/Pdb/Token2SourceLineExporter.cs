@@ -413,7 +413,7 @@ namespace Roslyn.Test.PdbUtilities
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
                 if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
-                    throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), String.Format("ArgumentOutOfRange_IntHashTableLoadFactor", 10, 100));
+                    throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), "ArgumentOutOfRange_IntHashTableLoadFactor");
 
                 // Based on perf work, .72 is the optimal load factor for this table.
                 _loadFactorPerc = (loadFactorPerc * 72) / 100;

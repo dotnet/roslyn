@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (variableDeclarator.Initializer.RefKeyword.Kind() != SyntaxKind.None)
+            if (variableDeclarator.Initializer.Kind() == SyntaxKind.RefExpression)
             {
                 // TODO: inlining byref temps is NYI
                 return;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.InlineTemporaryVariable,
+                    CSharpFeaturesResources.Inline_temporary_variable,
                     (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static SyntaxAnnotation CreateConflictAnnotation()
         {
-            return ConflictAnnotation.Create(CSharpFeaturesResources.ConflictsDetected);
+            return ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
         }
 
         private async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
             Func<SyntaxNode, SyntaxNode, SyntaxNode> conflictAnnotationAdder =
                 (SyntaxNode oldNode, SyntaxNode newNode) =>
-                    newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.ConflictsDetected));
+                    newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
         }

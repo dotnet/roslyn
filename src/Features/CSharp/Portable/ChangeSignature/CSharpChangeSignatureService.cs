@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
-        public override ISymbol GetInvocationSymbol(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
+        public override async Task<ISymbol> GetInvocationSymbolAsync(
+            Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
             var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block) : _invokableAncestorKinds;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
                         .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
 
-                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.RefKeyword, lambda.Body);
+                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
                 }
             }
 
@@ -505,14 +505,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return separators;
         }
 
-        public override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsFromDelegateInvoke(IMethodSymbol symbol, Document document, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodes = root.DescendantNodes();
+            var nodes = root.DescendantNodes().ToImmutableArray();
             var convertedMethodGroups = nodes
-                .Where(
+                .WhereAsArray(
                     n =>
                         {
                             if (!n.IsKind(SyntaxKind.IdentifierName) ||
@@ -535,9 +539,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             return convertedType == symbol.ContainingType;
                         })
-                .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
+                .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
-            return convertedMethodGroups;
+            return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

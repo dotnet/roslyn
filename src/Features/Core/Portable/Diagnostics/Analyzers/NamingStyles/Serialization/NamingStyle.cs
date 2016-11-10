@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyle : INamingStyle
+    internal class NamingStyle
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (!name.StartsWith(Prefix))
             {
-                failureReason = string.Format(FeaturesResources.NamingViolation_MissingPrefix, Prefix);
+                failureReason = string.Format(FeaturesResources.Missing_prefix_colon_0, Prefix);
                 return false;
             }
 
             if (!name.EndsWith(Suffix))
             {
-                failureReason = string.Format(FeaturesResources.NamingViolation_MissingSuffix, Suffix);
+                failureReason = string.Format(FeaturesResources.Missing_suffix_colon_0, Suffix);
                 return false;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !char.IsUpper(w[0]));
-                        failureReason = string.Format(FeaturesResources.NamingViolation_WordsMustBeginWithUppercase, string.Join(", ", violations));
+                        failureReason = string.Format(FeaturesResources.These_words_must_begin_with_upper_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 case Capitalization.CamelCase:
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsLower(words.First()[0]))
                         {
-                            failureReason = FeaturesResources.NamingViolation_FirstWordMustBeginWithLowercase;
+                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsUpper(w[0]));
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                                 failureReason += Environment.NewLine;
                             }
 
-                            failureReason += string.Format(FeaturesResources.NamingViolation_NonLeadingWordsMustBeginWithUppercase, string.Join(", ", violations));
+                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0, string.Join(", ", violations));
                         }
 
                         return false;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsUpper(words.First()[0]))
                         {
-                            failureReason = string.Format(FeaturesResources.NamingViolation_FirstWordMustBeginWithUppercase, words.First());
+                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_an_upper_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsLower(w[0]));
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                                 failureReason += Environment.NewLine;
                             }
 
-                            failureReason += string.Format(FeaturesResources.NamingViolation_NonLeadingWordsMustBeginWithLowercase, string.Join(", ", violations));
+                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0, string.Join(", ", violations));
                         }
 
                         return false;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !w.ToCharArray().All(c => char.IsUpper(c)));
-                        failureReason = string.Format(FeaturesResources.NamingViolation_WordsCannotContainLowercaseLetters, string.Join(", ", violations));
+                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 case Capitalization.AllLower:
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !w.ToCharArray().All(c => char.IsLower(c)));
-                        failureReason = string.Format(FeaturesResources.NamingViolation_WordsCannotContainUppercaseLetters, string.Join(", ", violations));
+                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_upper_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 default:
@@ -296,22 +296,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new XElement(nameof(NamingStyle), 
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
-                new XAttribute(nameof(Prefix), Prefix),
-                new XAttribute(nameof(Suffix), Suffix),
-                new XAttribute(nameof(WordSeparator), WordSeparator),
+                new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
+                new XAttribute(nameof(Suffix), Suffix ?? string.Empty),
+                new XAttribute(nameof(WordSeparator), WordSeparator ?? string.Empty),
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
         }
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
         {
-            var result = new NamingStyle();
-            result.ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value);
-            result.Name = namingStyleElement.Attribute(nameof(Name)).Value;
-            result.Prefix = namingStyleElement.Attribute(nameof(Prefix)).Value;
-            result.Suffix = namingStyleElement.Attribute(nameof(Suffix)).Value;
-            result.WordSeparator = namingStyleElement.Attribute(nameof(WordSeparator)).Value;
-            result.CapitalizationScheme = (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value);
-            return result;
+            return new NamingStyle()
+            {
+                ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
+                Name = namingStyleElement.Attribute(nameof(Name)).Value,
+                Prefix = namingStyleElement.Attribute(nameof(Prefix)).Value,
+                Suffix = namingStyleElement.Attribute(nameof(Suffix)).Value,
+                WordSeparator = namingStyleElement.Attribute(nameof(WordSeparator)).Value,
+                CapitalizationScheme = (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value)
+            };
         }
     }
 }

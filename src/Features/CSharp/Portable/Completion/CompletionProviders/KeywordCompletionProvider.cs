@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
-                new ReplaceKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
@@ -168,14 +167,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
+           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context)
         {
+            var rules = context.IsPossibleTupleContext ? s_tupleRules : CompletionItemRules.Default;
+
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
-                shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+                shouldFormatOnCommit: keyword.ShouldFormatOnCommit,
+                matchPriority: keyword.MatchPriority,
+                rules: rules);
+        }
+
+        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
+        {
+            return CompletionUtilities.GetCompletionItemSpan(text, span.End);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 var anonymousTypeStatus = namesWithAnonymousTypes.Any() ?
-                    new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.ContainsAnonymousType, string.Join(", ", namesWithAnonymousTypes))) :
+                    new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket, string.Join(", ", namesWithAnonymousTypes))) :
                     OperationStatus.Succeeded;
 
                 var unsafeAddressStatus = unsafeAddressTakenUsed ? OperationStatus.UnsafeAddressTaken : OperationStatus.Succeeded;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     if (names.Any())
                     {
-                        return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.AsyncMethodWithRefOutParameters, string.Join(", ", names)));
+                        return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
                     }
                 }
 
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    Contract.Fail(FeaturesResources.UnknownSymbolKind);
+                    Contract.Fail(FeaturesResources.Unknown_symbol_kind);
                 }
             }
 
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 if (names != null)
                 {
-                    return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.AssigningToReadonlyFields, string.Join(", ", names)));
+                    return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket, string.Join(", ", names)));
                 }
 
                 return OperationStatus.Succeeded;

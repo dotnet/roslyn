@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
     /// </summary>
-    public sealed partial class FixAllContext
+    public partial class FixAllContext
     {
         internal FixAllState State { get; }
 

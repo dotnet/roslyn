@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ordinal,
                     parameterType,
                     refKind,
-                    false,
                     name,
                     locations,
                     syntax.GetReference(),
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
-            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, _refKind, this.ContainingAssembly);
+            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, this.ContainingAssembly);
 
             if (newCustomModifiers.IsDefaultOrEmpty)
             {

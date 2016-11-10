@@ -1,8 +1,14 @@
 ﻿{
-  "dependencies": {
-    "Microsoft.VisualStudio.Language.Intellisense": "15.0.25123-Dev15Preview",
-  },
-  "frameworks": {
-    "net46": {}
-  }
+    "dependencies": {
+        "Dev15BinariesForRoslyn": "5.0.0.0",
+        "System.Collections.Immutable": "1.2.0",
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "VS.ExternalAPIs.CodingConventions": "1.0.60704.2"
+    },
+    "frameworks": {
+        "net46": { }
+    }
 }

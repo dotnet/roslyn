@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
@@ -49,7 +48,7 @@ using System.Collections.Generic;
                 "Delete [using System.Collections;]@29");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.UsingDirective));
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive));
         }
 
         [Fact]
@@ -70,7 +69,7 @@ using System.Collections.Generic;
                 "Insert [using System.Collections;]@29");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.UsingDirective));
+                Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.using_directive));
         }
 
         [Fact]
@@ -92,7 +91,7 @@ using System.Collections.Generic;
                 "Update [using System.Collections;]@29 -> [using X = System.Collections;]@29");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.UsingDirective));
+                Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.using_directive));
         }
 
         [Fact]
@@ -114,7 +113,7 @@ using System.Collections.Generic;
                 "Update [using X1 = System.Collections;]@29 -> [using X2 = System.Collections;]@29");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.UsingDirective));
+                Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.using_directive));
         }
 
         [Fact]
@@ -136,7 +135,7 @@ using System.Collections.Generic;
                 "Update [using System.Diagnostics;]@2 -> [using System;]@2");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.UsingDirective));
+                Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.using_directive));
         }
 
         [Fact]
@@ -227,7 +226,7 @@ namespace N
                 "Update [A1]@1 -> [A2]@1");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -242,7 +241,7 @@ namespace N
                 "Update [A(1)]@1 -> [A(2)]@1");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -258,7 +257,7 @@ namespace N
                 "Delete [B]@4");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -274,7 +273,7 @@ namespace N
                 "Insert [B]@4");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -290,7 +289,7 @@ namespace N
                 "Insert [A]@1");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -334,7 +333,7 @@ namespace N
                 "Update [A(1)]@1 -> [A(2)]@7");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute));
         }
 
         #endregion
@@ -353,7 +352,7 @@ namespace N
                 "Update [class C { }]@0 -> [struct C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeKindUpdate, "struct C", CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.TypeKindUpdate, "struct C", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -368,7 +367,7 @@ namespace N
                 "Update [public static class C { }]@0 -> [public class C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -383,7 +382,7 @@ namespace N
                 "Update [public interface C { }]@0 -> [interface C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "interface C", FeaturesResources.Interface));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "interface C", FeaturesResources.interface_));
         }
 
         [Fact]
@@ -398,7 +397,7 @@ namespace N
                 "Update [struct C { }]@0 -> [public struct C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -413,7 +412,7 @@ namespace N
                 "Update [unsafe struct C { }]@0 -> [struct C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -428,7 +427,7 @@ namespace N
                 "Update [class C { }]@0 -> [class D { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
         [Fact]
@@ -443,7 +442,7 @@ namespace N
                 "Update [class LongerName { }]@0 -> [class LongerMame { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class LongerMame", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.Renamed, "class LongerMame", FeaturesResources.class_));
         }
 
         [Fact]
@@ -458,7 +457,7 @@ namespace N
                 "Update [interface C { }]@0 -> [interface D { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "interface D", FeaturesResources.Interface));
+                Diagnostic(RudeEditKind.Renamed, "interface D", FeaturesResources.interface_));
         }
 
         [Fact]
@@ -470,7 +469,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "struct D", CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.Renamed, "struct D", CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -584,7 +583,7 @@ namespace N
                 "Update [class C { }]@0 -> [class C : D { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -599,7 +598,7 @@ namespace N
                 "Update [class C : D1 { }]@0 -> [class C : D2 { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -614,7 +613,7 @@ namespace N
                 "Update [class C { }]@0 -> [class C : IDisposable { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -629,7 +628,7 @@ namespace N
                 "Update [class C : IFoo, IBar { }]@0 -> [class C : IFoo { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -644,7 +643,7 @@ namespace N
                 "Update [class C : IFoo, IBar { }]@0 -> [class C : IBar, IFoo { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -727,7 +726,7 @@ public interface I
                 "Insert [A]@1");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -743,7 +742,7 @@ public interface I
                 "Delete [A]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "X", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "X", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -759,7 +758,7 @@ public interface I
                 "Insert [A]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -774,7 +773,7 @@ public interface I
                 "Update [A1]@10 -> [A2]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -789,7 +788,7 @@ public interface I
                 "Update [enum Color { Red = 1, Blue = 2, }]@0 -> [enum Colors { Red = 1, Blue = 2, }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Renamed, "enum Colors", FeaturesResources.Enum));
+                 Diagnostic(RudeEditKind.Renamed, "enum Colors", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -803,7 +802,7 @@ public interface I
             edits.VerifyEdits("Update [enum Color { Red = 1, Blue = 2, }]@0 -> [enum Color : ushort { Red = 1, Blue = 2, }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
+                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -817,7 +816,7 @@ public interface I
             edits.VerifyEdits("Update [enum Color : ushort { Red = 1, Blue = 2, }]@0 -> [enum Color : long { Red = 1, Blue = 2, }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
+                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -831,7 +830,7 @@ public interface I
             edits.VerifyEdits("Update [enum Color : ushort { Red = 1, Blue = 2, }]@0 -> [enum Color { Red = 1, Blue = 2, }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.Enum));
+                 Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -846,7 +845,7 @@ public interface I
                 "Update [public enum Color { Red = 1, Blue = 2, }]@0 -> [enum Color { Red = 1, Blue = 2, }]@0");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.ModifiersUpdate, "enum Color", FeaturesResources.Enum));
+                 Diagnostic(RudeEditKind.ModifiersUpdate, "enum Color", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -861,7 +860,7 @@ public interface I
                 "Update [Blue = 2]@22 -> [Blue = 3]@22");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -876,8 +875,8 @@ public interface I
                               "Update [Blue = 2]@22 -> [Blue = 2 << 1]@27");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1 << 0", FeaturesResources.EnumValue),
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1 << 0", FeaturesResources.enum_value),
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -891,7 +890,7 @@ public interface I
             edits.VerifyEdits("Update [Red = int.MinValue]@13 -> [Red = int.MaxValue]@13");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -906,7 +905,7 @@ public interface I
                 "Update [Red]@13 -> [Red = 1]@13");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -921,7 +920,7 @@ public interface I
                 "Update [Red = 1]@13 -> [Red]@13");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.enum_value));
         }
 
         [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
@@ -938,7 +937,7 @@ public interface I
                 "Insert [Blue]@18");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -952,7 +951,7 @@ public interface I
             edits.VerifyEdits("Insert [Blue]@18");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
         [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
@@ -968,7 +967,7 @@ public interface I
                               "Insert [Blue]@18");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -983,7 +982,7 @@ public interface I
                 "Update [Red]@13 -> [Orange]@13");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.enum_value));
         }
 
         [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916")]
@@ -1000,7 +999,7 @@ public interface I
                 "Delete [Blue]@18");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -1014,7 +1013,7 @@ public interface I
             edits.VerifyEdits("Delete [Blue]@18");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.EnumValue));
+                 Diagnostic(RudeEditKind.Delete, "enum Color", FeaturesResources.enum_value));
         }
 
         [WorkItem(754916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754916"), WorkItem(793197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/793197")]
@@ -1158,7 +1157,7 @@ public interface I
                 "Delete [()]@33");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Delegate));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -1173,7 +1172,7 @@ public interface I
                 "Update [public delegate void D();]@0 -> [public delegate void Z();]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", FeaturesResources.Delegate));
+                Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -1188,7 +1187,7 @@ public interface I
                 "Update [public delegate void D();]@0 -> [private delegate void D();]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "private delegate void D()", FeaturesResources.Delegate));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "private delegate void D()", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -1203,7 +1202,7 @@ public interface I
                 "Update [public delegate int D();]@0 -> [public delegate void D();]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "public delegate void D()", FeaturesResources.Delegate));
+                Diagnostic(RudeEditKind.TypeUpdate, "public delegate void D()", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -1218,7 +1217,7 @@ public interface I
                 "Insert [int a]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "int a", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Insert, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1233,7 +1232,7 @@ public interface I
                 "Delete [int a]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1248,7 +1247,7 @@ public interface I
                 "Update [int a]@22 -> [int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1263,7 +1262,7 @@ public interface I
                 "Update [int a]@22 -> [byte a]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "byte a", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.TypeUpdate, "byte a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1278,7 +1277,7 @@ public interface I
                 "Update [int[] a]@22 -> [params int[] a]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "params int[] a", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "params int[] a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1294,7 +1293,7 @@ public interface I
                 "Insert [A]@23");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -1310,7 +1309,7 @@ public interface I
                 "Insert [T]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<T>", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Insert, "<T>", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1326,7 +1325,7 @@ public interface I
                 "Delete [T]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Delete, "public delegate int D()", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1341,7 +1340,7 @@ public interface I
                 "Update [T]@22 -> [S]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1356,7 +1355,7 @@ public interface I
                 "Update [T]@22 -> [in T]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1371,7 +1370,7 @@ public interface I
                 "Update [out T]@22 -> [T]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1386,7 +1385,7 @@ public interface I
                 "Update [out T]@22 -> [in T]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -1402,7 +1401,7 @@ public interface I
                 "Insert [A]@23");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -1418,7 +1417,7 @@ public interface I
                 "Insert [A]@8");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[return:A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[return:A]", FeaturesResources.attribute));
         }
 
         #endregion
@@ -1437,7 +1436,7 @@ public interface I
                 "Move [class D { }]@10 -> @12");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.class_));
         }
 
         [Fact]
@@ -1452,7 +1451,7 @@ public interface I
                 "Move [class E { }]@23 -> @37");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "class E", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.Move, "class E", FeaturesResources.class_));
         }
 
         [Fact]
@@ -1468,7 +1467,7 @@ public interface I
                 "Move [class D { }]@10 -> @20");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.Class));
+                Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.class_));
         }
 
         [Fact]
@@ -1599,11 +1598,11 @@ class C
 
             // Adding P/Invoke is not supported by the CLR.
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertExtern, "public extern D()", FeaturesResources.Constructor),
-                Diagnostic(RudeEditKind.InsertExtern, "public static extern int P", FeaturesResources.Property),
-                Diagnostic(RudeEditKind.InsertExtern, "public static extern int puts(string c)", FeaturesResources.Method),
-                Diagnostic(RudeEditKind.InsertExtern, "public static extern int operator +(D d, D g)", FeaturesResources.Operator),
-                Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.ConversionOperator));
+                Diagnostic(RudeEditKind.InsertExtern, "public extern D()", FeaturesResources.constructor),
+                Diagnostic(RudeEditKind.InsertExtern, "public static extern int P", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertExtern, "public static extern int puts(string c)", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertExtern, "public static extern int operator +(D d, D g)", FeaturesResources.operator_),
+                Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -1672,7 +1671,7 @@ class C
                 "Delete [()]@32");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public class C", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Delete, "public class C", FeaturesResources.method));
         }
 
         [Fact]
@@ -1688,7 +1687,7 @@ class C
                 "Move [public class X {}]@17 -> @34");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Move, "public class X", FeaturesResources.Class));
+                 Diagnostic(RudeEditKind.Move, "public class X", FeaturesResources.class_));
         }
 
         #endregion
@@ -1707,7 +1706,7 @@ class C
                 "Move [namespace D { }]@14 -> @16");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "namespace D", FeaturesResources.Namespace));
+                Diagnostic(RudeEditKind.Move, "namespace D", FeaturesResources.namespace_));
         }
 
         [Fact]
@@ -1919,7 +1918,7 @@ class C
                 "Delete [()]@26");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [Fact]
@@ -1951,7 +1950,7 @@ class C
                 "Delete [()]@25");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [Fact]
@@ -1984,7 +1983,7 @@ class C
                 "Delete [int a]@27");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -2022,7 +2021,7 @@ class C
                 "Delete [int a]@43");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -2067,7 +2066,7 @@ class C
                  "Delete [string c]@135");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
         }
 
         [Fact]
@@ -2193,7 +2192,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "public virtual void F()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.InsertVirtual, "public virtual void F()", FeaturesResources.method));
         }
 
         [Fact]
@@ -2212,7 +2211,7 @@ abstract class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "public abstract void F()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.InsertVirtual, "public abstract void F()", FeaturesResources.method));
         }
 
         [Fact]
@@ -2231,7 +2230,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "public override void F()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.InsertVirtual, "public override void F()", FeaturesResources.method));
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -2276,7 +2275,7 @@ class C
 
             // CLR doesn't support methods without a body
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method));
         }
 
         [Fact]
@@ -2332,7 +2331,7 @@ class C
                 "Insert [string[] args]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "string[] args", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Insert, "string[] args", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2360,7 +2359,7 @@ class C
                 "Update [string[] args]@35 -> [string[] b]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "string[] b", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Renamed, "string[] b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2395,7 +2394,7 @@ class C
             edits.VerifyEdits(expectedEdit);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -2423,7 +2422,7 @@ class C
                 "Reorder [char c]@42 -> @35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "char c", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Move, "char c", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2445,7 +2444,7 @@ class C
                 "Delete [string[] args]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "static void Main()", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Delete, "static void Main()", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2471,7 +2470,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", "method"));
         }
 
@@ -2618,7 +2617,7 @@ public static class Extensions
                 "Update [this string s]@179 -> [string s]@179");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "string s", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "string s", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2669,8 +2668,8 @@ class C
                 "Update [ref int b]@235 -> [int b]@231");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "int a", FeaturesResources.Parameter),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "int b", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int a", FeaturesResources.parameter),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -2698,7 +2697,7 @@ class Test
             edits.VerifyEdits("Insert [[Obsolete]]@21", "Insert [Obsolete]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[Obsolete]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[Obsolete]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2728,7 +2727,7 @@ class Test
                                "Insert [Serializable]@32");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Serializable", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2759,7 +2758,7 @@ class Test
                               "Insert [Serializable]@38");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[Serializable]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[Serializable]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2790,7 +2789,7 @@ class Test
                 "Insert [Serializable]@32");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Insert, "[Obsolete, Serializable]", FeaturesResources.Attribute));
+                 Diagnostic(RudeEditKind.Insert, "[Obsolete, Serializable]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2819,7 +2818,7 @@ class Test
             edits.VerifyEdits(@"Update [Obsolete]@22 -> [Obsolete("""")]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, @"Obsolete("""")", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, @"Obsolete("""")", FeaturesResources.attribute));
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -2850,7 +2849,7 @@ class Test
                 "Delete [Obsolete]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2880,7 +2879,7 @@ class Test
                               "Delete [Serializable]@32");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "[Obsolete]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "[Obsolete]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2911,7 +2910,7 @@ class Test
                               "Delete [Serializable]@38");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2959,7 +2958,7 @@ class C : I, J
                 "Update [void I.Foo() { Console.WriteLine(1); }]@25 -> [void Foo() { Console.WriteLine(1); }]@25");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "void Foo()", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.Renamed, "void Foo()", FeaturesResources.method));
         }
 
         [WorkItem(754255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754255")]
@@ -3013,7 +3012,7 @@ class C
             edits.VerifyEdits(expectedEdit);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
         [Fact]
@@ -3207,8 +3206,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertOperator, "public static implicit operator bool (C c)", CSharpFeaturesResources.ConversionOperator),
-                Diagnostic(RudeEditKind.InsertOperator, "public static C operator +(C c, C d)", FeaturesResources.Operator));
+                Diagnostic(RudeEditKind.InsertOperator, "public static implicit operator bool (C c)", CSharpFeaturesResources.conversion_operator),
+                Diagnostic(RudeEditKind.InsertOperator, "public static C operator +(C c, C d)", FeaturesResources.operator_));
         }
 
         [Fact]
@@ -3235,8 +3234,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", CSharpFeaturesResources.ConversionOperator),
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Operator));
+                Diagnostic(RudeEditKind.Delete, "class C", CSharpFeaturesResources.conversion_operator),
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.operator_));
         }
 
         [Fact]
@@ -3395,7 +3394,7 @@ class C<T>
                 "Update [public C(int a) : base(a) { }]@21 -> [public C(int a) { }]@21");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3438,7 +3437,7 @@ class C<T>
                 "Update [public C(int a) : base(a) { }]@21 -> [public C(int a) : base(a + 1) { }]@21");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)", FeaturesResources.constructor));
         }
 
         [WorkItem(743552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743552")]
@@ -3472,7 +3471,7 @@ class C
                 "Insert [int b]@34");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3522,7 +3521,7 @@ class B
             edits.VerifyEdits(expectedEdit1);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.Destructor));
+                Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.destructor));
         }
 
         [Fact]
@@ -3579,7 +3578,7 @@ class B
             edits.VerifyEdits(expectedEdit1, "Insert [()]@191", expectedEdit2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.Destructor));
+                Diagnostic(RudeEditKind.Delete, "class B", CSharpFeaturesResources.destructor));
         }
 
         [Fact]
@@ -3603,7 +3602,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3628,7 +3627,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3640,7 +3639,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3652,7 +3651,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3664,7 +3663,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3676,7 +3675,7 @@ class B
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -3921,7 +3920,7 @@ class B
                 new[] { srcB1 },
                 new[] { srcB2 },
                 null,
-                Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4311,7 +4310,7 @@ partial class C
                 "Insert [()]@25");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertExtern, "public extern C()", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.InsertExtern, "public extern C()", FeaturesResources.constructor));
         }
 
         #endregion
@@ -4377,7 +4376,7 @@ partial class C
                 "Update [get;]@18 -> [get { return 1; }]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.PropertyGetter));
+                Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.property_getter));
         }
 
         [Fact]
@@ -4409,7 +4408,7 @@ partial class C
                 "Update [get { return 1; }]@18 -> [get;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodBodyDelete, "get", CSharpFeaturesResources.PropertyGetter));
+                Diagnostic(RudeEditKind.MethodBodyDelete, "get", CSharpFeaturesResources.property_getter));
         }
 
         [Fact]
@@ -4452,7 +4451,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4464,7 +4463,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4724,7 +4723,7 @@ partial class C
                 "Update [a = 1]@17 -> [a = 2]@17");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "a = 2", FeaturesResources.field));
         }
 
         [Fact]
@@ -4736,7 +4735,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "int a", FeaturesResources.AutoProperty));
+                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "int a", FeaturesResources.auto_property));
         }
 
         [Fact]
@@ -4752,7 +4751,7 @@ partial class C
 
             // TODO (tomat): diagnostic should point to the field initializer
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4765,7 +4764,7 @@ partial class C
 
             // TODO (tomat): diagnostic should point to the property initializer
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4789,7 +4788,7 @@ partial class C
 
             // TODO (tomat): diagnostic should point to the property initializer
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
         [Fact]
@@ -4876,7 +4875,7 @@ partial class C
                 "Update [a = 1]@22 -> [a = 2]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.field));
         }
 
         [Fact]
@@ -4888,7 +4887,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.auto_property));
         }
 
         [Fact]
@@ -4903,7 +4902,7 @@ partial class C
                 "Update [a = 1]@22 -> [a = 2]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.field));
         }
 
         [Fact]
@@ -4915,7 +4914,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.auto_property));
         }
 
         [Fact]
@@ -5639,7 +5638,7 @@ class C
                 "Update [a = 0]@14 -> [b = 0]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b = 0", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.Renamed, "b = 0", FeaturesResources.field));
         }
 
         [Fact]
@@ -5654,7 +5653,7 @@ class C
                 "Update [Action a;]@10 -> [event Action a;]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", CSharpFeaturesResources.EventField));
+                Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", CSharpFeaturesResources.event_field));
         }
 
         [Fact]
@@ -5669,7 +5668,7 @@ class C
                 "Reorder [int c = 2;]@32 -> @10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "int c = 2", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.Move, "int c = 2", FeaturesResources.field));
         }
 
         [Fact]
@@ -5769,10 +5768,10 @@ struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.Field, CSharpFeaturesResources.Struct),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.Field, CSharpFeaturesResources.Struct),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "f = 1", FeaturesResources.Field, CSharpFeaturesResources.Struct),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "d", CSharpFeaturesResources.EventField, CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.field, CSharpFeaturesResources.struct_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.field, CSharpFeaturesResources.struct_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "f = 1", FeaturesResources.field, CSharpFeaturesResources.struct_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "d", CSharpFeaturesResources.event_field, CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -5846,9 +5845,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.Field, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.Field, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class));
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
         }
 
         [Fact]
@@ -5879,9 +5878,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.Field, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.Field, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class));
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
         }
 
         [Fact]
@@ -6071,7 +6070,7 @@ class C
                 "Delete [a = 1]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.field));
         }
 
         [Fact]
@@ -6085,7 +6084,7 @@ class C
             edits.VerifyEdits("Update [unsafe Node* left;]@14 -> [Node* left;]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.field));
         }
 
         [Fact]
@@ -6101,8 +6100,8 @@ class C
                 "Update [Node* left]@21 -> [Node left]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node left", FeaturesResources.Field),
-                Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Node left", FeaturesResources.field),
+                Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.field));
         }
 
         [Fact]
@@ -6116,7 +6115,7 @@ class C
             edits.VerifyEdits("Update [int left]@10 -> [int? left]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "int? left", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.TypeUpdate, "int? left", FeaturesResources.field));
         }
 
         [Fact]
@@ -6131,7 +6130,7 @@ class C
                 "Reorder [event int c = 2;]@32 -> @10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "event int c = 2", CSharpFeaturesResources.EventField));
+                Diagnostic(RudeEditKind.Move, "event int c = 2", CSharpFeaturesResources.event_field));
         }
 
         #endregion
@@ -6228,7 +6227,7 @@ class C
                 "Delete [set { }]@36");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_setter));
         }
 
         [Fact]
@@ -6240,7 +6239,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.Property));
+                Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
         }
 
         [Fact]
@@ -6252,7 +6251,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.Property));
+                Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.property_));
         }
 
         [Fact]
@@ -6268,7 +6267,7 @@ class C
 
             // TODO: we can allow the move since the property doesn't have a backing field
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.Property));
+                Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.property_));
         }
 
         [Fact]
@@ -6283,7 +6282,7 @@ class C
                 "Reorder [int Q { get; set; }]@30 -> @10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.AutoProperty));
+                Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.auto_property));
         }
 
         [Fact]
@@ -6312,7 +6311,7 @@ class C
                 "Update [int P { get; set; }]@10 -> [char P { get; set; }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "char P", FeaturesResources.AutoProperty));
+                Diagnostic(RudeEditKind.TypeUpdate, "char P", FeaturesResources.auto_property));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -6339,7 +6338,7 @@ class C
 
             // CLR doesn't support methods without a body
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertExtern, "private static extern int P", FeaturesResources.Property));
+                Diagnostic(RudeEditKind.InsertExtern, "private static extern int P", FeaturesResources.property_));
         }
 
         [Fact]
@@ -6369,9 +6368,9 @@ struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c { get; set; }", FeaturesResources.AutoProperty, CSharpFeaturesResources.Struct),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g { get; } = 1;", FeaturesResources.AutoProperty, CSharpFeaturesResources.Struct),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i { get; set; } = 1;", FeaturesResources.AutoProperty, CSharpFeaturesResources.Struct));
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c { get; set; }", FeaturesResources.auto_property, CSharpFeaturesResources.struct_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g { get; } = 1;", FeaturesResources.auto_property, CSharpFeaturesResources.struct_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i { get; set; } = 1;", FeaturesResources.auto_property, CSharpFeaturesResources.struct_));
         }
 
         [Fact]
@@ -6409,12 +6408,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int b { get; set; }", FeaturesResources.AutoProperty, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int c { get; set; }", FeaturesResources.AutoProperty, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int f { get; } = 1;", FeaturesResources.AutoProperty, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int g { get; } = 1;", FeaturesResources.AutoProperty, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int h { get; set; } = 1;", FeaturesResources.AutoProperty, FeaturesResources.Class),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i { get; set; } = 1;", FeaturesResources.AutoProperty, FeaturesResources.Class));
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int b { get; set; }", FeaturesResources.auto_property, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int c { get; set; }", FeaturesResources.auto_property, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int f { get; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int g { get; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int h { get; set; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i { get; set; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_));
         }
 
         // Design: Adding private accessors should also be allowed since we now allow adding private methods
@@ -6444,7 +6443,7 @@ class C
             edits.VerifyEdits("Delete [set { _p = value; }]@44");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_setter));
         }
 
         [Fact]
@@ -6524,7 +6523,7 @@ class C
             edits.VerifyEdits("Delete [get;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertyGetter));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_getter));
         }
 
         [Fact]
@@ -6538,7 +6537,7 @@ class C
             edits.VerifyEdits("Delete [get;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertyGetter));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_getter));
         }
 
         [Fact]
@@ -6552,7 +6551,7 @@ class C
             edits.VerifyEdits("Update [get;]@18 -> [set;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.PropertySetter));
+                Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
         }
 
         [WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
@@ -6633,7 +6632,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", CSharpFeaturesResources.Indexer));
+                Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", CSharpFeaturesResources.indexer));
         }
 
         [Fact]
@@ -6676,7 +6675,37 @@ class C
                 "Update [int this[int a] { get; set; }]@10 -> [string this[int a] { get; set; }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "string this[int a]", CSharpFeaturesResources.Indexer));
+                Diagnostic(RudeEditKind.TypeUpdate, "string this[int a]", CSharpFeaturesResources.indexer));
+        }
+
+        [Fact]
+        public void Tuple_TypeUpdate()
+        {
+            var src1 = "class C { (int, int) M() { throw new System.Exception(); } }";
+            var src2 = "class C { (string, int) M() { throw new System.Exception(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int, int) M() { throw new System.Exception(); }]@10 -> [(string, int) M() { throw new System.Exception(); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(string, int) M()", FeaturesResources.method));
+        }
+
+        [Fact]
+        public void TupleNames_TypeUpdate()
+        {
+            var src1 = "class C { (int a, int) M() { throw new System.Exception(); } }";
+            var src2 = "class C { (int notA, int) M() { throw new System.Exception(); } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int a, int) M() { throw new System.Exception(); }]@10 -> [(int notA, int) M() { throw new System.Exception(); }]@10");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "(int notA, int) M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -6688,7 +6717,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "string a", FeaturesResources.Parameter));
+                Diagnostic(RudeEditKind.TypeUpdate, "string a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -6831,7 +6860,7 @@ class SampleCollection<T>
             edits.VerifyEdits("Delete [get { return arr[i]; }]@304");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.IndexerGetter));
+                Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.indexer_getter));
         }
 
         [Fact]
@@ -6879,7 +6908,7 @@ class SampleCollection<T>
             edits.VerifyEdits("Delete [set { arr[i] = value; }]@336");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.IndexerSetter));
+                Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact, WorkItem(1174850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174850")]
@@ -6904,7 +6933,7 @@ class SampleCollection<T>
             edits.VerifyEdits("Update [x = 0]@20 -> [x = 1]@20");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "x = 1", FeaturesResources.ConstField));
+                Diagnostic(RudeEditKind.Update, "x = 1", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -6918,7 +6947,7 @@ class SampleCollection<T>
             edits.VerifyEdits("Update [const int x = 0;]@10 -> [int x = 0;]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", FeaturesResources.Field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "int x = 0", FeaturesResources.field));
         }
 
         [Fact]
@@ -6932,7 +6961,7 @@ class SampleCollection<T>
             edits.VerifyEdits("Update [int x = 0;]@10 -> [const int x = 0;]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", FeaturesResources.ConstField));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int x = 0", FeaturesResources.const_field));
         }
 
         #endregion
@@ -7359,7 +7388,7 @@ class C
                 "Insert [A]@8");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7375,7 +7404,7 @@ class C
                 "Insert [B]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7403,7 +7432,7 @@ class C
                 "Delete [A]@8");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C<B>", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Delete, "class C<B>", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7418,7 +7447,7 @@ class C
                 "Update [A]@8 -> [B]@8");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7433,7 +7462,7 @@ class C
                 "Reorder [B]@10 -> @8");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7449,8 +7478,8 @@ class C
                 "Update [A]@8 -> [C]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter),
-                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.TypeParameter));
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7466,7 +7495,7 @@ class C
                 "Insert [A]@9");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7482,7 +7511,7 @@ class C
                 "Insert [B]@12");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7498,7 +7527,7 @@ class C
                 "Delete [A]@9");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7514,8 +7543,8 @@ class C
                 "Update [C]@15 -> [B]@15");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute),
-                Diagnostic(RudeEditKind.Update, "B", FeaturesResources.Attribute));
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute));
         }
 
         #endregion
@@ -7534,7 +7563,7 @@ class C
                 "Insert [where T : class]@11");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "where T : class", FeaturesResources.TypeConstraint));
+                Diagnostic(RudeEditKind.Insert, "where T : class", FeaturesResources.type_constraint));
         }
 
         [Fact]
@@ -7549,7 +7578,7 @@ class C
                 "Insert [where S : new()]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "where S : new()", FeaturesResources.TypeConstraint));
+                Diagnostic(RudeEditKind.Insert, "where S : new()", FeaturesResources.type_constraint));
         }
 
         [Fact]
@@ -7564,7 +7593,7 @@ class C
                 "Delete [where T : class]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.TypeConstraint));
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
         }
 
         [Fact]
@@ -7579,7 +7608,7 @@ class C
                 "Delete [where S : new()]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.TypeConstraint));
+                Diagnostic(RudeEditKind.Delete, "class C<S,T>", FeaturesResources.type_constraint));
         }
 
         [Fact]
@@ -7611,9 +7640,9 @@ class C
                 "Update [where S : new()]@13 -> [where S : class, new()]@32");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "T", FeaturesResources.TypeParameter),
-                Diagnostic(RudeEditKind.TypeUpdate, "where T : class, I", FeaturesResources.TypeConstraint),
-                Diagnostic(RudeEditKind.TypeUpdate, "where S : class, new()", FeaturesResources.TypeConstraint));
+                Diagnostic(RudeEditKind.Move, "T", FeaturesResources.type_parameter),
+                Diagnostic(RudeEditKind.TypeUpdate, "where T : class, I", FeaturesResources.type_constraint),
+                Diagnostic(RudeEditKind.TypeUpdate, "where S : class, new()", FeaturesResources.type_constraint));
         }
 
         #endregion

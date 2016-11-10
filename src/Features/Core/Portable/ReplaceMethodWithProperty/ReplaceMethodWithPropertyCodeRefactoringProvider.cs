@@ -1,18 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
-                string.Format(FeaturesResources.Replace0WithProperty, methodName),
+                string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName));
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 if (setMethod != null)
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
-                        string.Format(FeaturesResources.Replace0and1WithProperty, methodName, setMethod.Name),
+                        string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"));
                 }
@@ -129,7 +127,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool IsValidSetMethod(IMethodSymbol setMethod, IMethodSymbol getMethod)
         {
             return IsValidSetMethod(setMethod) &&
-                setMethod.Parameters.Length == 1 && Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                setMethod.Parameters.Length == 1 &&
+                setMethod.Parameters[0].RefKind == RefKind.None &&
+                Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     {
                         // Warn the user that we can't properly replace this method with a property.
                         editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(FeaturesResources.MethodReferencedImplicitly)));
+                            ConflictAnnotation.Create(FeaturesResources.Method_referenced_implicitly)));
                     }
                     else
                     {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     {
                         // Warn the user that we can't properly replace this method with a property.
                         editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(FeaturesResources.MethodReferencedImplicitly)));
+                            ConflictAnnotation.Create(FeaturesResources.Method_referenced_implicitly)));
                     }
                     else
                     {

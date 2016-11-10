@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssembly
+    internal abstract class PEAssemblyBuilderBase : PEModuleBuilder, Cci.IAssemblyReference
     {
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
@@ -54,18 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
 
-        public override void Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IAssembly)this);
-        }
-
+        public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _sourceAssembly;
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
             return _additionalTypes;
         }
 
-        IEnumerable<Cci.IFileReference> Cci.IAssembly.GetFiles(EmitContext context)
+        public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
         {
             if (_lazyFiles.IsDefault)
             {
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyFiles, builder.ToImmutable()) && _lazyFiles.Length > 0)
                     {
-                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.AssemblyHashAlgorithm))
+                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.HashAlgorithm))
                         {
                             context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CryptoHashFailed), NoLocation.Singleton));
                         }
@@ -102,37 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return _lazyFiles;
-        }
-
-        AssemblyFlags Cci.IAssembly.Flags
-        {
-            get
-            {
-                AssemblyFlags result = _sourceAssembly.Flags & ~AssemblyFlags.PublicKey;
-
-                if (!_sourceAssembly.PublicKey.IsDefaultOrEmpty)
-                {
-                    result |= AssemblyFlags.PublicKey;
-                }
-
-                return result;
-            }
-        }
-
-        string Cci.IAssembly.SignatureKey
-        {
-            get
-            {
-                return _sourceAssembly.SignatureKey;
-            }
-        }
-
-        ImmutableArray<byte> Cci.IAssembly.PublicKey
-        {
-            get
-            {
-                return _sourceAssembly.Identity.PublicKey;
-            }
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
@@ -163,21 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        AssemblyIdentity Cci.IAssemblyReference.Identity => _sourceAssembly.Identity;
-        Version Cci.IAssemblyReference.AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
-
-        internal override string Name
-        {
-            get { return _metadataName; }
-        }
-
-        AssemblyHashAlgorithm Cci.IAssembly.HashAlgorithm
-        {
-            get
-            {
-                return _sourceAssembly.AssemblyHashAlgorithm;
-            }
-        }
+        public override string Name => _metadataName;
+        public AssemblyIdentity Identity => _sourceAssembly.Identity;
+        public Version AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
     }
 
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase

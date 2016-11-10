@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var semanticModel = this.Document.SemanticModel;
                 foreach (var argument in _invocationExpression.ArgumentList.Arguments)
                 {
-                    var type = semanticModel.GetType(argument.Expression, cancellationToken);
+                    var type = argument.DetermineParameterType(semanticModel, cancellationToken);
                     type.GetReferencedTypeParameters(result);
                 }
 

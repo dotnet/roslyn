@@ -17,6 +17,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseCompilationUnit(text, options: options);
         }
 
+        [Theory]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("private")]
+        public void AccessibilityModifierErrorRecovery(string accessibility)
+        {
+            var file = ParseTree($@"
+class C
+{{
+    void M()
+    {{
+        // bad visibility modifier
+        {accessibility} void localFunc() {{}}
+    }}
+    void M2()
+    {{
+        typing
+        {accessibility} void localFunc() {{}}
+    }}
+    void M3()
+    {{
+    // Ambiguous between local func with bad modifier and missing closing
+    // brace on previous method. Parsing currently assumes the former,
+    // assuming the tokens are parseable as a local func.
+    {accessibility} void M4() {{}}
+}}");
+
+            Assert.NotNull(file);
+            file.GetDiagnostics().Verify(
+                // (7,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(7, 9),
+                // (11,15): error CS1002: ; expected
+                //         typing
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
+                // (12,9): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //         {accessibility} void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(12, 9),
+                // (19,5): error CS0106: The modifier '{accessibility}' is not valid for this item
+                //     {accessibility} void M4() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(19, 5),
+                // (20,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(20, 2)
+                );
+        }
+
         [Fact]
         public void TestGlobalAttributeGarbageAfterLocation()
         {
@@ -214,9 +262,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.AttributeLists.Count);
             Assert.Equal(0, file.Members.Count);
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(3, file.Errors().Length);
+            file.Errors().Verify(
+                // error CS1056: Unexpected character '$'
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
+                // error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                );
         }
 
         [Fact]
@@ -5259,7 +5313,7 @@ class C
         public void TestSemicolonAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5308,7 +5362,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
                             }, file.Errors().Select(e => e.Code));
@@ -5351,7 +5405,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseTree(text, options: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5381,7 +5435,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5405,7 +5459,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,
                                 (int)ErrorCode.ERR_SemicolonExpected
@@ -5493,7 +5547,7 @@ class C
             Assert.True(acc.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceOrArrowExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
         }
 
@@ -5604,7 +5658,7 @@ class C
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
 
             Assert.Equal(1, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
         }
 
         [Fact]
@@ -5634,8 +5688,8 @@ class C
             Assert.True(setDecl.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[1].Code);
         }
 
         [Fact]
@@ -6662,7 +6716,7 @@ class C
 
                 // (4,17): error CS1043: { or ; expected
                 //     int P { set . } }
-                Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "."),
+                Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "."),
 
                 // We see this diagnostic because we're trying to skip bad tokens in the block and 
                 // the "expected" token (i.e. the one we report when we see something that's not a

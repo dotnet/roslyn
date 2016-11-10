@@ -26,7 +26,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static SourceText CreateSourceText(Stream stream, Encoding encoding = null)
         {
-            return LargeText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            return LargeText.Decode(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true, canBeEmbedded: false);
+        }
+
+        private static SourceText CreateSourceText(TextReader reader, int length, Encoding encoding = null)
+        {
+            return LargeText.Decode(reader, length, encoding ?? Encoding.UTF8, SourceHashAlgorithm.Sha1);
         }
 
         private const string HelloWorld = "Hello, world!";
@@ -312,6 +317,19 @@ bar baz";
             var text = "foo";
             var data = CreateSourceText(text);
             Assert.Equal("foo", data.Lines[0].ToString());
+        }
+
+        [Fact]
+        public void FromTextReader()
+        {
+            var expected = "foo";
+            var expectedSourceText = CreateSourceText(expected);
+
+            var actual = new StringReader(expected);
+            var actualSourceText = CreateSourceText(actual, expected.Length);
+
+            Assert.Equal("foo", actualSourceText.Lines[0].ToString());
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
         }
     }
 }

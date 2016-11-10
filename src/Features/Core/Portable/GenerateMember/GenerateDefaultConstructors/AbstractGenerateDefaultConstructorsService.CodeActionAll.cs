@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors)
-                : base(service, document, state, GetConstructors(state, constructors), FeaturesResources.GenerateAll)
+                : base(service, document, state, GetConstructors(state, constructors), FeaturesResources.Generate_all)
             {
             }
 

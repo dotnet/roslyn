@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember
 {
@@ -67,18 +66,37 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             out INamedTypeSymbol typeToGenerateIn,
             out bool isStatic)
         {
+            TryDetermineTypeToGenerateInWorker(
+                document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic);
+
+            if (typeToGenerateIn != null)
+            {
+                typeToGenerateIn = typeToGenerateIn.OriginalDefinition;
+            }
+
+            return typeToGenerateIn != null;
+        }
+
+        private static void TryDetermineTypeToGenerateInWorker(
+            SemanticDocument document,
+            INamedTypeSymbol containingType,
+            TExpressionSyntax simpleNameOrMemberAccessExpression,
+            CancellationToken cancellationToken,
+            out INamedTypeSymbol typeToGenerateIn,
+            out bool isStatic)
+        {
             typeToGenerateIn = null;
             isStatic = false;
 
             var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var semanticModel = document.SemanticModel;
-            var isMemberAccessExpression = syntaxFacts.IsMemberAccessExpression(simpleNameOrMemberAccessExpression);
+            var isMemberAccessExpression = syntaxFacts.IsSimpleMemberAccessExpression(simpleNameOrMemberAccessExpression);
             if (isMemberAccessExpression ||
                 syntaxFacts.IsConditionalMemberAccessExpression(simpleNameOrMemberAccessExpression))
             {
                 var beforeDotExpression = isMemberAccessExpression ?
                     syntaxFacts.GetExpressionOfMemberAccessExpression(simpleNameOrMemberAccessExpression) :
-                    syntaxFacts.GetExpressionOfConditionalMemberAccessExpression(simpleNameOrMemberAccessExpression);
+                    syntaxFacts.GetExpressionOfConditionalAccessExpression(simpleNameOrMemberAccessExpression);
                 if (beforeDotExpression != null)
                 {
                     var typeInfo = semanticModel.GetTypeInfo(beforeDotExpression, cancellationToken);
@@ -90,8 +108,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
 
                     isStatic = semanticInfo.Symbol is INamedTypeSymbol;
                 }
+
+                return;
             }
-            else if (syntaxFacts.IsPointerMemberAccessExpression(simpleNameOrMemberAccessExpression))
+
+            if (syntaxFacts.IsPointerMemberAccessExpression(simpleNameOrMemberAccessExpression))
             {
                 var beforeArrowExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(simpleNameOrMemberAccessExpression);
                 if (beforeArrowExpression != null)
@@ -104,8 +125,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                         isStatic = false;
                     }
                 }
+
+                return;
             }
-            else if (syntaxFacts.IsAttributeNamedArgumentIdentifier(simpleNameOrMemberAccessExpression))
+
+            if (syntaxFacts.IsAttributeNamedArgumentIdentifier(simpleNameOrMemberAccessExpression))
             {
                 var attributeNode = simpleNameOrMemberAccessExpression.GetAncestors().FirstOrDefault(syntaxFacts.IsAttribute);
                 var attributeName = syntaxFacts.GetNameOfAttribute(attributeNode);
@@ -113,26 +137,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember
 
                 typeToGenerateIn = attributeType.Type as INamedTypeSymbol;
                 isStatic = false;
+                return;
             }
-            else if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(simpleNameOrMemberAccessExpression))
+
+            SyntaxNode initializedObject;
+            if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(
+                    simpleNameOrMemberAccessExpression, out initializedObject))
             {
-                var objectCreationNode = simpleNameOrMemberAccessExpression.GetAncestors().FirstOrDefault(syntaxFacts.IsObjectCreationExpression);
-                typeToGenerateIn = semanticModel.GetTypeInfo(objectCreationNode, cancellationToken).Type as INamedTypeSymbol;
+                typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;
                 isStatic = false;
-            }
-            else
-            {
-                // Generating into the containing type.
-                typeToGenerateIn = containingType;
-                isStatic = syntaxFacts.IsInStaticContext(simpleNameOrMemberAccessExpression);
+                return;
             }
 
-            if (typeToGenerateIn != null)
-            {
-                typeToGenerateIn = typeToGenerateIn.OriginalDefinition;
-            }
-
-            return typeToGenerateIn != null;
+            // Generating into the containing type.
+            typeToGenerateIn = containingType;
+            isStatic = syntaxFacts.IsInStaticContext(simpleNameOrMemberAccessExpression);
         }
     }
 }

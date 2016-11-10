@@ -1,0 +1,19 @@
+use vs
+
+package name=Microsoft.CodeAnalysis.VisualStudio.Setup
+        version=$(Version)
+        vs.package.type=vsix
+        vs.package.vsixId=0b5e8ddb-f12d-4131-a71d-77acc26a798f
+        vs.package.installSize=24387584
+
+vs.localizedResources
+  vs.localizedResource language=en-us
+                       title="Roslyn Language Services"
+                       description="C# and VB.NET language services for Visual Studio"
+
+vs.payloads
+  vs.payload source=$(OutputPath)Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
+  vs.dependency id=Microsoft.VisualStudio.MinShell

@@ -85,6 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 AddExpressionTerms(node.Expression, _expressions);
             }
 
+            public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+            {
+                AddVariableExpressions(node.Variable, _expressions);
+                AddExpressionTerms(node.Expression, _expressions);
+            }
+
             public override void VisitUsingStatement(UsingStatementSyntax node)
             {
                 if (node.Declaration != null)
@@ -115,6 +121,56 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                     {
                         AddExpressionTerms(declarator.Initializer.Value, expressions);
                     }
+                }
+            }
+
+            private void AddVariableExpressions(
+                ExpressionSyntax component,
+                IList<string> expressions)
+            {
+                if (!_includeDeclarations) return;
+
+                switch (component.Kind())
+                {
+                    case SyntaxKind.TupleExpression:
+                        {
+                            var t = (TupleExpressionSyntax)component;
+                            foreach (ArgumentSyntax a in t.Arguments)
+                            {
+                                AddVariableExpressions(a.Expression, expressions);
+                            }
+
+                            break;
+                        }
+                    case SyntaxKind.DeclarationExpression:
+                        {
+                            var t = (DeclarationExpressionSyntax)component;
+                            AddVariableExpressions(t.Designation, expressions);
+                            break;
+                        }
+                }
+            }
+
+            private void AddVariableExpressions(
+                VariableDesignationSyntax component,
+                IList<string> expressions)
+            {
+                if (!_includeDeclarations) return;
+
+                switch (component.Kind())
+                {
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        {
+                            var t = (ParenthesizedVariableDesignationSyntax)component;
+                            foreach (VariableDesignationSyntax v in t.Variables) AddVariableExpressions(v, expressions);
+                            break;
+                        }
+                    case SyntaxKind.SingleVariableDesignation:
+                        {
+                            var t = (SingleVariableDesignationSyntax)component;
+                            expressions.Add(t.Identifier.ValueText);
+                            break;
+                        }
                 }
             }
         }

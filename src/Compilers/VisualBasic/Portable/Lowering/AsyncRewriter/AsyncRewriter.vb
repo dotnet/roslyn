@@ -289,6 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          hasLambdas:=hasLambdas,
                                          symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCtor,
                                          flags:=rewritingFlags,
+                                         instrumenter:=Instrumenter.NoOp, ' Do not instrument anything during this rewrite 
                                          currentMethod:=currentMethod)
         End Function
 

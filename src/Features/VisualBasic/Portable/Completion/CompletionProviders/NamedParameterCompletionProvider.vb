@@ -66,20 +66,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             For Each parameter In unspecifiedParameters
-                context.AddItem(
-                    SymbolCompletionItem.Create(
-                        displayText:=parameter.Name & s_colonEquals,
-                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                        span:=context.DefaultItemSpan,
-                        symbol:=parameter,
-                        descriptionPosition:=position,
-                        contextPosition:=position,
-                        isArgumentName:=True,
-                        rules:=CompletionItemRules.Default))
+                context.AddItem(SymbolCompletionItem.Create(
+                    displayText:=parameter.Name & s_colonEquals,
+                    insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                    symbol:=parameter,
+                    contextPosition:=position,
+                    rules:=s_itemRules))
             Next
         End Function
 
-        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+        ' Typing : or = should not filter the list, but they should commit the list.
+        Private Shared s_itemRules As CompletionItemRules = CompletionItemRules.Default.
+            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c, "="c)).
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, ":"c, "="c))
+
+        Protected Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
             Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
         End Function
 
@@ -199,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             argumentList = Nothing
         End Sub
 
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim symbolItem = selectedItem
             Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
             Dim change As TextChange
@@ -212,6 +213,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
             Return Task.FromResult(Of TextChange?)(change)
         End Function
-
     End Class
 End Namespace

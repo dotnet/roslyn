@@ -2,26 +2,54 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    /// <summary>Provides a means of executing code in the Visual Studio host process.</summary>
-    /// <remarks>This object exists in the Visual Studio host and is marhsalled across the process boundary.</remarks>
+    /// <summary>
+    /// Provides a means of executing code in the Visual Studio host process.
+    /// </summary>
+    /// <remarks>
+    /// This object exists in the Visual Studio host and is marhsalled across the process boundary.
+    /// </remarks>
     internal class IntegrationService : MarshalByRefObject
     {
-        // Make the channel name well known by using a static base and appending the process ID of the host
-        public static readonly string PortNameFormatString = $"{nameof(IntegrationService)}_{{0}}";
+        public string PortName { get; }
+
+        /// <summary>
+        /// The base Uri of the service. This resolves to a string such as <c>ipc://IntegrationService_{HostProcessId}"</c>
+        /// </summary>
+        public string BaseUri { get; }
 
         private readonly ConcurrentDictionary<string, ObjRef> _marshalledObjects = new ConcurrentDictionary<string, ObjRef>();
 
-        public string Execute(string assemblyFilePath, string typeFullName, string methodName, BindingFlags bindingFlags, params object[] parameters)
+        public IntegrationService()
+        {
+            this.PortName = GetPortName(Process.GetCurrentProcess().Id);
+            this.BaseUri = "ipc://" + this.PortName;
+        }
+
+        private static string GetPortName(int hostProcessId)
+        {
+            // Make the channel name well-known by using a static base and appending the process ID of the host
+            return $"{nameof(IntegrationService)}_{{{hostProcessId}}}";
+        }
+
+        public static IntegrationService GetInstanceFromHostProcess(Process hostProcess)
+        {
+            var uri = $"ipc://{GetPortName(hostProcess.Id)}/{typeof(IntegrationService).FullName}";
+
+            return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
+        }
+
+        public string Execute(string assemblyFilePath, string typeFullName, string methodName)
         {
             var assembly = Assembly.LoadFrom(assemblyFilePath);
             var type = assembly.GetType(typeFullName);
-            var methodInfo = type.GetMethod(methodName, bindingFlags);
-            var result = methodInfo.Invoke(null, parameters);
+            var methodInfo = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+            var result = methodInfo.Invoke(null, null);
 
             if (methodInfo.ReturnType == typeof(void))
             {
@@ -30,7 +58,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             // Create a unique URL for each object returned, so that we can communicate with each object individually
             var resultType = result.GetType();
-            var marshallableResult = (MarshalByRefObject)(result);
+            var marshallableResult = (MarshalByRefObject)result;
             var objectUri = $"{resultType.FullName}_{Guid.NewGuid()}";
             var marshalledObject = RemotingServices.Marshal(marshallableResult, objectUri, resultType);
 
@@ -41,9 +69,5 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             return objectUri;
         }
-
-        /// <summary>The base Uri of the service.</summary>
-        /// <remarks>This resolves to a string such as <c>ipc://IntegrationService_{HostProcessId}"</c></remarks>
-        public string Uri { get; set; }
     }
 }

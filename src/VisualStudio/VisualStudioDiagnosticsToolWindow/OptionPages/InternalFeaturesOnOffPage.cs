@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new InternalFeaturesOptionsControl(InternalFeatureOnOffOptions.OptionName, serviceProvider);
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), serviceProvider);
         }
 
         internal class InternalFeaturesOptionsControl : InternalOptionsControl
@@ -35,48 +35,23 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             protected override void AddOptions(Panel panel)
             {
-                base.AddOptions(panel);
-
                 // add force low memory mode option
                 var group = new WrapPanel();
-                var lowMemoryMode = ForceLowMemoryMode.Instance;
-                var cb = CreateBoundCheckBox("Forced Low Memory Mode", lowMemoryMode, "Enabled");
+
+                var cb = new CheckBox { Content = "Forced Low Memory Mode: allocate" };
+                BindToOption(cb, ForceLowMemoryMode.Enabled);
                 group.Children.Add(cb);
-                var tb = CreateBoundTextBox("", lowMemoryMode, "Size");
-                group.Children.Add(tb);
-                var text = new TextBlock() { Text = "MB" };
-                group.Children.Add(text);
+
+                var textBox = new TextBox { MinWidth = 60 };
+                BindToOption(textBox, ForceLowMemoryMode.SizeInMegabytes);
+                group.Children.Add(textBox);
+
+                group.Children.Add(new TextBlock { Text = "megabytes of extra memory in devenv.exe" });
+
                 panel.Children.Add(group);
-            }
 
-            private CheckBox CreateBoundCheckBox(string content, object source, string sourcePropertyName)
-            {
-                var cb = new CheckBox { Content = content };
-
-                var binding = new Binding()
-                {
-                    Source = source,
-                    Path = new PropertyPath(sourcePropertyName)
-                };
-
-                base.AddBinding(cb.SetBinding(CheckBox.IsCheckedProperty, binding));
-
-                return cb;
-            }
-
-            private TextBox CreateBoundTextBox(string content, object source, string sourcePropertyName)
-            {
-                var tb = new TextBox { Text = content };
-
-                var binding = new Binding()
-                {
-                    Source = source,
-                    Path = new PropertyPath(sourcePropertyName)
-                };
-
-                base.AddBinding(tb.SetBinding(TextBox.TextProperty, binding));
-
-                return tb;
+                // and add the rest of the options
+                base.AddOptions(panel);
             }
         }
     }

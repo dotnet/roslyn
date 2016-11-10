@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend MustOverride ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property Root As SyntaxNode
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Determine the type, converted type, and expression
             Dim type As TypeSymbol = Nothing
             Dim convertedType As TypeSymbol = Nothing
-            Dim conversion As conversion = Nothing
+            Dim conversion As Conversion = Nothing
             type = GetSemanticType(boundNodes, convertedType, conversion)
 
             Return New VisualBasicTypeInfo(type, convertedType, conversion)
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' a position. Just using FindToken doesn't give quite the right results, especially in situations where
         ' end constructs haven't been typed yet. If we are in the trivia between two tokens, we move backward to the previous
         ' token. There are also some special cases around beginning and end of the whole tree.
-        Friend Function FindInitialNodeFromPosition(position As Integer) As VisualBasicSyntaxNode
+        Friend Function FindInitialNodeFromPosition(position As Integer) As SyntaxNode
             Dim fullStart As Integer = Root.Position
             Dim fullEnd As Integer = Root.EndPosition
 
@@ -792,7 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Convert a stand-alone speculatively bound expression to an rvalue. 
             ' This will get the value of properties, convert lambdas to anonymous 
             ' delegate type, etc.
-            Dim boundExpression = TryCast(node, boundExpression)
+            Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
                 Dim diagnostics = DiagnosticBag.GetInstance()
@@ -920,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    ByRef convertedType As TypeSymbol,
                    ByRef conversion As Conversion) As TypeSymbol
             convertedType = Nothing
-            conversion = New conversion(Conversions.Identity)
+            conversion = New Conversion(Conversions.Identity)
 
             Dim lowestExpr = TryCast(boundNodes.LowestBoundNode, BoundExpression)
             Dim highestExpr = TryCast(boundNodes.HighestBoundNode, BoundExpression)
@@ -944,7 +944,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Let's account for that.
             If lowestExpr.Kind = BoundKind.ArrayCreation AndAlso DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralOpt IsNot Nothing Then
                 type = Nothing
-                conversion = New conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+                conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+            ElseIf lowestExpr.Kind = BoundKind.ConvertedTupleLiteral Then
+                type = DirectCast(lowestExpr, BoundConvertedTupleLiteral).NaturalTypeOpt
             Else
                 type = lowestExpr.Type
             End If
@@ -970,9 +972,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' be a higher conversion node associated to the same syntax node.
 
             If highestExpr IsNot Nothing Then
-                If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TYPEKIND.Error Then
+                If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TypeKind.Error Then
                     convertedType = highestExpr.Type
-                    If (type Is Nothing OrElse Not type.IsSameTypeIgnoringCustomModifiers(convertedType)) Then
+                    If (type Is Nothing OrElse Not type.IsSameTypeIgnoringAll(convertedType)) Then
                         ' If the upper expression is of a different type, we want to return
                         ' a conversion. Hopefully we have a conversion node. 
                         ' TODO: Understand cases where we don't have a conversion node better.
@@ -980,9 +982,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim conversionNode = DirectCast(highestExpr, BoundConversion)
 
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
-                                conversion = New conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
+                                conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
                             Else
-                                conversion = New conversion(KeyValuePair.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If
@@ -994,7 +996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Special case: overload failure on X in New X(...), where overload resolution failed. 
                 ' Binds to method group which can't have a type.
 
-                Dim parentSyntax As VisualBasicSyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
+                Dim parentSyntax As SyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
                 If parentSyntax IsNot Nothing AndAlso
                    parentSyntax Is boundNodes.LowestBoundNode.Syntax.Parent AndAlso
                    ((parentSyntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax))) Then
@@ -1050,7 +1052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If boundType.AliasOpt IsNot Nothing Then
                             symbolsBuilder.Add(boundType.AliasOpt)
                         Else
-                            Dim typeSymbol As typeSymbol = boundType.Type
+                            Dim typeSymbol As TypeSymbol = boundType.Type
                             Dim originalErrorType = TryCast(typeSymbol.OriginalDefinition, ErrorTypeSymbol)
                             If originalErrorType IsNot Nothing Then
                                 resultKind = originalErrorType.ResultKind
@@ -1118,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          BoundKind.MyClassReference
 
                         Dim meReference = DirectCast(boundNodes.LowestBoundNode, BoundExpression)
-                        Dim binder As binder = If(binderOpt, GetEnclosingBinder(boundNodes.LowestBoundNode.Syntax.SpanStart))
+                        Dim binder As Binder = If(binderOpt, GetEnclosingBinder(boundNodes.LowestBoundNode.Syntax.SpanStart))
                         Dim containingType As NamedTypeSymbol = binder.ContainingType
                         Dim containingMember = binder.ContainingMember
 
@@ -1430,7 +1432,7 @@ _Default:
             Debug.Assert(boundNodeOfSyntacticParent IsNot Nothing)
 
             ' Check if boundNode.Syntax is the type-name child of an ObjectCreationExpression or Attribute.
-            Dim parentSyntax As VisualBasicSyntaxNode = boundNodeOfSyntacticParent.Syntax
+            Dim parentSyntax As SyntaxNode = boundNodeOfSyntacticParent.Syntax
             If parentSyntax IsNot Nothing AndAlso
                lowestBoundNode IsNot Nothing AndAlso
                parentSyntax Is lowestBoundNode.Syntax.Parent AndAlso
@@ -1441,13 +1443,13 @@ _Default:
 
                 ' We must have bound to a single named type 
                 If unwrappedSymbols.Length = 1 AndAlso TypeOf unwrappedSymbols(0) Is TypeSymbol Then
-                    Dim typeSymbol As typeSymbol = DirectCast(unwrappedSymbols(0), typeSymbol)
-                    Dim namedTypeSymbol As namedTypeSymbol = TryCast(typeSymbol, namedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = DirectCast(unwrappedSymbols(0), TypeSymbol)
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
 
                     ' Figure out which constructor was selected.
                     Select Case boundNodeOfSyntacticParent.Kind
                         Case BoundKind.Attribute
-                            Dim boundAttribute As boundAttribute = DirectCast(boundNodeOfSyntacticParent, boundAttribute)
+                            Dim boundAttribute As BoundAttribute = DirectCast(boundNodeOfSyntacticParent, BoundAttribute)
 
                             Debug.Assert(resultKind <> LookupResultKind.Good OrElse namedTypeSymbol = boundAttribute.Type)
                             constructor = boundAttribute.Constructor
@@ -1455,7 +1457,7 @@ _Default:
 
                         Case BoundKind.BadExpression
                             ' Note that namedTypeSymbol might be null here; e.g., a type parameter.
-                            Dim boundBadExpression As boundBadExpression = DirectCast(boundNodeOfSyntacticParent, boundBadExpression)
+                            Dim boundBadExpression As BoundBadExpression = DirectCast(boundNodeOfSyntacticParent, BoundBadExpression)
                             resultKind = LookupResult.WorseResultKind(resultKind, boundBadExpression.ResultKind)
 
                         Case Else
@@ -1486,12 +1488,12 @@ _Default:
                 ' Filter namedTypeSymbol's instance constructors by accessibility.
                 ' If all the instance constructors are inaccessible, we retain
                 ' all the instance constructors.
-                Dim binder As binder = If(binderOpt, GetEnclosingBinder(lowestBoundNode.Syntax.SpanStart))
+                Dim binder As Binder = If(binderOpt, GetEnclosingBinder(lowestBoundNode.Syntax.SpanStart))
                 Dim candidateConstructors As ImmutableArray(Of MethodSymbol)
 
                 If binder IsNot Nothing Then
-                    Dim interfaceCoClass As namedTypeSymbol = If(namedTypeSymbol.IsInterface,
-                                                                 TryCast(namedTypeSymbol.CoClassType, namedTypeSymbol), Nothing)
+                    Dim interfaceCoClass As NamedTypeSymbol = If(namedTypeSymbol.IsInterface,
+                                                                 TryCast(namedTypeSymbol.CoClassType, NamedTypeSymbol), Nothing)
                     candidateConstructors = binder.GetAccessibleConstructors(If(interfaceCoClass, namedTypeSymbol), useSiteDiagnostics:=Nothing)
 
                     Dim instanceConstructors = namedTypeSymbol.InstanceConstructors
@@ -1531,7 +1533,7 @@ _Default:
             ' Getting the set of symbols is a bit involved. We use the union of the symbol with 
             ' any symbols from the diagnostics, but error symbols are not included.\
             Dim resultKind As LookupResultKind
-            Dim symbolsBuilder = ArrayBuilder(Of symbol).GetInstance()
+            Dim symbolsBuilder = ArrayBuilder(Of Symbol).GetInstance()
             Dim originalErrorSymbol = If(type IsNot Nothing, TryCast(type.OriginalDefinition, ErrorTypeSymbol), Nothing)
             If originalErrorSymbol IsNot Nothing Then
                 ' Error case.
@@ -1548,7 +1550,7 @@ _Default:
                 resultKind = LookupResultKind.Good
             End If
 
-            Dim symbols As ImmutableArray(Of symbol) = RemoveErrorTypesAndDuplicates(symbolsBuilder, options)
+            Dim symbols As ImmutableArray(Of Symbol) = RemoveErrorTypesAndDuplicates(symbolsBuilder, options)
             symbolsBuilder.Free()
 
             Return SymbolInfoFactory.Create(symbols, resultKind)
@@ -1566,7 +1568,7 @@ _Default:
         End Function
 
         ' This is used by other binding API's to invoke the right binder API
-        Friend Overridable Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overridable Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim expr = TryCast(node, ExpressionSyntax)
             If expr IsNot Nothing Then
                 Return binder.BindNamespaceOrTypeOrExpressionSyntaxForSemanticModel(expr, diagnostics)
@@ -2078,7 +2080,7 @@ _Default:
                 Throw New ArgumentNullException(NameOf(symbol))
             End If
 
-            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol))
+            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))
 
             Dim binder = Me.GetEnclosingBinder(position)
             If binder IsNot Nothing Then
@@ -2257,7 +2259,7 @@ _Default:
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(attribute)
 
-            Dim binder As binder = Me.GetSpeculativeAttributeBinder(position, attribute)
+            Dim binder As Binder = Me.GetSpeculativeAttributeBinder(position, attribute)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False
@@ -2366,11 +2368,11 @@ _Default:
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
             End If
 
-            Dim binder As binder = Me.GetEnclosingBinder(identifierSyntax.SpanStart)
+            Dim binder As Binder = Me.GetEnclosingBinder(identifierSyntax.SpanStart)
             Dim blockBinder = TryCast(StripSemanticModelBinder(binder), BlockBaseBinder)
             If blockBinder IsNot Nothing Then
                 ' Most of the time, we should be able to find the identifier by name.
-                Dim lookupResult As lookupResult = lookupResult.GetInstance()
+                Dim lookupResult As LookupResult = LookupResult.GetInstance()
                 Try
                     ' NB: "binder", not "blockBinder", so that we don't incorrectly mark imports as used.
                     binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
@@ -3045,12 +3047,12 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return Me.GetSymbolInfo(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return Me.GetSymbolInfo(attributeSyntax, cancellationToken)
             End If
@@ -3088,12 +3090,12 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return Me.GetTypeInfoWorker(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return Me.GetTypeInfoWorker(attributeSyntax, cancellationToken)
             End If
@@ -3106,12 +3108,12 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return Me.GetMemberGroup(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return Me.GetMemberGroup(attributeSyntax, cancellationToken)
             End If
@@ -3391,7 +3393,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
-            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol)))
+            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))
         End Function
 
         Protected NotOverridable Overrides Function IsEventUsableAsFieldCore(position As Integer, symbol As IEventSymbol) As Boolean

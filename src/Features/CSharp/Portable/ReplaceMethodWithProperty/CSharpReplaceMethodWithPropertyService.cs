@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -207,15 +207,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
         }
 
+        // We use the callback form if "ReplaceNode" here because we want to see the
+        // invocation expression after any rewrites we already did when rewriting previous
+        // 'get' references.
         private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceGetReferenceInvocation =
-            (editor, invocation, nameNode, newName) => editor.ReplaceNode(invocation, invocation.Expression.ReplaceNode(nameNode, newName));
+            (editor, invocation, nameNode, newName) => editor.ReplaceNode(invocation, (i, g) =>
+            {
+                var currentInvocation = (InvocationExpressionSyntax)i;
+
+                var currentName = currentInvocation.Expression.GetRightmostName();
+                return currentInvocation.Expression.ReplaceNode(currentName, newName);
+            });
 
         private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
             (editor, invocation, nameNode, newName) =>
             {
-                if (invocation.ArgumentList?.Arguments.Count != 1)
+                if (invocation.ArgumentList?.Arguments.Count != 1 ||
+                    invocation.ArgumentList.Arguments[0].Expression.Kind() == SyntaxKind.DeclarationExpression)
                 {
-                    var annotation = ConflictAnnotation.Create(FeaturesResources.OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty);
+                    var annotation = ConflictAnnotation.Create(FeaturesResources.Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property);
                     editor.ReplaceNode(nameNode, newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)));
                     return;
                 }
@@ -275,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (!IsInvocationName(nameNode, invocationExpression))
             {
                 // Wasn't invoked.  Change the name, but report a conflict.
-                var annotation = ConflictAnnotation.Create(FeaturesResources.NonInvokedMethodCannotBeReplacedWithProperty);
+                var annotation = ConflictAnnotation.Create(FeaturesResources.Non_invoked_method_cannot_be_replaced_with_property);
                 editor.ReplaceNode(nameNode, newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)));
                 return;
             }

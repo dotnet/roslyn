@@ -247,12 +247,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return $"Imports { String.Join(".", nameParts) }"
         End Function
 
-        Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel,
-                                                    root As SyntaxNode, checkForExistingImport As Boolean) As String
+        Protected Overrides Function TryGetDescription(
+                namespaceSymbol As INamespaceOrTypeSymbol,
+                semanticModel As SemanticModel,
+                root As SyntaxNode,
+                checkForExistingImport As Boolean,
+                cancellationToken As CancellationToken) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 
-        Protected Overrides Function GetNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
+        Protected Overrides Function GetImportNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
             Return semanticModel.GetImportNamespacesInScope(node)
         End Function
 

@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string ColonString = ":";
 
+        // Explicitly remove ":" from the set of filter characters because (by default)
+        // any character that appears in DisplayText gets treated as a filter char.
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
+            .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -93,18 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: escapedName + ColonString,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: parameter,
-                    descriptionPosition: token.SpanStart,
+                    contextPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: CompletionItemRules.Default));
+                    rules: s_rules,
+                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
@@ -235,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return obj.Name.GetHashCode();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
@@ -21,115 +21,124 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         public async Task DoNotFireForIfWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        [|if|] (true) { return; }
+        [|if|] (true)
+        {
+            return;
+        }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        if (true) { return; }
-        [|else|] { return; }
+        if (true)
+        {
+            return;
+        }
+        [|else|]
+        {
+            return;
+        }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForElseWithChildIf()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        if (true) return;
-        [|else|] if (false) return;
+        if (true)
+            return;
+        [|else|] if (false)
+            return;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        [|for|] (var i = 0; i < 5; i++) { return; }
+        [|for|] (var i = 0; i < 5; i++)
+        {
+            return;
+        }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForForEachWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        [|foreach|] (var c in ""test"") { return; }
+        [|foreach|] (var c in ""test"")
+        {
+            return;
+        }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForWhileWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        [|while|] (true) { return; }
+        [|while|] (true)
+        {
+            return;
+        }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForDoWhileWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
-        [|do|] { return; } while (true);
+        [|do|]
+        {
+            return;
+        }
+        while (true);
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -146,16 +155,14 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForUsingWithChildUsing()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -179,16 +186,14 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithBraces()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
@@ -198,28 +203,24 @@ class Program
             return;
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForLockWithChildLock()
         {
             await TestMissingAsync(
-            @"
-class Program
+@"class Program
 {
     static void Main()
     {
         var str1 = ""test"";
         var str2 = ""test"";
-
         [|lock|] (str1)
-        lock (str2)
-            return;
+            lock (str2)
+                return;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]

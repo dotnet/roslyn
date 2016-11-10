@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return block.OverlapsHiddenPosition(cancellationToken);
         }
 
-        public async Task<IIntroduceVariableResult> IntroduceVariableAsync(
+        public async Task<ImmutableArray<CodeAction>> IntroduceVariableAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -57,18 +57,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
-                if (state == null)
+                if (state != null)
                 {
-                    return IntroduceVariableResult.Failure;
+                    var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
+                    if (actions.Count > 0)
+                    {
+                        return actions.AsImmutableOrNull();
+                    }
                 }
 
-                var actions = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
-                if (actions.Count == 0)
-                {
-                    return IntroduceVariableResult.Failure;
-                }
-
-                return new IntroduceVariableResult(new CodeRefactoring(null, actions));
+                return default(ImmutableArray<CodeAction>);
             }
         }
 
@@ -218,18 +216,61 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument document,
             TExpressionSyntax expression,
             bool isConstant,
+            SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
+            var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
+
             var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: isConstant);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart).Select(s => s.Name);
+            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
+                                             .Select(s => s.Name)
+                                             .Concat(existingSymbols.Select(s => s.Name));
 
             return syntaxFacts.ToIdentifierToken(
                 NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
         }
+
+        private static HashSet<ISymbol> GetExistingSymbols(
+            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            var symbols = new HashSet<ISymbol>();
+            if (container != null)
+            {
+                GetExistingSymbols(semanticModel, container, symbols, cancellationToken);
+            }
+
+            return symbols;
+        }
+
+        private static void GetExistingSymbols(
+            SemanticModel semanticModel, SyntaxNode node, 
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+
+            // Ignore an annonymous type property.  It's ok if they have a name that 
+            // matches the name of the local we're introducing.
+            if (symbol != null &&
+                !IsAnonymousTypeProperty(symbol))
+            {
+                symbols.Add(symbol);
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    GetExistingSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
+                }
+            }
+        }
+
+        private static bool IsAnonymousTypeProperty(ISymbol symbol)
+            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,

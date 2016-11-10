@@ -149,7 +149,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Private Function RetargetNamedTypeDefinition(type As NamedTypeSymbol, options As RetargetOptions) As NamedTypeSymbol
                 Debug.Assert(type Is type.OriginalDefinition)
 
-                ' Before we do anything else, check if we need to do special retargeting
+                If type.IsTupleType Then
+                    Dim newUnderlyingType = Retarget(type.TupleUnderlyingType, options)
+
+                    If newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length) Then
+                        Return DirectCast(type, TupleTypeSymbol).WithUnderlyingType(newUnderlyingType)
+                    Else
+                        Return newUnderlyingType
+                    End If
+                End If
+
+                ' Check if we need to do special retargeting
                 ' for primitive type references encoded with enum values in metadata signatures.
                 If (options = RetargetOptions.RetargetPrimitiveTypesByTypeCode) Then
                     Dim typeCode As PrimitiveTypeCode = type.PrimitiveTypeCode
@@ -539,6 +549,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     Case SymbolKind.ErrorType, SymbolKind.NamedType
                         Dim namedType = DirectCast(symbol, NamedTypeSymbol)
+                        If namedType.IsTupleType Then
+                            namedType = namedType.TupleUnderlyingType
+                        End If
 
                         If symbol.OriginalDefinition.ContainingModule Is _retargetingModule.UnderlyingModule AndAlso
                             namedType.IsExplicitDefinitionOfNoPiaLocalType Then

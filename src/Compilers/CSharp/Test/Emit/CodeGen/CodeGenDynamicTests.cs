@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return (expectedUnoptimizedIL != null) ^ (expectedOptimizedIL != null) ? (unoptimizedVerifier ?? optimizedVerifier) : null;
         }
 
-        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular;
 
         #endregion
 
@@ -13964,6 +13964,26 @@ class C
   IL_0115:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void CompoundAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { ""hello"" };
+        x[0] += ""!"";
+        System.Console.Write(x[0]);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello!", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+            // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
+            // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
         }
 
         #endregion

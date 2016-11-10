@@ -51,15 +51,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
-            Dim parameters As New List(Of SignatureHelpParameter)
+            Dim parameters As New List(Of SignatureHelpSymbolParameter)
 
             For i = 0 To documentation.ParameterCount - 1
                 Dim capturedIndex = i
                 parameters.Add(
-                    New SignatureHelpParameter(
+                    New SignatureHelpSymbolParameter(
                         name:=documentation.GetParameterName(i),
                         isOptional:=False,
-                        documentationFactory:=Function(c As CancellationToken) documentation.GetParameterDocumentation(capturedIndex).ToSymbolDisplayParts(),
+                        documentationFactory:=Function(c As CancellationToken) documentation.GetParameterDocumentation(capturedIndex).ToSymbolDisplayParts().ToTaggedText(),
                         displayParts:=documentation.GetParameterDisplayParts(i)))
             Next
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Nothing, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic:=False,
-                documentationFactory:=Function(c As CancellationToken) SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, documentation.DocumentationText)),
+                documentationFactory:=Function(c) SpecializedCollections.SingletonEnumerable(New TaggedText(TextTags.Text, documentation.DocumentationText)),
                 prefixParts:=documentation.PrefixParts,
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=suffixParts,

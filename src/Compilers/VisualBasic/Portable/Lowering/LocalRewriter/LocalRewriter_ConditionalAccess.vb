@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
-        Private Function ShouldCaptureConditionalAccessReceiver(receiver As BoundExpression) As Boolean
+        Private Shared Function ShouldCaptureConditionalAccessReceiver(receiver As BoundExpression) As Boolean
             Select Case receiver.Kind
                 Case BoundKind.MeReference
                     Return False

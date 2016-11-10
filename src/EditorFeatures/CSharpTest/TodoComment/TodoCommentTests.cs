@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 

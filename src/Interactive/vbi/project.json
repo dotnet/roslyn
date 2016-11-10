@@ -1,9 +1,11 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "System.ValueTuple": "4.0.1-beta-24425-02"
+  },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": {}
   }
 }

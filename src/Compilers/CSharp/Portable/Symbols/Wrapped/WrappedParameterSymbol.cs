@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract override Symbol ContainingSymbol
-        {
-            get;
-        }
-
         #region Forwarded
 
         public override TypeSymbol Type

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.DeclarationsOpt != null);
 
-                CSharpSyntaxNode usingSyntax = node.Syntax;
+                SyntaxNode usingSyntax = node.Syntax;
                 Conversion idisposableConversion = node.IDisposableConversion;
                 ImmutableArray<BoundLocalDeclaration> declarations = node.DeclarationsOpt.LocalDeclarations;
 
@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     usingSyntax,
                     node.Locals,
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(result));
             }
         }
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             TypeSymbol expressionType = rewrittenExpression.Type;
-            CSharpSyntaxNode expressionSyntax = rewrittenExpression.Syntax;
+            SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
             BoundAssignmentOperator tempAssignment;
@@ -114,10 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)expressionType == null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
-                    node.IDisposableConversion.Kind,
+                    Conversion.GetTrivialConversion(node.IDisposableConversion.Kind),
                     _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
@@ -131,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
-            if (this.GenerateDebugInfo)
+            if (this.Instrument)
             {
-                expressionStatement = AddSequencePoint(usingSyntax, expressionStatement);
+                expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
             BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
@@ -142,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax: usingSyntax,
                 locals: node.Locals.Add(boundTemp.LocalSymbol),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 
@@ -153,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(CSharpSyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
+        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
         {
-            CSharpSyntaxNode declarationSyntax = localDeclaration.Syntax;
+            SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
             TypeSymbol localType = localSymbol.Type;
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localType.IsDynamic())
             {
-                BoundExpression tempInit = MakeConversion(
+                BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
                     idisposableConversion,
@@ -192,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     syntax: usingSyntax,
                     locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol), //localSymbol will be declared by an enclosing block
-                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(
                         rewrittenDeclaration,
                         new BoundExpressionStatement(declarationSyntax, tempAssignment),
@@ -207,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(CSharpSyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 

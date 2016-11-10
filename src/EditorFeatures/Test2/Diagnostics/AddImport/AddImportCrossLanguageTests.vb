@@ -268,6 +268,40 @@ namespace CSAssembly2
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
+        Public Async Function AddProjectReference_CSharpToCSharp_StaticField() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+namespace CSAssembly1
+{
+    public static class Class1
+    {
+        public static int StaticField;
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        $$StaticField c;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestMissing(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
             Dim input =
                 <Workspace>

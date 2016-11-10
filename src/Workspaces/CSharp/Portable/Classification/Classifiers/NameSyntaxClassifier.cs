@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     symbol = (symbol as IAliasSymbol).Target;
                 }
-                else if (symbol.IsConstructor())
+                else if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
                 {
                     symbol = symbol.ContainingType;
                 }
@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             return
                 name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
-                name.CheckParent<ForEachStatementSyntax>(f => f.Type == name);
+                name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
+                name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
         private static ISymbol TryGetSymbol(NameSyntax name, SymbolInfo symbolInfo, SemanticModel semanticModel)
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             out IEnumerable<ClassifiedSpan> result)
         {
             var identifierName = name as IdentifierNameSyntax;
-            if (symbolInfo.Symbol.IsValueParameter())
+            if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
                 result = SpecializedCollections.SingletonEnumerable(
                     new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));

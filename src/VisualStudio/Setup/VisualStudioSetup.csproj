@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</ProjectGuid>
@@ -12,7 +9,6 @@
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup</AssemblyName>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -21,6 +17,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -147,6 +144,33 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
+    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
+    <NuGetPackageToIncludeInVsix Include="System.IO" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
+    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
+    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -168,16 +192,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="ProvideRoslynBindingRedirection.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,10 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddOperatorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), options);
+            var methodDeclaration = GenerateOperatorDeclaration(
+                method, GetDestination(destination), workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
@@ -29,7 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
             CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            Workspace workspace,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
@@ -38,9 +44,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var declaration = GenerateOperatorDeclarationWorker(method, destination, options);
+            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
+        }
+
+        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, OperatorDeclarationSyntax declaration, ParseOptions options)
+        {
+            if (declaration.ExpressionBody == null)
+            {
+                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                if (preferExpressionBody)
+                {
+                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
+                    if (expressionBody != null)
+                    {
+                        return declaration.WithBody(null)
+                                          .WithExpressionBody(expressionBody)
+                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                    }
+                }
+            }
+
+            return declaration;
         }
 
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
@@ -53,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name), nameof(method));
+                throw new ArgumentException(string.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
             }
 
             var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);

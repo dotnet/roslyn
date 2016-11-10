@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 "a b c d e",
                 new List<string> { "a b y d e", "a b z d e" },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 a b c d e
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 a b z d e
 */
 a b y d e",
@@ -78,10 +78,10 @@ a b y d e",
                 "a b c d e",
                 new List<string> { "a q1 c z1 e", "a q2 c z2 e" },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 a b c d e
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 a q2 c z2 e
 */
 a q1 c z1 e",
@@ -110,11 +110,11 @@ Four"
                 },
                 @"One
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 Two
 Three
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 TwoZ
 ThreeZ
 */
@@ -149,19 +149,19 @@ Five"
                 },
                 @"One
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 Two
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 TwoZ
 */
 TwoY
 Three
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 Four
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 FourZ
 */
 FourY
@@ -183,15 +183,15 @@ Five",
                     @"",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName2") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2") + @"
+" + WorkspacesResources.Before_colon + @"
 A
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 C
 */
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName3") + @"
-" + WorkspacesResources.RemovedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3") + @"
+" + WorkspacesResources.Removed_colon + @"
 A
 */
 B",
@@ -210,8 +210,8 @@ B",
                     @"B",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.AddedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Added_colon + @"
 B
 */
 A",
@@ -230,8 +230,8 @@ A",
                     @"B",
                 },
                 @"
-' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
-' " + WorkspacesResources.AddedHeader + @"
+' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
+' " + WorkspacesResources.Added_colon + @"
 ' B
 A",
                 LanguageNames.VisualBasic);
@@ -249,8 +249,8 @@ A",
                     @"",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.RemovedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Removed_colon + @"
 A
 */
 B",
@@ -269,8 +269,8 @@ B",
                     @"",
                 },
                 @"
-' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
-' " + WorkspacesResources.RemovedHeader + @"
+' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
+' " + WorkspacesResources.Removed_colon + @"
 ' A
 B",
                 LanguageNames.VisualBasic);

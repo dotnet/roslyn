@@ -1631,26 +1631,28 @@ Derived2.Field3");
             comp.VerifyDiagnostics(
                 // (12,21): warning CS0108: 'Base.Derived.Method()' hides inherited member 'Base.Method()'. Use the new keyword if hiding was intended.
                 //         static void Method() { Console.WriteLine("Derived.Method()"); }
-                Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("Base.Derived.Method()", "Base.Method()"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("Base.Derived.Method()", "Base.Method()").WithLocation(12, 21),
                 // (62,13): warning CS0108: 'Base2.Derived2.Field' hides inherited member 'Base2.Field'. Use the new keyword if hiding was intended.
                 //         int Field = 2;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Base2.Derived2.Field", "Base2.Field"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Base2.Derived2.Field", "Base2.Field").WithLocation(62, 13),
                 // (63,20): warning CS0108: 'Base2.Derived2.Field2' hides inherited member 'Base2.Field2'. Use the new keyword if hiding was intended.
                 //         public int Field2 = 3;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Base2.Derived2.Field2", "Base2.Field2"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Base2.Derived2.Field2", "Base2.Field2").WithLocation(63, 20),
                 // (74,22): warning CS0108: 'Base2.Derived2.Type2<T>' hides inherited member 'Base2.Type2<T>'. Use the new keyword if hiding was intended.
                 //         public class Type2<T>
-                Diagnostic(ErrorCode.WRN_NewRequired, "Type2").WithArguments("Base2.Derived2.Type2<T>", "Base2.Type2<T>"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Type2").WithArguments("Base2.Derived2.Type2<T>", "Base2.Type2<T>").WithLocation(74, 22),
                 // (99,13): warning CS0109: The member 'Derived3.Field' does not hide an inherited member. The new keyword is not required.
                 //     new int Field = 2;
-                Diagnostic(ErrorCode.WRN_NewNotRequired, "Field").WithArguments("Derived3.Field"),
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Field").WithArguments("Derived3.Field").WithLocation(99, 13),
                 // (101,26): warning CS0108: 'Derived3.Field2' hides inherited member 'Base3.Field2'. Use the new keyword if hiding was intended.
                 //     protected static int Field2 = 1;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Derived3.Field2", "Base3.Field2"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Derived3.Field2", "Base3.Field2").WithLocation(101, 26),
                 // (92,9): warning CS0414: The field 'Base3.Field' is assigned but its value is never used
                 //     int Field = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Base3.Field")
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Base3.Field").WithLocation(92, 9),
+                // (99,13): warning CS0414: The field 'Derived3.Field' is assigned but its value is never used
+                //     new int Field = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Derived3.Field").WithLocation(99, 13));
         }
 
         [Fact]

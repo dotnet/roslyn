@@ -20,16 +20,10 @@ MAKE="make"
 if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
     MAKE="gmake"
 fi
-MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION"
 
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set 
 # so it doesn't output warnings to the console.
 export LTTNG_HOME=$HOME
-
-# There are some stability issues that are causing Jenkins builds to fail at an 
-# unacceptable rate.  To temporarily work around that we are going to retry the 
-# unstable tasks a number of times.  
-RETRY_COUNT=5
 
 while [[ $# > 0 ]]
 do
@@ -58,6 +52,8 @@ do
     esac
 done
 
+MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION"
+
 if [ "$CLEAN_RUN" == "true" ]; then
     echo Clean out the enlistment
     git clean -dxf . 
@@ -75,7 +71,7 @@ echo Building Bootstrap
 $MAKE bootstrap $MAKE_ARGS 
 
 echo Building CrossPlatform.sln
-$MAKE all $MAKE_ARGs BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
+$MAKE all $MAKE_ARGS BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 
 $MAKE test
 

@@ -18,7 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public static bool IsCurrentContextHierarchy(IVisualStudioHostDocument document, IVsRunningDocumentTable4 runningDocumentTable)
         {
-            return document.Project.Hierarchy == GetContextHierarchy(document, runningDocumentTable);
+            // runningDocumentTable might be null for tests.
+            return runningDocumentTable != null && document.Project.Hierarchy == GetContextHierarchy(document, runningDocumentTable);
         }
 
         /// <summary>

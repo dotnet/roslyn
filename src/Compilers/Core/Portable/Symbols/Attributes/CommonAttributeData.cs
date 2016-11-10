@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
+                // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
                 message = (string)args[0].Value;
                 isError = ((int)args[1].Value == 1);

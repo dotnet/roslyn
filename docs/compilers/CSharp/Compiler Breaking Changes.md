@@ -10,3 +10,5 @@ Each entry should include a short description of the break, followed by either a
    native compiler generated no warnings/errors and emitted code that would always throw when executed.
    Roslyn produces an error in this situation. See [#11341](https://github.com/dotnet/roslyn/pull/11341) for when this decision was made,
    [#11256](https://github.com/dotnet/roslyn/pull/11256) for when it was discovered, and [#10463](https://github.com/dotnet/roslyn/issues/10463) for the original issue that led to this.
+3. Native compiler used to generate warnings (169, 414, 649) on unused/unassigned fields of abstract classes.
+   Roslyn 1 (VS 2015) didn't produce these warnings. With [#14628](https://github.com/dotnet/roslyn/pull/14628) these warnings should be reported again.

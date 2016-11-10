@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Completion
 {
     /// <summary>
@@ -24,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Assembly = nameof(Assembly);
 
         // language elements
-        public const string ArgumentName = nameof(ArgumentName);
         public const string Class = nameof(Class);
         public const string Constant = nameof(Constant);
         public const string Delegate = nameof(Delegate);
@@ -53,7 +49,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Snippet = nameof(Snippet);
         public const string Error = nameof(Error);
         public const string Warning = nameof(Warning);
+        internal const string StatusInformation = nameof(StatusInformation);
 
-        public const string ObjectCreation = nameof(ObjectCreation);
+        // Currently needed, but removed from Dev15.  Internal so no one accidently takes a 
+        // dependency on them.
+        internal const string ArgumentName = nameof(ArgumentName);
+        internal const string ObjectCreation = nameof(ObjectCreation);
     }
 }

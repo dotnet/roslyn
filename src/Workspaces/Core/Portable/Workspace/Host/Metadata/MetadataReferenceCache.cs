@@ -3,10 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -23,12 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public MetadataReferenceCache(Func<string, MetadataReferenceProperties, MetadataReference> createReference)
         {
-            if (createReference == null)
-            {
-                throw new ArgumentNullException(nameof(createReference));
-            }
-
-            _createReference = createReference;
+            _createReference = createReference ?? throw new ArgumentNullException(nameof(createReference));
         }
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)

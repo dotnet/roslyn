@@ -71,8 +71,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Diagnostic CreateDiagnostic(int code, Location location)
         {
-            return CreateDiagnostic(code, location, SpecializedCollections.EmptyObjects);
+            return CreateDiagnostic(code, location, Array.Empty<object>());
         }
+
+        /// <summary>
+        /// Create a simple language specific diagnostic with no location for given info.
+        /// </summary>
+        public abstract Diagnostic CreateDiagnostic(DiagnosticInfo info);
 
         /// <summary>
         /// Create a simple language specific diagnostic for given error code.
@@ -162,6 +167,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_InvalidFileAlignment { get; }
         public abstract int ERR_InvalidSubsystemVersion { get; }
         public abstract int ERR_InvalidOutputName { get; }
+        public abstract int ERR_InvalidInstrumentationKind { get; }
 
         // reference manager:
         public abstract int ERR_MetadataFileNotAssembly { get; }
@@ -197,6 +203,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_PermissionSetAttributeFileReadError { get; }
 
         // PDB writing:
+        public abstract int ERR_EncodinglessSyntaxTree { get; }
         public abstract int WRN_PdbUsingNameTooLong { get; }
         public abstract int WRN_PdbLocalNameTooLong { get; }
         public abstract int ERR_PdbWritingFailed { get; }

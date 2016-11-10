@@ -1,124 +1,99 @@
-# Perf Testing
+# Performance Testing 
+The speed of compilers and their tools is an incredibly important usability feature.
+Although there are performance gates further down the release pipeline (namely in Visual Studio),
+we would like to be warned of performance regressions earlier in order to have more time to respond.
 
-Welcome to the new performance testing system, this document is split up into
-sections explaining common scenarios for developers that are interested in
-improving Roslyn performance.
+Similarly, it would be handy for developers to directly measure performance on their own computers 
+when working on perf-related features.
 
-* [Project Structure](#project-structure)
-* [Running Tests Locally](#running-tests-locally)
-    * [Running a Single Test](#running-a-single-test)
-    * [Running the Whole Suite](#running-the-whole-suite)
-* [Adding a Test](#adding-a-test)
-    * [Basic Features](#basic-features)
-    * [Advanced Features](#advanced-features)
-    * [More Advanced Features](#more-advanced-features)
+# Table of Contents 
+* [Structure of Performance Testing](#structure-of-performance-testing)
+* [How to Run Tests](#how-to-run-tests)
+* [How to Write Tests](#how-to-write-tests)
 
-## Project Structure
+# Structure of Performance Testing
+The projects that make up the performance testing group are
+* Perf.Runner
+* Perf.Tests
+* Perf.Utilities
 
-All performance tests are written as simple `.csx` C# scripting files.  These
-tests perform the end-to-end duties of that one test, and when finished, can call
-`Report` in order to record the metrics that they measure.
+## Perf.Runner
+The Runner project produces a binary that runs tests, collects perf traces, and reports collected metrics.
+For more info, check the section on [How to Run Tests](#how-to-run-tests).
 
-These `.csx` files can be placed anywhere inside of the Perf directory, but
-each test should be in its own directory alongside any dependencies that it
-requires to run.
+## Perf.Tests
+The Perf.Tests project is where all of the actual tests live.  These tests are simple `.csx` files that 
+describe how to setup and run performances tests.  They also relay information back to the runner such as 
+"what processes should you be collecting metrics for", or "this test needs to be run 3 times in order to 
+reduce noise".
 
-## Running Tests Locally
+## Perf.Utilities
+Perf.Utilities produces a `.dll` that is imported by the tests in Perf.Tests and Perf.Runner.   
 
-The big push on this perf-system is to make it easy for contributors to test
-their changes locally.
+# How to Run Tests
+The binary produced by the runner is the main interface to the performance testing system.  Running the 
+produced binary (`Roslyn.Test.Performance.Runner.exe`) will run all of the perf tests, collect traces, 
+and report those metrics.
 
-**Before you do anything else**, make sure that you run the `bootstrap.bat` file
-in the Perf directory.  This will build csi.exe in release mode, and store the
-results in "infra/bin" so that they can be used by the performance runner.
+In addition, you may run any `.csx` file with csi in order to just run that one test.  `csi hello_world.csx` 
+will just run the hello world test.
 
-### Running a Single Test
+# How to Write Tests
+Since tests are just `.csx` files, writing a new one is as easy as creating a new csharp script, and putting 
+it in the Perf.Tests project.  
 
-All of the test .csx files are runnable directly.  This means that in order to
-run the hello world test, simply run `csi.exe path/to/hello_world.csx`.
+Here I'll go over writing the "hello world" compiler perf test, which you can find in 
+`Perf.Tests/helloworld/hello_world.csx`.  
 
-Running a script directly will print out the metrics that it measured.
+To start out, we have our copyright notice, and a `#r` that loads the `Roslyn.Test.Performance.Utilities.dll` 
+that the `Perf.Test` project produces.  Then we import some functions from that dll.
 
-### Running the Whole Suite
+```cs
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#r "../../../Roslyn.Test.Performance.Utilities.dll"
 
-If you thought running the tests individually was easy, just you wait! Running
-the whole suite of performance tests is as simple as `csi.exe runner.csx`.
-This script will recursively find all test cases, run them, and collect their
-performance metrics to present at the end.
-
-The runner will also store performance records for a given run inside of
-`Perf/temp/*.csv`.  You can save these elsewhere if - for example -  you want
-to compare perf-numbers between commits.
-
-## Adding a Test
-
-Making your own test is incredibly easy!  A test is a single `.csx` file that is
-executed and reports any metrics that it wants.  Let's make a basic performance
-test:
-
-### Basic Features
-
-Here is an example of the most basic "perf test" that one could write.
-It doesn't actually measure performance, but we'll get to that later.
-
-**bad_test.csx**
-```c#
-// Load the test utilities, we'll be using InitUtilities and Report.
-#load "../util/test_util.csx"
-// Initialize the test utilities that we just imported.  This is required!
-InitUtilities();
-// Say that we just compiled something and lie about the amount of time it took.
-Report(ReportKind.CompileTime, "compile duration (ms)", new System.Random().Next(0, 100));
-```
-
-That's it!  Try running it with `csi.exe bad_test.csx`.  The test will also be
-found by the suite runner, so `csi.exe runner.csx` will pick it up and add it
-to the list of tests to run.
-
-### Advanced Features
-
-For a project that aims to measure compile time, we'd better do some measuring
-and compiling.  To do that, we'll make a new test and use some more features
-from `test_util.csx`
-
-Files required for this test:
-* `hello_world.csx`: The test script
-* `HelloWorld.cs`: The file that we are going to compile
-
-Let's create both of these files and put them in a "helloworld" directory.
-
-This directory (The directory that the test file inhabits) is called the
-"working directory".  This directory should contain files that are vital
-to the test - in this case, `HelloWorld.cs`.  Other special directories
-are "artifacts" (used for storing test output) and "temp" (used for
-storing intermediate files), both found inside the working directory.
-
-Now on to the script itself.
-
-**hello_world.csx**
-```c#
-#load "../util/test_util.csx"
 using System.IO;
-
-InitUtilities();
-
-// MyWorkingDirectory() returns the path to the working directory.
-var pathToHelloWorld = Path.Combine(MyWorkingDirectory(), "HelloWorld.cs");
-// We want to place any build artifacts in the directory returned by MyArtifactsDirectory().
-// This will ensure that they are archived.
-var pathToOutput = Path.Combine(MyArtifactsDirectory(), "HelloWorld.exe");
-
-// Record the amount of time that it takes to execute the release csc binary given
-// a path to HelloWorld.cs
-var msToCompile = WalltimeMs(() => ShellOutVital(ReleaseCscPath(), pathToHelloWorld + " /out:" + pathToOutput));
-// Report the time that it took to compile.
-Report(ReportKind.CompileTime, "compile duration (ms)", msToCompile);
+using Roslyn.Test.Performance.Utilities;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
 ```
 
-Once again, you can run this test simply by typing `csi.exe hello_world.csx`.
-In fact, this example is a part of our test suite already.  You can find it
-in the `helloworld` directory.
+Next, we'll create a class that subclasses the `PerfTest` abstract class.  I'll skip over the constructor and
+field declarations and go right to `Setup` and `Test`.  The `Setup` method is called once before the testing starts,
+and `Test` is called once per iteration.  You'll notice that our test method is simply shelling out to `csc`,
+compiling a hello world `.cs` file.
 
-### More Advanced Features
+```cs
+class HelloWorldTest : PerfTest 
+{
+    public override void Setup() 
+    {
+        _pathToHelloWorld = Path.Combine(MyWorkingDirectory, "HelloWorld.cs");
+        _pathToOutput = Path.Combine(TempDirectory, "HelloWorld.exe");
+    }
+    
+    public override void Test() 
+    {
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
+        _logger.Flush();
+    }
 
-For more advanced features, please read the docs in the `util` folder.
+```
+
+Next are some properties that the runner can use while executing the test.
+* Iterations: The number of times that the test should be run by default.
+* Name: The human-readable name of the test.
+* MeasuredProc: The process that is going to be measured by the runner.
+* ProvidedScenarios: `true` if this test manually provides scenarios (only used for TAO tests) 
+* GetScenarios: TODO
+
+```cs
+    public override int Iterations => 1;
+    public override string Name => "hello world";
+    public override string MeasuredProc => "csc";
+    public override bool ProvidesScenarios => false;
+    public override string[] GetScenarios()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+```

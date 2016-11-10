@@ -28,14 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // already in soft select mode.
                 var softSelect = includeBuilder || model.IsSoftSelection;
 
-                // If the selected item is the builder, select the first filtered item instead.
-                if (model.SelectedItem == model.DefaultSuggestionModeItem)
+                if (model.SelectedItem == model.SuggestionModeItem &&
+                    !includeBuilder)
                 {
-                    return model.WithSelectedItem(model.FilteredItems.First())
-                                .WithHardSelection(!softSelect);
+                    // Use had the builder selected, but turned off the builder.  Switch to the
+                    // first filtered item.
+                    model = model.WithSelectedItem(model.FilteredItems.First());
                 }
 
-                return model.WithHardSelection(!softSelect).WithUseSuggestionCompletionMode(includeBuilder);
+                return model.WithHardSelection(!softSelect)
+                            .WithUseSuggestionMode(includeBuilder);
             }
         }
     }

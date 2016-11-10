@@ -29,9 +29,9 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     $"CBool({Expression1}) As Boolean",
-                                     String.Format(ConvertsToDataType, "Boolean"),
-                                     ExpressionToConvert,
+                                     $"CBool({VBWorkspaceResources.expression}) As Boolean",
+                                     String.Format(VBWorkspaceResources.Converts_an_expression_to_the_0_data_type, "Boolean"),
+                                     VBWorkspaceResources.The_expression_to_be_evaluated_and_converted,
                                      currentParameterIndex:=0))
             Await TestAsync(markup, expectedOrderedItems)
         End Function

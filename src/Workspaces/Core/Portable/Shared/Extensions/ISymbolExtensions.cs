@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -166,6 +166,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsArrayType(this ISymbol symbol)
         {
             return symbol?.Kind == SymbolKind.ArrayType;
+        }
+
+        public static bool IsTupleType(this ISymbol symbol)
+        {
+            return (symbol as ITypeSymbol)?.IsTupleType ?? false;
         }
 
         public static bool IsAnonymousFunction(this ISymbol symbol)
@@ -416,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            var results = ArrayBuilder<ITypeSymbol>.GetInstance();
             results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
@@ -426,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return results.AsImmutable();
+            return results.ToImmutableAndFree();
         }
 
         public static bool IsAttribute(this ISymbol symbol)
@@ -504,10 +509,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             .Skip(skip)
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
-                            .Select(t =>
-                                t == null ?
-                                compilation.GetSpecialType(SpecialType.System_Object) :
-                                t)
+                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
                             .ToArray();
                         return functionType.Construct(types);
                     }
@@ -822,6 +824,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  method.MethodKind == MethodKind.EventRemove);
         }
 
+        public static bool IsFromSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
+        }
+
         public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
         {
             return new DeclarationModifiers(
@@ -941,82 +948,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return methods.Any(m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
         }
 
-        public static IList<SymbolDisplayPart> ToAwaitableParts(this ISymbol symbol, string awaitKeyword, string initializedVariableName, SemanticModel semanticModel, int position)
-        {
-            var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-            var parts = new List<SymbolDisplayPart>();
-
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage}\r\n  "));
-
-            var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
-            returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;
-            if (returnType != null)
-            {
-                if (semanticModel.Language == "C#")
-                {
-                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
-                }
-                else
-                {
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "Dim"));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
-                    parts.Add(spacePart);
-                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "as"));
-                    parts.Add(spacePart);
-                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
-                }
-
-                parts.Add(spacePart);
-                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "="));
-                parts.Add(spacePart);
-            }
-
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, awaitKeyword));
-            parts.Add(spacePart);
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, symbol.GetParameters().Any() ? "..." : ""));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, semanticModel.Language == "C#" ? ";" : ""));
-
-            return parts;
-        }
-
-        public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
-        {
-            var methodSymbol = symbol as IMethodSymbol;
-            if (methodSymbol == null)
-            {
-                return null;
-            }
-
-            var returnType = methodSymbol.ReturnType;
-            if (returnType == null)
-            {
-                return null;
-            }
-
-            var potentialGetAwaiters = semanticModel.LookupSymbols(position, container: returnType, name: WellKnownMemberNames.GetAwaiter, includeReducedExtensionMethods: true);
-            var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
-            if (!getAwaiters.Any())
-            {
-                return null;
-            }
-
-            var getResults = getAwaiters.SelectMany(g => semanticModel.LookupSymbols(position, container: g.ReturnType, name: WellKnownMemberNames.GetResult));
-
-            var getResult = getResults.OfType<IMethodSymbol>().FirstOrDefault(g => !g.IsStatic);
-            if (getResult == null)
-            {
-                return null;
-            }
-
-            return getResult.ReturnType;
-        }
-
         /// <summary>
         /// First, remove symbols from the set if they are overridden by other symbols in the set.
         /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
@@ -1025,7 +956,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
         /// attribute.
         /// </summary>
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             symbols = symbols.RemoveOverriddenSymbolsWithinSet();
 
@@ -1041,7 +973,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
             Func<Location, bool> isSymbolDefinedInSource = l => l.IsInSource;
-            return symbols.Where(s =>
+            return symbols.WhereAsArray(s =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
@@ -1054,9 +986,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     hideModuleNameAttribute));
         }
 
-        private static IEnumerable<T> RemoveOverriddenSymbolsWithinSet<T>(this IEnumerable<T> symbols) where T : ISymbol
+        private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            HashSet<ISymbol> overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new HashSet<ISymbol>();
 
             foreach (var symbol in symbols)
             {
@@ -1066,12 +998,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return symbols.Where(s => !overriddenSymbols.Contains(s));
+            return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));
         }
 
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
-            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation).Where(s => !s.IsUnsafe());
+            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
+                .WhereAsArray(s => !s.IsUnsafe());
         }
     }
 }

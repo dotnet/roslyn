@@ -1,11 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -23,17 +20,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _root = root;
+            _root = root ?? throw new ArgumentNullException(nameof(root));
             _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
             _changes = new List<Change>();
         }
@@ -111,6 +103,12 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes.Add(new ReplaceChange(node, computeReplacement));
         }
 
+        internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
+        {
+            CheckNodeInTree(node);
+            _changes.Add(new ReplaceChange<TArgument>(node, computeReplacement, argument));
+        }
+
         /// <summary>
         /// Replace the specified node with a different node.
         /// </summary>
@@ -175,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (!_root.Contains(node))
             {
-                throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.TheNodeIsNotPartOfTheTree, nameof(node));
+                throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.The_node_is_not_part_of_the_tree, nameof(node));
             }
         }
 
@@ -234,6 +232,29 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = _modifier(current, generator);
+                return generator.ReplaceNode(root, current, newNode);
+            }
+        }
+
+        private class ReplaceChange<TArgument> : Change
+        {
+            private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
+            private readonly TArgument _argument;
+
+            public ReplaceChange(
+                SyntaxNode node,
+                Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
+                TArgument argument)
+                : base(node)
+            {
+                _modifier = modifier;
+                _argument = argument;
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                var current = root.GetCurrentNode(this.Node);
+                var newNode = _modifier(current, generator, _argument);
                 return generator.ReplaceNode(root, current, newNode);
             }
         }

@@ -1,29 +1,29 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-    <metadata>
-        <id>Microsoft.Net.CSharp.Interactive.netcore</id>
-        <description>
-            CoreCLR-compatible version of csi.exe.
+  <metadata>
+    <id>Microsoft.Net.CSharp.Interactive.netcore</id>
+    <description>
+      CoreCLR-compatible version of csi.exe.
 
-            Supported Platforms:
-            - .NET Core (dnxcore50)
-        </description>
-        <language>en-US</language>
-        <requireLicenseAcceptance>true</requireLicenseAcceptance>
-        <version>$version$</version>
-        <authors>$authors$</authors>
-        <licenseUrl>$licenseUrl$</licenseUrl>
-        <projectUrl>$projectUrl$</projectUrl>
-        <tags>$tags$</tags>
-        <dependencies>
-            <group targetFramework="dnxcore50">
-                <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
-                <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
-                <dependency id="NETStandard.Library" version="1.5.0-rc3-24102-00" />
-            </group>
-        </dependencies>
-    </metadata>
-    <files>
-        <file src="csicore/csi.exe" target="runtimes/any/native" />
-    </files>
+      Supported Platforms:
+      - .NET Core (NETCoreApp1.0)
+    </description>
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <tags>$tags$</tags>
+    <dependencies>
+      <group targetFramework="NETCoreApp1.0">
+        <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
+        <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
+        <dependency id="NETStandard.Library" version="1.6.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Exes/csicore/csi.exe" target="runtimes/any/native" />
+  </files>
 </package>

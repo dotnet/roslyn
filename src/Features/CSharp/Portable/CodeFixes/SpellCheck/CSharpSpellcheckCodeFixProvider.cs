@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
                 ImmutableArray.Create(CS0426));
 
+        protected override bool DescendIntoChildren(SyntaxNode arg)
+        {
+            // Don't dive into type argument lists.  We don't want to report spell checking
+            // fixes for type args when we're called on an outer generic type.
+            return !(arg is TypeArgumentListSyntax);
+        }
+
         protected override bool IsGeneric(SimpleNameSyntax nameNode)
         {
             return nameNode is GenericNameSyntax;
@@ -34,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
 
         protected override SyntaxToken CreateIdentifier(SimpleNameSyntax nameNode, string newName)
         {
-            return SyntaxFactory.Identifier(newName);
+            return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameNode.Identifier);
         }
     }
 }

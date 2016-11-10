@@ -312,6 +312,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ConstantValueOpt; }
         }
 
+        public ConversionKind ConversionKind
+        {
+            get { return this.Conversion.Kind; }
+        }
+
+        public bool IsExtensionMethod
+        {
+            get { return this.Conversion.IsExtensionMethod; }
+        }
+
+        public MethodSymbol SymbolOpt
+        {
+            get { return this.Conversion.Method; }
+        }
+
         public override Symbol ExpressionSymbol
         {
             get { return this.SymbolOpt; }

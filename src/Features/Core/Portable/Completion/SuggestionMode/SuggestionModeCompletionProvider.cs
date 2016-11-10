@@ -15,29 +15,29 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (context.Options.GetOption(CompletionOptions.AlwaysShowBuilder))
+            if (context.Options.GetOption(CompletionControllerOptions.AlwaysShowBuilder))
             {
                 var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-                context.SuggestionModeItem = this.CreateEmptySuggestionModeItem(context.DefaultItemSpan);
+                context.SuggestionModeItem = this.CreateEmptySuggestionModeItem();
             }
             else
             {
-                context.SuggestionModeItem = await this.GetSuggestionModeItemAsync(context.Document, context.Position, context.DefaultItemSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
+                context.SuggestionModeItem = await this.GetSuggestionModeItemAsync(
+                    context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
             }
         }
 
-        protected CompletionItem CreateEmptySuggestionModeItem(TextSpan span)
+        protected CompletionItem CreateEmptySuggestionModeItem()
         {
-            return CreateSuggestionModeItem(displayText: null, span: span, description: null);
+            return CreateSuggestionModeItem(displayText: null, description: null);
         }
 
         private static CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        protected CompletionItem CreateSuggestionModeItem(string displayText, TextSpan span, string description)
+        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
-                span: span,
                 description: description != null ? description.ToSymbolDisplayParts() : default(ImmutableArray<SymbolDisplayPart>),
                 rules: s_rules);
         }

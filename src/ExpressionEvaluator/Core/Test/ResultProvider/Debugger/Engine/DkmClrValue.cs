@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.GetValueString, f => f.GetValueString(this, inspectionContext, formatSpecifiers));
+            return inspectionContext.InspectionSession.InvokeFormatter(this, MethodId.GetValueString, f => f.GetValueString(this, inspectionContext, formatSpecifiers));
         }
 
         public bool HasUnderlyingString(DkmInspectionContext inspectionContext)
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.HasUnderlyingString, f => f.HasUnderlyingString(this, inspectionContext));
+            return inspectionContext.InspectionSession.InvokeFormatter(this, MethodId.HasUnderlyingString, f => f.HasUnderlyingString(this, inspectionContext));
         }
 
         public string GetUnderlyingString(DkmInspectionContext inspectionContext)
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(inspectionContext));
             }
 
-            return inspectionContext.InspectionSession.InvokeFormatter(MethodId.GetUnderlyingString, f => f.GetUnderlyingString(this, inspectionContext));
+            return inspectionContext.InspectionSession.InvokeFormatter(this, MethodId.GetUnderlyingString, f => f.GetUnderlyingString(this, inspectionContext));
         }
 
         public void GetResult(
@@ -175,6 +175,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DkmCompletionRoutine<DkmEvaluationAsyncResult> CompletionRoutine)
         {
             InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
                 MethodId.GetResult,
                 r =>
                 {

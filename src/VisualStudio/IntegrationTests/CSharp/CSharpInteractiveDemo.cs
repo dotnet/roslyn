@@ -2,86 +2,72 @@
 
 using System;
 using System.Threading.Tasks;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo : IDisposable
+    public class CSharpInteractiveDemo : AbstractInteractiveWindowTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly InteractiveWindow _interactiveWindow;
-
         public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
-
-            _interactiveWindow = _visualStudio.Instance.CSharpInteractiveWindow;
-
-            _interactiveWindow.ShowAsync().GetAwaiter().GetResult();
-            _interactiveWindow.ResetAsync().GetAwaiter().GetResult();
-        }
-
-        public void Dispose()
-        {
-            _visualStudio.Dispose();
         }
 
         [Fact]
-        public async Task BclMathCall()
+        public void BclMathCall()
         {
-            await _interactiveWindow.SubmitTextToReplAsync("Math.Sin(1)").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal("0.8414709848078965", _interactiveWindow.LastReplOutput);
+            SubmitText("Math.Sin(1)");
+            VerifyLastReplOutput("0.8414709848078965");
         }
 
         [Fact]
-        public async Task BclConsoleCall()
+        public void BclConsoleCall()
         {
-            await _interactiveWindow.SubmitTextToReplAsync(@"Console.WriteLine(""Hello, World!"");").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
+            SubmitText(@"Console.WriteLine(""Hello, World!"");");
+            VerifyLastReplOutput("Hello, World!");
         }
 
         [Fact]
-        public async Task ForStatement()
+        public void ForStatement()
         {
-            await _interactiveWindow.SubmitTextToReplAsync("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.EndsWith($"{81}", _interactiveWindow.LastReplOutput);
+            SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
+            VerifyLastReplOutputEndsWith($"{81}");
         }
 
         [Fact]
-        public async Task ForEachStatement()
+        public void ForEachStatement()
         {
-            await _interactiveWindow.SubmitTextToReplAsync(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Contains(@"c:\windows\win.ini", _interactiveWindow.LastReplOutput);
+            SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
+            VerifyLastReplOutputContains(@"c:\windows\win.ini");
         }
 
         [Fact]
-        public async Task TopLevelMethod()
+        public void TopLevelMethod()
         {
-            await _interactiveWindow.SubmitTextToReplAsync(@"int Fac(int x)
+            SubmitText(@"int Fac(int x)
 {
     return x < 1 ? 1 : x * Fac(x - 1);
 }
-Fac(4)").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal($"{24}", _interactiveWindow.LastReplOutput);
+Fac(4)");
+            VerifyLastReplOutput($"{24}");
         }
 
         [Fact]
         public async Task WpfInteraction()
         {
-            await _interactiveWindow.SubmitTextToReplAsync(@"#r ""WindowsBase""
+            SubmitText(@"#r ""WindowsBase""
 #r ""PresentationCore""
 #r ""PresentationFramework""
 #r ""System.Xaml""");
 
-            await _interactiveWindow.SubmitTextToReplAsync(@"using System.Windows;
+            SubmitText(@"using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;");
 
-            await _interactiveWindow.SubmitTextToReplAsync(@"var w = new Window();
+            SubmitText(@"var w = new Window();
 w.Title = ""Hello World"";
 w.FontFamily = new FontFamily(""Calibri"");
 w.FontSize = 24;
@@ -92,7 +78,7 @@ w.Visibility = Visibility.Visible;");
 
             var testValue = Guid.NewGuid();
 
-            await _interactiveWindow.SubmitTextToReplAsync($@"var b = new Button();
+            SubmitText($@"var b = new Button();
 b.Content = ""{testValue}"";
 b.Margin = new Thickness(40);
 b.Click += (sender, e) => Console.WriteLine(""Hello, World!"");
@@ -101,12 +87,11 @@ var g = new Grid();
 g.Children.Add(b);
 w.Content = g;");
 
-            await _visualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
-            await _interactiveWindow.WaitForReplPromptAsync();
+            await VisualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
 
-            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
-
-            await _interactiveWindow.SubmitTextToReplAsync("b = null; w.Close(); w = null;");
+            WaitForReplOutput("Hello, World!");
+            VerifyLastReplOutput("Hello, World!");
+            SubmitText("b = null; w.Close(); w = null;");
         }
     }
 }

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.MakeAssignmentStatement(rewrittenGetAwaiter, awaiterTemp, builder))
 
                 ' hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter
-                builder.AddStatement(F.HiddenSequencePoint())
+                builder.AddStatement(SyntheticBoundNodeFactory.HiddenSequencePoint())
 
                 ' STMT:   If Not $awaiterTemp.IsCompleted Then <await-for-incomplete-task>
                 Dim awaitForIncompleteTask As BoundStatement = Me.GenerateAwaitForIncompleteTask(awaiterTemp)

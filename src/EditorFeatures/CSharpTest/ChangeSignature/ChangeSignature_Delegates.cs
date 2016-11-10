@@ -2,8 +2,9 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -13,15 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new ChangeSignatureCodeRefactoringProvider();
-        }
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+            => new ChangeSignatureCodeRefactoringProvider();
 
         protected override string GetLanguage()
-        {
-            return LanguageNames.CSharp;
-        }
+            => LanguageNames.CSharp;
 
         protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {

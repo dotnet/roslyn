@@ -62,578 +62,651 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a constructor that takes that many arguments..
+        /// </summary>
+        internal static string _0_does_not_contain_a_constructor_that_takes_that_many_arguments {
+            get {
+                return ResourceManager.GetString("_0_does_not_contain_a_constructor_that_takes_that_many_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this.&apos;.
+        /// </summary>
+        internal static string Add_this {
+            get {
+                return ResourceManager.GetString("Add_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
-        internal static string AnonymousMethod {
+        internal static string anonymous_method {
             get {
-                return ResourceManager.GetString("AnonymousMethod", resourceCulture);
+                return ResourceManager.GetString("anonymous_method", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to attribute target.
         /// </summary>
-        internal static string AttributeTarget {
+        internal static string attribute_target {
             get {
-                return ResourceManager.GetString("AttributeTarget", resourceCulture);
+                return ResourceManager.GetString("attribute_target", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_namespace_declaration", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
-        internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
+        internal static string Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation {
             get {
-                return ResourceManager.GetString("AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation", resourceCulture);
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creati" +
+                        "on", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible tuple type element creation..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
         /// </summary>
-        internal static string AutoselectDisabledDueToPotentialImplicitArray {
+        internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
             get {
-                return ResourceManager.GetString("AutoselectDisabledDueToPotentialImplicitArray", resourceCulture);
+                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_implicit_array_creation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential lambda declaration..
         /// </summary>
-        internal static string AutoselectDisabledDueToPotentialLambdaDeclaration {
+        internal static string Autoselect_disabled_due_to_potential_lambda_declaration {
             get {
-                return ResourceManager.GetString("AutoselectDisabledDueToPotentialLambdaDeclaration", resourceCulture);
+                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_lambda_declaration", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential range variable declaration..
         /// </summary>
-        internal static string AutoselectDisabledDueToPotentialRangeVariableDecl {
+        internal static string Autoselect_disabled_due_to_potential_range_variable_declaration {
             get {
-                return ResourceManager.GetString("AutoselectDisabledDueToPotentialRangeVariableDecl", resourceCulture);
+                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_range_variable_declaration", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to awaitable.
+        ///   Looks up a localized string similar to Autoselect disabled due to type declaration..
         /// </summary>
-        internal static string Awaitable {
+        internal static string Autoselect_disabled_due_to_type_declaration {
             get {
-                return ResourceManager.GetString("Awaitable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to awaitable, extension.
-        /// </summary>
-        internal static string AwaitableExtension {
-            get {
-                return ResourceManager.GetString("AwaitableExtension", resourceCulture);
+                return ResourceManager.GetString("Autoselect_disabled_due_to_type_declaration", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to await expression.
         /// </summary>
-        internal static string AwaitExpression {
+        internal static string await_expression {
             get {
-                return ResourceManager.GetString("AwaitExpression", resourceCulture);
+                return ResourceManager.GetString("await_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to awaitable.
+        /// </summary>
+        internal static string awaitable {
+            get {
+                return ResourceManager.GetString("awaitable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to awaitable, extension.
+        /// </summary>
+        internal static string awaitable_extension {
+            get {
+                return ResourceManager.GetString("awaitable_extension", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t determine valid range of statements to extract.
         /// </summary>
-        internal static string CantDetermineValidRangeOfStatements {
+        internal static string Can_t_determine_valid_range_of_statements_to_extract {
             get {
-                return ResourceManager.GetString("CantDetermineValidRangeOfStatements", resourceCulture);
+                return ResourceManager.GetString("Can_t_determine_valid_range_of_statements_to_extract", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cast is redundant.
         /// </summary>
-        internal static string CastIsRedundant {
+        internal static string Cast_is_redundant {
             get {
-                return ResourceManager.GetString("CastIsRedundant", resourceCulture);
+                return ResourceManager.GetString("Cast_is_redundant", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to catch clause.
         /// </summary>
-        internal static string CatchClause {
+        internal static string catch_clause {
             get {
-                return ResourceManager.GetString("CatchClause", resourceCulture);
+                return ResourceManager.GetString("catch_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Change return type from {0} to {1}.
         /// </summary>
-        internal static string ChangeReturnType {
+        internal static string Change_return_type_from_0_to_1 {
             get {
-                return ResourceManager.GetString("ChangeReturnType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace return with yield return.
-        /// </summary>
-        internal static string ChangeToYieldReturn {
-            get {
-                return ResourceManager.GetString("ChangeToYieldReturn", resourceCulture);
+                return ResourceManager.GetString("Change_return_type_from_0_to_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to checked statement.
         /// </summary>
-        internal static string CheckedStatement {
+        internal static string checked_statement {
             get {
-                return ResourceManager.GetString("CheckedStatement", resourceCulture);
+                return ResourceManager.GetString("checked_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;class name&gt;.
+        /// </summary>
+        internal static string class_name {
+            get {
+                return ResourceManager.GetString("class_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Conflict(s) detected..
         /// </summary>
-        internal static string ConflictsDetected {
+        internal static string Conflict_s_detected {
             get {
-                return ResourceManager.GetString("ConflictsDetected", resourceCulture);
+                return ResourceManager.GetString("Conflict_s_detected", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Contains invalid selection..
         /// </summary>
-        internal static string ContainsInvalidSelection {
+        internal static string Contains_invalid_selection {
             get {
-                return ResourceManager.GetString("ContainsInvalidSelection", resourceCulture);
+                return ResourceManager.GetString("Contains_invalid_selection", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to conversion operator.
         /// </summary>
-        internal static string ConversionOperator {
+        internal static string conversion_operator {
             get {
-                return ResourceManager.GetString("ConversionOperator", resourceCulture);
+                return ResourceManager.GetString("conversion_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deconstruction.
+        /// </summary>
+        internal static string deconstruction {
+            get {
+                return ResourceManager.GetString("deconstruction", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Delegate invocation can be simplified..
         /// </summary>
-        internal static string DelegateInvocationCanBeSimplified {
+        internal static string Delegate_invocation_can_be_simplified {
             get {
-                return ResourceManager.GetString("DelegateInvocationCanBeSimplified", resourceCulture);
+                return ResourceManager.GetString("Delegate_invocation_can_be_simplified", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to deprecated.
         /// </summary>
-        internal static string Deprecated {
+        internal static string deprecated {
             get {
-                return ResourceManager.GetString("Deprecated", resourceCulture);
+                return ResourceManager.GetString("deprecated", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to destructor.
         /// </summary>
-        internal static string Destructor {
+        internal static string destructor {
             get {
-                return ResourceManager.GetString("Destructor", resourceCulture);
+                return ResourceManager.GetString("destructor", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Do not change this code. Put cleanup code in Dispose(bool disposing) above..
         /// </summary>
-        internal static string DoNotChangeThisCodeUseDispose {
+        internal static string Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above {
             get {
-                return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture);
+                return ResourceManager.GetString("Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a constructor that takes that many arguments..
+        ///   Looks up a localized string similar to &lt;element name&gt; : .
         /// </summary>
-        internal static string ERR_BadCtorArgCount {
+        internal static string element_name {
             get {
-                return ResourceManager.GetString("ERR_BadCtorArgCount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
-        /// </summary>
-        internal static string ERR_NameNotInContext {
-            get {
-                return ResourceManager.GetString("ERR_NameNotInContext", resourceCulture);
+                return ResourceManager.GetString("element_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to event field.
         /// </summary>
-        internal static string EventField {
+        internal static string event_field {
             get {
-                return ResourceManager.GetString("EventField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate explicit conversion operator in &apos;{0}&apos;.
-        /// </summary>
-        internal static string ExplicitConversionDisplayText {
-            get {
-                return ResourceManager.GetString("ExplicitConversionDisplayText", resourceCulture);
+                return ResourceManager.GetString("event_field", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to extension.
         /// </summary>
-        internal static string Extension {
+        internal static string extension {
             get {
-                return ResourceManager.GetString("Extension", resourceCulture);
+                return ResourceManager.GetString("extension", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to filter clause.
         /// </summary>
-        internal static string FilterClause {
+        internal static string filter_clause {
             get {
-                return ResourceManager.GetString("FilterClause", resourceCulture);
+                return ResourceManager.GetString("filter_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to finally clause.
         /// </summary>
-        internal static string FinallyClause {
+        internal static string finally_clause {
             get {
-                return ResourceManager.GetString("FinallyClause", resourceCulture);
+                return ResourceManager.GetString("finally_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to fixed statement.
         /// </summary>
-        internal static string FixedStatement {
+        internal static string fixed_statement {
             get {
-                return ResourceManager.GetString("FixedStatement", resourceCulture);
+                return ResourceManager.GetString("fixed_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to foreach statement.
         /// </summary>
-        internal static string ForEachStatement {
+        internal static string foreach_statement {
             get {
-                return ResourceManager.GetString("ForEachStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override a finalizer below..
-        /// </summary>
-        internal static string FreeUnmanagedResourcesTodo {
-            get {
-                return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture);
+                return ResourceManager.GetString("foreach_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to from clause.
         /// </summary>
-        internal static string FromClause {
+        internal static string from_clause {
             get {
-                return ResourceManager.GetString("FromClause", resourceCulture);
+                return ResourceManager.GetString("from_clause", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to global statement.
+        ///   Looks up a localized string similar to Generate explicit conversion operator in &apos;{0}&apos;.
         /// </summary>
-        internal static string GlobalStatement {
+        internal static string Generate_explicit_conversion_operator_in_0 {
             get {
-                return ResourceManager.GetString("GlobalStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to groupby clause.
-        /// </summary>
-        internal static string GroupByClause {
-            get {
-                return ResourceManager.GetString("GroupByClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hide base member.
-        /// </summary>
-        internal static string HideBase {
-            get {
-                return ResourceManager.GetString("HideBase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Implement Abstract Class.
-        /// </summary>
-        internal static string ImplementAbstractClass {
-            get {
-                return ResourceManager.GetString("ImplementAbstractClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
-        /// </summary>
-        internal static string ImplicitArrayCreation {
-            get {
-                return ResourceManager.GetString("ImplicitArrayCreation", resourceCulture);
+                return ResourceManager.GetString("Generate_explicit_conversion_operator_in_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Generate implicit conversion operator in &apos;{0}&apos;.
         /// </summary>
-        internal static string ImplicitConversionDisplayText {
+        internal static string Generate_implicit_conversion_operator_in_0 {
             get {
-                return ResourceManager.GetString("ImplicitConversionDisplayText", resourceCulture);
+                return ResourceManager.GetString("Generate_implicit_conversion_operator_in_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to global statement.
+        /// </summary>
+        internal static string global_statement {
+            get {
+                return ResourceManager.GetString("global_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to groupby clause.
+        /// </summary>
+        internal static string groupby_clause {
+            get {
+                return ResourceManager.GetString("groupby_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide base member.
+        /// </summary>
+        internal static string Hide_base_member {
+            get {
+                return ResourceManager.GetString("Hide_base_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
+        /// </summary>
+        internal static string implicit_array_creation {
+            get {
+                return ResourceManager.GetString("implicit_array_creation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
-        internal static string Indexer {
+        internal static string indexer {
             get {
-                return ResourceManager.GetString("Indexer", resourceCulture);
+                return ResourceManager.GetString("indexer", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to indexer getter.
         /// </summary>
-        internal static string IndexerGetter {
+        internal static string indexer_getter {
             get {
-                return ResourceManager.GetString("IndexerGetter", resourceCulture);
+                return ResourceManager.GetString("indexer_getter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to indexer setter.
         /// </summary>
-        internal static string IndexerSetter {
+        internal static string indexer_setter {
             get {
-                return ResourceManager.GetString("IndexerSetter", resourceCulture);
+                return ResourceManager.GetString("indexer_setter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Inline temporary variable.
         /// </summary>
-        internal static string InlineTemporaryVariable {
+        internal static string Inline_temporary_variable {
             get {
-                return ResourceManager.GetString("InlineTemporaryVariable", resourceCulture);
+                return ResourceManager.GetString("Inline_temporary_variable", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Insert &apos;await&apos;..
         /// </summary>
-        internal static string InsertAwait {
+        internal static string Insert_await {
             get {
-                return ResourceManager.GetString("InsertAwait", resourceCulture);
+                return ResourceManager.GetString("Insert_await", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;interface name&gt;.
+        /// </summary>
+        internal static string interface_name {
+            get {
+                return ResourceManager.GetString("interface_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to into clause.
         /// </summary>
-        internal static string IntoClause {
+        internal static string into_clause {
             get {
-                return ResourceManager.GetString("IntoClause", resourceCulture);
+                return ResourceManager.GetString("into_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid selection..
         /// </summary>
-        internal static string InvalidSelection {
+        internal static string Invalid_selection {
             get {
-                return ResourceManager.GetString("InvalidSelection", resourceCulture);
+                return ResourceManager.GetString("Invalid_selection", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Invert if statement.
         /// </summary>
-        internal static string InvertIfStatement {
+        internal static string Invert_if_statement {
             get {
-                return ResourceManager.GetString("InvertIfStatement", resourceCulture);
+                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is pattern.
+        /// </summary>
+        internal static string is_pattern {
+            get {
+                return ResourceManager.GetString("is_pattern", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to join clause.
         /// </summary>
-        internal static string JoinClause {
+        internal static string join_clause {
             get {
-                return ResourceManager.GetString("JoinClause", resourceCulture);
+                return ResourceManager.GetString("join_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to lambda.
         /// </summary>
-        internal static string Lambda {
+        internal static string lambda {
             get {
-                return ResourceManager.GetString("Lambda", resourceCulture);
+                return ResourceManager.GetString("lambda", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;lambda expression&gt;.
         /// </summary>
-        internal static string LambdaExpression {
+        internal static string lambda_expression {
             get {
-                return ResourceManager.GetString("LambdaExpression", resourceCulture);
+                return ResourceManager.GetString("lambda_expression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to let clause.
         /// </summary>
-        internal static string LetClause {
+        internal static string let_clause {
             get {
-                return ResourceManager.GetString("LetClause", resourceCulture);
+                return ResourceManager.GetString("let_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to lock statement.
         /// </summary>
-        internal static string LockStatement {
+        internal static string lock_statement {
             get {
-                return ResourceManager.GetString("LockStatement", resourceCulture);
+                return ResourceManager.GetString("lock_statement", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make the containing scope &apos;async&apos;..
+        ///   Looks up a localized string similar to Make {0} return Task instead of void..
         /// </summary>
-        internal static string MakeAsync {
+        internal static string Make_0_return_Task_instead_of_void {
             get {
-                return ResourceManager.GetString("MakeAsync", resourceCulture);
+                return ResourceManager.GetString("Make_0_return_Task_instead_of_void", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async.
+        /// </summary>
+        internal static string Make_method_async {
+            get {
+                return ResourceManager.GetString("Make_method_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make method async (stay void).
+        /// </summary>
+        internal static string Make_method_async_remain_void {
+            get {
+                return ResourceManager.GetString("Make_method_async_remain_void", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
-        internal static string MemberName {
+        internal static string member_name {
             get {
-                return ResourceManager.GetString("MemberName", resourceCulture);
+                return ResourceManager.GetString("member_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Move declaration near reference.
         /// </summary>
-        internal static string MoveDeclarationNearReference {
+        internal static string Move_declaration_near_reference {
             get {
-                return ResourceManager.GetString("MoveDeclarationNearReference", resourceCulture);
+                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Name can be simplified.
         /// </summary>
-        internal static string NameCanBeSimplified {
+        internal static string Name_can_be_simplified {
             get {
-                return ResourceManager.GetString("NameCanBeSimplified", resourceCulture);
+                return ResourceManager.GetString("Name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;namespace name&gt;.
+        /// </summary>
+        internal static string namespace_name {
+            get {
+                return ResourceManager.GetString("namespace_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No common root node for extraction..
         /// </summary>
-        internal static string NoCommonRootNodeForExtraction {
+        internal static string No_common_root_node_for_extraction {
             get {
-                return ResourceManager.GetString("NoCommonRootNodeForExtraction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not all code paths return.
-        /// </summary>
-        internal static string NotAllCodePathReturns {
-            get {
-                return ResourceManager.GetString("NotAllCodePathReturns", resourceCulture);
+                return ResourceManager.GetString("No_common_root_node_for_extraction", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No valid selection to perform extraction..
         /// </summary>
-        internal static string NoValidSelectionToPerformExtraction {
+        internal static string No_valid_selection_to_perform_extraction {
             get {
-                return ResourceManager.GetString("NoValidSelectionToPerformExtraction", resourceCulture);
+                return ResourceManager.GetString("No_valid_selection_to_perform_extraction", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No valid statement range to extract.
         /// </summary>
-        internal static string NoValidStatementRangeToExtractOut {
+        internal static string No_valid_statement_range_to_extract {
             get {
-                return ResourceManager.GetString("NoValidStatementRangeToExtractOut", resourceCulture);
+                return ResourceManager.GetString("No_valid_statement_range_to_extract", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not all code paths return.
+        /// </summary>
+        internal static string Not_all_code_paths_return {
+            get {
+                return ResourceManager.GetString("Not_all_code_paths_return", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to orderby clause.
         /// </summary>
-        internal static string OrderByClause {
+        internal static string orderby_clause {
             get {
-                return ResourceManager.GetString("OrderByClause", resourceCulture);
+                return ResourceManager.GetString("orderby_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Organize Usings.
         /// </summary>
-        internal static string OrganizeUsings {
+        internal static string Organize_Usings {
             get {
-                return ResourceManager.GetString("OrganizeUsings", resourceCulture);
+                return ResourceManager.GetString("Organize_Usings", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Organize Usings.
+        ///   Looks up a localized string similar to out variable.
         /// </summary>
-        internal static string OrganizeUsingsWithAccelerator {
+        internal static string out_var {
             get {
-                return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
-        /// </summary>
-        internal static string OverrideAFinalizerTodo {
-            get {
-                return ResourceManager.GetString("OverrideAFinalizerTodo", resourceCulture);
+                return ResourceManager.GetString("out_var", resourceCulture);
             }
         }
         
@@ -649,369 +722,416 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to property getter.
         /// </summary>
-        internal static string PropertyGetter {
+        internal static string property_getter {
             get {
-                return ResourceManager.GetString("PropertyGetter", resourceCulture);
+                return ResourceManager.GetString("property_getter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to property setter.
         /// </summary>
-        internal static string PropertySetter {
+        internal static string property_setter {
             get {
-                return ResourceManager.GetString("PropertySetter", resourceCulture);
+                return ResourceManager.GetString("property_setter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to query body.
         /// </summary>
-        internal static string QueryBody {
+        internal static string query_body {
             get {
-                return ResourceManager.GetString("QueryBody", resourceCulture);
+                return ResourceManager.GetString("query_body", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;range variable&gt;.
         /// </summary>
-        internal static string RangeVariable {
+        internal static string range_variable {
             get {
-                return ResourceManager.GetString("RangeVariable", resourceCulture);
+                return ResourceManager.GetString("range_variable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref local or expression.
+        /// </summary>
+        internal static string ref_local_or_expression {
+            get {
+                return ResourceManager.GetString("ref_local_or_expression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove &amp;and Sort Usings.
         /// </summary>
-        internal static string RemoveAndSortUsingsWithAccelerator {
+        internal static string Remove_and_Sort_Usings {
             get {
-                return ResourceManager.GetString("RemoveAndSortUsingsWithAccelerator", resourceCulture);
+                return ResourceManager.GetString("Remove_and_Sort_Usings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
         /// </summary>
-        internal static string RemoveThisQualification {
+        internal static string Remove_this_qualification {
             get {
-                return ResourceManager.GetString("RemoveThisQualification", resourceCulture);
+                return ResourceManager.GetString("Remove_this_qualification", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
-        internal static string RemoveUnnecessaryCast {
+        internal static string Remove_Unnecessary_Cast {
             get {
-                return ResourceManager.GetString("RemoveUnnecessaryCast", resourceCulture);
+                return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Usings.
         /// </summary>
-        internal static string RemoveUnnecessaryUsings {
+        internal static string Remove_Unnecessary_Usings {
             get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsings", resourceCulture);
+                return ResourceManager.GetString("Remove_Unnecessary_Usings", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using directive is unnecessary..
+        ///   Looks up a localized string similar to Replace return with yield return.
         /// </summary>
-        internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
+        internal static string Replace_return_with_yield_return {
             get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
-        /// </summary>
-        internal static string RemoveUnnecessaryUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsingsWithAccelerator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Make {0} return Task instead of void..
-        /// </summary>
-        internal static string ReturnTaskInsteadOfVoid {
-            get {
-                return ResourceManager.GetString("ReturnTaskInsteadOfVoid", resourceCulture);
+                return ResourceManager.GetString("Replace_return_with_yield_return", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to select clause.
         /// </summary>
-        internal static string SelectClause {
+        internal static string select_clause {
             get {
-                return ResourceManager.GetString("SelectClause", resourceCulture);
+                return ResourceManager.GetString("select_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection can not be part of constant initializer expression..
         /// </summary>
-        internal static string SelectionCanNotBePartOfConstInitializerExpr {
+        internal static string Selection_can_not_be_part_of_constant_initializer_expression {
             get {
-                return ResourceManager.GetString("SelectionCanNotBePartOfConstInitializerExpr", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Selection can not contain a yield statement..
-        /// </summary>
-        internal static string SelectionCanNotContainAYieldStatement {
-            get {
-                return ResourceManager.GetString("SelectionCanNotContainAYieldStatement", resourceCulture);
+                return ResourceManager.GetString("Selection_can_not_be_part_of_constant_initializer_expression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection can not contain a pattern expression..
         /// </summary>
-        internal static string SelectionCanNotContainPattern {
+        internal static string Selection_can_not_contain_a_pattern_expression {
             get {
-                return ResourceManager.GetString("SelectionCanNotContainPattern", resourceCulture);
+                return ResourceManager.GetString("Selection_can_not_contain_a_pattern_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selection can not contain a yield statement..
+        /// </summary>
+        internal static string Selection_can_not_contain_a_yield_statement {
+            get {
+                return ResourceManager.GetString("Selection_can_not_contain_a_yield_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection can not contain throw statement..
         /// </summary>
-        internal static string SelectionCanNotContainThrowStatement {
+        internal static string Selection_can_not_contain_throw_statement {
             get {
-                return ResourceManager.GetString("SelectionCanNotContainThrowStatement", resourceCulture);
+                return ResourceManager.GetString("Selection_can_not_contain_throw_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection can not cross over preprocessor directives..
         /// </summary>
-        internal static string SelectionCanNotCrossOverPreprocessorDirectives {
+        internal static string Selection_can_not_cross_over_preprocessor_directives {
             get {
-                return ResourceManager.GetString("SelectionCanNotCrossOverPreprocessorDirectives", resourceCulture);
+                return ResourceManager.GetString("Selection_can_not_cross_over_preprocessor_directives", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection does not contain a valid node.
         /// </summary>
-        internal static string SelectionDoesNotContainAValidNode {
+        internal static string Selection_does_not_contain_a_valid_node {
             get {
-                return ResourceManager.GetString("SelectionDoesNotContainAValidNode", resourceCulture);
+                return ResourceManager.GetString("Selection_does_not_contain_a_valid_node", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Selection does not contain a valid token..
         /// </summary>
-        internal static string SelectionDoesNotContainAValidToken {
+        internal static string Selection_does_not_contain_a_valid_token {
             get {
-                return ResourceManager.GetString("SelectionDoesNotContainAValidToken", resourceCulture);
+                return ResourceManager.GetString("Selection_does_not_contain_a_valid_token", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify all occurrences.
         /// </summary>
-        internal static string SimplifyAllOccurrences {
+        internal static string Simplify_all_occurrences {
             get {
-                return ResourceManager.GetString("SimplifyAllOccurrences", resourceCulture);
+                return ResourceManager.GetString("Simplify_all_occurrences", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify lambda expression.
         /// </summary>
-        internal static string SimplifyLambdaExpression {
+        internal static string Simplify_lambda_expression {
             get {
-                return ResourceManager.GetString("SimplifyLambdaExpression", resourceCulture);
+                return ResourceManager.GetString("Simplify_lambda_expression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify member access &apos;{0}&apos;.
         /// </summary>
-        internal static string SimplifyMemberAccess {
+        internal static string Simplify_member_access_0 {
             get {
-                return ResourceManager.GetString("SimplifyMemberAccess", resourceCulture);
+                return ResourceManager.GetString("Simplify_member_access_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify name &apos;{0}&apos;.
         /// </summary>
-        internal static string SimplifyName {
+        internal static string Simplify_name_0 {
             get {
-                return ResourceManager.GetString("SimplifyName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string SortUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("SortUsingsWithAccelerator", resourceCulture);
+                return ResourceManager.GetString("Simplify_name_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to struct.
         /// </summary>
-        internal static string Struct {
+        internal static string struct_ {
             get {
-                return ResourceManager.GetString("Struct", resourceCulture);
+                return ResourceManager.GetString("struct_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;struct name&gt;.
+        /// </summary>
+        internal static string struct_name {
+            get {
+                return ResourceManager.GetString("struct_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
+        /// </summary>
+        internal static string The_name_0_does_not_exist_in_the_current_context {
+            get {
+                return ResourceManager.GetString("The_name_0_does_not_exist_in_the_current_context", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The selected code is inside an unsafe context..
         /// </summary>
-        internal static string TheSelectedCodeIsInsideAnUnsafeContext {
+        internal static string The_selected_code_is_inside_an_unsafe_context {
             get {
-                return ResourceManager.GetString("TheSelectedCodeIsInsideAnUnsafeContext", resourceCulture);
+                return ResourceManager.GetString("The_selected_code_is_inside_an_unsafe_context", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The selection contains syntactic errors.
         /// </summary>
-        internal static string TheSelectionContainsSyntacticErrors {
+        internal static string The_selection_contains_syntactic_errors {
             get {
-                return ResourceManager.GetString("TheSelectionContainsSyntacticErrors", resourceCulture);
+                return ResourceManager.GetString("The_selection_contains_syntactic_errors", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to This code added to correctly implement the disposable pattern..
         /// </summary>
-        internal static string ThisCodeAddedToCorrectlyImplementDisposable {
+        internal static string This_code_added_to_correctly_implement_the_disposable_pattern {
             get {
-                return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture);
+                return ResourceManager.GetString("This_code_added_to_correctly_implement_the_disposable_pattern", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to try block.
+        ///   Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override a finalizer below..
         /// </summary>
-        internal static string TryBlock {
+        internal static string TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below {
             get {
-                return ResourceManager.GetString("TryBlock", resourceCulture);
+                return ResourceManager.GetString("TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_be" +
+                        "low", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to unchecked statement.
+        ///   Looks up a localized string similar to TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources..
         /// </summary>
-        internal static string UncheckedStatement {
+        internal static string TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources {
             get {
-                return ResourceManager.GetString("UncheckedStatement", resourceCulture);
+                return ResourceManager.GetString("TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_" +
+                        "free_unmanaged_resources", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to TODO: uncomment the following line if the finalizer is overridden above..
         /// </summary>
-        internal static string UncommentTheFollowingIfFinalizerOverriddenTodo {
+        internal static string TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above {
             get {
-                return ResourceManager.GetString("UncommentTheFollowingIfFinalizerOverriddenTodo", resourceCulture);
+                return ResourceManager.GetString("TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
+        ///   Looks up a localized string similar to try block.
         /// </summary>
-        internal static string UseExplicitType {
+        internal static string try_block {
             get {
-                return ResourceManager.GetString("UseExplicitType", resourceCulture);
+                return ResourceManager.GetString("try_block", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tuple.
+        /// </summary>
+        internal static string tuple {
+            get {
+                return ResourceManager.GetString("tuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unchecked statement.
+        /// </summary>
+        internal static string unchecked_statement {
+            get {
+                return ResourceManager.GetString("unchecked_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
-        internal static string UseExplicitTypeDiagnosticTitle {
+        internal static string Use_explicit_type {
             get {
-                return ResourceManager.GetString("UseExplicitTypeDiagnosticTitle", resourceCulture);
+                return ResourceManager.GetString("Use_explicit_type", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
+        ///   Looks up a localized string similar to Use explicit type instead of &apos;var&apos;.
         /// </summary>
-        internal static string UseImplicitType {
+        internal static string Use_explicit_type_instead_of_var {
             get {
-                return ResourceManager.GetString("UseImplicitType", resourceCulture);
+                return ResourceManager.GetString("Use_explicit_type_instead_of_var", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Use implicit type.
         /// </summary>
-        internal static string UseImplicitTypeDiagnosticTitle {
+        internal static string Use_implicit_type {
             get {
-                return ResourceManager.GetString("UseImplicitTypeDiagnosticTitle", resourceCulture);
+                return ResourceManager.GetString("Use_implicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
+        /// </summary>
+        internal static string use_var_instead_of_explicit_type {
+            get {
+                return ResourceManager.GetString("use_var_instead_of_explicit_type", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to using directive.
         /// </summary>
-        internal static string UsingDirective {
+        internal static string using_directive {
             get {
-                return ResourceManager.GetString("UsingDirective", resourceCulture);
+                return ResourceManager.GetString("using_directive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directive is unnecessary..
+        /// </summary>
+        internal static string Using_directive_is_unnecessary {
+            get {
+                return ResourceManager.GetString("Using_directive_is_unnecessary", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to using namespace.
         /// </summary>
-        internal static string UsingNamespace {
+        internal static string using_namespace {
             get {
-                return ResourceManager.GetString("UsingNamespace", resourceCulture);
+                return ResourceManager.GetString("using_namespace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to using statement.
         /// </summary>
-        internal static string UsingStatement {
+        internal static string using_statement {
             get {
-                return ResourceManager.GetString("UsingStatement", resourceCulture);
+                return ResourceManager.GetString("using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
+        /// </summary>
+        internal static string v7_switch {
+            get {
+                return ResourceManager.GetString("v7_switch", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
         /// </summary>
-        internal static string WarningDeclarationChangesScope {
+        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
-                return ResourceManager.GetString("WarningDeclarationChangesScope", resourceCulture);
+                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to where clause.
         /// </summary>
-        internal static string WhereClause {
+        internal static string where_clause {
             get {
-                return ResourceManager.GetString("WhereClause", resourceCulture);
+                return ResourceManager.GetString("where_clause", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to yield statement.
         /// </summary>
-        internal static string YieldStatement {
+        internal static string yield_statement {
             get {
-                return ResourceManager.GetString("YieldStatement", resourceCulture);
+                return ResourceManager.GetString("yield_statement", resourceCulture);
             }
         }
     }

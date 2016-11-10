@@ -556,19 +556,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ProcessContext(spansToTag, oldTagTrees, context);
             }
 
-            private Task ProduceTagsAsync(TaggerContext<TTag> context)
+            private bool ShouldSkipTagProduction()
             {
                 var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
                 var perLanguageOptions = _dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
-                if (options.Any(option => !_subjectBuffer.GetOption(option)) ||
-                    perLanguageOptions.Any(option => !_subjectBuffer.GetOption(option)))
+                return options.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option)) ||
+                       perLanguageOptions.Any(option => !_subjectBuffer.GetFeatureOnOffOption(option));
+            }
+
+            private Task ProduceTagsAsync(TaggerContext<TTag> context)
+            {
+                if (ShouldSkipTagProduction())
                 {
                     // If the feature is disabled, then just produce no tags.
                     return SpecializedTasks.EmptyTask;
                 }
 
                 return _dataSource.ProduceTagsAsync(context);
+            }
+
+            private void ProduceTagsSynchronously(TaggerContext<TTag> context)
+            {
+                if (ShouldSkipTagProduction())
+                {
+                    return;
+                }
+
+                _dataSource.ProduceTagsSynchronously(context);
             }
 
             private void ProcessContext(
@@ -724,7 +739,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     var context = new TaggerContext<TTag>(
                         this.State, spansToTag, caretPoint, this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
-                    ProduceTagsAsync(context).Wait(cancellationToken);
+
+                    ProduceTagsSynchronously(context);
 
                     ProcessContext(spansToTag, oldTagTrees, context);
                 }

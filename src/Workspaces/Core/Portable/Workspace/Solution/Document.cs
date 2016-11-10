@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -23,32 +23,15 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Document : TextDocument
     {
-        private readonly DocumentState _state;
-
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state)
+        internal Document(Project project, DocumentState state) :
+            base(project, state)
         {
-            Contract.ThrowIfNull(project);
-            Contract.ThrowIfNull(state);
-
-            this.Project = project;
-            _state = state;
         }
 
-        internal DocumentState State
-        {
-            get
-            {
-                return _state;
-            }
-        }
-
-        internal override TextDocumentState GetDocumentState()
-        {
-            return _state;
-        }
+        private DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -57,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _state.SourceCodeKind;
+                return DocumentState.SourceCodeKind;
             }
         }
 
@@ -74,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 syntaxTree = _syntaxTreeResultTask.Result;
             }
 
-            if (!_state.TryGetSyntaxTree(out syntaxTree))
+            if (!DocumentState.TryGetSyntaxTree(out syntaxTree))
             {
                 return false;
             }
@@ -114,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
-            return _state.TryGetTopLevelChangeTextVersion(out version);
+            return DocumentState.TryGetTopLevelChangeTextVersion(out version);
         }
 
         /// <summary>
@@ -138,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.State.SupportsSyntaxTree;
+                return DocumentState.SupportsSyntaxTree;
             }
         }
 
@@ -161,45 +144,41 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            // If the language doesn't support getting syntax trees for a document, then bail out
-            // immediately.
+            // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
                 return SpecializedTasks.Default<SyntaxTree>();
             }
 
+            // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
                 return _syntaxTreeResultTask;
             }
 
-            // First see if we already have a semantic model computed.  If so, we can just return
-            // that syntax tree.
-            SemanticModel semanticModel;
-            if (TryGetSemanticModel(out semanticModel))
-            {
-                // PERF: This is a hot code path, so cache the result to reduce allocations
-                var result = Task.FromResult(semanticModel.SyntaxTree);
-                Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
-                return _syntaxTreeResultTask;
-            }
-
-            // second, see whether we already computed the tree, if we already did, return the cache
+            // check to see if we already have the tree before actually going async
             SyntaxTree tree;
             if (TryGetSyntaxTree(out tree))
             {
-                if (_syntaxTreeResultTask == null)
-                {
-                    var result = Task.FromResult(tree);
-                    Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
-                }
-
+                // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
+                // don't use the actual async task because it depends on a specific cancellation token
+                // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
+                Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
                 return _syntaxTreeResultTask;
             }
 
-            // we can't cache this result, since internally it uses AsyncLazy which
-            // care about cancellation token
-            return _state.GetSyntaxTreeAsync(cancellationToken);
+            // do it async for real.
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
+        }
+
+        internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
+        {
+            if (!this.SupportsSyntaxTree)
+            {
+                return null;
+            }
+
+            return DocumentState.GetSyntaxTree(cancellationToken);
         }
 
         /// <summary>
@@ -226,6 +205,22 @@ namespace Microsoft.CodeAnalysis
 
             var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Only for features that absolutely must run synchronously (probably because they're
+        /// on the UI thread).  Right now, the only feature this is for is Outlining as VS will
+        /// block on that feature from the UI thread when a document is opened.
+        /// </summary>
+        internal SyntaxNode GetSyntaxRootSynchronously(CancellationToken cancellationToken)
+        {
+            if (!this.SupportsSyntaxTree)
+            {
+                return null;
+            }
+
+            var tree = this.GetSyntaxTreeSynchronously(cancellationToken);
+            return tree.GetRoot(cancellationToken);
         }
 
         /// <summary>
@@ -330,7 +325,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (this.Id != oldDocument.Id)
                     {
-                        throw new ArgumentException(WorkspacesResources.DocumentVersionIsDifferent);
+                        throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
                     }
 
                     // first try to see if text already knows its changes
@@ -427,17 +422,30 @@ namespace Microsoft.CodeAnalysis
             return this.Name;
         }
 
+        private AsyncLazy<DocumentOptionSet> _cachedOptions;
+
         /// <summary>
         /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
-        /// merged with any settings the user has specified at the solution, project, and document levels.
+        /// merged with any settings the user has specified at the document levels.
         /// </summary>
-        public DocumentOptionSet Options
+        /// <remarks>
+        /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
+        /// </remarks>
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            get
+            if (_cachedOptions == null)
             {
-                // TODO: merge with document-specific options
-                return new DocumentOptionSet(Project.Solution.Options, Project.Language);
+                var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+                {
+                    var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                    var optionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, Project.Solution.Options, c).ConfigureAwait(false);
+                    return new DocumentOptionSet(optionSet, Project.Language);
+                }, cacheResult: true);
+
+                Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
             }
+
+            return _cachedOptions.GetValueAsync(cancellationToken);
         }
     }
 }

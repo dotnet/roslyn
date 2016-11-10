@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,32 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
 
-            private static readonly SymbolDisplayFormat s_propertySignatureDisplayFormat =
-                new SymbolDisplayFormat(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                    memberOptions:
-                        SymbolDisplayMemberOptions.IncludeAccessibility |
-                        SymbolDisplayMemberOptions.IncludeParameters |
-                        SymbolDisplayMemberOptions.IncludeType |
-                        SymbolDisplayMemberOptions.IncludeContainingType,
-                    kindOptions:
-                        SymbolDisplayKindOptions.IncludeMemberKeyword,
-                    propertyStyle:
-                        SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                    parameterOptions:
-                        SymbolDisplayParameterOptions.IncludeName |
-                        SymbolDisplayParameterOptions.IncludeType |
-                        SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                        SymbolDisplayParameterOptions.IncludeExtensionThis |
-                        SymbolDisplayParameterOptions.IncludeDefaultValue |
-                        SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                    localOptions: SymbolDisplayLocalOptions.IncludeType,
-                    miscellaneousOptions:
-                        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                        SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
-
             public SymbolDescriptionBuilder(
                 ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
@@ -69,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("["),
-                    PlainText(CSharpFeaturesResources.Deprecated),
+                    PlainText(CSharpFeaturesResources.deprecated),
                     Punctuation("]"),
                     Space());
             }
@@ -78,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.Extension),
+                    PlainText(CSharpFeaturesResources.extension),
                     Punctuation(")"),
                     Space());
             }
@@ -87,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.Awaitable),
+                    PlainText(CSharpFeaturesResources.awaitable),
                     Punctuation(")"),
                     Space());
             }
@@ -96,26 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Punctuation("("),
-                    PlainText(CSharpFeaturesResources.AwaitableExtension),
+                    PlainText(CSharpFeaturesResources.awaitable_extension),
                     Punctuation(")"),
                     Space());
             }
 
-            protected override void AddDescriptionForProperty(IPropertySymbol symbol)
-            {
-                if (symbol.ContainingType?.TypeKind == TypeKind.Interface)
-                {
-                    base.AddDescriptionForProperty(symbol);
-                }
-                else
-                {
-                    var fullParts = ToMinimalDisplayParts(symbol, s_propertySignatureDisplayFormat);
-                    var neededParts = fullParts.SkipWhile(p => p.Symbol == null);
-                    AddToGroup(SymbolDescriptionGroups.MainDescription, neededParts);
-                }
-            }
-
-            protected override Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+            protected override Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 ISymbol symbol)
             {
                 // Actually check for C# symbol types here.  
@@ -132,10 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return GetInitializerSourcePartsAsync((IFieldSymbol)symbol);
                 }
 
-                return SpecializedTasks.Default<IEnumerable<SymbolDisplayPart>>();
+                return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(IFieldSymbol symbol)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                IFieldSymbol symbol)
             {
                 EqualsValueClauseSyntax initializer = null;
 
@@ -159,10 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(initializer).ConfigureAwait(false);
                 }
 
-                return null;
+                return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ILocalSymbol symbol)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                ILocalSymbol symbol)
             {
                 var syntax = await this.GetFirstDeclaration<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
@@ -170,10 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(syntax.Initializer).ConfigureAwait(false);
                 }
 
-                return null;
+                return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(IParameterSymbol symbol)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                IParameterSymbol symbol)
             {
                 var syntax = await this.GetFirstDeclaration<ParameterSyntax>(symbol).ConfigureAwait(false);
                 if (syntax != null)
@@ -181,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(syntax.Default).ConfigureAwait(false);
                 }
 
-                return null;
+                return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
             private async Task<T> GetFirstDeclaration<T>(ISymbol symbol) where T : SyntaxNode
@@ -198,23 +161,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(EqualsValueClauseSyntax equalsValue)
+            private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                EqualsValueClauseSyntax equalsValue)
             {
                 if (equalsValue != null && equalsValue.Value != null)
                 {
                     var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
-                    if (semanticModel == null)
+                    if (semanticModel != null)
                     {
-                        return null;
+                        return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                            semanticModel, equalsValue.Value.Span,
+                            this.Workspace, cancellationToken: this.CancellationToken).ConfigureAwait(false);
                     }
-
-                    var classifications = Classifier.GetClassifiedSpans(semanticModel, equalsValue.Value.Span, this.Workspace, this.CancellationToken);
-
-                    var text = await semanticModel.SyntaxTree.GetTextAsync(this.CancellationToken).ConfigureAwait(false);
-                    return ConvertClassifications(text, classifications);
                 }
 
-                return null;
+                return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
             protected override void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position)

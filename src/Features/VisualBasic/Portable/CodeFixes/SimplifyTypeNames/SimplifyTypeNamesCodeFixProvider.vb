@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
@@ -22,7 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Get
                 Return ImmutableArray.Create(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.RemoveQualificationDiagnosticId)
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId)
             End Get
         End Property
 
@@ -52,12 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim diagnosticId As String = Nothing
-            Dim node = GetNodeToSimplify(root, model, span, document.Options, diagnosticId, cancellationToken)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim node = GetNodeToSimplify(root, model, span, documentOptions, diagnosticId, cancellationToken)
             If node Is Nothing Then
                 Return
             End If
 
-            Dim id = GetCodeActionId(diagnosticId, node.ToString())
+            Dim id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString())
             Dim title = id
             context.RegisterCodeFix(
                 New SimplifyTypeNameCodeAction(
@@ -70,13 +73,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Friend Shared Function GetCodeActionId(simplifyDiagnosticId As String, nodeText As String) As String
             Select Case simplifyDiagnosticId
                 Case IDEDiagnosticIds.SimplifyNamesDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyName, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
 
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyMemberAccess, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
-                    Return VBFeaturesResources.RemoveMeQualification
+                    Return VBFeaturesResources.Remove_Me_qualification
+
+                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId 'TODO use dedicated resource strings?
+                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
+
+                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
+                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable

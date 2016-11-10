@@ -6,8 +6,8 @@
 '-----------------------------------------------------------------------------------------------------------
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Public Function WithAdditionalDiagnostics(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray diagnostics As DiagnosticInfo()) As TNode
+        Public Function WithAdditionalDiagnostics(Of TNode As GreenNode)(node As TNode, ParamArray diagnostics As DiagnosticInfo()) As TNode
             Dim current As DiagnosticInfo() = node.GetDiagnostics
             If current IsNot Nothing Then
                 Return DirectCast(node.SetDiagnostics(current.Concat(diagnostics).ToArray()), TNode)
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Public Function WithDiagnostics(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray diagnostics As DiagnosticInfo()) As TNode
+        Public Function WithDiagnostics(Of TNode As GreenNode)(node As TNode, ParamArray diagnostics As DiagnosticInfo()) As TNode
             Return DirectCast(node.SetDiagnostics(diagnostics), TNode)
         End Function
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If trailingTriviaNode Is Nothing Then
                 Return Nothing
             End If
-            Return New SyntaxList(Of VisualBasicSyntaxNode)(trailingTriviaNode).Last
+            Return New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTriviaNode).Last
         End Function
 
         <Extension()>
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "AddLeading"
         ' Add "trivia" as a leading trivia of node. If node is not a token, traverses down to the tree to add it to the first token.
         <Extension()>
-        Private Function AddLeadingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
+        Private Function AddLeadingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If
@@ -126,10 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Add "unexpected" as skipped leading trivia to "node". Leaves any diagnostics in place, and also adds a diagnostic with code "errorId"
         ' to the first token in the list.
         <Extension()>
-        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxList(Of SyntaxToken), errorId As ERRID) As TSyntax
+        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As CoreInternalSyntax.SyntaxList(Of GreenNode), errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
             If unexpected.Node IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected.Node,
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected.Node,
                                                                               preserveDiagnostics:=True,
                                                                               addDiagnosticToFirstTokenOnly:=True,
                                                                               addDiagnostic:=diagnostic)
@@ -149,17 +149,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Add "unexpected" as skipped leading trivia of "node". Leaves any diagnostics in place (possibly reattaching them to the created trivia node).
         <Extension()>
-        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxList(Of SyntaxToken)) As TSyntax
+        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As CoreInternalSyntax.SyntaxList(Of SyntaxToken)) As TSyntax
             Return node.AddLeadingSyntax(unexpected.Node)
         End Function
 
         ' Add "unexpected" as skipped leading trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
         ' a new diagnostic with the given "errorId".
         <Extension()>
-        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode, errorId As ERRID) As TSyntax
+        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As GreenNode, errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
             If unexpected IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
                                                                               preserveDiagnostics:=False,
                                                                               addDiagnosticToFirstTokenOnly:=False,
                                                                               addDiagnostic:=diagnostic)
@@ -172,9 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Add "unexpected" as skipped leading trivia of "node". Leaves any diagnostics in place (possibly reattaching them to the created trivia node).
         <Extension()>
-        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode) As TSyntax
+        Friend Function AddLeadingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As GreenNode) As TSyntax
             If unexpected IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
                                                                               preserveDiagnostics:=True,
                                                                               addDiagnosticToFirstTokenOnly:=False,
                                                                               addDiagnostic:=Nothing)
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "AddTrailing"
         ' Add "trivia" as a trailing trivia of node. If node is not a token, traverses down to the tree to add it to the last token.
         <Extension()>
-        Friend Function AddTrailingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
+        Friend Function AddTrailingTrivia(Of TSyntax As GreenNode)(node As TSyntax, trivia As CoreInternalSyntax.SyntaxList(Of GreenNode)) As TSyntax
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If
@@ -208,10 +208,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Add "unexpected" as skipped trailing trivia to "node". Leaves any diagnostics in place, and also adds a diagnostic with code "errorId"
         ' to the first token in the list.
         <Extension()>
-        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxList(Of SyntaxToken), errorId As ERRID) As TSyntax
+        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As CoreInternalSyntax.SyntaxList(Of SyntaxToken), errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
             If unexpected.Node IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected.Node,
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected.Node,
                                                                                   preserveDiagnostics:=True,
                                                                                   addDiagnosticToFirstTokenOnly:=True,
                                                                                   addDiagnostic:=diagnostic)
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Add "unexpected" as skipped trailing trivia of "node". Leaves any diagnostics in place (possibly reattaching them to the created trivia node).
         <Extension()>
-        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As SyntaxList(Of SyntaxToken)) As TSyntax
+        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As CoreInternalSyntax.SyntaxList(Of SyntaxToken)) As TSyntax
             Return node.AddTrailingSyntax(unexpected.Node)
         End Function
 
@@ -244,10 +244,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Add "unexpected" as skipped trailing trivia of "node". Removes all diagnostics from "unexpected", replacing them with 
         ' a new diagnostic with the given "errorId".
         <Extension()>
-        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode, errorId As ERRID) As TSyntax
+        Friend Function AddTrailingSyntax(Of TSyntax As GreenNode)(node As TSyntax, unexpected As GreenNode, errorId As ERRID) As TSyntax
             Dim diagnostic = ErrorFactory.ErrorInfo(errorId)
             If unexpected IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected,
                                                                preserveDiagnostics:=False,
                                                                addDiagnosticToFirstTokenOnly:=False,
                                                                addDiagnostic:=diagnostic)
@@ -260,9 +260,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Add "unexpected" as skipped trailing trivia of "node". Leaves any diagnostics in place (possibly reattaching them to the created trivia node).
         <Extension()>
-        Friend Function AddTrailingSyntax(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, unexpected As VisualBasicSyntaxNode) As TSyntax
+        Friend Function AddTrailingSyntax(Of TSyntax As GreenNode)(node As TSyntax, unexpected As GreenNode) As TSyntax
             If unexpected IsNot Nothing Then
-                Dim trivia As SyntaxList(Of VisualBasicSyntaxNode) = CreateSkippedTrivia(unexpected, preserveDiagnostics:=True, addDiagnosticToFirstTokenOnly:=False, addDiagnostic:=Nothing)
+                Dim trivia As CoreInternalSyntax.SyntaxList(Of GreenNode) = CreateSkippedTrivia(unexpected, preserveDiagnostics:=True, addDiagnosticToFirstTokenOnly:=False, addDiagnostic:=Nothing)
                 Return AddTrailingTrivia(node, trivia)
             End If
             Return node
@@ -276,12 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
         <Extension()>
-        Friend Function GetStartOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function GetStartOfTrivia(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Return trivia.GetStartOfTrivia(trivia.GetIndexOfEndOfTrivia())
         End Function
 
         <Extension()>
-        Friend Function GetStartOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode), indexOfEnd As Integer) As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function GetStartOfTrivia(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), indexOfEnd As Integer) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             If indexOfEnd = 0 Then
                 Return Nothing
             ElseIf indexOfEnd = trivia.Count Then
@@ -296,12 +296,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Friend Function GetEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function GetEndOfTrivia(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             Return trivia.GetEndOfTrivia(trivia.GetIndexOfEndOfTrivia())
         End Function
 
         <Extension()>
-        Friend Function GetEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode), indexOfEnd As Integer) As SyntaxList(Of VisualBasicSyntaxNode)
+        Friend Function GetEndOfTrivia(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), indexOfEnd As Integer) As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
             If indexOfEnd = 0 Then
                 Return trivia
             ElseIf indexOfEnd = trivia.Count Then
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' sets of trivia. The valid trivia (following skipped tokens)
         ''' of one must be contained in the valid trivia of the other. 
         ''' </summary>
-        Friend Function GetLengthOfCommonEnd(trivia1 As SyntaxList(Of VisualBasicSyntaxNode), trivia2 As SyntaxList(Of VisualBasicSyntaxNode)) As Integer
+        Friend Function GetLengthOfCommonEnd(trivia1 As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), trivia2 As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As Integer
             Dim n1 = trivia1.Count
             Dim n2 = trivia2.Count
             Dim offset1 = trivia1.GetIndexAfterLastSkippedToken()
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         <Extension()>
-        Private Function GetIndexAfterLastSkippedToken(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As Integer
+        Private Function GetIndexAfterLastSkippedToken(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As Integer
             Dim n = trivia.Count
             For i = n - 1 To 0 Step -1
                 If trivia(i).Kind = SyntaxKind.SkippedTokensTrivia Then
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' (colon or EOL) from the end, ignoring EOLs preceded by line continuations.
         ''' </summary>
         <Extension()>
-        Private Function GetIndexOfEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As Integer
+        Private Function GetIndexOfEndOfTrivia(trivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)) As Integer
             Dim n = trivia.Count
             If n > 0 Then
                 Dim i = n - 1
@@ -404,12 +404,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "Skipped trivia creation"
         ' In order to handle creating SkippedTokens trivia correctly, we need to know if any structured
         ' trivia is present in a trivia list (because structured trivia can't contain structured trivia). 
-        Private Function TriviaListContainsStructuredTrivia(triviaList As VisualBasicSyntaxNode) As Boolean
+        Private Function TriviaListContainsStructuredTrivia(triviaList As GreenNode) As Boolean
             If triviaList Is Nothing Then
                 Return False
             End If
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(triviaList)
+            Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(triviaList)
 
             For i = 0 To trivia.Count - 1
                 Select Case trivia.ItemUntyped(i).RawKind
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' as many consecutive tokens as possible into a SkippedTokens trivia node.
         Private Class SkippedTriviaBuilder
             ' Maintain the list of trivia that we're accumulating.
-            Private _triviaListBuilder As SyntaxListBuilder(Of VisualBasicSyntaxNode) = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
+            Private _triviaListBuilder As SyntaxListBuilder(Of GreenNode) = SyntaxListBuilder(Of GreenNode).Create()
 
             ' Maintain a list of tokens we're accumulating to put into a SkippedNodes trivia.
             Private _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
@@ -452,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private _diagnosticsToAdd As IEnumerable(Of DiagnosticInfo)
 
             ' Add a trivia to the trivia we are accumulating.
-            Private Sub AddTrivia(trivia As VisualBasicSyntaxNode)
+            Private Sub AddTrivia(trivia As GreenNode)
                 FinishInProgressTokens()
                 _triviaListBuilder.AddRange(trivia)
             End Sub
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' don't do anything.
             Private Sub FinishInProgressTokens()
                 If _skippedTokensBuilder.Count > 0 Then
-                    Dim skippedTokensTrivia As VisualBasicSyntaxNode = SyntaxFactory.SkippedTokensTrivia(_skippedTokensBuilder.ToList())
+                    Dim skippedTokensTrivia As GreenNode = SyntaxFactory.SkippedTokensTrivia(_skippedTokensBuilder.ToList())
 
                     If _diagnosticsToAdd IsNot Nothing Then
                         For Each d In _diagnosticsToAdd
@@ -498,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     token = token.WithoutDiagnostics()
                 End If
 
-                Dim trailingTrivia As VisualBasicSyntaxNode = Nothing
+                Dim trailingTrivia As GreenNode = Nothing
 
                 If token.HasTrailingTrivia() AndAlso (isLast OrElse isMissing OrElse TriviaListContainsStructuredTrivia(token.GetTrailingTrivia())) Then
                     trailingTrivia = token.GetTrailingTrivia()
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
 
             ' Get the final list of trivia nodes we should attached.
-            Public Function GetTriviaList() As SyntaxList(Of VisualBasicSyntaxNode)
+            Public Function GetTriviaList() As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)
                 FinishInProgressTokens()
                 If _diagnosticsToAdd IsNot Nothing AndAlso _diagnosticsToAdd.Any() Then
                     ' Still have diagnostics. Add to the last item.
@@ -554,11 +554,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '   "addDiagnostic", if not Nothing, is added as a diagnostics
         '   "addDiagnosticsToFirstTokenOnly" means that "addDiagnostics" is attached only to the first token, otherwise
         '    it is attached to all tokens.
-        Private Function CreateSkippedTrivia(node As VisualBasicSyntaxNode,
+        Private Function CreateSkippedTrivia(node As GreenNode,
                                              preserveDiagnostics As Boolean,
                                              addDiagnosticToFirstTokenOnly As Boolean,
-                                             addDiagnostic As DiagnosticInfo) As SyntaxList(Of VisualBasicSyntaxNode)
-            If node.Kind = SyntaxKind.SkippedTokensTrivia Then
+                                             addDiagnostic As DiagnosticInfo) As CoreInternalSyntax.SyntaxList(Of GreenNode)
+            If node.RawKind = SyntaxKind.SkippedTokensTrivia Then
                 ' already skipped trivia
                 If addDiagnostic IsNot Nothing Then
                     node = node.AddError(addDiagnostic)
@@ -570,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim diagnostics As IList(Of DiagnosticInfo) = New List(Of DiagnosticInfo)
             Dim tokenListBuilder = SyntaxListBuilder(Of SyntaxToken).Create
 
-            node.CollectConstituentTokensAndDiagnostics(tokenListBuilder, diagnostics)
+            CollectConstituentTokensAndDiagnostics(node, tokenListBuilder, diagnostics)
 
             ' Adjust diagnostics based on input.
             If Not preserveDiagnostics Then
@@ -592,16 +592,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return skippedTriviaBuilder.GetTriviaList()
         End Function
 
+        ''' <summary>
+        ''' Add all the tokens in this node and children to the build token list builder. While doing this, add any
+        ''' diagnostics not on tokens to the given diagnostic info list.
+        ''' </summary>
+        Friend Sub CollectConstituentTokensAndDiagnostics(
+                this As GreenNode,
+                tokenListBuilder As SyntaxListBuilder(Of SyntaxToken),
+                nonTokenDiagnostics As IList(Of DiagnosticInfo))
+            If this Is Nothing Then
+                Return
+            End If
+
+            If this.IsToken Then
+                tokenListBuilder.Add(DirectCast(this, SyntaxToken))
+                Return
+            End If
+
+            ' Add diagnostics.
+            Dim diagnostics As DiagnosticInfo() = this.GetDiagnostics()
+            If diagnostics IsNot Nothing AndAlso diagnostics.Length > 0 Then
+                For Each diag In diagnostics
+                    nonTokenDiagnostics.Add(diag)
+                Next
+            End If
+
+            ' Recurse to subtrees.
+            For i = 0 To this.SlotCount() - 1
+                Dim green = this.GetSlot(i)
+                If green IsNot Nothing Then
+                    CollectConstituentTokensAndDiagnostics(green, tokenListBuilder, nonTokenDiagnostics)
+                End If
+            Next
+        End Sub
+
 #End Region
 
 #Region "Whitespace Containment"
         <Extension()>
-        Friend Function ContainsWhitespaceTrivia(this As VisualBasicSyntaxNode) As Boolean
+        Friend Function ContainsWhitespaceTrivia(this As GreenNode) As Boolean
             If this Is Nothing Then
                 Return False
             End If
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(this)
+            Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this)
 
             For i = 0 To trivia.Count - 1
                 Dim kind = trivia.ItemUntyped(i).RawKind
@@ -617,12 +651,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
         <Extension()>
-        Friend Function ContainsCommentTrivia(this As VisualBasicSyntaxNode) As Boolean
+        Friend Function ContainsCommentTrivia(this As GreenNode) As Boolean
             If this Is Nothing Then
                 Return False
             End If
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(this)
+            Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(this)
 
             For i = 0 To trivia.Count - 1
                 Dim kind = trivia.ItemUntyped(i).RawKind

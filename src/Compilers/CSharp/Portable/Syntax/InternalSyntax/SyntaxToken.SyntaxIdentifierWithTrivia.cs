@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal class SyntaxIdentifierWithTrivia : SyntaxIdentifierExtended
         {
-            private readonly CSharpSyntaxNode _leading;
-            private readonly CSharpSyntaxNode _trailing;
+            private readonly GreenNode _leading;
+            private readonly GreenNode _trailing;
 
             internal SyntaxIdentifierWithTrivia(
                 SyntaxKind contextualKind,
                 string text,
                 string valueText,
-                CSharpSyntaxNode leading,
-                CSharpSyntaxNode trailing)
+                GreenNode leading,
+                GreenNode trailing)
                 : base(contextualKind, text, valueText)
             {
                 if (leading != null)
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind contextualKind,
                 string text,
                 string valueText,
-                CSharpSyntaxNode leading,
-                CSharpSyntaxNode trailing,
+                GreenNode leading,
+                GreenNode trailing,
                 DiagnosticInfo[] diagnostics,
                 SyntaxAnnotation[] annotations)
                 : base(contextualKind, text, valueText, diagnostics, annotations)
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal SyntaxIdentifierWithTrivia(ObjectReader reader)
                 : base(reader)
             {
-                var leading = (CSharpSyntaxNode)reader.ReadValue();
+                var leading = (GreenNode)reader.ReadValue();
                 if (leading != null)
                 {
                     this.AdjustFlagsAndWidth(leading);
                     _leading = leading;
                 }
-                var trailing = (CSharpSyntaxNode)reader.ReadValue();
+                var trailing = (GreenNode)reader.ReadValue();
                 if (trailing != null)
                 {
                     _trailing = trailing;
@@ -83,22 +83,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 writer.WriteValue(_trailing);
             }
 
-            public override CSharpSyntaxNode GetLeadingTrivia()
+            public override GreenNode GetLeadingTrivia()
             {
                 return _leading;
             }
 
-            public override CSharpSyntaxNode GetTrailingTrivia()
+            public override GreenNode GetTrailingTrivia()
             {
                 return _trailing;
             }
 
-            internal override SyntaxToken WithLeadingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
             {
                 return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
             }
 
-            internal override SyntaxToken WithTrailingTrivia(CSharpSyntaxNode trivia)
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
             {
                 return new SyntaxIdentifierWithTrivia(this.contextualKind, this.TextField, this.valueText, _leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
             }

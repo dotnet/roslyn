@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -49,36 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingType.Arity;
             }
-        }
-
-        public override abstract ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get;
-        }
-
-        internal override abstract ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
-        {
-            get;
-        }
-
-        internal override abstract bool HasTypeArgumentsCustomModifiers
-        {
-            get;
-        }
-
-        internal override abstract ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get;
-        }
-
-        public override abstract NamedTypeSymbol ConstructedFrom
-        {
-            get;
-        }
-
-        public override abstract NamedTypeSymbol EnumUnderlyingType
-        {
-            get;
         }
 
         public override bool MightContainExtensionMethods
@@ -126,33 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        public override abstract IEnumerable<string> MemberNames
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<Symbol> GetMembers();
-
-        public override abstract ImmutableArray<Symbol> GetMembers(string name);
-
-        internal override abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
-
-        internal override abstract IEnumerable<MethodSymbol> GetMethodsToEmit();
-
-        internal override abstract IEnumerable<PropertySymbol> GetPropertiesToEmit();
-
-        internal override abstract IEnumerable<EventSymbol> GetEventsToEmit();
-
-        internal override abstract ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers();
-
-        internal override abstract ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name);
-
-        public override abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers();
-
-        public override abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
-
-        public override abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
-
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -175,11 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingType.IsInterface;
             }
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
         }
 
         public override ImmutableArray<Location> Locations
@@ -236,33 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingType.IsMetadataSealed;
             }
-        }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
-
-        internal override abstract IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState);
-
-        internal override abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get;
-        }
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved);
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit();
-
-        internal override abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved);
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved);
-
-        internal override abstract NamedTypeSymbol ComImportCoClass
-        {
-            get;
-        }
-
-        internal override abstract bool IsComImport
-        {
-            get;
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData

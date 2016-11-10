@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.SymbolDisplay;
@@ -8,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor<SemanticModel>
+    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
         private readonly bool _escapeKeywordIdentifiers;
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> _lazyAliasMap;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor<SemanticModel> MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor()
         {
             return new SymbolDisplayVisitor(
                 this.builder,
@@ -263,32 +262,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (containingType == null ||
                  (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
             {
-                switch (symbol.DeclaredAccessibility)
-                {
-                    case Accessibility.Private:
-                        AddKeyword(SyntaxKind.PrivateKeyword);
-                        break;
-                    case Accessibility.Internal:
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.ProtectedAndInternal:
-                    case Accessibility.Protected:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        break;
-                    case Accessibility.ProtectedOrInternal:
-                        AddKeyword(SyntaxKind.ProtectedKeyword);
-                        AddSpace();
-                        AddKeyword(SyntaxKind.InternalKeyword);
-                        break;
-                    case Accessibility.Public:
-                        AddKeyword(SyntaxKind.PublicKeyword);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
-                }
-
-                AddSpace();
+                AddAccessibility(symbol);
             }
+        }
+
+        private void AddAccessibility(ISymbol symbol)
+        {
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Private:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    break;
+                case Accessibility.Internal:
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.Protected:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.ProtectedOrInternal:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.Public:
+                    AddKeyword(SyntaxKind.PublicKeyword);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+            }
+
+            AddSpace();
         }
 
         private bool ShouldVisitNamespace(ISymbol containingSymbol)

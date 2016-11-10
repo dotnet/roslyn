@@ -1,208 +1,525 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpAutomaticBraceCompletion : IDisposable
+    public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     {
-        private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly Workspace _workspace;
-        private readonly Solution _solution;
-        private readonly Project _project;
-        private readonly EditorWindow _editorWindow;
+        protected override string LanguageName => LanguageNames.CSharp;
 
         public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpAutomaticBraceCompletion))
         {
-            _visualStudio = instanceFactory.GetNewOrUsedInstance();
-
-            _solution = _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpAutomaticBraceCompletion));
-            _project = _solution.AddProject("TestProj", ProjectTemplate.ClassLibrary, ProjectLanguage.CSharp);
-
-            _workspace = _visualStudio.Instance.Workspace;
-            _workspace.UseSuggestionMode = false;
-
-            _editorWindow = _visualStudio.Instance.EditorWindow;
         }
 
-        public void Dispose()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionAndTabCompleting()
         {
-            _visualStudio.Dispose();
-        }
-
-        [Fact]
-        public async Task BracesInsertionAndTabCompleting()
-        {
-            _editorWindow.Text = @"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
-        // Marker
+        $$
     }
-}";
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys("if (true) {");
+            VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
-            await _editorWindow.TypeTextAsync("if (true) {");
-            
-            Assert.Equal("        if (true) { ", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal("}", _editorWindow.CurrentLineTextAfterCursor);
-
-            await _editorWindow.TypeTextAsync($"{EditorWindow.TAB}");
-
-            Assert.Equal("        if (true) { }", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
+            SendKeys(VirtualKey.Tab);
+            VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task BracesOvertyping()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping()
         {
-            _editorWindow.Text = @"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
-        // Marker
+        $$
     }
-}";
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys("if (true) {");
+            VerifyCurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
-            await _editorWindow.TypeTextAsync("if (true) {");
-            await _editorWindow.TypeTextAsync("}");
-
-            Assert.Equal("        if (true) { }", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
+            SendKeys("}");
+            VerifyCurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task BracesOnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
-            _editorWindow.Text = @"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
-        // Marker
+        $$
     }
-}";
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys(
+                "if (true) {",
+                VirtualKey.Enter,
+                "var a = 1;");
 
-            await _editorWindow.TypeTextAsync("if (true) {");
-            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
-            await _editorWindow.TypeTextAsync("var a = 1;");
-
-            Assert.Equal("            var a = 1;", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
+            VerifyTextContains(@"
+class C {
+    void Foo() {
+        if (true)
+        {
+            var a = 1;$$
+        }
+    }
+}",
+assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task BracesOnReturnOvertypingTheClosingBrace()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnOvertypingTheClosingBrace()
         {
-            _editorWindow.Text = @"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
-        // Marker
+        $$
     }
-}";
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys(
+                "if (true) {",
+                VirtualKey.Enter,
+                "var a = 1;",
+                '}');
 
-            await _editorWindow.TypeTextAsync("if (true) {");
-            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
-            await _editorWindow.TypeTextAsync("var a = 1;}");
-
-            Assert.Equal("        }", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
-
-            Assert.Contains(@"if (true)
+            VerifyTextContains(@"
+class C {
+    void Foo() {
+        if (true)
         {
             var a = 1;
-        }
-", _editorWindow.Text);
+        }$$
+    }
+}",
+assertCaretPosition: true);
         }
 
-        [Fact]
         [WorkItem(653540, "DevDiv")]
-        public async Task BracesOnReturnWithNonWhitespaceSpanInside()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_OnReturnWithNonWhitespaceSpanInside()
         {
-            _editorWindow.Text = string.Empty;
+            SendKeys(
+                "class A { int i;",
+                VirtualKey.Enter);
 
-            await _editorWindow.TypeTextAsync("class A { int i;");
-            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
-
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal("}", _editorWindow.CurrentLineTextAfterCursor);
-
-            Assert.Contains(@"class A { int i;
-}", _editorWindow.Text);
+            VerifyTextContains(@"class A { int i;
+$$}",
+assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task ParenInsertionAndTabCompleting()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Paren_InsertionAndTabCompleting()
         {
-            _editorWindow.Text = @"class C {
-    //Marker
-}";
+            SetUpEditor(@"
+class C {
+    $$
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys("void Foo(");
+            VerifyCurrentLineText("void Foo($$)", assertCaretPosition: true);
 
-            await _editorWindow.TypeTextAsync("void Foo(");
-
-            Assert.Equal("    void Foo(", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(")", _editorWindow.CurrentLineTextAfterCursor);
-
-            await _editorWindow.TypeTextAsync("int x");
-            await _editorWindow.TypeTextAsync($"{EditorWindow.TAB}");
-
-            Assert.Equal("    void Foo(int x)", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
+            SendKeys("int x", VirtualKey.Tab);
+            VerifyCurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task ParenOvertyping()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Paren_Overtyping()
         {
-            _editorWindow.Text = @"class C {
-    //Marker
-}";
+            SetUpEditor(@"
+class C {
+    $$
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys(
+                "void Foo(",
+                VirtualKey.Escape,
+                ")");
 
-            await _editorWindow.TypeTextAsync("void Foo(");
-            await _editorWindow.TypeTextAsync($"{EditorWindow.ESC}");
-            await _editorWindow.TypeTextAsync(")");
-
-            Assert.Equal("    void Foo()", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(")", _editorWindow.CurrentLineTextAfterCursor);
+            VerifyCurrentLineText("void Foo()$$", assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task SquareBracketInsertion()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SquareBracket_Insertion()
         {
-            _editorWindow.Text = @"class C {
-    //Marker
-}";
+            SetUpEditor(@"
+class C {
+    $$
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
-
-            await _editorWindow.TypeTextAsync("int [");
-
-            Assert.Equal("    int [", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal("]", _editorWindow.CurrentLineTextAfterCursor);
+            SendKeys("int [");
+            VerifyCurrentLineText("int [$$]", assertCaretPosition: true);
         }
 
-        [Fact]
-        public async Task SquareBracketOvertyping()
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SquareBracket_Overtyping()
         {
-            _editorWindow.Text = @"class C {
-    //Marker
-}";
+            SetUpEditor(@"
+class C {
+    $$
+}");
 
-            _editorWindow.PlaceCursor("// Marker");
+            SendKeys("int [", ']');
+            VerifyCurrentLineText("int []$$", assertCaretPosition: true);
+        }
 
-            await _editorWindow.TypeTextAsync("int [");
-            await _editorWindow.TypeTextAsync("]");
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_InsertionAndTabCompletion()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
 
-            Assert.Equal("    int []", _editorWindow.CurrentLineTextBeforeCursor);
-            Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
+            SendKeys("string str = \"", VirtualKey.Tab);
+            VerifyCurrentLineText("string str = \"\"$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoubleQuote_InsertionAndOvertyping()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            SendKeys("string str = \"Hi Roslyn!", '"');
+            VerifyCurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AngleBracket_PossibleGenerics_InsertionAndCompletion()
+        {
+            SetUpEditor(@"
+class C {
+    //field
+    $$
+}");
+
+            SendKeys("System.Action<", VirtualKey.Tab);
+            VerifyCurrentLineText("System.Action<>$$", assertCaretPosition: true);
+
+            SetUpEditor(@"
+class C {
+    //method decl
+    $$
+}");
+
+            SendKeys("void GenericMethod<", VirtualKey.Tab);
+            VerifyCurrentLineText("void GenericMethod<>$$", assertCaretPosition: true);
+
+            SetUpEditor(@"
+class C {
+    //delegate
+    $$
+}");
+
+            SendKeys("delegate void Del<");
+            VerifyCurrentLineText("delegate void Del<$$>", assertCaretPosition: true);
+
+            SetUpEditor(@"
+//using directive
+$$
+");
+
+            SendKeys("using ActionOfT = System.Action<");
+            VerifyCurrentLineText("using ActionOfT = System.Action<$$>", assertCaretPosition: true);
+
+            SetUpEditor(@"
+//class
+$$
+");
+
+            SendKeys("class GenericClass<", '>');
+            VerifyCurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SingleQuote_InsertionAndCompletion()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            SendKeys("char c = '");
+            VerifyCurrentLineText("char c = '$$'", assertCaretPosition: true);
+
+            SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
+            SendKeys("'\u6666", "'");
+
+            VerifyCurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Nested_AllKinds()
+        {
+            SetUpEditor(@"
+class Bar<U>
+{
+    T Foo<T>(T t) { return t; }
+    void M()
+    {
+        $$
+    }
+}");
+
+            SendKeys(
+                "var arr=new object[,]{{Foo(0",
+                VirtualKey.Tab,
+                VirtualKey.Tab,
+                ",{Foo(Foo(\"hello",
+                VirtualKey.Tab,
+                VirtualKey.Tab,
+                VirtualKey.Tab,
+                VirtualKey.Tab,
+                VirtualKey.Tab,
+                ';');
+
+            VerifyCurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInSingleLineComments()
+        {
+            SetUpEditor(@"
+class C {
+    // $$
+}");
+
+            SendKeys("{([\"'");
+            VerifyCurrentLineText("// {([\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInMultiLineComments()
+        {
+            SetUpEditor(@"
+class C {
+    /*
+     $$
+    */
+}");
+
+            SendKeys("{([\"'");
+            VerifyCurrentLineText("{([\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionStringVerbatimStringOrCharLiterals()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            SendKeys("string s = \"{([<'");
+            VerifyCurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
+
+            SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+
+            SendKeys("string y = @\"{([<'");
+            VerifyCurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
+
+            SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+
+            SendKeys("char ch = '{([<\"");
+            VerifyCurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInXmlDocComments()
+        {
+            SetUpEditor(@"
+$$
+class C { }");
+
+            SendKeys(
+                "///",
+                "{([<\"'");
+
+            VerifyCurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionInDisabledPreprocesser()
+        {
+            SetUpEditor(@"
+class C {
+#if false
+$$
+#endif
+}");
+
+            SendKeys("void Foo(");
+            VerifyCurrentLineText("void Foo($$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterRegionPreprocesser()
+        {
+            SetUpEditor(@"
+#region $$
+
+#endregion
+");
+
+            SendKeys("{([<\"'");
+            VerifyCurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterEndregionPreprocesser()
+        {
+            SetUpEditor(@"
+#region
+
+#endregion $$
+");
+
+            SendKeys("{([<\"'");
+            VerifyCurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterIfPreprocesser()
+        {
+            SetUpEditor(@"
+#if $$
+");
+
+            SendKeys("{([<\"'");
+            VerifyCurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Negative_NoCompletionAfterPragmaPreprocesser()
+        {
+            SetUpEditor(@"
+#pragma $$
+");
+
+            SendKeys("{([<\"'");
+            VerifyCurrentLineText("#pragma {([<\"'$$", assertCaretPosition: true);
+        }
+
+        [WorkItem(651954, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void InteractionWithOverrideStubGeneration()
+        {
+            SetUpEditor(@"
+class A
+{
+    public virtual void Foo() { }
+}
+class B : A
+{
+    // type ""override Foo(""
+    $$
+}
+");
+
+            SendKeys("override Foo(");
+
+            VerifyTextContains(@"
+class B : A
+{
+    // type ""override Foo(""
+    public override void Foo()
+    {
+        base.Foo();
+    }
+}");
+        }
+
+        [WorkItem(531107, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void InteractionWithCompletionList()
+        {
+            SetUpEditor(@"
+using System.Collections.Generic;
+class C 
+{
+    void M()
+    {
+        List<int> li = $$
+    }
+}
+");
+
+            SendKeys("new Li(", VirtualKey.Tab);
+            VerifyCurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteDoesNotFormatBracePairInInitializers()
+        {
+            SetUpEditor(@"
+class C 
+{
+    void M()
+    {
+        var x = $$
+    }
+}
+");
+
+            SendKeys("new int[]{");
+            VerifyCurrentLineText("var x = new int[] {$$}", assertCaretPosition: true);
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression()
+        {
+            SetUpEditor(@"
+class C 
+{
+    void M()
+    {
+        var x = $$
+    }
+}
+");
+
+            SendKeys("new {");
+            VerifyCurrentLineText("var x = new {$$}", assertCaretPosition: true);
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty()
+        {
+            SetUpEditor(@"
+class $$
+");
+
+            SendKeys("C{");
+            VerifyCurrentLineText("class C { $$}", assertCaretPosition: true);
+
+            SendKeys(
+                VirtualKey.Enter,
+                "int Prop {");
+
+            VerifyTextContains(@"
+class C
+{
+    int Prop { $$}
+}",
+assertCaretPosition: true);
         }
     }
 }

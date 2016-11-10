@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -92,7 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // and even if that happens, it will be just a perf hit
             if (_fileChangeCookie != s_none)
             {
-                Marshal.ThrowExceptionForHR(_fileChangeService.UnadviseFileChange(_fileChangeCookie.Value));
+                var hr = _fileChangeService.UnadviseFileChange(_fileChangeCookie.Value);
+
+                // Verify if the file still exists before reporting the unadvise failure.
+                // This is a workaround for VSO #248774
+                if (hr != VSConstants.S_OK && File.Exists(_filePath))
+                {
+                    Marshal.ThrowExceptionForHR(hr);
+                }
+
                 _fileChangeCookie = s_none;
             }
         }

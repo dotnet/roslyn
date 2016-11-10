@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -210,36 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
         {
-            var diagnosticIds = fixAllState.DiagnosticIds;
-            string diagnosticId;
-            if (diagnosticIds.Count() == 1)
-            {
-                diagnosticId = diagnosticIds.Single();
-            }
-            else
-            {
-                diagnosticId = string.Join(",", diagnosticIds.ToArray());
-            }
-
-            switch (fixAllState.Scope)
-            {
-                case FixAllScope.Custom:
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnostic, diagnosticId);
-
-                case FixAllScope.Document:
-                    var document = fixAllState.Document;
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInScope, diagnosticId, document.Name);
-
-                case FixAllScope.Project:
-                    var project = fixAllState.Project;
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInScope, diagnosticId, project.Name);
-
-                case FixAllScope.Solution:
-                    return string.Format(WorkspacesResources.FixAllOccurrencesOfDiagnosticInSolution, diagnosticId);
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
+            return fixAllState.GetDefaultFixAllTitle();
         }
 
         public virtual async Task<Solution> TryMergeFixesAsync(

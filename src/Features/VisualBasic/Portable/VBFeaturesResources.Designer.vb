@@ -62,177 +62,145 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to AddHandler statement.
+        '''  Looks up a localized string similar to {0} function.
         '''</summary>
-        Friend ReadOnly Property AddhandlerStatement() As String
+        Friend ReadOnly Property _0_function() As String
             Get
-                Return ResourceManager.GetString("AddhandlerStatement", resourceCulture)
+                Return ResourceManager.GetString("_0_function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
+        '''Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using.
+        '''</summary>
+        Friend ReadOnly Property A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using() As String
+            Get
+                Return ResourceManager.GetString("A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the"& _ 
+                        "_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_be"& _ 
+                        "fore_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable"& _ 
+                        "_Using_resource1_bracket_resource2_bracket_End_Using", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
+        '''</summary>
+        Friend ReadOnly Property Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll() As String
+            Get
+                Return ResourceManager.GetString("Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharp"& _ 
+                        "r_myLib_dll", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Me.&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Me() As String
+            Get
+                Return ResourceManager.GetString("Add_Me", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Add Overloads.
         '''</summary>
-        Friend ReadOnly Property AddOverloadsKeyword() As String
+        Friend ReadOnly Property Add_Overloads() As String
             Get
-                Return ResourceManager.GetString("AddOverloadsKeyword", resourceCulture)
+                Return ResourceManager.GetString("Add_Overloads", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Creates a delegate procedure instance that references the specified procedure.
-        '''AddressOf &lt;procedureName&gt;.
+        '''  Looks up a localized string similar to AddHandler statement.
         '''</summary>
-        Friend ReadOnly Property AddressOfKeywordToolTip() As String
+        Friend ReadOnly Property AddHandler_statement() As String
             Get
-                Return ResourceManager.GetString("AddressOfKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("AddHandler_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Adds a conditional test to a Catch statement. Exceptions are caught by that Catch statement only when the conditional test that follows the When keyword evaluates to True..
+        '''</summary>
+        Friend ReadOnly Property Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True() As String
+            Get
+                Return ResourceManager.GetString("Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_"& _ 
+                        "statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates"& _ 
+                        "_to_True", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Aggregate clause.
         '''</summary>
-        Friend ReadOnly Property AggregateClause() As String
+        Friend ReadOnly Property Aggregate_clause() As String
             Get
-                Return ResourceManager.GetString("AggregateClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Applies an aggregation function, such as Sum, Average, or Count to a sequence..
-        '''</summary>
-        Friend ReadOnly Property AggregateQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AggregateQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates that an external procedure has another name in its DLL..
-        '''</summary>
-        Friend ReadOnly Property AliasKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AliasKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Aggregate_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to all static local usages defined in the selection must be included in the selection.
         '''</summary>
-        Friend ReadOnly Property AllStaticLocalUsagesDefine() As String
+        Friend ReadOnly Property all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection() As String
             Get
-                Return ResourceManager.GetString("AllStaticLocalUsagesDefine", resourceCulture)
+                Return ResourceManager.GetString("all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selectio"& _ 
+                        "n", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Performs a short-circuit logical conjunction on two expressions. Returns True if both operands evaluate to True. If the first expression evaluates to False, the second is not evaluated.
-        '''&lt;result&gt; = &lt;expression1&gt; AndAlso &lt;expression2&gt;.
+        '''  Looks up a localized string similar to Applies an aggregation function, such as Sum, Average, or Count to a sequence..
         '''</summary>
-        Friend ReadOnly Property AndAlsoKeywordToolTip() As String
+        Friend ReadOnly Property Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence() As String
             Get
-                Return ResourceManager.GetString("AndAlsoKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Performs a logical conjunction on two Boolean expressions, or a bitwise conjunction on two numeric expressions. For Boolean expressions, returns True if both operands evaluate to True. Both expressions are always evaluated.
-        '''&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;.
-        '''</summary>
-        Friend ReadOnly Property AndKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AndKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default..
-        '''</summary>
-        Friend ReadOnly Property AnsiKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AnsiKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Argument used for ByRef parameter can&apos;t be extracted out.
         '''</summary>
-        Friend ReadOnly Property ArgumentUsedForByrefParame() As String
+        Friend ReadOnly Property Argument_used_for_ByRef_parameter_can_t_be_extracted_out() As String
             Get
-                Return ResourceManager.GetString("ArgumentUsedForByrefParame", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the sort order for an Order By clause in a query. The smallest element will appear first..
-        '''</summary>
-        Friend ReadOnly Property AscendingQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AscendingQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Argument_used_for_ByRef_parameter_can_t_be_extracted_out", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to as clause.
         '''</summary>
-        Friend ReadOnly Property AsClause() As String
+        Friend ReadOnly Property as_clause() As String
             Get
-                Return ResourceManager.GetString("AsClause", resourceCulture)
+                Return ResourceManager.GetString("as_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies a data type in a declaration statement..
+        '''  Looks up a localized string similar to Asynchronously waits for the task to finish..
         '''</summary>
-        Friend ReadOnly Property AsKeywordToolTip() As String
+        Friend ReadOnly Property Asynchronously_waits_for_the_task_to_finish() As String
             Get
-                Return ResourceManager.GetString("AsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that an attribute at the beginning of a source file applies to the entire assembly. Otherwise the attribute will apply only to an individual programming element, such as a class or property..
-        '''</summary>
-        Friend ReadOnly Property AssemblyKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AssemblyKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates an asynchronous method that can use the Await operator..
-        '''</summary>
-        Friend ReadOnly Property AsyncKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AsyncKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Defines an asynchronous lambda expression that can use the Await operator. Can be used wherever a delegate type is expected.
-        '''Async Sub/Function(&lt;parameterList&gt;) &lt;expression&gt;.
-        '''</summary>
-        Friend ReadOnly Property AsyncLambdaKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AsyncLambdaKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Asynchronously_waits_for_the_task_to_finish", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to attributes.
         '''</summary>
-        Friend ReadOnly Property AttributeList() As String
+        Friend ReadOnly Property attributes() As String
             Get
-                Return ResourceManager.GetString("AttributeList", resourceCulture)
+                Return ResourceManager.GetString("attributes", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails..
+        '''  Looks up a localized string similar to Await expression.
         '''</summary>
-        Friend ReadOnly Property AutoKeywordToolTip() As String
+        Friend ReadOnly Property Await_expression() As String
             Get
-                Return ResourceManager.GetString("AutoKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Await_expression", resourceCulture)
             End Get
         End Property
         
@@ -248,327 +216,531 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''<summary>
         '''  Looks up a localized string similar to Awaitable, Extension.
         '''</summary>
-        Friend ReadOnly Property AwaitableExtension() As String
+        Friend ReadOnly Property Awaitable_Extension() As String
             Get
-                Return ResourceManager.GetString("AwaitableExtension", resourceCulture)
+                Return ResourceManager.GetString("Awaitable_Extension", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Await expression.
+        '''  Looks up a localized string similar to Branches unconditionally to a specified line in a procedure..
         '''</summary>
-        Friend ReadOnly Property AwaitExpression() As String
+        Friend ReadOnly Property Branches_unconditionally_to_a_specified_line_in_a_procedure() As String
             Get
-                Return ResourceManager.GetString("AwaitExpression", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Asynchronously waits for the task to finish..
-        '''</summary>
-        Friend ReadOnly Property AwaitKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("AwaitKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Sets the string comparison method specified in Option Compare to a strict binary sort order..
-        '''</summary>
-        Friend ReadOnly Property BinaryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("BinaryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the element keys used for grouping (in Group By) or sort order (in Order By)..
-        '''</summary>
-        Friend ReadOnly Property ByQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ByQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that an argument is passed in such a way that the called procedure can change the underlying value of the argument in the calling code..
-        '''</summary>
-        Friend ReadOnly Property ByRefKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ByRefKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that an argument is passed in such a way that the called procedure or property cannot change the underlying value of the argument in the calling code..
-        '''</summary>
-        Friend ReadOnly Property ByValKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ByValKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Transfers execution to a Function, Sub, or dynamic-link library (DLL) procedure.
-        '''[Call] &lt;procedureName&gt; [(&lt;argumentList&gt;)].
-        '''</summary>
-        Friend ReadOnly Property CallKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("CallKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Branches_unconditionally_to_a_specified_line_in_a_procedure", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to can&apos;t determine valid range of statements to extract out.
         '''</summary>
-        Friend ReadOnly Property CantDetermineValidRangeOf() As String
+        Friend ReadOnly Property can_t_determine_valid_range_of_statements_to_extract_out() As String
             Get
-                Return ResourceManager.GetString("CantDetermineValidRangeOf", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces the statements to run if none of the previous cases in the Select Case statement returns True..
-        '''</summary>
-        Friend ReadOnly Property CaseElseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("CaseElseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Followed by a comparison operator and then an expression, Case Is introduces the statements to run if the Select Case expression combined with the Case Is expression evaluates to True..
-        '''</summary>
-        Friend ReadOnly Property CaseIsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("CaseIsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a value, or set of values, against which the value of an expression in a Select Case statement is to be tested.
-        '''Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}.
-        '''</summary>
-        Friend ReadOnly Property CaseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("CaseKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("can_t_determine_valid_range_of_statements_to_extract_out", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Cast is redundant.
         '''</summary>
-        Friend ReadOnly Property CastIsRedundant() As String
+        Friend ReadOnly Property Cast_is_redundant() As String
             Get
-                Return ResourceManager.GetString("CastIsRedundant", resourceCulture)
+                Return ResourceManager.GetString("Cast_is_redundant", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Catch clause.
         '''</summary>
-        Friend ReadOnly Property CatchClause() As String
+        Friend ReadOnly Property Catch_clause() As String
             Get
-                Return ResourceManager.GetString("CatchClause", resourceCulture)
+                Return ResourceManager.GetString("Catch_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Introduces a statement block to be run if the specified exception occurs inside a Try block..
+        '''  Looks up a localized string similar to Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces..
         '''</summary>
-        Friend ReadOnly Property CatchKeywordToolTip() As String
+        Friend ReadOnly Property Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces() As String
             Get
-                Return ResourceManager.GetString("CatchKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_propert"& _ 
+                        "ies_procedures_and_events_from_another_class_or_set_of_interfaces", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares the name of a class and introduces the definitions of the variables, properties, and methods that make up the class..
+        '''  Looks up a localized string similar to &lt;class name&gt;.
         '''</summary>
-        Friend ReadOnly Property ClassKeywordToolTip() As String
+        Friend ReadOnly Property class_name() As String
             Get
-                Return ResourceManager.GetString("ClassKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("class_name", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
-        '''Option Compare {Binary | Text}.
+        '''  Looks up a localized string similar to Collapses and hides sections of code in Visual Basic files..
         '''</summary>
-        Friend ReadOnly Property CompareKeywordToolTip() As String
+        Friend ReadOnly Property Collapses_and_hides_sections_of_code_in_Visual_Basic_files() As String
             Get
-                Return ResourceManager.GetString("CompareKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Collapses_and_hides_sections_of_code_in_Visual_Basic_files", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Generates a string concatenation of two expressions..
+        '''  Looks up a localized string similar to Combines the elements of two sequences and groups the results. The join operation is based on matching keys..
         '''</summary>
-        Friend ReadOnly Property ConcatKeywordToolTip() As String
+        Friend ReadOnly Property Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_is_based_on_matching_keys() As String
             Get
-                Return ResourceManager.GetString("ConcatKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_"& _ 
+                        "is_based_on_matching_keys", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Combines the elements of two sequences. The join operation is based on matching keys..
+        '''</summary>
+        Friend ReadOnly Property Combines_the_elements_of_two_sequences_The_join_operation_is_based_on_matching_keys() As String
+            Get
+                Return ResourceManager.GetString("Combines_the_elements_of_two_sequences_The_join_operation_is_based_on_matching_ke"& _ 
+                        "ys", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
+        '''&lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;.
+        '''</summary>
+        Friend ReadOnly Property Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_character_and_to_match_0_or_more_characters_result_string_Like_pattern() As String
+            Get
+                Return ResourceManager.GetString("Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_charac"& _ 
+                        "ter_and_to_match_0_or_more_characters_result_string_Like_pattern", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is greater than or equal to the second. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_or_equal_to_the_second_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_or_equal_t"& _ 
+                        "o_the_second_Otherwise_returns_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is greater than the second. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_the_second_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_the_second"& _ 
+                        "_Otherwise_returns_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is less than or equal to the second. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_the_first_is_less_than_or_equal_to_the_second_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_the_first_is_less_than_or_equal_to_t"& _ 
+                        "he_second_Otherwise_returns_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is less than the second. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_the_first_is_less_than_the_second_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_the_first_is_less_than_the_second_Ot"& _ 
+                        "herwise_returns_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if they are equal. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_they_are_equal_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_they_are_equal_Otherwise_returns_Fal"& _ 
+                        "se", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two expressions and returns True if they are not equal. Otherwise, returns False..
+        '''</summary>
+        Friend ReadOnly Property Compares_two_expressions_and_returns_True_if_they_are_not_equal_Otherwise_returns_False() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_expressions_and_returns_True_if_they_are_not_equal_Otherwise_returns"& _ 
+                        "_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two object reference variables and returns True if the objects are equal.
+        '''&lt;result&gt; = &lt;object1&gt; Is &lt;object2&gt;.
+        '''</summary>
+        Friend ReadOnly Property Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_equal_result_object1_Is_object2() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_equal"& _ 
+                        "_result_object1_Is_object2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Compares two object reference variables and returns True if the objects are not equal.
+        '''&lt;result&gt; = &lt;object1&gt; IsNot &lt;object2&gt;.
+        '''</summary>
+        Friend ReadOnly Property Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_not_equal_result_object1_IsNot_object2() As String
+            Get
+                Return ResourceManager.GetString("Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_not_e"& _ 
+                        "qual_result_object1_IsNot_object2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Computes a value for each item in the query, and assigns the value to a new range variable..
+        '''</summary>
+        Friend ReadOnly Property Computes_a_value_for_each_item_in_the_query_and_assigns_the_value_to_a_new_range_variable() As String
+            Get
+                Return ResourceManager.GetString("Computes_a_value_for_each_item_in_the_query_and_assigns_the_value_to_a_new_range_"& _ 
+                        "variable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Conditionally compiles selected blocks of code, depending on the value of an expression..
+        '''</summary>
+        Friend ReadOnly Property Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression() As String
+            Get
+                Return ResourceManager.GetString("Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expre"& _ 
+                        "ssion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Conditionally executes a group of statements, depending on the value of an expression..
+        '''</summary>
+        Friend ReadOnly Property Conditionally_executes_a_group_of_statements_depending_on_the_value_of_an_expression() As String
+            Get
+                Return ResourceManager.GetString("Conditionally_executes_a_group_of_statements_depending_on_the_value_of_an_express"& _ 
+                        "ion", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Conflict(s) detected..
         '''</summary>
-        Friend ReadOnly Property ConflictsDetected() As String
+        Friend ReadOnly Property Conflict_s_detected() As String
             Get
-                Return ResourceManager.GetString("ConflictsDetected", resourceCulture)
+                Return ResourceManager.GetString("Conflict_s_detected", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Defines a conditional compiler constant. Conditional compiler constants are always private to the file in which they appear. The expressions used to initialize them can contain only conditional compiler constants and literals..
+        '''  Looks up a localized string similar to Constrains a generic type parameter to require that any type argument passed to it be a reference type..
         '''</summary>
-        Friend ReadOnly Property ConstCCKeywordToolTip() As String
+        Friend ReadOnly Property Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_reference_type() As String
             Get
-                Return ResourceManager.GetString("ConstCCKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_i"& _ 
+                        "t_be_a_reference_type", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares and defines one or more constants..
+        '''  Looks up a localized string similar to Constrains a generic type parameter to require that any type argument passed to it be a value type..
         '''</summary>
-        Friend ReadOnly Property ConstKeywordToolTip() As String
+        Friend ReadOnly Property Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_it_be_a_value_type() As String
             Get
-                Return ResourceManager.GetString("ConstKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Constrains_a_generic_type_parameter_to_require_that_any_type_argument_passed_to_i"& _ 
+                        "t_be_a_value_type", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to contains invalid selection.
         '''</summary>
-        Friend ReadOnly Property ContainsInvalidSelection() As String
+        Friend ReadOnly Property contains_invalid_selection() As String
             Get
-                Return ResourceManager.GetString("ContainsInvalidSelection", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the Do loop..
-        '''</summary>
-        Friend ReadOnly Property ContinueDoKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ContinueDoKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the For loop..
-        '''</summary>
-        Friend ReadOnly Property ContinueForKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ContinueForKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the loop. Can be used in a Do loop, a For loop, or a While loop..
-        '''</summary>
-        Friend ReadOnly Property ContinueKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ContinueKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the While loop..
-        '''</summary>
-        Friend ReadOnly Property ContinueWhileKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ContinueWhileKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("contains_invalid_selection", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Convert {0} to Iterator.
         '''</summary>
-        Friend ReadOnly Property ConvertToIterator() As String
+        Friend ReadOnly Property Convert_0_to_Iterator() As String
             Get
-                Return ResourceManager.GetString("ConvertToIterator", resourceCulture)
+                Return ResourceManager.GetString("Convert_0_to_Iterator", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Use the correct control variable.
+        '''  Looks up a localized string similar to Create event {0} in {1}.
         '''</summary>
-        Friend ReadOnly Property CorrectNextControlVariable() As String
+        Friend ReadOnly Property Create_event_0_in_1() As String
             Get
-                Return ResourceManager.GetString("CorrectNextControlVariable", resourceCulture)
+                Return ResourceManager.GetString("Create_event_0_in_1", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Use &apos;In&apos; for a type that will only be used for ByVal arguments to functions..
+        '''  Looks up a localized string similar to Creates a delegate procedure instance that references the specified procedure.
+        '''AddressOf &lt;procedureName&gt;.
         '''</summary>
-        Friend ReadOnly Property CovarianceInKeywordToolTip() As String
+        Friend ReadOnly Property Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName() As String
             Get
-                Return ResourceManager.GetString("CovarianceInKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_Add"& _ 
+                        "ressOf_procedureName", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Use &apos;Out&apos; for a type that will only be used as a return from functions..
+        '''  Looks up a localized string similar to Creates a new object instance..
         '''</summary>
-        Friend ReadOnly Property CovarianceOutKeywordToolTip() As String
+        Friend ReadOnly Property Creates_a_new_object_instance() As String
             Get
-                Return ResourceManager.GetString("CovarianceOutKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Creates_a_new_object_instance", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to CType function.
         '''</summary>
-        Friend ReadOnly Property CtypeFunction() As String
+        Friend ReadOnly Property CType_function() As String
             Get
-                Return ResourceManager.GetString("CtypeFunction", resourceCulture)
+                Return ResourceManager.GetString("CType_function", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that an event has additional, specialized code for adding handlers, removing handlers, and raising events..
+        '''  Looks up a localized string similar to Declares a Get property procedure that is used to return the current value of a property..
         '''</summary>
-        Friend ReadOnly Property CustomEventKeywordToolTip() As String
+        Friend ReadOnly Property Declares_a_Get_property_procedure_that_is_used_to_return_the_current_value_of_a_property() As String
             Get
-                Return ResourceManager.GetString("CustomEventKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Declares_a_Get_property_procedure_that_is_used_to_return_the_current_value_of_a_p"& _ 
+                        "roperty", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Declares a reference to a procedure implemented in an external file..
         '''</summary>
-        Friend ReadOnly Property DeclareKeywordToolTip() As String
+        Friend ReadOnly Property Declares_a_reference_to_a_procedure_implemented_in_an_external_file() As String
             Get
-                Return ResourceManager.GetString("DeclareKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Declares_a_reference_to_a_procedure_implemented_in_an_external_file", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Identifies a property as the default property of its class, structure, or interface..
+        '''  Looks up a localized string similar to Declares a Set property procedure that is used to assign a value to a property..
         '''</summary>
-        Friend ReadOnly Property DefaultKeywordToolTip() As String
+        Friend ReadOnly Property Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property() As String
             Get
-                Return ResourceManager.GetString("DefaultKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Used to declare a delegate. A delegate is a reference type that refers to a shared method of a type or to an instance method of an object. Any procedure that is convertible, or that has matching parameter types and return type may be used to create an instance of this delegate class..
+        '''  Looks up a localized string similar to Declares a user-defined event..
         '''</summary>
-        Friend ReadOnly Property DelegateKeywordToolTip() As String
+        Friend ReadOnly Property Declares_a_user_defined_event() As String
             Get
-                Return ResourceManager.GetString("DelegateKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Declares_a_user_defined_event", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares an enumeration and defines the values of its members..
+        '''</summary>
+        Friend ReadOnly Property Declares_an_enumeration_and_defines_the_values_of_its_members() As String
+            Get
+                Return ResourceManager.GetString("Declares_an_enumeration_and_defines_the_values_of_its_members", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares and allocates storage space for one or more variables.
+        '''Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2].
+        '''</summary>
+        Friend ReadOnly Property Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket() As String
+            Get
+                Return ResourceManager.GetString("Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As"& _ 
+                        "_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initiali"& _ 
+                        "zer_bracket_bracket_var2_bracket", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares and defines one or more constants..
+        '''</summary>
+        Friend ReadOnly Property Declares_and_defines_one_or_more_constants() As String
+            Get
+                Return ResourceManager.GetString("Declares_and_defines_one_or_more_constants", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares that a procedure handles a specified event..
+        '''</summary>
+        Friend ReadOnly Property Declares_that_a_procedure_handles_a_specified_event() As String
+            Get
+                Return ResourceManager.GetString("Declares_that_a_procedure_handles_a_specified_event", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name of a class and introduces the definitions of the variables, properties, and methods that make up the class..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_of_a_class_and_introduces_the_definitions_of_the_variables_properties_and_methods_that_make_up_the_class() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_of_a_class_and_introduces_the_definitions_of_the_variables_prop"& _ 
+                        "erties_and_methods_that_make_up_the_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name of a namespace, and causes the source code following the declaration to be compiled within that namespace..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_of_a_namespace_and_causes_the_source_code_following_the_declaration_to_be_compiled_within_that_namespace() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_of_a_namespace_and_causes_the_source_code_following_the_declara"& _ 
+                        "tion_to_be_compiled_within_that_namespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name of a property, and the property procedures used to store and retrieve the value of the property..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_of_a_property_and_the_property_procedures_used_to_store_and_retrieve_the_value_of_the_property() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_of_a_property_and_the_property_procedures_used_to_store_and_ret"& _ 
+                        "rieve_the_value_of_the_property", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name of a structure and introduces the definition of the variables, properties, events, and procedures that make up the structure..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_of_a_structure_and_introduces_the_definition_of_the_variables_properties_events_and_procedures_that_make_up_the_structure() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_of_a_structure_and_introduces_the_definition_of_the_variables_p"& _ 
+                        "roperties_events_and_procedures_that_make_up_the_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name of an interface and the definitions of the members of the interface..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_inter"& _ 
+                        "face", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name, parameters, and code that define a Function procedure, that is, a procedure that returns a value to the calling code..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_procedure_that_returns_a_value_to_the_calling_code() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_parameters_and_code_that_define_a_Function_procedure_that_is_a_"& _ 
+                        "procedure_that_returns_a_value_to_the_calling_code", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the name, parameters, and code that define a Sub procedure, that is, a procedure that does not return a value to the calling code..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_procedure_that_does_not_return_a_value_to_the_calling_code() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_name_parameters_and_code_that_define_a_Sub_procedure_that_is_a_proce"& _ 
+                        "dure_that_does_not_return_a_value_to_the_calling_code", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Declares the operator symbol, operands, and code that define an operator procedure on a class or structure..
+        '''</summary>
+        Friend ReadOnly Property Declares_the_operator_symbol_operands_and_code_that_define_an_operator_procedure_on_a_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Declares_the_operator_symbol_operands_and_code_that_define_an_operator_procedure_"& _ 
+                        "on_a_class_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Defines a conditional compiler constant. Conditional compiler constants are always private to the file in which they appear. The expressions used to initialize them can contain only conditional compiler constants and literals..
+        '''</summary>
+        Friend ReadOnly Property Defines_a_conditional_compiler_constant_Conditional_compiler_constants_are_always_private_to_the_file_in_which_they_appear_The_expressions_used_to_initialize_them_can_contain_only_conditional_compiler_constants_and_literals() As String
+            Get
+                Return ResourceManager.GetString("Defines_a_conditional_compiler_constant_Conditional_compiler_constants_are_always"& _ 
+                        "_private_to_the_file_in_which_they_appear_The_expressions_used_to_initialize_the"& _ 
+                        "m_can_contain_only_conditional_compiler_constants_and_literals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Defines a lambda expression that calculates and returns a single value. Can be used wherever a delegate type is expected.
+        '''Function(&lt;parameterList&gt;) &lt;expression&gt;.
+        '''</summary>
+        Friend ReadOnly Property Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression() As String
+            Get
+                Return ResourceManager.GetString("Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_use"& _ 
+                        "d_wherever_a_delegate_type_is_expected_Function_parameterList_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
+        '''Sub(&lt;parameterList&gt;) &lt;statement&gt;.
+        '''</summary>
+        Friend ReadOnly Property Defines_a_lambda_expression_that_can_execute_statements_and_does_not_return_a_value_Can_be_used_wherever_a_delegate_type_is_expected_Sub_parameterList_statement() As String
+            Get
+                Return ResourceManager.GetString("Defines_a_lambda_expression_that_can_execute_statements_and_does_not_return_a_val"& _ 
+                        "ue_Can_be_used_wherever_a_delegate_type_is_expected_Sub_parameterList_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Defines an asynchronous lambda expression that can use the Await operator. Can be used wherever a delegate type is expected.
+        '''Async Sub/Function(&lt;parameterList&gt;) &lt;expression&gt;.
+        '''</summary>
+        Friend ReadOnly Property Defines_an_asynchronous_lambda_expression_that_can_use_the_Await_operator_Can_be_used_wherever_a_delegate_type_is_expected_Async_Sub_Function_parameterList_expression() As String
+            Get
+                Return ResourceManager.GetString("Defines_an_asynchronous_lambda_expression_that_can_use_the_Await_operator_Can_be_"& _ 
+                        "used_wherever_a_delegate_type_is_expected_Async_Sub_Function_parameterList_expre"& _ 
+                        "ssion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Defines an iterator lambda expression that can use the Yield statement.
+        '''Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;).
+        '''</summary>
+        Friend ReadOnly Property Defines_an_iterator_lambda_expression_that_can_use_the_Yield_statement_Iterator_Function_parameterList_As_IEnumerable_Of_T() As String
+            Get
+                Return ResourceManager.GetString("Defines_an_iterator_lambda_expression_that_can_use_the_Yield_statement_Iterator_F"& _ 
+                        "unction_parameterList_As_IEnumerable_Of_T", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Delete the &apos;{0}&apos; statement..
         '''</summary>
-        Friend ReadOnly Property DeleteTheStatement() As String
+        Friend ReadOnly Property Delete_the_0_statement1() As String
             Get
-                Return ResourceManager.GetString("DeleteTheStatement", resourceCulture)
+                Return ResourceManager.GetString("Delete_the_0_statement1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Delete the &apos;{0}&apos; statement..
+        '''</summary>
+        Friend ReadOnly Property Delete_the_0_statement2() As String
+            Get
+                Return ResourceManager.GetString("Delete_the_0_statement2", resourceCulture)
             End Get
         End Property
         
@@ -582,303 +754,164 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies the sort order for an Order By clause in a query. The largest element will appear first..
+        '''  Looks up a localized string similar to Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
+        '''&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;.
         '''</summary>
-        Friend ReadOnly Property DescendingQueryKeywordToolTip() As String
+        Friend ReadOnly Property Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName() As String
             Get
-                Return ResourceManager.GetString("DescendingQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a"& _ 
+                        "_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatib"& _ 
+                        "le_result_TypeOf_objectExpression_Is_typeName", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares and allocates storage space for one or more variables.
-        '''Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2].
+        '''  Looks up a localized string similar to Determines whether an expression is false. If instances of any class or structure will be used in an OrElse clause, you must define IsFalse on that class or structure..
         '''</summary>
-        Friend ReadOnly Property DimKeywordToolTip() As String
+        Friend ReadOnly Property Determines_whether_an_expression_is_false_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsFalse_on_that_class_or_structure() As String
             Get
-                Return ResourceManager.GetString("DimKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Determines_whether_an_expression_is_false_If_instances_of_any_class_or_structure_"& _ 
+                        "will_be_used_in_an_OrElse_clause_you_must_define_IsFalse_on_that_class_or_struct"& _ 
+                        "ure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Determines whether an expression is true. If instances of any class or structure will be used in an OrElse clause, you must define IsTrue on that class or structure..
+        '''</summary>
+        Friend ReadOnly Property Determines_whether_an_expression_is_true_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsTrue_on_that_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Determines_whether_an_expression_is_true_If_instances_of_any_class_or_structure_w"& _ 
+                        "ill_be_used_in_an_OrElse_clause_you_must_define_IsTrue_on_that_class_or_structur"& _ 
+                        "e", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to DirectCast function.
         '''</summary>
-        Friend ReadOnly Property DirectcastFunction() As String
+        Friend ReadOnly Property DirectCast_function() As String
             Get
-                Return ResourceManager.GetString("DirectcastFunction", resourceCulture)
+                Return ResourceManager.GetString("DirectCast_function", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Disables reporting of specified warnings in the portion of the source file below the current line..
         '''</summary>
-        Friend ReadOnly Property DisableKeywordToolTip() As String
+        Friend ReadOnly Property Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line() As String
             Get
-                Return ResourceManager.GetString("DisableKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Restricts the values of a query result to eliminate duplicate values..
-        '''</summary>
-        Friend ReadOnly Property DistinctQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("DistinctQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_"& _ 
+                        "the_current_line", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Divides two numbers and returns a floating-point result..
         '''</summary>
-        Friend ReadOnly Property DivisionKeywordToolTip() As String
+        Friend ReadOnly Property Divides_two_numbers_and_returns_a_floating_point_result() As String
             Get
-                Return ResourceManager.GetString("DivisionKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Divides_two_numbers_and_returns_a_floating_point_result", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true, or until the condition becomes true.
-        '''Do...Loop {While | Until} &lt;condition&gt;.
+        '''  Looks up a localized string similar to Divides two numbers and returns an integer result..
         '''</summary>
-        Friend ReadOnly Property DoKeywordToolTip() As String
+        Friend ReadOnly Property Divides_two_numbers_and_returns_an_integer_result() As String
             Get
-                Return ResourceManager.GetString("DoKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Divides_two_numbers_and_returns_an_integer_result", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Divides two numbers and returns only the remainder.
+        '''&lt;number1&gt; Mod &lt;number2&gt;.
+        '''</summary>
+        Friend ReadOnly Property Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2() As String
+            Get
+                Return ResourceManager.GetString("Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above..
         '''</summary>
-        Friend ReadOnly Property DoNotChangeThisCodeUseDispose() As String
+        Friend ReadOnly Property Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above() As String
             Get
-                Return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Repeats a block of statements until a Boolean condition becomes true.
-        '''Do Until &lt;condition&gt;...Loop.
-        '''</summary>
-        Friend ReadOnly Property DoUntilKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("DoUntilKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true.
-        '''Do While &lt;condition&gt;...Loop.
-        '''</summary>
-        Friend ReadOnly Property DoWhileKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("DoWhileKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a group of statements in an #If statement that is compiled if no previous condition evaluates to True..
-        '''</summary>
-        Friend ReadOnly Property ElseCCKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ElseCCKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a condition in an #If statement that is tested if the previous conditional test evaluates to False..
-        '''</summary>
-        Friend ReadOnly Property ElseIfCCKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ElseIfCCKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a condition in an If statement that is to be tested if the previous conditional test fails..
-        '''</summary>
-        Friend ReadOnly Property ElseIfKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ElseIfKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a group of statements in an If statement that is executed if no previous condition evaluates to True..
-        '''</summary>
-        Friend ReadOnly Property ElseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ElseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to .
-        '''</summary>
-        Friend ReadOnly Property EmptyString1() As String
-            Get
-                Return ResourceManager.GetString("EmptyString1", resourceCulture)
+                Return ResourceManager.GetString("Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Enables reporting of specified warnings in the portion of the source file below the current line..
         '''</summary>
-        Friend ReadOnly Property EnableKeywordToolTip() As String
+        Friend ReadOnly Property Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line() As String
             Get
-                Return ResourceManager.GetString("EnableKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_t"& _ 
+                        "he_current_line", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Terminates a {0} block..
+        '''  Looks up a localized string similar to Enables the error-handling routine that starts at the line specified in the line argument.
+        '''The specified line must be in the same procedure as the On Error statement.
+        '''On Error GoTo [&lt;label&gt; | 0 | -1].
         '''</summary>
-        Friend ReadOnly Property EndBlockKeywordToolTip1() As String
+        Friend ReadOnly Property Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statement_On_Error_GoTo_bracket_label_0_1_bracket() As String
             Get
-                Return ResourceManager.GetString("EndBlockKeywordToolTip1", resourceCulture)
+                Return ResourceManager.GetString("Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_"& _ 
+                        "argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statem"& _ 
+                        "ent_On_Error_GoTo_bracket_label_0_1_bracket", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Terminates an {0} block..
+        '''  Looks up a localized string similar to Ensures that multiple threads do not execute the statement block at the same time.
+        '''SyncLock &lt;object&gt;...End Synclock.
         '''</summary>
-        Friend ReadOnly Property EndBlockKeywordToolTip2() As String
+        Friend ReadOnly Property Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock() As String
             Get
-                Return ResourceManager.GetString("EndBlockKeywordToolTip2", resourceCulture)
+                Return ResourceManager.GetString("Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time"& _ 
+                        "_SyncLock_object_End_Synclock", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Terminates the definition of an #If block..
+        '''  Looks up a localized string similar to {0}.add.
         '''</summary>
-        Friend ReadOnly Property EndIfCCKeywordToolTip() As String
+        Friend ReadOnly Property Event_add_handler_name() As String
             Get
-                Return ResourceManager.GetString("EndIfCCKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Event_add_handler_name", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Stops execution immediately..
+        '''  Looks up a localized string similar to {0}.remove.
         '''</summary>
-        Friend ReadOnly Property EndKeywordToolTip() As String
+        Friend ReadOnly Property Event_remove_handler_name() As String
             Get
-                Return ResourceManager.GetString("EndKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Terminates a #Region block..
-        '''</summary>
-        Friend ReadOnly Property EndRegionKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EndRegionKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Terminates the definition of a {0} statement..
-        '''</summary>
-        Friend ReadOnly Property EndStatementKeywordToolTip1() As String
-            Get
-                Return ResourceManager.GetString("EndStatementKeywordToolTip1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Terminates the definition of an {0} statement..
-        '''</summary>
-        Friend ReadOnly Property EndStatementKeywordToolTip2() As String
-            Get
-                Return ResourceManager.GetString("EndStatementKeywordToolTip2", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares an enumeration and defines the values of its members..
-        '''</summary>
-        Friend ReadOnly Property EnumKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EnumKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if they are equal. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property EqualsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EqualsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the relationship between element keys to use as the basis of a join operation..
-        '''</summary>
-        Friend ReadOnly Property EqualsQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EqualsQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Used to release array variables and deallocate the memory used for their elements..
-        '''</summary>
-        Friend ReadOnly Property EraseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EraseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Too many arguments to &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property ERR_TooManyArgs1() As String
-            Get
-                Return ResourceManager.GetString("ERR_TooManyArgs1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Type &apos;{0}&apos; is not defined..
-        '''</summary>
-        Friend ReadOnly Property ERR_UndefinedType1() As String
-            Get
-                Return ResourceManager.GetString("ERR_UndefinedType1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Simulates the occurrence of an error..
-        '''</summary>
-        Friend ReadOnly Property ErrorKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ErrorKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares a user-defined event..
-        '''</summary>
-        Friend ReadOnly Property EventKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("EventKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Event_remove_handler_name", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a Do loop and transfers execution immediately to the statement following the Loop statement..
         '''</summary>
-        Friend ReadOnly Property ExitDoKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_the_Loop_statement() As String
             Get
-                Return ResourceManager.GetString("ExitDoKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_Do_loop_and_transfers_execution_immediately_to_the_statement_following_th"& _ 
+                        "e_Loop_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a For loop and transfers execution immediately to the statement following the Next statement..
         '''</summary>
-        Friend ReadOnly Property ExitForKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_the_Next_statement() As String
             Get
-                Return ResourceManager.GetString("ExitForKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_t"& _ 
+                        "he_Next_statement", resourceCulture)
             End Get
         End Property
         
@@ -886,73 +919,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''  Looks up a localized string similar to Exits a procedure or block and transfers execution immediately to the statement following the procedure call or block definition.
         '''Exit {Do | For | Function | Property | Select | Sub | Try | While}.
         '''</summary>
-        Friend ReadOnly Property ExitKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_procedure_or_block_and_transfers_execution_immediately_to_the_statement_following_the_procedure_call_or_block_definition_Exit_Do_For_Function_Property_Select_Sub_Try_While() As String
             Get
-                Return ResourceManager.GetString("ExitKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_procedure_or_block_and_transfers_execution_immediately_to_the_statement_f"& _ 
+                        "ollowing_the_procedure_call_or_block_definition_Exit_Do_For_Function_Property_Se"& _ 
+                        "lect_Sub_Try_While", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a Select block and transfers execution immediately to the statement following the End Select statement..
         '''</summary>
-        Friend ReadOnly Property ExitSelectKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_Select_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Select_statement() As String
             Get
-                Return ResourceManager.GetString("ExitSelectKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_Select_block_and_transfers_execution_immediately_to_the_statement_followi"& _ 
+                        "ng_the_End_Select_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a Sub procedure and transfers execution immediately to the statement following the call to the Sub procedure..
         '''</summary>
-        Friend ReadOnly Property ExitSubKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_Sub_procedure_and_transfers_execution_immediately_to_the_statement_following_the_call_to_the_Sub_procedure() As String
             Get
-                Return ResourceManager.GetString("ExitSubKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_Sub_procedure_and_transfers_execution_immediately_to_the_statement_follow"& _ 
+                        "ing_the_call_to_the_Sub_procedure", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a Try block and transfers execution immediately to the statement following the End Try statement..
         '''</summary>
-        Friend ReadOnly Property ExitTryKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_Try_block_and_transfers_execution_immediately_to_the_statement_following_the_End_Try_statement() As String
             Get
-                Return ResourceManager.GetString("ExitTryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_Try_block_and_transfers_execution_immediately_to_the_statement_following_"& _ 
+                        "the_End_Try_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Exits a While loop and transfers execution immediately to the statement following the End While statement..
         '''</summary>
-        Friend ReadOnly Property ExitWhileKeywordToolTip() As String
+        Friend ReadOnly Property Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement() As String
             Get
-                Return ResourceManager.GetString("ExitWhileKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Generate narrowing conversion in &apos;{0}&apos;.
-        '''</summary>
-        Friend ReadOnly Property ExplicitConversionDisplayText() As String
-            Get
-                Return ResourceManager.GetString("ExplicitConversionDisplayText", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to When set to On, requires explicit declaration of all variables, using a Dim, Private, Public, or ReDim statement.
-        '''Option Explicit {On | Off}.
-        '''</summary>
-        Friend ReadOnly Property ExplicitKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ExplicitKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Raises a number to the power of another number..
-        '''</summary>
-        Friend ReadOnly Property ExponentiationKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ExponentiationKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following"& _ 
+                        "_the_End_While_statement", resourceCulture)
             End Get
         End Property
         
@@ -966,1231 +977,839 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that the external procedure being referenced in the Declare statement is a Function..
-        '''</summary>
-        Friend ReadOnly Property ExternFunctionKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ExternFunctionKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that the external procedure being referenced in the Declare statement is a Sub..
-        '''</summary>
-        Friend ReadOnly Property ExternSubKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ExternSubKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Represents a Boolean value that fails a conditional test..
-        '''</summary>
-        Friend ReadOnly Property FalseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FalseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Finally clause.
         '''</summary>
-        Friend ReadOnly Property FinallyClause() As String
+        Friend ReadOnly Property Finally_clause() As String
             Get
-                Return ResourceManager.GetString("FinallyClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a statement block to be run before exiting a Try structure..
-        '''</summary>
-        Friend ReadOnly Property FinallyKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FinallyKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Finally_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Fix Incorrect Function Return Type.
         '''</summary>
-        Friend ReadOnly Property FixIncorrectFunctionReturnType() As String
+        Friend ReadOnly Property Fix_Incorrect_Function_Return_Type() As String
             Get
-                Return ResourceManager.GetString("FixIncorrectFunctionReturnType", resourceCulture)
+                Return ResourceManager.GetString("Fix_Incorrect_Function_Return_Type", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Followed by a comparison operator and then an expression, Case Is introduces the statements to run if the Select Case expression combined with the Case Is expression evaluates to True..
+        '''</summary>
+        Friend ReadOnly Property Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_statements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_expression_evaluates_to_True() As String
+            Get
+                Return ResourceManager.GetString("Followed_by_a_comparison_operator_and_then_an_expression_Case_Is_introduces_the_s"& _ 
+                        "tatements_to_run_if_the_Select_Case_expression_combined_with_the_Case_Is_express"& _ 
+                        "ion_evaluates_to_True", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to For Each block.
         '''</summary>
-        Friend ReadOnly Property ForEachBlock() As String
+        Friend ReadOnly Property For_Each_block() As String
             Get
-                Return ResourceManager.GetString("ForEachBlock", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a loop that is repeated for each element in a collection..
-        '''</summary>
-        Friend ReadOnly Property ForEachKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ForEachKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("For_Each_block", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to For Each statement.
         '''</summary>
-        Friend ReadOnly Property ForEachStatement() As String
+        Friend ReadOnly Property For_Each_statement() As String
             Get
-                Return ResourceManager.GetString("ForEachStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a loop that is iterated a specified number of times..
-        '''</summary>
-        Friend ReadOnly Property ForKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ForKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override Finalize() below..
-        '''</summary>
-        Friend ReadOnly Property FreeUnmanagedResourcesTodo() As String
-            Get
-                Return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within the assembly that contains their declaration..
-        '''</summary>
-        Friend ReadOnly Property FriendKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FriendKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("For_Each_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to From clause.
         '''</summary>
-        Friend ReadOnly Property FromClause() As String
+        Friend ReadOnly Property From_clause() As String
             Get
-                Return ResourceManager.GetString("FromClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Identifies a list of values as a collection initializer.
-        '''</summary>
-        Friend ReadOnly Property FromCollectionInitializerKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FromCollectionInitializerKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies a collection and a range variable to use in a query..
-        '''</summary>
-        Friend ReadOnly Property FromQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FromQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to {0} function.
-        '''</summary>
-        Friend ReadOnly Property Function1() As String
-            Get
-                Return ResourceManager.GetString("Function1", resourceCulture)
+                Return ResourceManager.GetString("From_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Function aggregation.
         '''</summary>
-        Friend ReadOnly Property FunctionAggregation() As String
+        Friend ReadOnly Property Function_aggregation() As String
             Get
-                Return ResourceManager.GetString("FunctionAggregation", resourceCulture)
+                Return ResourceManager.GetString("Function_aggregation", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares the name, parameters, and code that define a Function procedure, that is, a procedure that returns a value to the calling code..
+        '''  Looks up a localized string similar to Generate narrowing conversion in &apos;{0}&apos;.
         '''</summary>
-        Friend ReadOnly Property FunctionKeywordToolTip() As String
+        Friend ReadOnly Property Generate_narrowing_conversion_in_0() As String
             Get
-                Return ResourceManager.GetString("FunctionKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Defines a lambda expression that calculates and returns a single value. Can be used wherever a delegate type is expected.
-        '''Function(&lt;parameterList&gt;) &lt;expression&gt;.
-        '''</summary>
-        Friend ReadOnly Property FunctionLambdaKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("FunctionLambdaKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Create event {0} in {1}.
-        '''</summary>
-        Friend ReadOnly Property GeneratedeventnameTargets() As String
-            Get
-                Return ResourceManager.GetString("GeneratedeventnameTargets", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Constrains a generic type parameter to require that any type argument passed to it be a reference type..
-        '''</summary>
-        Friend ReadOnly Property GenericConstraintsClassKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GenericConstraintsClassKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies a constructor constraint on a generic type parameter..
-        '''</summary>
-        Friend ReadOnly Property GenericConstraintsNewKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GenericConstraintsNewKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Constrains a generic type parameter to require that any type argument passed to it be a value type..
-        '''</summary>
-        Friend ReadOnly Property GenericConstraintsStructureKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GenericConstraintsStructureKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares a Get property procedure that is used to return the current value of a property..
-        '''</summary>
-        Friend ReadOnly Property GetPropertyKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GetPropertyKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to GetType function.
-        '''</summary>
-        Friend ReadOnly Property GettypeFunction() As String
-            Get
-                Return ResourceManager.GetString("GettypeFunction", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to GetXmlNamespace function.
-        '''</summary>
-        Friend ReadOnly Property GetxmlnamespaceFunction() As String
-            Get
-                Return ResourceManager.GetString("GetxmlnamespaceFunction", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Branches unconditionally to a specified line in a procedure..
-        '''</summary>
-        Friend ReadOnly Property GotoKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GotoKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is greater than the second. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property GreaterThanKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GreaterThanKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is greater than or equal to the second. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property GreaterThanOrEqualsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GreaterThanOrEqualsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Group By clause.
-        '''</summary>
-        Friend ReadOnly Property GroupByClause() As String
-            Get
-                Return ResourceManager.GetString("GroupByClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Groups elements that have a common key..
-        '''</summary>
-        Friend ReadOnly Property GroupByQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GroupByQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Group Join clause.
-        '''</summary>
-        Friend ReadOnly Property GroupJoinClause() As String
-            Get
-                Return ResourceManager.GetString("GroupJoinClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Combines the elements of two sequences and groups the results. The join operation is based on matching keys..
-        '''</summary>
-        Friend ReadOnly Property GroupJoinQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GroupJoinQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Use &apos;Group&apos; to specify that a group named &apos;{0}&apos; should be created..
-        '''</summary>
-        Friend ReadOnly Property GroupRefNameQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GroupRefNameQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Use &apos;Group&apos; to specify that a group named &apos;Group&apos; should be created..
-        '''</summary>
-        Friend ReadOnly Property GroupRefQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("GroupRefQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares that a procedure handles a specified event..
-        '''</summary>
-        Friend ReadOnly Property HandlesKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("HandlesKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Conditionally compiles selected blocks of code, depending on the value of an expression..
-        '''</summary>
-        Friend ReadOnly Property IfCCKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IfCCKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Conditionally executes a group of statements, depending on the value of an expression..
-        '''</summary>
-        Friend ReadOnly Property IfKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IfKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Implement Abstract Class.
-        '''</summary>
-        Friend ReadOnly Property ImplementAbstractClass() As String
-            Get
-                Return ResourceManager.GetString("ImplementAbstractClass", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates that a class or structure member is providing the implementation for a member defined in an interface..
-        '''</summary>
-        Friend ReadOnly Property ImplementsKeywordAfterMethodDeclarationToolTip() As String
-            Get
-                Return ResourceManager.GetString("ImplementsKeywordAfterMethodDeclarationToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies one or more interfaces, or interface members, that must be implemented in the class or structure definition in which the Implements statement appears..
-        '''</summary>
-        Friend ReadOnly Property ImplementsKeywordAfterTypeDeclarationToolTip() As String
-            Get
-                Return ResourceManager.GetString("ImplementsKeywordAfterTypeDeclarationToolTip", resourceCulture)
+                Return ResourceManager.GetString("Generate_narrowing_conversion_in_0", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Generate widening conversion in &apos;{0}&apos;.
         '''</summary>
-        Friend ReadOnly Property ImplicitConversionDisplayText() As String
+        Friend ReadOnly Property Generate_widening_conversion_in_0() As String
             Get
-                Return ResourceManager.GetString("ImplicitConversionDisplayText", resourceCulture)
+                Return ResourceManager.GetString("Generate_widening_conversion_in_0", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
+        '''  Looks up a localized string similar to Generates a string concatenation of two expressions..
         '''</summary>
-        Friend ReadOnly Property ImplicitMemberAccessCantB() As String
+        Friend ReadOnly Property Generates_a_string_concatenation_of_two_expressions() As String
             Get
-                Return ResourceManager.GetString("ImplicitMemberAccessCantB", resourceCulture)
+                Return ResourceManager.GetString("Generates_a_string_concatenation_of_two_expressions", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Imports all or specified elements of a namespace into a file..
+        '''  Looks up a localized string similar to GetType function.
         '''</summary>
-        Friend ReadOnly Property ImportsKeywordToolTip() As String
+        Friend ReadOnly Property GetType_function() As String
             Get
-                Return ResourceManager.GetString("ImportsKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("GetType_function", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to import.
+        '''  Looks up a localized string similar to GetXmlNamespace function.
         '''</summary>
-        Friend ReadOnly Property ImportStatement() As String
+        Friend ReadOnly Property GetXmlNamespace_function() As String
             Get
-                Return ResourceManager.GetString("ImportStatement", resourceCulture)
+                Return ResourceManager.GetString("GetXmlNamespace_function", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to When set to On, allows the use of local type inference in declaring variables.
-        '''Option Infer {On | Off}.
+        '''  Looks up a localized string similar to Group By clause.
         '''</summary>
-        Friend ReadOnly Property InferKeywordToolTip() As String
+        Friend ReadOnly Property Group_By_clause() As String
             Get
-                Return ResourceManager.GetString("InferKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Group_By_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies the group that the loop variable in a For Each statement is to traverse..
+        '''  Looks up a localized string similar to Group Join clause.
         '''</summary>
-        Friend ReadOnly Property InForEachKeywordToolTip() As String
+        Friend ReadOnly Property Group_Join_clause() As String
             Get
-                Return ResourceManager.GetString("InForEachKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Group_Join_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query..
+        '''  Looks up a localized string similar to Groups elements that have a common key..
         '''</summary>
-        Friend ReadOnly Property InGlobalKeywordToolTip() As String
+        Friend ReadOnly Property Groups_elements_that_have_a_common_key() As String
             Get
-                Return ResourceManager.GetString("InGlobalKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Causes the current class or interface to inherit the attributes, variables, properties, procedures, and events from another class or set of interfaces..
-        '''</summary>
-        Friend ReadOnly Property InheritsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("InheritsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Inline temporary variable.
-        '''</summary>
-        Friend ReadOnly Property InlineTemporaryVariable() As String
-            Get
-                Return ResourceManager.GetString("InlineTemporaryVariable", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the group that the range variable is to traverse in a query..
-        '''</summary>
-        Friend ReadOnly Property InQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("InQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Insert &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property Insert() As String
-            Get
-                Return ResourceManager.GetString("Insert", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Insert &apos;Await&apos;..
-        '''</summary>
-        Friend ReadOnly Property InsertAwait() As String
-            Get
-                Return ResourceManager.GetString("InsertAwait", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Insert Missing Cast.
-        '''</summary>
-        Friend ReadOnly Property InsertMissingCast() As String
-            Get
-                Return ResourceManager.GetString("InsertMissingCast", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Insert the missing &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property InsertTheMissing() As String
-            Get
-                Return ResourceManager.GetString("InsertTheMissing", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Insert the missing &apos;End Property&apos; statement..
-        '''</summary>
-        Friend ReadOnly Property InsertTheMissingEndProper() As String
-            Get
-                Return ResourceManager.GetString("InsertTheMissingEndProper", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Divides two numbers and returns an integer result..
-        '''</summary>
-        Friend ReadOnly Property IntegerDivisionKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IntegerDivisionKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares the name of an interface and the definitions of the members of the interface..
-        '''</summary>
-        Friend ReadOnly Property InterfaceKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("InterfaceKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies an identifier that can serve as a reference to the results of a join or grouping subexpression..
-        '''</summary>
-        Friend ReadOnly Property IntoQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IntoQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Invalid selection.
-        '''</summary>
-        Friend ReadOnly Property InvalidSelection() As String
-            Get
-                Return ResourceManager.GetString("InvalidSelection", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Invert If statement.
-        '''</summary>
-        Friend ReadOnly Property InvertIfStatement() As String
-            Get
-                Return ResourceManager.GetString("InvertIfStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Determines whether an expression is false. If instances of any class or structure will be used in an OrElse clause, you must define IsFalse on that class or structure..
-        '''</summary>
-        Friend ReadOnly Property IsFalseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IsFalseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two object reference variables and returns True if the objects are equal.
-        '''&lt;result&gt; = &lt;object1&gt; Is &lt;object2&gt;.
-        '''</summary>
-        Friend ReadOnly Property IsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two object reference variables and returns True if the objects are not equal.
-        '''&lt;result&gt; = &lt;object1&gt; IsNot &lt;object2&gt;.
-        '''</summary>
-        Friend ReadOnly Property IsNotKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IsNotKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Determines whether an expression is true. If instances of any class or structure will be used in an OrElse clause, you must define IsTrue on that class or structure..
-        '''</summary>
-        Friend ReadOnly Property IsTrueKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IsTrueKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates an iterator method that can use the Yield statement..
-        '''</summary>
-        Friend ReadOnly Property IteratorKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IteratorKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Defines an iterator lambda expression that can use the Yield statement.
-        '''Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;).
-        '''</summary>
-        Friend ReadOnly Property IteratorLambdaKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("IteratorLambdaKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Join condition.
-        '''</summary>
-        Friend ReadOnly Property JoinCondition() As String
-            Get
-                Return ResourceManager.GetString("JoinCondition", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Combines the elements of two sequences. The join operation is based on matching keys..
-        '''</summary>
-        Friend ReadOnly Property JoinQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("JoinQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Groups_elements_that_have_a_common_key", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Identifies a key field in an anonymous type definition..
         '''</summary>
-        Friend ReadOnly Property KeyKeywordToolTip() As String
+        Friend ReadOnly Property Identifies_a_key_field_in_an_anonymous_type_definition() As String
             Get
-                Return ResourceManager.GetString("KeyKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Identifies_a_key_field_in_an_anonymous_type_definition", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Delete the &apos;{0}&apos; statement..
+        '''  Looks up a localized string similar to Identifies a list of values as a collection initializer.
         '''</summary>
-        Friend ReadOnly Property Kind() As String
+        Friend ReadOnly Property Identifies_a_list_of_values_as_a_collection_initializer() As String
             Get
-                Return ResourceManager.GetString("Kind", resourceCulture)
+                Return ResourceManager.GetString("Identifies_a_list_of_values_as_a_collection_initializer", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Move the &apos;{0}&apos; statement to line {1}..
+        '''  Looks up a localized string similar to Identifies a property as the default property of its class, structure, or interface..
         '''</summary>
-        Friend ReadOnly Property KindLine() As String
+        Friend ReadOnly Property Identifies_a_property_as_the_default_property_of_its_class_structure_or_interface() As String
             Get
-                Return ResourceManager.GetString("KindLine", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Lambda.
-        '''</summary>
-        Friend ReadOnly Property LambdaExpression() As String
-            Get
-                Return ResourceManager.GetString("LambdaExpression", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Performs an arithmetic left shift on a bit pattern..
-        '''</summary>
-        Friend ReadOnly Property LeftShiftKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LeftShiftKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is less than the second. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property LessThanKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LessThanKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if the first is less than or equal to the second. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property LessThanOrEqualsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LessThanOrEqualsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Let clause.
-        '''</summary>
-        Friend ReadOnly Property LetClause() As String
-            Get
-                Return ResourceManager.GetString("LetClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Computes a value for each item in the query, and assigns the value to a new range variable..
-        '''</summary>
-        Friend ReadOnly Property LetQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LetQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure..
-        '''</summary>
-        Friend ReadOnly Property LibKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LibKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
-        '''&lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;.
-        '''</summary>
-        Friend ReadOnly Property LikeKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LikeKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Terminates a loop that is introduced with a Do statement..
-        '''</summary>
-        Friend ReadOnly Property LoopKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LoopKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Repeats a block of statements until a Boolean condition becomes true.
-        '''Do...Loop Until &lt;condition&gt;.
-        '''</summary>
-        Friend ReadOnly Property LoopUntilKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LoopUntilKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true.
-        '''Do...Loop While &lt;condition&gt;.
-        '''</summary>
-        Friend ReadOnly Property LoopWhileKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("LoopWhileKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Make the containing scope &apos;Async&apos;..
-        '''</summary>
-        Friend ReadOnly Property MakeAsync() As String
-            Get
-                Return ResourceManager.GetString("MakeAsync", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Make {0} an Async Function..
-        '''</summary>
-        Friend ReadOnly Property MakeAsyncFunction() As String
-            Get
-                Return ResourceManager.GetString("MakeAsyncFunction", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Provides a way to refer to the current instance of a class or structure, that is, the instance in which the code is running..
-        '''</summary>
-        Friend ReadOnly Property MeKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MeKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Mid statement.
-        '''</summary>
-        Friend ReadOnly Property MidStatement() As String
-            Get
-                Return ResourceManager.GetString("MidStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Returns the difference between two numeric expressions, or the negative value of a numeric expression..
-        '''</summary>
-        Friend ReadOnly Property MinusKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MinusKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Divides two numbers and returns only the remainder.
-        '''&lt;number1&gt; Mod &lt;number2&gt;.
-        '''</summary>
-        Friend ReadOnly Property ModKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ModKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that an attribute at the beginning of a source file applies to the entire module. Otherwise the attribute will apply only to an individual programming element, such as a class or property..
-        '''</summary>
-        Friend ReadOnly Property ModuleKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ModuleKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to module.
-        '''</summary>
-        Friend ReadOnly Property ModuleStatement() As String
-            Get
-                Return ResourceManager.GetString("ModuleStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Multiplies two numbers and returns the product..
-        '''</summary>
-        Friend ReadOnly Property MultiplicationKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MultiplicationKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a class can be used only as a base class, and that you cannot create an object directly from it..
-        '''</summary>
-        Friend ReadOnly Property MustInheritKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MustInheritKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a property or procedure is not implemented in the class and must be overridden in a derived class before it can be used..
-        '''</summary>
-        Friend ReadOnly Property MustOverrideKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MustOverrideKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Provides a way to refer to the base class of the current class instance. You cannot use MyBase to call MustOverride base methods..
-        '''</summary>
-        Friend ReadOnly Property MyBaseKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MyBaseKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides..
-        '''</summary>
-        Friend ReadOnly Property MyClassKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("MyClassKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Name can be simplified.
-        '''</summary>
-        Friend ReadOnly Property NameCanBeSimplified() As String
-            Get
-                Return ResourceManager.GetString("NameCanBeSimplified", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to NameOf function.
-        '''</summary>
-        Friend ReadOnly Property NameOfFunction() As String
-            Get
-                Return ResourceManager.GetString("NameOfFunction", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares the name of a namespace, and causes the source code following the declaration to be compiled within that namespace..
-        '''</summary>
-        Friend ReadOnly Property NamespaceKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NamespaceKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates that a conversion operator (CType) converts a class or structure to a type that might not be able to hold some of the possible values of the original class or structure..
-        '''</summary>
-        Friend ReadOnly Property NarrowingKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NarrowingKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;new field&gt;.
-        '''</summary>
-        Friend ReadOnly Property NewField() As String
-            Get
-                Return ResourceManager.GetString("NewField", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Creates a new object instance..
-        '''</summary>
-        Friend ReadOnly Property NewKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NewKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;new resource&gt;.
-        '''</summary>
-        Friend ReadOnly Property NewResource() As String
-            Get
-                Return ResourceManager.GetString("NewResource", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;new variable&gt;.
-        '''</summary>
-        Friend ReadOnly Property NewVariable() As String
-            Get
-                Return ResourceManager.GetString("NewVariable", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Terminates a loop that iterates through the values of a loop variable..
-        '''</summary>
-        Friend ReadOnly Property NextKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NextKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to next statement control variable doesn&apos;t have matching declaration statement.
-        '''</summary>
-        Friend ReadOnly Property NextStatementControlVariable() As String
-            Get
-                Return ResourceManager.GetString("NextStatementControlVariable", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to No common root node for extraction.
-        '''</summary>
-        Friend ReadOnly Property NoCommonRootNodeForExtraction() As String
-            Get
-                Return ResourceManager.GetString("NoCommonRootNodeForExtraction", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Not all code paths return.
-        '''</summary>
-        Friend ReadOnly Property NotAllCodePathReturns() As String
-            Get
-                Return ResourceManager.GetString("NotAllCodePathReturns", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Compares two expressions and returns True if they are not equal. Otherwise, returns False..
-        '''</summary>
-        Friend ReadOnly Property NotEqualsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NotEqualsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Note: Space and &apos;=&apos; completion are disabled to avoid potential interference. To insert a name from the list, use tab..
-        '''</summary>
-        Friend ReadOnly Property NoteSpaceAndCompletion() As String
-            Get
-                Return ResourceManager.GetString("NoteSpaceAndCompletion", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab..
-        '''</summary>
-        Friend ReadOnly Property NoteSpaceCompletionIsDisa() As String
-            Get
-                Return ResourceManager.GetString("NoteSpaceCompletionIsDisa", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Note: Use tab for automatic completion; space completion is disabled to avoid interfering with a new name..
-        '''</summary>
-        Friend ReadOnly Property NoteUseTabForAutomaticCo() As String
-            Get
-                Return ResourceManager.GetString("NoteUseTabForAutomaticCo", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Represents the default value of any data type..
-        '''</summary>
-        Friend ReadOnly Property NothingKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NothingKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a class cannot be used as a base class..
-        '''</summary>
-        Friend ReadOnly Property NotInheritableKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NotInheritableKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Performs logical negation on a Boolean expression, or bitwise negation on a numeric expression.
-        '''&lt;result&gt; = Not &lt;expression&gt;.
-        '''</summary>
-        Friend ReadOnly Property NotKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NotKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a property or procedure cannot be overridden in a derived class..
-        '''</summary>
-        Friend ReadOnly Property NotOverridableKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("NotOverridableKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to No valid selection to perform extraction.
-        '''</summary>
-        Friend ReadOnly Property NoValidSelectionToPerform() As String
-            Get
-                Return ResourceManager.GetString("NoValidSelectionToPerform", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to no valid statement range to extract out.
-        '''</summary>
-        Friend ReadOnly Property NoValidStatementRangeToEx() As String
-            Get
-                Return ResourceManager.GetString("NoValidStatementRangeToEx", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Turns a compiler option off..
-        '''</summary>
-        Friend ReadOnly Property OffOptionKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("OffOptionKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Identifies_a_property_as_the_default_property_of_its_class_structure_or_interface"& _ 
+                        "", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Identifies a type parameter on a generic class, structure, interface, delegate, or procedure..
         '''</summary>
-        Friend ReadOnly Property OfKeywordToolTip() As String
+        Friend ReadOnly Property Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure() As String
             Get
-                Return ResourceManager.GetString("OfKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_pr"& _ 
+                        "ocedure", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Enables the error-handling routine that starts at the line specified in the line argument.
-        '''The specified line must be in the same procedure as the On Error statement.
-        '''On Error GoTo [&lt;label&gt; | 0 | -1].
+        '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
-        Friend ReadOnly Property OnErrorGotoKeywordToolTip() As String
+        Friend ReadOnly Property Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement() As String
             Get
-                Return ResourceManager.GetString("OnErrorGotoKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Implicit_member_access_can_t_be_included_in_the_selection_without_containing_stat"& _ 
+                        "ement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
+        '''  Looks up a localized string similar to import.
         '''</summary>
-        Friend ReadOnly Property OnErrorResumeNextKeywordToolTip() As String
+        Friend ReadOnly Property import() As String
             Get
-                Return ResourceManager.GetString("OnErrorResumeNextKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("import", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to On Error statement.
+        '''  Looks up a localized string similar to Imports all or specified elements of a namespace into a file..
         '''</summary>
-        Friend ReadOnly Property OnErrorStatement() As String
+        Friend ReadOnly Property Imports_all_or_specified_elements_of_a_namespace_into_a_file() As String
             Get
-                Return ResourceManager.GetString("OnErrorStatement", resourceCulture)
+                Return ResourceManager.GetString("Imports_all_or_specified_elements_of_a_namespace_into_a_file", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Turns a compiler option on..
+        '''  Looks up a localized string similar to Imports statement is unnecessary..
         '''</summary>
-        Friend ReadOnly Property OnOptionKeywordToolTip() As String
+        Friend ReadOnly Property Imports_statement_is_unnecessary() As String
             Get
-                Return ResourceManager.GetString("OnOptionKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Imports_statement_is_unnecessary", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies the element keys used to correlate sequences for a join operation..
+        '''  Looks up a localized string similar to Includes elements up to a specified position in the collection..
         '''</summary>
-        Friend ReadOnly Property OnQueryKeywordToolTip() As String
+        Friend ReadOnly Property Includes_elements_up_to_a_specified_position_in_the_collection() As String
             Get
-                Return ResourceManager.GetString("OnQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Includes_elements_up_to_a_specified_position_in_the_collection", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Returns the result of explicitly converting an expression to a specified data type, object, structure, class, or interface.
-        '''CType(Object As Expression, Object As Type) As Type.
+        '''  Looks up a localized string similar to Indicates an asynchronous method that can use the Await operator..
         '''</summary>
-        Friend ReadOnly Property OperatorCTypeKeywordToolTip() As String
+        Friend ReadOnly Property Indicates_an_asynchronous_method_that_can_use_the_Await_operator() As String
             Get
-                Return ResourceManager.GetString("OperatorCTypeKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Indicates_an_asynchronous_method_that_can_use_the_Await_operator", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares the operator symbol, operands, and code that define an operator procedure on a class or structure..
+        '''  Looks up a localized string similar to Indicates an iterator method that can use the Yield statement..
         '''</summary>
-        Friend ReadOnly Property OperatorKeywordToolTip() As String
+        Friend ReadOnly Property Indicates_an_iterator_method_that_can_use_the_Yield_statement() As String
             Get
-                Return ResourceManager.GetString("OperatorKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Indicates_an_iterator_method_that_can_use_the_Yield_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that a procedure argument can be omitted when the procedure is called..
+        '''  Looks up a localized string similar to Indicates that a class or structure member is providing the implementation for a member defined in an interface..
         '''</summary>
-        Friend ReadOnly Property OptionalKeywordToolTip() As String
+        Friend ReadOnly Property Indicates_that_a_class_or_structure_member_is_providing_the_implementation_for_a_member_defined_in_an_interface() As String
             Get
-                Return ResourceManager.GetString("OptionalKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Indicates_that_a_class_or_structure_member_is_providing_the_implementation_for_a_"& _ 
+                        "member_defined_in_an_interface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Indicates that a conversion operator (CType) converts a class or structure to a type that can hold all possible values of the original class or structure..
+        '''</summary>
+        Friend ReadOnly Property Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_can_hold_all_possible_values_of_the_original_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_typ"& _ 
+                        "e_that_can_hold_all_possible_values_of_the_original_class_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Indicates that a conversion operator (CType) converts a class or structure to a type that might not be able to hold some of the possible values of the original class or structure..
+        '''</summary>
+        Friend ReadOnly Property Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_might_not_be_able_to_hold_some_of_the_possible_values_of_the_original_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_typ"& _ 
+                        "e_that_might_not_be_able_to_hold_some_of_the_possible_values_of_the_original_cla"& _ 
+                        "ss_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Indicates that a method, class, or structure declaration is a partial definition of the method, class, or structure..
+        '''</summary>
+        Friend ReadOnly Property Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of"& _ 
+                        "_the_method_class_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Indicates that an external procedure has another name in its DLL..
+        '''</summary>
+        Friend ReadOnly Property Indicates_that_an_external_procedure_has_another_name_in_its_DLL() As String
+            Get
+                Return ResourceManager.GetString("Indicates_that_an_external_procedure_has_another_name_in_its_DLL", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Inline temporary variable.
+        '''</summary>
+        Friend ReadOnly Property Inline_temporary_variable() As String
+            Get
+                Return ResourceManager.GetString("Inline_temporary_variable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Insert &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property Insert_0() As String
+            Get
+                Return ResourceManager.GetString("Insert_0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Insert &apos;Await&apos;..
+        '''</summary>
+        Friend ReadOnly Property Insert_Await() As String
+            Get
+                Return ResourceManager.GetString("Insert_Await", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Insert Missing Cast.
+        '''</summary>
+        Friend ReadOnly Property Insert_Missing_Cast() As String
+            Get
+                Return ResourceManager.GetString("Insert_Missing_Cast", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Insert the missing &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property Insert_the_missing_0() As String
+            Get
+                Return ResourceManager.GetString("Insert_the_missing_0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Insert the missing &apos;End Property&apos; statement..
+        '''</summary>
+        Friend ReadOnly Property Insert_the_missing_End_Property_statement() As String
+            Get
+                Return ResourceManager.GetString("Insert_the_missing_End_Property_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;interface name&gt;.
+        '''</summary>
+        Friend ReadOnly Property interface_name() As String
+            Get
+                Return ResourceManager.GetString("interface_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_contai"& _ 
+                        "ning_an_external_procedure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a condition in an If statement that is to be tested if the previous conditional test fails..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_condition_in_an_If_statement_that_is_to_be_tested_if_the_previous_conditional_test_fails() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_condition_in_an_If_statement_that_is_to_be_tested_if_the_previous_co"& _ 
+                        "nditional_test_fails", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a condition in an #If statement that is tested if the previous conditional test evaluates to False..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_condition_in_an_SharpIf_statement_that_is_tested_if_the_previous_conditional_test_evaluates_to_False() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_condition_in_an_SharpIf_statement_that_is_tested_if_the_previous_con"& _ 
+                        "ditional_test_evaluates_to_False", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a group of statements in an If statement that is executed if no previous condition evaluates to True..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previo"& _ 
+                        "us_condition_evaluates_to_True", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a group of statements in an #If statement that is compiled if no previous condition evaluates to True..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_group_of_statements_in_an_SharpIf_statement_that_is_compiled_if_no_previous_condition_evaluates_to_True() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_group_of_statements_in_an_SharpIf_statement_that_is_compiled_if_no_p"& _ 
+                        "revious_condition_evaluates_to_True", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a loop that is iterated a specified number of times..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_loop_that_is_iterated_a_specified_number_of_times() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_loop_that_is_iterated_a_specified_number_of_times", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a loop that is repeated for each element in a collection..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a statement block to be compiled or executed if a tested condition is true..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_statement_block_to_be_compiled_or_executed_if_a_tested_condition_is_true() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_statement_block_to_be_compiled_or_executed_if_a_tested_condition_is_"& _ 
+                        "true", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a statement block to be run before exiting a Try structure..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a statement block to be run if the specified exception occurs inside a Try block..
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a"& _ 
+                        "_Try_block", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Introduces a statement that specifies a compiler option that applies to the entire source file..
         '''</summary>
-        Friend ReadOnly Property OptionKeywordToolTip() As String
+        Friend ReadOnly Property Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entire_source_file() As String
             Get
-                Return ResourceManager.GetString("OptionKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Introduces_a_statement_that_specifies_a_compiler_option_that_applies_to_the_entir"& _ 
+                        "e_source_file", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces a value, or set of values, against which the value of an expression in a Select Case statement is to be tested.
+        '''Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;comparisonOperator&gt; &lt;expression&gt;}.
+        '''</summary>
+        Friend ReadOnly Property Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression2_bracket_Is_bracket_comparisonOperator_expression() As String
+            Get
+                Return ResourceManager.GetString("Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a"& _ 
+                        "_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression"& _ 
+                        "2_bracket_Is_bracket_comparisonOperator_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduces the statements to run if none of the previous cases in the Select Case statement returns True..
+        '''</summary>
+        Friend ReadOnly Property Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True() As String
+            Get
+                Return ResourceManager.GetString("Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case"& _ 
+                        "_statement_returns_True", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid selection.
+        '''</summary>
+        Friend ReadOnly Property Invalid_selection() As String
+            Get
+                Return ResourceManager.GetString("Invalid_selection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invert If statement.
+        '''</summary>
+        Friend ReadOnly Property Invert_If_statement() As String
+            Get
+                Return ResourceManager.GetString("Invert_If_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Join clause.
+        '''</summary>
+        Friend ReadOnly Property Join_clause() As String
+            Get
+                Return ResourceManager.GetString("Join_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Join condition.
+        '''</summary>
+        Friend ReadOnly Property Join_condition() As String
+            Get
+                Return ResourceManager.GetString("Join_condition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Lambda.
+        '''</summary>
+        Friend ReadOnly Property Lambda() As String
+            Get
+                Return ResourceManager.GetString("Lambda", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Let clause.
+        '''</summary>
+        Friend ReadOnly Property Let_clause() As String
+            Get
+                Return ResourceManager.GetString("Let_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make {0} an Async Function..
+        '''</summary>
+        Friend ReadOnly Property Make_0_an_Async_Function() As String
+            Get
+                Return ResourceManager.GetString("Make_0_an_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Function.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Function() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Sub.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Sub() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Sub", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Mid statement.
+        '''</summary>
+        Friend ReadOnly Property Mid_statement() As String
+            Get
+                Return ResourceManager.GetString("Mid_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to module.
+        '''</summary>
+        Friend ReadOnly Property module_() As String
+            Get
+                Return ResourceManager.GetString("module_", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;module name&gt;.
+        '''</summary>
+        Friend ReadOnly Property module_name() As String
+            Get
+                Return ResourceManager.GetString("module_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Move the &apos;{0}&apos; statement to line {1}..
+        '''</summary>
+        Friend ReadOnly Property Move_the_0_statement_to_line_1() As String
+            Get
+                Return ResourceManager.GetString("Move_the_0_statement_to_line_1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Multiplies two numbers and returns the product..
+        '''</summary>
+        Friend ReadOnly Property Multiplies_two_numbers_and_returns_the_product() As String
+            Get
+                Return ResourceManager.GetString("Multiplies_two_numbers_and_returns_the_product", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Name can be simplified.
+        '''</summary>
+        Friend ReadOnly Property Name_can_be_simplified() As String
+            Get
+                Return ResourceManager.GetString("Name_can_be_simplified", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to NameOf function.
+        '''</summary>
+        Friend ReadOnly Property NameOf_function() As String
+            Get
+                Return ResourceManager.GetString("NameOf_function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;namespace name&gt;.
+        '''</summary>
+        Friend ReadOnly Property namespace_name() As String
+            Get
+                Return ResourceManager.GetString("namespace_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;new field&gt;.
+        '''</summary>
+        Friend ReadOnly Property new_field() As String
+            Get
+                Return ResourceManager.GetString("new_field", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;new resource&gt;.
+        '''</summary>
+        Friend ReadOnly Property new_resource() As String
+            Get
+                Return ResourceManager.GetString("new_resource", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;new variable&gt;.
+        '''</summary>
+        Friend ReadOnly Property new_variable() As String
+            Get
+                Return ResourceManager.GetString("new_variable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to next statement control variable doesn&apos;t have matching declaration statement.
+        '''</summary>
+        Friend ReadOnly Property next_statement_control_variable_doesn_t_have_matching_declaration_statement() As String
+            Get
+                Return ResourceManager.GetString("next_statement_control_variable_doesn_t_have_matching_declaration_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to No common root node for extraction.
+        '''</summary>
+        Friend ReadOnly Property No_common_root_node_for_extraction() As String
+            Get
+                Return ResourceManager.GetString("No_common_root_node_for_extraction", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to No valid selection to perform extraction.
+        '''</summary>
+        Friend ReadOnly Property No_valid_selection_to_perform_extraction() As String
+            Get
+                Return ResourceManager.GetString("No_valid_selection_to_perform_extraction", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to no valid statement range to extract out.
+        '''</summary>
+        Friend ReadOnly Property no_valid_statement_range_to_extract_out() As String
+            Get
+                Return ResourceManager.GetString("no_valid_statement_range_to_extract_out", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Not all code paths return.
+        '''</summary>
+        Friend ReadOnly Property Not_all_code_paths_return() As String
+            Get
+                Return ResourceManager.GetString("Not_all_code_paths_return", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Note: Space and &apos;=&apos; completion are disabled to avoid potential interference. To insert a name from the list, use tab..
+        '''</summary>
+        Friend ReadOnly Property Note_colon_Space_and_completion_are_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab() As String
+            Get
+                Return ResourceManager.GetString("Note_colon_Space_and_completion_are_disabled_to_avoid_potential_interference_To_i"& _ 
+                        "nsert_a_name_from_the_list_use_tab", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab..
+        '''</summary>
+        Friend ReadOnly Property Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab() As String
+            Get
+                Return ResourceManager.GetString("Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert"& _ 
+                        "_a_name_from_the_list_use_tab", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Note: Use tab for automatic completion; space completion is disabled to avoid interfering with a new name..
+        '''</summary>
+        Friend ReadOnly Property Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name() As String
+            Get
+                Return ResourceManager.GetString("Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid"& _ 
+                        "_interfering_with_a_new_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to On Error statement.
+        '''</summary>
+        Friend ReadOnly Property On_Error_statement() As String
+            Get
+                Return ResourceManager.GetString("On_Error_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to option.
         '''</summary>
-        Friend ReadOnly Property OptionStatement() As String
+        Friend ReadOnly Property option_() As String
             Get
-                Return ResourceManager.GetString("OptionStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the sort order for columns in a query. Can be followed by either the Ascending or the Descending keyword. If neither is specified, Ascending is used..
-        '''</summary>
-        Friend ReadOnly Property OrderByQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("OrderByQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("option_", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Ordering clause.
         '''</summary>
-        Friend ReadOnly Property OrderingClause() As String
+        Friend ReadOnly Property Ordering_clause() As String
             Get
-                Return ResourceManager.GetString("OrderingClause", resourceCulture)
+                Return ResourceManager.GetString("Ordering_clause", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Performs short-circuit inclusive logical disjunction on two expressions. Returns True if either operand evaluates to True. If the first expression evaluates to True, the second expression is not evaluated.
-        '''&lt;result&gt; = &lt;expression1&gt; OrElse &lt;expression2&gt;.
+        '''  Looks up a localized string similar to &lt;parameter name&gt;.
         '''</summary>
-        Friend ReadOnly Property OrElseKeywordToolTip() As String
+        Friend ReadOnly Property parameter_name() As String
             Get
-                Return ResourceManager.GetString("OrElseKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("parameter_name", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Organize Imports.
+        '''  Looks up a localized string similar to parameters.
         '''</summary>
-        Friend ReadOnly Property OrganizeImports() As String
+        Friend ReadOnly Property parameters() As String
             Get
-                Return ResourceManager.GetString("OrganizeImports", resourceCulture)
+                Return ResourceManager.GetString("parameters", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &amp;Organize Imports.
+        '''  Looks up a localized string similar to Performs a logical conjunction on two Boolean expressions, or a bitwise conjunction on two numeric expressions. For Boolean expressions, returns True if both operands evaluate to True. Both expressions are always evaluated.
+        '''&lt;result&gt; = &lt;expression1&gt; And &lt;expression2&gt;.
         '''</summary>
-        Friend ReadOnly Property OrganizeImportsWithAccelerator() As String
+        Friend ReadOnly Property Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operands_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And_expression2() As String
             Get
-                Return ResourceManager.GetString("OrganizeImportsWithAccelerator", resourceCulture)
+                Return ResourceManager.GetString("Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunctio"& _ 
+                        "n_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operan"& _ 
+                        "ds_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And"& _ 
+                        "_expression2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
+        '''&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;.
+        '''</summary>
+        Friend ReadOnly Property Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2() As String
+            Get
+                Return ResourceManager.GetString("Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on"& _ 
+                        "_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_"& _ 
+                        "the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_e"& _ 
+                        "xpression1_Xor_expression2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Performs a short-circuit logical conjunction on two expressions. Returns True if both operands evaluate to True. If the first expression evaluates to False, the second is not evaluated.
+        '''&lt;result&gt; = &lt;expression1&gt; AndAlso &lt;expression2&gt;.
+        '''</summary>
+        Friend ReadOnly Property Performs_a_short_circuit_logical_conjunction_on_two_expressions_Returns_True_if_both_operands_evaluate_to_True_If_the_first_expression_evaluates_to_False_the_second_is_not_evaluated_result_expression1_AndAlso_expression2() As String
+            Get
+                Return ResourceManager.GetString("Performs_a_short_circuit_logical_conjunction_on_two_expressions_Returns_True_if_b"& _ 
+                        "oth_operands_evaluate_to_True_If_the_first_expression_evaluates_to_False_the_sec"& _ 
+                        "ond_is_not_evaluated_result_expression1_AndAlso_expression2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Performs an arithmetic left shift on a bit pattern..
+        '''</summary>
+        Friend ReadOnly Property Performs_an_arithmetic_left_shift_on_a_bit_pattern() As String
+            Get
+                Return ResourceManager.GetString("Performs_an_arithmetic_left_shift_on_a_bit_pattern", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Performs an arithmetic right shift on a bit pattern.
+        '''</summary>
+        Friend ReadOnly Property Performs_an_arithmetic_right_shift_on_a_bit_pattern() As String
+            Get
+                Return ResourceManager.GetString("Performs_an_arithmetic_right_shift_on_a_bit_pattern", resourceCulture)
             End Get
         End Property
         
@@ -2198,108 +1817,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''  Looks up a localized string similar to Performs an inclusive logical disjunction on two Boolean expressions, or a bitwise disjunction on two numeric expressions. For Boolean expressions, returns True if at least one operand evaluates to True. Both expressions are always evaluated.
         '''&lt;result&gt; = &lt;expression1&gt; Or &lt;expression2&gt;.
         '''</summary>
-        Friend ReadOnly Property OrKeywordToolTip() As String
+        Friend ReadOnly Property Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Or_expression2() As String
             Get
-                Return ResourceManager.GetString("OrKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise"& _ 
+                        "_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_"& _ 
+                        "at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_res"& _ 
+                        "ult_expression1_Or_expression2", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that a property or procedure re-declares one or more existing properties or procedures with the same name..
+        '''  Looks up a localized string similar to Performs logical negation on a Boolean expression, or bitwise negation on a numeric expression.
+        '''&lt;result&gt; = Not &lt;expression&gt;.
         '''</summary>
-        Friend ReadOnly Property OverloadsKeywordToolTip() As String
+        Friend ReadOnly Property Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeric_expression_result_Not_expression() As String
             Get
-                Return ResourceManager.GetString("OverloadsKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeri"& _ 
+                        "c_expression_result_Not_expression", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that a property or procedure can be overridden by an identically named property or procedure in a derived class..
+        '''  Looks up a localized string similar to Performs short-circuit inclusive logical disjunction on two expressions. Returns True if either operand evaluates to True. If the first expression evaluates to True, the second expression is not evaluated.
+        '''&lt;result&gt; = &lt;expression1&gt; OrElse &lt;expression2&gt;.
         '''</summary>
-        Friend ReadOnly Property OverridableKeywordToolTip() As String
+        Friend ReadOnly Property Performs_short_circuit_inclusive_logical_disjunction_on_two_expressions_Returns_True_if_either_operand_evaluates_to_True_If_the_first_expression_evaluates_to_True_the_second_expression_is_not_evaluated_result_expression1_OrElse_expression2() As String
             Get
-                Return ResourceManager.GetString("OverridableKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources..
-        '''</summary>
-        Friend ReadOnly Property OverrideFinalizerTodo() As String
-            Get
-                Return ResourceManager.GetString("OverrideFinalizerTodo", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class..
-        '''</summary>
-        Friend ReadOnly Property OverridesKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("OverridesKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a procedure parameter takes an optional array of elements of the specified type..
-        '''</summary>
-        Friend ReadOnly Property ParamArrayKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ParamArrayKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to parameters.
-        '''</summary>
-        Friend ReadOnly Property ParameterList() As String
-            Get
-                Return ResourceManager.GetString("ParameterList", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;parameter name&gt;.
-        '''</summary>
-        Friend ReadOnly Property ParameterName() As String
-            Get
-                Return ResourceManager.GetString("ParameterName", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates that a method, class, or structure declaration is a partial definition of the method, class, or structure..
-        '''</summary>
-        Friend ReadOnly Property PartialKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("PartialKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Returns the sum of two numbers, or the positive value of a numeric expression..
-        '''</summary>
-        Friend ReadOnly Property PlusKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("PlusKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Performs_short_circuit_inclusive_logical_disjunction_on_two_expressions_Returns_T"& _ 
+                        "rue_if_either_operand_evaluates_to_True_If_the_first_expression_evaluates_to_Tru"& _ 
+                        "e_the_second_expression_is_not_evaluated_result_expression1_OrElse_expression2", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Prevents the contents of an array from being cleared when the dimensions of the array are changed..
         '''</summary>
-        Friend ReadOnly Property PreserveKeywordToolTip() As String
+        Friend ReadOnly Property Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed() As String
             Get
-                Return ResourceManager.GetString("PreserveKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_a"& _ 
+                        "rray_are_changed", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within their module, class, or structure..
+        '''  Looks up a localized string similar to Produces an element of an IEnumerable or IEnumerator..
         '''</summary>
-        Friend ReadOnly Property PrivateKeywordToolTip() As String
+        Friend ReadOnly Property Produces_an_element_of_an_IEnumerable_or_IEnumerator() As String
             Get
-                Return ResourceManager.GetString("PrivateKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Produces_an_element_of_an_IEnumerable_or_IEnumerator", resourceCulture)
             End Get
         End Property
         
@@ -2315,573 +1880,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''<summary>
         '''  Looks up a localized string similar to property accessor.
         '''</summary>
-        Friend ReadOnly Property PropertyAccessor() As String
+        Friend ReadOnly Property property_accessor() As String
             Get
-                Return ResourceManager.GetString("PropertyAccessor", resourceCulture)
+                Return ResourceManager.GetString("property_accessor", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Declares the name of a property, and the property procedures used to store and retrieve the value of the property..
+        '''  Looks up a localized string similar to {0}.get.
         '''</summary>
-        Friend ReadOnly Property PropertyKeywordToolTip() As String
+        Friend ReadOnly Property Property_getter_name() As String
             Get
-                Return ResourceManager.GetString("PropertyKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Property_getter_name", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared members of a class are accessible from anywhere in the same assembly, their own classes, and derived classes..
+        '''  Looks up a localized string similar to {0}.set.
         '''</summary>
-        Friend ReadOnly Property ProtectedFriendKeywordToolTip() As String
+        Friend ReadOnly Property Property_setter_name() As String
             Get
-                Return ResourceManager.GetString("ProtectedFriendKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within their own class or from a derived class..
-        '''</summary>
-        Friend ReadOnly Property ProtectedKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ProtectedKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared programming elements have no access restrictions..
-        '''</summary>
-        Friend ReadOnly Property PublicKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("PublicKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the statements to run when the event is raised by the RaiseEvent statement.
-        '''RaiseEvent(&lt;delegateSignature&gt;)...End RaiseEvent.
-        '''</summary>
-        Friend ReadOnly Property RaiseEventKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("RaiseEventKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Triggers an event declared at module level within a class, form, or document.
-        '''RaiseEvent &lt;eventName&gt; [(&lt;argumentList&gt;)].
-        '''</summary>
-        Friend ReadOnly Property RaiseEventStatementToolTip() As String
-            Get
-                Return ResourceManager.GetString("RaiseEventStatementToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a variable or property can be read but not written to..
-        '''</summary>
-        Friend ReadOnly Property ReadOnlyKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ReadOnlyKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Reallocates storage space for an array variable..
-        '''</summary>
-        Friend ReadOnly Property ReDimKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ReDimKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
-        '''</summary>
-        Friend ReadOnly Property ReferenceKeywordTooltip() As String
-            Get
-                Return ResourceManager.GetString("ReferenceKeywordTooltip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Collapses and hides sections of code in Visual Basic files..
-        '''</summary>
-        Friend ReadOnly Property RegionKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("RegionKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove &amp;and Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property RemoveAndSortImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("RemoveAndSortImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to RemoveHandler statement.
-        '''</summary>
-        Friend ReadOnly Property RemovehandlerStatement() As String
-            Get
-                Return ResourceManager.GetString("RemovehandlerStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove &apos;Me&apos; qualification.
-        '''</summary>
-        Friend ReadOnly Property RemoveMeQualification() As String
-            Get
-                Return ResourceManager.GetString("RemoveMeQualification", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove Unnecessary Cast.
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryCast() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryCast", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove Unnecessary Imports.
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryImports() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryImports", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Imports statement is unnecessary..
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryImportsDiagnosticTitle() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryImportsDiagnosticTitle", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Remove Unnecessary Imports.
-        '''</summary>
-        Friend ReadOnly Property RemoveUnnecessaryImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("RemoveUnnecessaryImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Replace &apos;Return&apos; with &apos;Yield.
-        '''</summary>
-        Friend ReadOnly Property ReplaceReturnWithYield() As String
-            Get
-                Return ResourceManager.GetString("ReplaceReturnWithYield", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &lt;result alias&gt;.
-        '''</summary>
-        Friend ReadOnly Property ResultAlias() As String
-            Get
-                Return ResourceManager.GetString("ResultAlias", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Resume statement.
-        '''</summary>
-        Friend ReadOnly Property ResumeStatement() As String
-            Get
-                Return ResourceManager.GetString("ResumeStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Returns execution to the code that called the Function, Sub, Get, Set, or Operator procedure.
-        '''Return -or- Return &lt;expression&gt;.
-        '''</summary>
-        Friend ReadOnly Property ReturnKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ReturnKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Performs an arithmetic right shift on a bit pattern.
-        '''</summary>
-        Friend ReadOnly Property RightShiftKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("RightShiftKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Select clause.
-        '''</summary>
-        Friend ReadOnly Property SelectClause() As String
-            Get
-                Return ResourceManager.GetString("SelectClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection can&apos;t be crossed over preprocessors.
-        '''</summary>
-        Friend ReadOnly Property SelectionCantBeCrossedOve() As String
-            Get
-                Return ResourceManager.GetString("SelectionCantBeCrossedOve", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection can&apos;t be parts of constant initializer expression.
-        '''</summary>
-        Friend ReadOnly Property SelectionCantBePartsOfCo() As String
-            Get
-                Return ResourceManager.GetString("SelectionCantBePartsOfCo", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection can&apos;t contain throw without enclosing catch block.
-        '''</summary>
-        Friend ReadOnly Property SelectionCantContainThrow() As String
-            Get
-                Return ResourceManager.GetString("SelectionCantContainThrow", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection doesn&apos;t contain any valid node.
-        '''</summary>
-        Friend ReadOnly Property SelectionDoesntContainAny() As String
-            Get
-                Return ResourceManager.GetString("SelectionDoesntContainAny", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection doesn&apos;t contain any valid token.
-        '''</summary>
-        Friend ReadOnly Property SelectionDoesntContainAny0() As String
-            Get
-                Return ResourceManager.GetString("SelectionDoesntContainAny0", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Selection must be part of executable statements.
-        '''</summary>
-        Friend ReadOnly Property SelectionMustBePartOfExec() As String
-            Get
-                Return ResourceManager.GetString("SelectionMustBePartOfExec", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Runs one of several groups of statements, depending on the value of an expression..
-        '''</summary>
-        Friend ReadOnly Property SelectKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SelectKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies which columns to include in the result of a query..
-        '''</summary>
-        Friend ReadOnly Property SelectQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SelectQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares a Set property procedure that is used to assign a value to a property..
-        '''</summary>
-        Friend ReadOnly Property SetPropertyKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SetPropertyKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that a declared programming element redeclares and hides an identically named element in a base class..
-        '''</summary>
-        Friend ReadOnly Property ShadowsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ShadowsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are associated with all instances of a class or structure..
-        '''</summary>
-        Friend ReadOnly Property SharedKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SharedKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Join clause.
-        '''</summary>
-        Friend ReadOnly Property SimpleJoinClause() As String
-            Get
-                Return ResourceManager.GetString("SimpleJoinClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Simplify member access &apos;{0}&apos;.
-        '''</summary>
-        Friend ReadOnly Property SimplifyMemberAccess() As String
-            Get
-                Return ResourceManager.GetString("SimplifyMemberAccess", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Simplify name &apos;{0}&apos;.
-        '''</summary>
-        Friend ReadOnly Property SimplifyName() As String
-            Get
-                Return ResourceManager.GetString("SimplifyName", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Skips elements up to a specified position in the collection..
-        '''</summary>
-        Friend ReadOnly Property SkipQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SkipQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Skip While clause.
-        '''</summary>
-        Friend ReadOnly Property SkipWhileClause() As String
-            Get
-                Return ResourceManager.GetString("SkipWhileClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to &amp;Sort Imports.
-        '''</summary>
-        Friend ReadOnly Property SortImportsWithAccelerator() As String
-            Get
-                Return ResourceManager.GetString("SortImportsWithAccelerator", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared local variables are to remain in existence and retain their latest values after the procedure in which they are declared terminates..
-        '''</summary>
-        Friend ReadOnly Property StaticKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("StaticKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies how much to increment between each loop iteration..
-        '''</summary>
-        Friend ReadOnly Property StepKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("StepKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Suspends program execution..
-        '''</summary>
-        Friend ReadOnly Property StopKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("StopKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to When set to On, restricts implicit data type conversions to only widening conversions.
-        '''Option Strict {On | Off}.
-        '''</summary>
-        Friend ReadOnly Property StrictKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("StrictKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares the name of a structure and introduces the definition of the variables, properties, events, and procedures that make up the structure..
-        '''</summary>
-        Friend ReadOnly Property StructureKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("StructureKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to structure.
-        '''</summary>
-        Friend ReadOnly Property StructureStatement() As String
-            Get
-                Return ResourceManager.GetString("StructureStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Declares the name, parameters, and code that define a Sub procedure, that is, a procedure that does not return a value to the calling code..
-        '''</summary>
-        Friend ReadOnly Property SubKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SubKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
-        '''Sub(&lt;parameterList&gt;) &lt;statement&gt;.
-        '''</summary>
-        Friend ReadOnly Property SubLambdaKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SubLambdaKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to SyncLock block.
-        '''</summary>
-        Friend ReadOnly Property SyncLockBlock() As String
-            Get
-                Return ResourceManager.GetString("SyncLockBlock", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Ensures that multiple threads do not execute the statement block at the same time.
-        '''SyncLock &lt;object&gt;...End Synclock.
-        '''</summary>
-        Friend ReadOnly Property SyncLockKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("SyncLockKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to SyncLock statement.
-        '''</summary>
-        Friend ReadOnly Property SyncLockStatement() As String
-            Get
-                Return ResourceManager.GetString("SyncLockStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Includes elements up to a specified position in the collection..
-        '''</summary>
-        Friend ReadOnly Property TakeQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("TakeQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Take While clause.
-        '''</summary>
-        Friend ReadOnly Property TakeWhileClause() As String
-            Get
-                Return ResourceManager.GetString("TakeWhileClause", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Sets the string comparison method specified in Option Compare to a text sort order that is not case sensitive..
-        '''</summary>
-        Friend ReadOnly Property TextKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("TextKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Introduces a statement block to be compiled or executed if a tested condition is true..
-        '''</summary>
-        Friend ReadOnly Property ThenKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ThenKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to the selection contains syntactic errors.
-        '''</summary>
-        Friend ReadOnly Property TheSelectionContainsSyntact() As String
-            Get
-                Return ResourceManager.GetString("TheSelectionContainsSyntact", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to This code added by Visual Basic to correctly implement the disposable pattern..
-        '''</summary>
-        Friend ReadOnly Property ThisCodeAddedToCorrectlyImplementDisposable() As String
-            Get
-                Return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code..
-        '''</summary>
-        Friend ReadOnly Property ThrowKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ThrowKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Separates the beginning and ending values of a loop counter or array bounds or that of a value match range..
-        '''</summary>
-        Friend ReadOnly Property ToKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("ToKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Represents a Boolean value that passes a conditional test..
-        '''</summary>
-        Friend ReadOnly Property TrueKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("TrueKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Try block.
-        '''</summary>
-        Friend ReadOnly Property TryBlock() As String
-            Get
-                Return ResourceManager.GetString("TryBlock", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to TryCast function.
-        '''</summary>
-        Friend ReadOnly Property TrycastFunction() As String
-            Get
-                Return ResourceManager.GetString("TrycastFunction", resourceCulture)
+                Return ResourceManager.GetString("Property_setter_name", resourceCulture)
             End Get
         End Property
         
@@ -2889,201 +1908,273 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''  Looks up a localized string similar to Provides a way to handle some or all possible errors that might occur in a given block of code, while still running the code.
         '''Try...[Catch]...{Catch | Finally}...End Try.
         '''</summary>
-        Friend ReadOnly Property TryKeywordToolTip() As String
+        Friend ReadOnly Property Provides_a_way_to_handle_some_or_all_possible_errors_that_might_occur_in_a_given_block_of_code_while_still_running_the_code_Try_bracket_Catch_bracket_Catch_Finally_End_Try() As String
             Get
-                Return ResourceManager.GetString("TryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Provides_a_way_to_handle_some_or_all_possible_errors_that_might_occur_in_a_given_"& _ 
+                        "block_of_code_while_still_running_the_code_Try_bracket_Catch_bracket_Catch_Final"& _ 
+                        "ly_End_Try", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type a name here to declare a new field..
+        '''  Looks up a localized string similar to Provides a way to refer to the base class of the current class instance. You cannot use MyBase to call MustOverride base methods..
         '''</summary>
-        Friend ReadOnly Property TypeANameHereToDeclareA() As String
+        Friend ReadOnly Property Provides_a_way_to_refer_to_the_base_class_of_the_current_class_instance_You_cannot_use_MyBase_to_call_MustOverride_base_methods() As String
             Get
-                Return ResourceManager.GetString("TypeANameHereToDeclareA", resourceCulture)
+                Return ResourceManager.GetString("Provides_a_way_to_refer_to_the_base_class_of_the_current_class_instance_You_canno"& _ 
+                        "t_use_MyBase_to_call_MustOverride_base_methods", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type a name here to declare a parameter. If no preceding keyword is used; &apos;ByVal&apos; will be assumed and the argument will be passed by value..
+        '''  Looks up a localized string similar to Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides..
         '''</summary>
-        Friend ReadOnly Property TypeANameHereToDeclareA0() As String
+        Friend ReadOnly Property Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides() As String
             Get
-                Return ResourceManager.GetString("TypeANameHereToDeclareA0", resourceCulture)
+                Return ResourceManager.GetString("Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_i"& _ 
+                        "gnoring_any_derived_class_overrides", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type a new name for the column, followed by &apos;=&apos;. Otherwise, the original column name with be used..
+        '''  Looks up a localized string similar to Provides a way to refer to the current instance of a class or structure, that is, the instance in which the code is running..
         '''</summary>
-        Friend ReadOnly Property TypeANewNameForTheColumn() As String
+        Friend ReadOnly Property Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running() As String
             Get
-                Return ResourceManager.GetString("TypeANewNameForTheColumn", resourceCulture)
+                Return ResourceManager.GetString("Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_t"& _ 
+                        "he_instance_in_which_the_code_is_running", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type a new variable name.
+        '''  Looks up a localized string similar to Raises a number to the power of another number..
         '''</summary>
-        Friend ReadOnly Property TypeANewVariableName() As String
+        Friend ReadOnly Property Raises_a_number_to_the_power_of_another_number() As String
             Get
-                Return ResourceManager.GetString("TypeANewVariableName", resourceCulture)
+                Return ResourceManager.GetString("Raises_a_number_to_the_power_of_another_number", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
-        '''&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;.
+        '''  Looks up a localized string similar to Reallocates storage space for an array variable..
         '''</summary>
-        Friend ReadOnly Property TypeOfKeywordToolTip() As String
+        Friend ReadOnly Property Reallocates_storage_space_for_an_array_variable() As String
             Get
-                Return ResourceManager.GetString("TypeOfKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Reallocates_storage_space_for_an_array_variable", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to type parameters.
+        '''  Looks up a localized string similar to Remove &amp;and Sort Imports.
         '''</summary>
-        Friend ReadOnly Property TypeParameterList() As String
+        Friend ReadOnly Property Remove_and_Sort_Imports() As String
             Get
-                Return ResourceManager.GetString("TypeParameterList", resourceCulture)
+                Return ResourceManager.GetString("Remove_and_Sort_Imports", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to TODO: uncomment the following line if Finalize() is overridden above..
+        '''  Looks up a localized string similar to Remove &apos;Me&apos; qualification.
         '''</summary>
-        Friend ReadOnly Property UncommentTheFollowingLineIfFinalizeIsOverridden() As String
+        Friend ReadOnly Property Remove_Me_qualification() As String
             Get
-                Return ResourceManager.GetString("UncommentTheFollowingLineIfFinalizeIsOverridden", resourceCulture)
+                Return ResourceManager.GetString("Remove_Me_qualification", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Used in a Declare statement. Specifies that Visual Basic should marshal all strings to Unicode values in a call into an external procedure, and should look up the procedure without modifying its name..
+        '''  Looks up a localized string similar to Remove Unnecessary Cast.
         '''</summary>
-        Friend ReadOnly Property UnicodeKeywordToolTip() As String
+        Friend ReadOnly Property Remove_Unnecessary_Cast() As String
             Get
-                Return ResourceManager.GetString("UnicodeKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Using block.
+        '''  Looks up a localized string similar to Remove Unnecessary Imports.
         '''</summary>
-        Friend ReadOnly Property UsingBlock() As String
+        Friend ReadOnly Property Remove_Unnecessary_Imports() As String
             Get
-                Return ResourceManager.GetString("UsingBlock", resourceCulture)
+                Return ResourceManager.GetString("Remove_Unnecessary_Imports", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to A Using block does three things: it creates and initializes variables in the resource list, it runs the code in the block, and it disposes of the variables before exiting. Resources used in the Using block must implement System.IDisposable.
-        '''Using &lt;resource1&gt;[, &lt;resource2&gt;]...End Using.
+        '''  Looks up a localized string similar to RemoveHandler statement.
         '''</summary>
-        Friend ReadOnly Property UsingKeywordToolTip() As String
+        Friend ReadOnly Property RemoveHandler_statement() As String
             Get
-                Return ResourceManager.GetString("UsingKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("RemoveHandler_statement", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Using statement.
+        '''  Looks up a localized string similar to Repeats a block of statements until a Boolean condition becomes true.
+        '''Do...Loop Until &lt;condition&gt;.
         '''</summary>
-        Friend ReadOnly Property UsingStatement() As String
+        Friend ReadOnly Property Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition() As String
             Get
-                Return ResourceManager.GetString("UsingStatement", resourceCulture)
+                Return ResourceManager.GetString("Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Unti"& _ 
+                        "l_condition", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Adds a conditional test to a Catch statement. Exceptions are caught by that Catch statement only when the conditional test that follows the When keyword evaluates to True..
+        '''  Looks up a localized string similar to Repeats a block of statements until a Boolean condition becomes true.
+        '''Do Until &lt;condition&gt;...Loop.
         '''</summary>
-        Friend ReadOnly Property WhenKeywordToolTip() As String
+        Friend ReadOnly Property Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop() As String
             Get
-                Return ResourceManager.GetString("WhenKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_con"& _ 
+                        "dition_Loop", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Where clause.
+        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true.
+        '''Do...Loop While &lt;condition&gt;.
         '''</summary>
-        Friend ReadOnly Property WhereClause() As String
+        Friend ReadOnly Property Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition() As String
             Get
-                Return ResourceManager.GetString("WhereClause", resourceCulture)
+                Return ResourceManager.GetString("Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_con"& _ 
+                        "dition", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Specifies the filtering condition for a range variable in a query..
+        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true.
+        '''Do While &lt;condition&gt;...Loop.
         '''</summary>
-        Friend ReadOnly Property WhereQueryKeywordToolTip() As String
+        Friend ReadOnly Property Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop() As String
             Get
-                Return ResourceManager.GetString("WhereQueryKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_conditio"& _ 
+                        "n_Loop", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Repeats a block of statements while a Boolean condition is true, or until the condition becomes true.
+        '''Do...Loop {While | Until} &lt;condition&gt;.
+        '''</summary>
+        Friend ReadOnly Property Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_or_until_the_condition_becomes_true_Do_Loop_While_Until_condition() As String
+            Get
+                Return ResourceManager.GetString("Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_or_until_the_cond"& _ 
+                        "ition_becomes_true_Do_Loop_While_Until_condition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Replace &apos;Return&apos; with &apos;Yield.
+        '''</summary>
+        Friend ReadOnly Property Replace_Return_with_Yield() As String
+            Get
+                Return ResourceManager.GetString("Replace_Return_with_Yield", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Represents a Boolean value that fails a conditional test..
+        '''</summary>
+        Friend ReadOnly Property Represents_a_Boolean_value_that_fails_a_conditional_test() As String
+            Get
+                Return ResourceManager.GetString("Represents_a_Boolean_value_that_fails_a_conditional_test", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Represents a Boolean value that passes a conditional test..
+        '''</summary>
+        Friend ReadOnly Property Represents_a_Boolean_value_that_passes_a_conditional_test() As String
+            Get
+                Return ResourceManager.GetString("Represents_a_Boolean_value_that_passes_a_conditional_test", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Represents the default value of any data type..
+        '''</summary>
+        Friend ReadOnly Property Represents_the_default_value_of_any_data_type() As String
+            Get
+                Return ResourceManager.GetString("Represents_the_default_value_of_any_data_type", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Restricts the values of a query result to eliminate duplicate values..
+        '''</summary>
+        Friend ReadOnly Property Restricts_the_values_of_a_query_result_to_eliminate_duplicate_values() As String
+            Get
+                Return ResourceManager.GetString("Restricts_the_values_of_a_query_result_to_eliminate_duplicate_values", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;result alias&gt;.
+        '''</summary>
+        Friend ReadOnly Property result_alias() As String
+            Get
+                Return ResourceManager.GetString("result_alias", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Resume statement.
+        '''</summary>
+        Friend ReadOnly Property Resume_statement() As String
+            Get
+                Return ResourceManager.GetString("Resume_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Returns execution to the code that called the Function, Sub, Get, Set, or Operator procedure.
+        '''Return -or- Return &lt;expression&gt;.
+        '''</summary>
+        Friend ReadOnly Property Returns_execution_to_the_code_that_called_the_Function_Sub_Get_Set_or_Operator_procedure_Return_or_Return_expression() As String
+            Get
+                Return ResourceManager.GetString("Returns_execution_to_the_code_that_called_the_Function_Sub_Get_Set_or_Operator_pr"& _ 
+                        "ocedure_Return_or_Return_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Returns the difference between two numeric expressions, or the negative value of a numeric expression..
+        '''</summary>
+        Friend ReadOnly Property Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression() As String
+            Get
+                Return ResourceManager.GetString("Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a"& _ 
+                        "_numeric_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Returns the result of explicitly converting an expression to a specified data type, object, structure, class, or interface.
+        '''CType(Object As Expression, Object As Type) As Type.
+        '''</summary>
+        Friend ReadOnly Property Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type() As String
+            Get
+                Return ResourceManager.GetString("Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_typ"& _ 
+                        "e_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_"& _ 
+                        "As_Type", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Returns the sum of two numbers, or the positive value of a numeric expression..
+        '''</summary>
+        Friend ReadOnly Property Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression() As String
+            Get
+                Return ResourceManager.GetString("Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Runs a series of statements as long as a given condition is true..
         '''</summary>
-        Friend ReadOnly Property WhileKeywordToolTip() As String
+        Friend ReadOnly Property Runs_a_series_of_statements_as_long_as_a_given_condition_is_true() As String
             Get
-                Return ResourceManager.GetString("WhileKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies a condition for Skip and Take operations. Elements will be bypassed or included as long as the condition is true..
-        '''</summary>
-        Friend ReadOnly Property WhileQueryKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("WhileQueryKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Indicates that a conversion operator (CType) converts a class or structure to a type that can hold all possible values of the original class or structure..
-        '''</summary>
-        Friend ReadOnly Property WideningKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("WideningKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to With block.
-        '''</summary>
-        Friend ReadOnly Property WithBlock() As String
-            Get
-                Return ResourceManager.GetString("WithBlock", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to WithEvents field.
-        '''</summary>
-        Friend ReadOnly Property WithEventsFieldStatement() As String
-            Get
-                Return ResourceManager.GetString("WithEventsFieldStatement", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies that one or more declared member variables refer to an instance of a class that can raise events.
-        '''</summary>
-        Friend ReadOnly Property WithEventsKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("WithEventsKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Specifies the declaration of property initializations in an object initializer.
-        '''New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}.
-        '''</summary>
-        Friend ReadOnly Property WithInitializerKeywordToolTip() As String
-            Get
-                Return ResourceManager.GetString("WithInitializerKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Runs_a_series_of_statements_as_long_as_a_given_condition_is_true", resourceCulture)
             End Get
         End Property
         
@@ -3091,55 +2182,1236 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''  Looks up a localized string similar to Runs a series of statements that refer to a single object or structure.
         '''With &lt;object&gt;...End With.
         '''</summary>
-        Friend ReadOnly Property WithKeywordToolTip() As String
+        Friend ReadOnly Property Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With() As String
             Get
-                Return ResourceManager.GetString("WithKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_objec"& _ 
+                        "t_End_With", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to With statement.
+        '''  Looks up a localized string similar to Runs one of several groups of statements, depending on the value of an expression..
         '''</summary>
-        Friend ReadOnly Property WithStatement() As String
+        Friend ReadOnly Property Runs_one_of_several_groups_of_statements_depending_on_the_value_of_an_expression() As String
             Get
-                Return ResourceManager.GetString("WithStatement", resourceCulture)
+                Return ResourceManager.GetString("Runs_one_of_several_groups_of_statements_depending_on_the_value_of_an_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Select clause.
+        '''</summary>
+        Friend ReadOnly Property Select_clause() As String
+            Get
+                Return ResourceManager.GetString("Select_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection can&apos;t be crossed over preprocessors.
+        '''</summary>
+        Friend ReadOnly Property Selection_can_t_be_crossed_over_preprocessors() As String
+            Get
+                Return ResourceManager.GetString("Selection_can_t_be_crossed_over_preprocessors", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection can&apos;t be parts of constant initializer expression.
+        '''</summary>
+        Friend ReadOnly Property Selection_can_t_be_parts_of_constant_initializer_expression() As String
+            Get
+                Return ResourceManager.GetString("Selection_can_t_be_parts_of_constant_initializer_expression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection can&apos;t contain throw without enclosing catch block.
+        '''</summary>
+        Friend ReadOnly Property Selection_can_t_contain_throw_without_enclosing_catch_block() As String
+            Get
+                Return ResourceManager.GetString("Selection_can_t_contain_throw_without_enclosing_catch_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection doesn&apos;t contain any valid node.
+        '''</summary>
+        Friend ReadOnly Property Selection_doesn_t_contain_any_valid_node() As String
+            Get
+                Return ResourceManager.GetString("Selection_doesn_t_contain_any_valid_node", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection doesn&apos;t contain any valid token.
+        '''</summary>
+        Friend ReadOnly Property Selection_doesn_t_contain_any_valid_token() As String
+            Get
+                Return ResourceManager.GetString("Selection_doesn_t_contain_any_valid_token", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Selection must be part of executable statements.
+        '''</summary>
+        Friend ReadOnly Property Selection_must_be_part_of_executable_statements() As String
+            Get
+                Return ResourceManager.GetString("Selection_must_be_part_of_executable_statements", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Separates the beginning and ending values of a loop counter or array bounds or that of a value match range..
+        '''</summary>
+        Friend ReadOnly Property Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range() As String
+            Get
+                Return ResourceManager.GetString("Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_th"& _ 
+                        "at_of_a_value_match_range", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
+        '''Option Compare {Binary | Text}.
+        '''</summary>
+        Friend ReadOnly Property Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text() As String
+            Get
+                Return ResourceManager.GetString("Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_"& _ 
+                        "Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a"& _ 
+                        "_strict_binary_sort_order_Option_Compare_Binary_Text", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Sets the string comparison method specified in Option Compare to a strict binary sort order..
+        '''</summary>
+        Friend ReadOnly Property Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order() As String
+            Get
+                Return ResourceManager.GetString("Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_"& _ 
+                        "sort_order", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Sets the string comparison method specified in Option Compare to a text sort order that is not case sensitive..
+        '''</summary>
+        Friend ReadOnly Property Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_text_sort_order_that_is_not_case_sensitive() As String
+            Get
+                Return ResourceManager.GetString("Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_text_sort_orde"& _ 
+                        "r_that_is_not_case_sensitive", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Simplify member access &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property Simplify_member_access_0() As String
+            Get
+                Return ResourceManager.GetString("Simplify_member_access_0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Simplify name &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property Simplify_name_0() As String
+            Get
+                Return ResourceManager.GetString("Simplify_name_0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Simulates the occurrence of an error..
+        '''</summary>
+        Friend ReadOnly Property Simulates_the_occurrence_of_an_error() As String
+            Get
+                Return ResourceManager.GetString("Simulates_the_occurrence_of_an_error", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Skip While clause.
+        '''</summary>
+        Friend ReadOnly Property Skip_While_clause() As String
+            Get
+                Return ResourceManager.GetString("Skip_While_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Skips elements up to a specified position in the collection..
+        '''</summary>
+        Friend ReadOnly Property Skips_elements_up_to_a_specified_position_in_the_collection() As String
+            Get
+                Return ResourceManager.GetString("Skips_elements_up_to_a_specified_position_in_the_collection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies a collection and a range variable to use in a query..
+        '''</summary>
+        Friend ReadOnly Property Specifies_a_collection_and_a_range_variable_to_use_in_a_query() As String
+            Get
+                Return ResourceManager.GetString("Specifies_a_collection_and_a_range_variable_to_use_in_a_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies a condition for Skip and Take operations. Elements will be bypassed or included as long as the condition is true..
+        '''</summary>
+        Friend ReadOnly Property Specifies_a_condition_for_Skip_and_Take_operations_Elements_will_be_bypassed_or_included_as_long_as_the_condition_is_true() As String
+            Get
+                Return ResourceManager.GetString("Specifies_a_condition_for_Skip_and_Take_operations_Elements_will_be_bypassed_or_i"& _ 
+                        "ncluded_as_long_as_the_condition_is_true", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies a constructor constraint on a generic type parameter..
+        '''</summary>
+        Friend ReadOnly Property Specifies_a_constructor_constraint_on_a_generic_type_parameter() As String
+            Get
+                Return ResourceManager.GetString("Specifies_a_constructor_constraint_on_a_generic_type_parameter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies a data type in a declaration statement..
+        '''</summary>
+        Friend ReadOnly Property Specifies_a_data_type_in_a_declaration_statement() As String
+            Get
+                Return ResourceManager.GetString("Specifies_a_data_type_in_a_declaration_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies an identifier that can serve as a reference to the results of a join or grouping subexpression..
+        '''</summary>
+        Friend ReadOnly Property Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or_grouping_subexpression() As String
+            Get
+                Return ResourceManager.GetString("Specifies_an_identifier_that_can_serve_as_a_reference_to_the_results_of_a_join_or"& _ 
+                        "_grouping_subexpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies how much to increment between each loop iteration..
+        '''</summary>
+        Friend ReadOnly Property Specifies_how_much_to_increment_between_each_loop_iteration() As String
+            Get
+                Return ResourceManager.GetString("Specifies_how_much_to_increment_between_each_loop_iteration", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies one or more interfaces, or interface members, that must be implemented in the class or structure definition in which the Implements statement appears..
+        '''</summary>
+        Friend ReadOnly Property Specifies_one_or_more_interfaces_or_interface_members_that_must_be_implemented_in_the_class_or_structure_definition_in_which_the_Implements_statement_appears() As String
+            Get
+                Return ResourceManager.GetString("Specifies_one_or_more_interfaces_or_interface_members_that_must_be_implemented_in"& _ 
+                        "_the_class_or_structure_definition_in_which_the_Implements_statement_appears", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a class can be used only as a base class, and that you cannot create an object directly from it..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_class_can_be_used_only_as_a_base_class_and_that_you_cannot_create_an_object_directly_from_it() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_class_can_be_used_only_as_a_base_class_and_that_you_cannot_creat"& _ 
+                        "e_an_object_directly_from_it", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a class cannot be used as a base class..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_class_cannot_be_used_as_a_base_class() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_class_cannot_be_used_as_a_base_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a declared programming element redeclares and hides an identically named element in a base class..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_declared_programming_element_redeclares_and_hides_an_identically_named_element_in_a_base_class() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_declared_programming_element_redeclares_and_hides_an_identically"& _ 
+                        "_named_element_in_a_base_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a procedure argument can be omitted when the procedure is called..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_procedure_argument_can_be_omitted_when_the_procedure_is_called() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_procedure_argument_can_be_omitted_when_the_procedure_is_called", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a procedure parameter takes an optional array of elements of the specified type..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_s"& _ 
+                        "pecified_type", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Specifies that a property can be written to but not read..
         '''</summary>
-        Friend ReadOnly Property WriteOnlyKeywordToolTip() As String
+        Friend ReadOnly Property Specifies_that_a_property_can_be_written_to_but_not_read() As String
             Get
-                Return ResourceManager.GetString("WriteOnlyKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Specifies_that_a_property_can_be_written_to_but_not_read", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Performs a logical exclusion on two Boolean expressions, or a bitwise exclusion on two numeric expressions. For Boolean expressions, returns True if exactly one of the expressions evaluates to True. Both expressions are always evaluated.
-        '''&lt;result&gt; = &lt;expression1&gt; Xor &lt;expression2&gt;.
+        '''  Looks up a localized string similar to Specifies that a property or procedure can be overridden by an identically named property or procedure in a derived class..
         '''</summary>
-        Friend ReadOnly Property XorKeywordToolTip() As String
+        Friend ReadOnly Property Specifies_that_a_property_or_procedure_can_be_overridden_by_an_identically_named_property_or_procedure_in_a_derived_class() As String
             Get
-                Return ResourceManager.GetString("XorKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Specifies_that_a_property_or_procedure_can_be_overridden_by_an_identically_named_"& _ 
+                        "property_or_procedure_in_a_derived_class", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Produces an element of an IEnumerable or IEnumerator..
+        '''  Looks up a localized string similar to Specifies that a property or procedure cannot be overridden in a derived class..
         '''</summary>
-        Friend ReadOnly Property YieldKeywordToolTip() As String
+        Friend ReadOnly Property Specifies_that_a_property_or_procedure_cannot_be_overridden_in_a_derived_class() As String
             Get
-                Return ResourceManager.GetString("YieldKeywordToolTip", resourceCulture)
+                Return ResourceManager.GetString("Specifies_that_a_property_or_procedure_cannot_be_overridden_in_a_derived_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a property or procedure is not implemented in the class and must be overridden in a derived class before it can be used..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_property_or_procedure_is_not_implemented_in_the_class_and_must_be_overridden_in_a_derived_class_before_it_can_be_used() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_property_or_procedure_is_not_implemented_in_the_class_and_must_b"& _ 
+                        "e_overridden_in_a_derived_class_before_it_can_be_used", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_property_or_procedure_overrides_an_identically_named_property_or_procedure_inherited_from_a_base_class() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_property_or_procedure_overrides_an_identically_named_property_or"& _ 
+                        "_procedure_inherited_from_a_base_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a property or procedure re-declares one or more existing properties or procedures with the same name..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_property_or_procedure_re_declares_one_or_more_existing_properties_or_procedures_with_the_same_name() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_property_or_procedure_re_declares_one_or_more_existing_propertie"& _ 
+                        "s_or_procedures_with_the_same_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that a variable or property can be read but not written to..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_a_variable_or_property_can_be_read_but_not_written_to() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_a_variable_or_property_can_be_read_but_not_written_to", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that an argument is passed in such a way that the called procedure can change the underlying value of the argument in the calling code..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_"& _ 
+                        "change_the_underlying_value_of_the_argument_in_the_calling_code", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that an argument is passed in such a way that the called procedure or property cannot change the underlying value of the argument in the calling code..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_p"& _ 
+                        "roperty_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that an attribute at the beginning of a source file applies to the entire assembly. Otherwise the attribute will apply only to an individual programming element, such as a class or property..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_assembly_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_enti"& _ 
+                        "re_assembly_Otherwise_the_attribute_will_apply_only_to_an_individual_programming"& _ 
+                        "_element_such_as_a_class_or_property", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that an attribute at the beginning of a source file applies to the entire module. Otherwise the attribute will apply only to an individual programming element, such as a class or property..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_entire_module_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_element_such_as_a_class_or_property() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_an_attribute_at_the_beginning_of_a_source_file_applies_to_the_enti"& _ 
+                        "re_module_Otherwise_the_attribute_will_apply_only_to_an_individual_programming_e"& _ 
+                        "lement_such_as_a_class_or_property", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that an event has additional, specialized code for adding handlers, removing handlers, and raising events..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_an_event_has_additional_specialized_code_for_adding_handlers_removing_handlers_and_raising_events() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_an_event_has_additional_specialized_code_for_adding_handlers_remov"& _ 
+                        "ing_handlers_and_raising_events", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared local variables are to remain in existence and retain their latest values after the procedure in which they are declared terminates..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_local_variables_are_to_remain_in_existence_and_retain_their_latest_values_after_the_procedure_in_which_they_are_declared_terminates() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_local_variables_are_to_remain_in_existence_an"& _ 
+                        "d_retain_their_latest_values_after_the_procedure_in_which_they_are_declared_term"& _ 
+                        "inates", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared member variables refer to an instance of a class that can raise events.
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_member_variables_refer_to_an_instance_of_a_class_that_can_raise_events() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_member_variables_refer_to_an_instance_of_a_cl"& _ 
+                        "ass_that_can_raise_events", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared members of a class are accessible from anywhere in the same assembly, their own classes, and derived classes..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_members_of_a_class_are_accessible_from_anywhere_in_the_same_assembly_their_own_classes_and_derived_classes() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_members_of_a_class_are_accessible_from_anywhe"& _ 
+                        "re_in_the_same_assembly_their_own_classes_and_derived_classes", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within the assembly that contains their declaration..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_the_assembly_that_contains_their_declaration() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from"& _ 
+                        "_within_the_assembly_that_contains_their_declaration", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within their module, class, or structure..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from"& _ 
+                        "_within_their_module_class_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within their own class or from a derived class..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_own_class_or_from_a_derived_class() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from"& _ 
+                        "_within_their_own_class_or_from_a_derived_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared programming elements are associated with all instances of a class or structure..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_programming_elements_are_associated_with_all_instances_of_a_class_or_structure() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_programming_elements_are_associated_with_all_"& _ 
+                        "instances_of_a_class_or_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that one or more declared programming elements have no access restrictions..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_one_or_more_declared_programming_elements_have_no_access_restrictions() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_one_or_more_declared_programming_elements_have_no_access_restricti"& _ 
+                        "ons", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that the external procedure being referenced in the Declare statement is a Function..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Function() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_i"& _ 
+                        "s_a_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies that the external procedure being referenced in the Declare statement is a Sub..
+        '''</summary>
+        Friend ReadOnly Property Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_is_a_Sub() As String
+            Get
+                Return ResourceManager.GetString("Specifies_that_the_external_procedure_being_referenced_in_the_Declare_statement_i"& _ 
+                        "s_a_Sub", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the declaration of property initializations in an object initializer.
+        '''New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}.
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_declaration_of_property_initializations_in_an_object_initializer_New_typeName_With_bracket_property_expression_bracket_bracket_bracket() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_declaration_of_property_initializations_in_an_object_initializer_Ne"& _ 
+                        "w_typeName_With_bracket_property_expression_bracket_bracket_bracket", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the element keys used for grouping (in Group By) or sort order (in Order By)..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_element_keys_used_for_grouping_in_Group_By_or_sort_order_in_Order_By() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_element_keys_used_for_grouping_in_Group_By_or_sort_order_in_Order_B"& _ 
+                        "y", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the element keys used to correlate sequences for a join operation..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the filtering condition for a range variable in a query..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_filtering_condition_for_a_range_variable_in_a_query() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_filtering_condition_for_a_range_variable_in_a_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the group that the loop variable in a For Each statement is to traverse..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse"& _ 
+                        "", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement"& _ 
+                        "_or_specifies_the_range_variable_in_a_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the group that the range variable is to traverse in a query..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_group_that_the_range_variable_is_to_traverse_in_a_query() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_group_that_the_range_variable_is_to_traverse_in_a_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the relationship between element keys to use as the basis of a join operation..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_ope"& _ 
+                        "ration", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the sort order for an Order By clause in a query. The largest element will appear first..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_wi"& _ 
+                        "ll_appear_first", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the sort order for an Order By clause in a query. The smallest element will appear first..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_w"& _ 
+                        "ill_appear_first", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the sort order for columns in a query. Can be followed by either the Ascending or the Descending keyword. If neither is specified, Ascending is used..
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_sort_order_for_columns_in_a_query_Can_be_followed_by_either_the_Ascending_or_the_Descending_keyword_If_neither_is_specified_Ascending_is_used() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_sort_order_for_columns_in_a_query_Can_be_followed_by_either_the_Asc"& _ 
+                        "ending_or_the_Descending_keyword_If_neither_is_specified_Ascending_is_used", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies the statements to run when the event is raised by the RaiseEvent statement.
+        '''RaiseEvent(&lt;delegateSignature&gt;)...End RaiseEvent.
+        '''</summary>
+        Friend ReadOnly Property Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statement_RaiseEvent_delegateSignature_End_RaiseEvent() As String
+            Get
+                Return ResourceManager.GetString("Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statem"& _ 
+                        "ent_RaiseEvent_delegateSignature_End_RaiseEvent", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specifies which columns to include in the result of a query..
+        '''</summary>
+        Friend ReadOnly Property Specifies_which_columns_to_include_in_the_result_of_a_query() As String
+            Get
+                Return ResourceManager.GetString("Specifies_which_columns_to_include_in_the_result_of_a_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Stops execution immediately..
+        '''</summary>
+        Friend ReadOnly Property Stops_execution_immediately() As String
+            Get
+                Return ResourceManager.GetString("Stops_execution_immediately", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to structure.
+        '''</summary>
+        Friend ReadOnly Property structure_() As String
+            Get
+                Return ResourceManager.GetString("structure_", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;structure name&gt;.
+        '''</summary>
+        Friend ReadOnly Property structure_name() As String
+            Get
+                Return ResourceManager.GetString("structure_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Suspends program execution..
+        '''</summary>
+        Friend ReadOnly Property Suspends_program_execution() As String
+            Get
+                Return ResourceManager.GetString("Suspends_program_execution", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to SyncLock block.
+        '''</summary>
+        Friend ReadOnly Property SyncLock_block() As String
+            Get
+                Return ResourceManager.GetString("SyncLock_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to SyncLock statement.
+        '''</summary>
+        Friend ReadOnly Property SyncLock_statement() As String
+            Get
+                Return ResourceManager.GetString("SyncLock_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Take While clause.
+        '''</summary>
+        Friend ReadOnly Property Take_While_clause() As String
+            Get
+                Return ResourceManager.GetString("Take_While_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates a {0} block..
+        '''</summary>
+        Friend ReadOnly Property Terminates_a_0_block() As String
+            Get
+                Return ResourceManager.GetString("Terminates_a_0_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates a loop that is introduced with a Do statement..
+        '''</summary>
+        Friend ReadOnly Property Terminates_a_loop_that_is_introduced_with_a_Do_statement() As String
+            Get
+                Return ResourceManager.GetString("Terminates_a_loop_that_is_introduced_with_a_Do_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates a loop that iterates through the values of a loop variable..
+        '''</summary>
+        Friend ReadOnly Property Terminates_a_loop_that_iterates_through_the_values_of_a_loop_variable() As String
+            Get
+                Return ResourceManager.GetString("Terminates_a_loop_that_iterates_through_the_values_of_a_loop_variable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates a #Region block..
+        '''</summary>
+        Friend ReadOnly Property Terminates_a_SharpRegion_block() As String
+            Get
+                Return ResourceManager.GetString("Terminates_a_SharpRegion_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates an {0} block..
+        '''</summary>
+        Friend ReadOnly Property Terminates_an_0_block() As String
+            Get
+                Return ResourceManager.GetString("Terminates_an_0_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates the definition of a {0} statement..
+        '''</summary>
+        Friend ReadOnly Property Terminates_the_definition_of_a_0_statement() As String
+            Get
+                Return ResourceManager.GetString("Terminates_the_definition_of_a_0_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates the definition of an {0} statement..
+        '''</summary>
+        Friend ReadOnly Property Terminates_the_definition_of_an_0_statement() As String
+            Get
+                Return ResourceManager.GetString("Terminates_the_definition_of_an_0_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Terminates the definition of an #If block..
+        '''</summary>
+        Friend ReadOnly Property Terminates_the_definition_of_an_SharpIf_block() As String
+            Get
+                Return ResourceManager.GetString("Terminates_the_definition_of_an_SharpIf_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to the selection contains syntactic errors.
+        '''</summary>
+        Friend ReadOnly Property the_selection_contains_syntactic_errors() As String
+            Get
+                Return ResourceManager.GetString("the_selection_contains_syntactic_errors", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to This code added by Visual Basic to correctly implement the disposable pattern..
+        '''</summary>
+        Friend ReadOnly Property This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern() As String
+            Get
+                Return ResourceManager.GetString("This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code..
+        '''</summary>
+        Friend ReadOnly Property Throws_an_exception_within_a_procedure_so_that_you_can_handle_it_with_structured_or_unstructured_exception_handling_code() As String
+            Get
+                Return ResourceManager.GetString("Throws_an_exception_within_a_procedure_so_that_you_can_handle_it_with_structured_"& _ 
+                        "or_unstructured_exception_handling_code", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override Finalize() below..
+        '''</summary>
+        Friend ReadOnly Property TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below() As String
+            Get
+                Return ResourceManager.GetString("TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below"& _ 
+                        "", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources..
+        '''</summary>
+        Friend ReadOnly Property TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources() As String
+            Get
+                Return ResourceManager.GetString("TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_"& _ 
+                        "to_free_unmanaged_resources", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: uncomment the following line if Finalize() is overridden above..
+        '''</summary>
+        Friend ReadOnly Property TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above() As String
+            Get
+                Return ResourceManager.GetString("TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Too many arguments to &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property Too_many_arguments_to_0() As String
+            Get
+                Return ResourceManager.GetString("Too_many_arguments_to_0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the Do loop..
+        '''</summary>
+        Friend ReadOnly Property Transfers_execution_immediately_to_the_next_iteration_of_the_Do_loop() As String
+            Get
+                Return ResourceManager.GetString("Transfers_execution_immediately_to_the_next_iteration_of_the_Do_loop", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the For loop..
+        '''</summary>
+        Friend ReadOnly Property Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop() As String
+            Get
+                Return ResourceManager.GetString("Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the loop. Can be used in a Do loop, a For loop, or a While loop..
+        '''</summary>
+        Friend ReadOnly Property Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop() As String
+            Get
+                Return ResourceManager.GetString("Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_"& _ 
+                        "a_Do_loop_a_For_loop_or_a_While_loop", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Transfers execution immediately to the next iteration of the While loop..
+        '''</summary>
+        Friend ReadOnly Property Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop() As String
+            Get
+                Return ResourceManager.GetString("Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Transfers execution to a Function, Sub, or dynamic-link library (DLL) procedure.
+        '''[Call] &lt;procedureName&gt; [(&lt;argumentList&gt;)].
+        '''</summary>
+        Friend ReadOnly Property Transfers_execution_to_a_Function_Sub_or_dynamic_link_library_DLL_procedure_bracket_Call_bracket_procedureName_bracket_argumentList_bracket() As String
+            Get
+                Return ResourceManager.GetString("Transfers_execution_to_a_Function_Sub_or_dynamic_link_library_DLL_procedure_brack"& _ 
+                        "et_Call_bracket_procedureName_bracket_argumentList_bracket", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Triggers an event declared at module level within a class, form, or document.
+        '''RaiseEvent &lt;eventName&gt; [(&lt;argumentList&gt;)].
+        '''</summary>
+        Friend ReadOnly Property Triggers_an_event_declared_at_module_level_within_a_class_form_or_document_RaiseEvent_eventName_bracket_argumentList_bracket() As String
+            Get
+                Return ResourceManager.GetString("Triggers_an_event_declared_at_module_level_within_a_class_form_or_document_RaiseE"& _ 
+                        "vent_eventName_bracket_argumentList_bracket", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Try block.
+        '''</summary>
+        Friend ReadOnly Property Try_block() As String
+            Get
+                Return ResourceManager.GetString("Try_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TryCast function.
+        '''</summary>
+        Friend ReadOnly Property TryCast_function() As String
+            Get
+                Return ResourceManager.GetString("TryCast_function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Turns a compiler option off..
+        '''</summary>
+        Friend ReadOnly Property Turns_a_compiler_option_off() As String
+            Get
+                Return ResourceManager.GetString("Turns_a_compiler_option_off", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Turns a compiler option on..
+        '''</summary>
+        Friend ReadOnly Property Turns_a_compiler_option_on() As String
+            Get
+                Return ResourceManager.GetString("Turns_a_compiler_option_on", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; is not defined..
+        '''</summary>
+        Friend ReadOnly Property Type_0_is_not_defined() As String
+            Get
+                Return ResourceManager.GetString("Type_0_is_not_defined", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a namespace..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_namespace() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_namespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a new field..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_new_field() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_new_field", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a parameter. If no preceding keyword is used; &apos;ByVal&apos; will be assumed and the argument will be passed by value..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_parameter_If_no_preceding_keyword_is_used_ByVal_will_be_assumed_and_the_argument_will_be_passed_by_value() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_parameter_If_no_preceding_keyword_is_used_ByVal_wil"& _ 
+                        "l_be_assumed_and_the_argument_will_be_passed_by_value", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial class..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_partial_class() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_partial_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial interface..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_partial_interface() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_partial_interface", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial module..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_partial_module() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_partial_module", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a partial structure..
+        '''</summary>
+        Friend ReadOnly Property Type_a_name_here_to_declare_a_partial_structure() As String
+            Get
+                Return ResourceManager.GetString("Type_a_name_here_to_declare_a_partial_structure", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a new name for the column, followed by &apos;=&apos;. Otherwise, the original column name with be used..
+        '''</summary>
+        Friend ReadOnly Property Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used() As String
+            Get
+                Return ResourceManager.GetString("Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_wit"& _ 
+                        "h_be_used", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a new variable name.
+        '''</summary>
+        Friend ReadOnly Property Type_a_new_variable_name() As String
+            Get
+                Return ResourceManager.GetString("Type_a_new_variable_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to type parameters.
+        '''</summary>
+        Friend ReadOnly Property type_parameters() As String
+            Get
+                Return ResourceManager.GetString("type_parameters", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;Group&apos; to specify that a group named &apos;{0}&apos; should be created..
+        '''</summary>
+        Friend ReadOnly Property Use_Group_to_specify_that_a_group_named_0_should_be_created() As String
+            Get
+                Return ResourceManager.GetString("Use_Group_to_specify_that_a_group_named_0_should_be_created", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;Group&apos; to specify that a group named &apos;Group&apos; should be created..
+        '''</summary>
+        Friend ReadOnly Property Use_Group_to_specify_that_a_group_named_Group_should_be_created() As String
+            Get
+                Return ResourceManager.GetString("Use_Group_to_specify_that_a_group_named_Group_should_be_created", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;In&apos; for a type that will only be used for ByVal arguments to functions..
+        '''</summary>
+        Friend ReadOnly Property Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions() As String
+            Get
+                Return ResourceManager.GetString("Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;Out&apos; for a type that will only be used as a return from functions..
+        '''</summary>
+        Friend ReadOnly Property Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions() As String
+            Get
+                Return ResourceManager.GetString("Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use the correct control variable.
+        '''</summary>
+        Friend ReadOnly Property Use_the_correct_control_variable() As String
+            Get
+                Return ResourceManager.GetString("Use_the_correct_control_variable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Used in a Declare statement. Specifies that Visual Basic should marshal all strings to Unicode values in a call into an external procedure, and should look up the procedure without modifying its name..
+        '''</summary>
+        Friend ReadOnly Property Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name() As String
+            Get
+                Return ResourceManager.GetString("Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_string"& _ 
+                        "s_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_"& _ 
+                        "procedure_without_modifying_its_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default..
+        '''</summary>
+        Friend ReadOnly Property Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default() As String
+            Get
+                Return ResourceManager.GetString("Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_"& _ 
+                        "marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modi"& _ 
+                        "fying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_de"& _ 
+                        "fault", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails..
+        '''</summary>
+        Friend ReadOnly Property Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails() As String
+            Get
+                Return ResourceManager.GetString("Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_"& _ 
+                        "marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_c"& _ 
+                        "haracter_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure"& _ 
+                        "_name_if_the_initial_search_fails", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Used to declare a delegate. A delegate is a reference type that refers to a shared method of a type or to an instance method of an object. Any procedure that is convertible, or that has matching parameter types and return type may be used to create an instance of this delegate class..
+        '''</summary>
+        Friend ReadOnly Property Used_to_declare_a_delegate_A_delegate_is_a_reference_type_that_refers_to_a_shared_method_of_a_type_or_to_an_instance_method_of_an_object_Any_procedure_that_is_convertible_or_that_has_matching_parameter_types_and_return_type_may_be_used_to_create_an_instance_of_this_delegate_class() As String
+            Get
+                Return ResourceManager.GetString("Used_to_declare_a_delegate_A_delegate_is_a_reference_type_that_refers_to_a_shared"& _ 
+                        "_method_of_a_type_or_to_an_instance_method_of_an_object_Any_procedure_that_is_co"& _ 
+                        "nvertible_or_that_has_matching_parameter_types_and_return_type_may_be_used_to_cr"& _ 
+                        "eate_an_instance_of_this_delegate_class", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Used to release array variables and deallocate the memory used for their elements..
+        '''</summary>
+        Friend ReadOnly Property Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements() As String
+            Get
+                Return ResourceManager.GetString("Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements"& _ 
+                        "", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Using block.
+        '''</summary>
+        Friend ReadOnly Property Using_block() As String
+            Get
+                Return ResourceManager.GetString("Using_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Using statement.
+        '''</summary>
+        Friend ReadOnly Property Using_statement() As String
+            Get
+                Return ResourceManager.GetString("Using_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
+        '''</summary>
+        Friend ReadOnly Property When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error() As String
+            Get
+                Return ResourceManager.GetString("When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_s"& _ 
+                        "tatement_or_procedure_call_that_resulted_in_the_error", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to When set to On, allows the use of local type inference in declaring variables.
+        '''Option Infer {On | Off}.
+        '''</summary>
+        Friend ReadOnly Property When_set_to_On_allows_the_use_of_local_type_inference_in_declaring_variables_Option_Infer_On_Off() As String
+            Get
+                Return ResourceManager.GetString("When_set_to_On_allows_the_use_of_local_type_inference_in_declaring_variables_Opti"& _ 
+                        "on_Infer_On_Off", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to When set to On, requires explicit declaration of all variables, using a Dim, Private, Public, or ReDim statement.
+        '''Option Explicit {On | Off}.
+        '''</summary>
+        Friend ReadOnly Property When_set_to_On_requires_explicit_declaration_of_all_variables_using_a_Dim_Private_Public_or_ReDim_statement_Option_Explicit_On_Off() As String
+            Get
+                Return ResourceManager.GetString("When_set_to_On_requires_explicit_declaration_of_all_variables_using_a_Dim_Private"& _ 
+                        "_Public_or_ReDim_statement_Option_Explicit_On_Off", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to When set to On, restricts implicit data type conversions to only widening conversions.
+        '''Option Strict {On | Off}.
+        '''</summary>
+        Friend ReadOnly Property When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversions_Option_Strict_On_Off() As String
+            Get
+                Return ResourceManager.GetString("When_set_to_On_restricts_implicit_data_type_conversions_to_only_widening_conversi"& _ 
+                        "ons_Option_Strict_On_Off", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Where clause.
+        '''</summary>
+        Friend ReadOnly Property Where_clause() As String
+            Get
+                Return ResourceManager.GetString("Where_clause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to With block.
+        '''</summary>
+        Friend ReadOnly Property With_block() As String
+            Get
+                Return ResourceManager.GetString("With_block", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to With statement.
+        '''</summary>
+        Friend ReadOnly Property With_statement() As String
+            Get
+                Return ResourceManager.GetString("With_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to WithEvents field.
+        '''</summary>
+        Friend ReadOnly Property WithEvents_field() As String
+            Get
+                Return ResourceManager.GetString("WithEvents_field", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Yield statement.
         '''</summary>
-        Friend ReadOnly Property YieldStatement() As String
+        Friend ReadOnly Property Yield_statement() As String
             Get
-                Return ResourceManager.GetString("YieldStatement", resourceCulture)
+                Return ResourceManager.GetString("Yield_statement", resourceCulture)
             End Get
         End Property
     End Module

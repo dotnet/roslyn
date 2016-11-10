@@ -2,9 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -14,10 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class TypeSyntaxGeneratorVisitor : SymbolVisitor<TypeSyntax>
         {
-            public static readonly TypeSyntaxGeneratorVisitor Instance = new TypeSyntaxGeneratorVisitor();
+            private readonly bool _nameOnly;
 
-            private TypeSyntaxGeneratorVisitor()
+            private static TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
+            private static TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
+
+            private TypeSyntaxGeneratorVisitor(bool nameOnly)
             {
+                _nameOnly = nameOnly;
+            }
+
+            public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
+            {
+                return nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
             }
 
             public override TypeSyntax DefaultVisit(ISymbol node)
@@ -39,15 +49,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
             }
 
+            private void ThrowIfNameOnly()
+            {
+                if (_nameOnly)
+                {
+                    throw new InvalidOperationException("This symbol cannot be converted into a NameSyntax");
+                }
+            }
+
             public override TypeSyntax VisitArrayType(IArrayTypeSymbol symbol)
             {
+                ThrowIfNameOnly();
+
                 var underlyingNonArrayType = symbol.ElementType;
                 while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
                 {
                     underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
                 }
 
-                var elementTypeSyntax = underlyingNonArrayType.Accept(this);
+                var elementTypeSyntax = underlyingNonArrayType.GenerateTypeSyntax();
                 var ranks = new List<ArrayRankSpecifierSyntax>();
 
                 var arrayType = symbol;
@@ -71,50 +91,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {
-                switch (symbol.SpecialType)
+                if (!_nameOnly)
                 {
-                    case SpecialType.System_Object:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"));
-                    case SpecialType.System_Void:
-                        return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
-                    case SpecialType.System_Boolean:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Boolean"));
-                    case SpecialType.System_Char:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Char"));
-                    case SpecialType.System_SByte:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("SByte"));
-                    case SpecialType.System_Byte:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Byte"));
-                    case SpecialType.System_Int16:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Int16"));
-                    case SpecialType.System_UInt16:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("UInt16"));
-                    case SpecialType.System_Int32:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Int32"));
-                    case SpecialType.System_UInt32:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("UInt32"));
-                    case SpecialType.System_Int64:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Int64"));
-                    case SpecialType.System_UInt64:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("UInt64"));
-                    case SpecialType.System_Decimal:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Decimal"));
-                    case SpecialType.System_Single:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Single"));
-                    case SpecialType.System_Double:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Double"));
-                    case SpecialType.System_String:
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("String"));
+                    var syntax = TryCreateSpecializedNamedTypeSyntax(symbol);
+                    if (syntax != null)
+                    {
+                        return syntax;
+                    }
+                }
+
+                if (symbol.Name == string.Empty || symbol.IsAnonymousType)
+                {
+                    return CreateSystemObject();
+                }
+
+                if (symbol.TypeParameters.Length == 0)
+                {
+                    if (symbol.TypeKind == TypeKind.Error && symbol.Name == "var")
+                    {
+                        return CreateSystemObject();
+                    }
+
+                    return symbol.Name.ToIdentifierName();
+                }
+
+                var typeArguments = symbol.IsUnboundGenericType
+                    ? Enumerable.Repeat(SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
+                    : symbol.TypeArguments.Select(t => t.GenerateTypeSyntax());
+
+                return SyntaxFactory.GenericName(
+                    symbol.Name.ToIdentifierToken(),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
+            }
+
+            private static QualifiedNameSyntax CreateSystemObject()
+            {
+                return SyntaxFactory.QualifiedName(
+                    SyntaxFactory.AliasQualifiedName(
+                        CreateGlobalIdentifier(),
+                        SyntaxFactory.IdentifierName("System")),
+                    SyntaxFactory.IdentifierName("Object"));
+            }
+
+            private static IdentifierNameSyntax CreateGlobalIdentifier()
+            {
+                return SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
+            }
+
+            private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
+            {
+                if (symbol.SpecialType == SpecialType.System_Void)
+                {
+                    return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
                 }
 
                 if (symbol.IsTupleType)
                 {
                     return CreateTupleTypeSyntax(symbol);
-                }
-
-                if (symbol.Name == string.Empty || symbol.IsAnonymousType)
-                {
-                    return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"));
                 }
 
                 if (symbol.IsNullable())
@@ -124,27 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (innerType.TypeKind != TypeKind.Pointer)
                     {
                         return AddInformationTo(
-                            SyntaxFactory.NullableType(innerType.Accept(this)), symbol);
+                            SyntaxFactory.NullableType(innerType.GenerateTypeSyntax()), symbol);
                     }
                 }
 
-                if (symbol.TypeParameters.Length == 0)
-                {
-                    if (symbol.TypeKind == TypeKind.Error && symbol.Name == "var")
-                    {
-                        return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"));
-                    }
-
-                    return symbol.Name.ToIdentifierName();
-                }
-
-                var typeArguments = symbol.IsUnboundGenericType
-                    ? Enumerable.Repeat(SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
-                    : symbol.TypeArguments.Select(t => t.Accept(this));
-
-                return SyntaxFactory.GenericName(
-                    symbol.Name.ToIdentifierToken(),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
+                return null;
             }
 
             private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
@@ -156,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 for (int i = 0; i < types.Length; i++)
                 {
-                    var name = hasNames ? SyntaxFactory.IdentifierName(names[i]) : null;
-                    list = list.Add(SyntaxFactory.TupleElement(GenerateTypeSyntax(types[i]), name));
+                    var name = (hasNames && names[i] != null) ? SyntaxFactory.IdentifierName(names[i]) : null;
+                    list = list.Add(SyntaxFactory.TupleElement(types[i].GenerateTypeSyntax(), name));
                 }
 
-                return SyntaxFactory.TupleType(list);
+                return AddInformationTo(SyntaxFactory.TupleType(list), symbol);
             }
 
             public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
@@ -199,10 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     {
                         if (symbol.TypeKind != TypeKind.Error)
                         {
-                            return AddInformationTo(
-                                SyntaxFactory.AliasQualifiedName(
-                                    SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                                    simpleNameSyntax), symbol);
+                            return AddGlobalAlias(symbol, simpleNameSyntax);
                         }
                     }
                     else
@@ -227,10 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (symbol.ContainingNamespace.IsGlobalNamespace)
                 {
-                    return AddInformationTo(
-                        SyntaxFactory.AliasQualifiedName(
-                            SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
-                            syntax), symbol);
+                    return AddGlobalAlias(symbol, syntax);
                 }
                 else
                 {
@@ -241,10 +252,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            public override TypeSyntax VisitPointerType(IPointerTypeSymbol symbol)
+            /// <summary>
+            /// We always unilaterally add "global::" to all named types/namespaces.  This
+            /// will then be trimmed off if possible by calls to 
+            /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
+            /// </summary>
+            private TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(
-                    SyntaxFactory.PointerType(symbol.PointedAtType.Accept(this)),
+                    SyntaxFactory.AliasQualifiedName(
+                        CreateGlobalIdentifier(),
+                        syntax), symbol);
+            }
+
+            public override TypeSyntax VisitPointerType(IPointerTypeSymbol symbol)
+            {
+                ThrowIfNameOnly();
+
+                return AddInformationTo(
+                    SyntaxFactory.PointerType(symbol.PointedAtType.GenerateTypeSyntax()),
                     symbol);
             }
 

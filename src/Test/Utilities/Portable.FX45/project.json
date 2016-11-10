@@ -1,13 +1,16 @@
-﻿{
+{
   "dependencies": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "2.0.0-pre-20160714",
+    "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.2.0-beta1-build3239"
   },
   "frameworks": {
     "net46": {}
   },
   "runtimes": {
-    "win7": { },
-    "ubuntu.14.04": { },
-    "osx.10.10": { }
+    "win7": {},
+    "ubuntu.14.04": {},
+    "osx.10.10": {}
   }
 }

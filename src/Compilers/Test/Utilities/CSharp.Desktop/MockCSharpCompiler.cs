@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -20,33 +19,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
-        public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : base(CSharpCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), new SimpleAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers;
         }
 
-        protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)
+        private static BuildPaths CreateBuildPaths(string workingDirectory)
         {
-            throw new NotImplementedException();
+            return new BuildPaths(
+                clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),
+                workingDir: workingDirectory,
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: Path.GetTempPath());
         }
 
-        protected override uint GetSqmAppID()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void ResolveAnalyzersAndGeneratorsFromArguments(
+        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators)
+            CommonMessageProvider messageProvider)
         {
-            base.ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, messageProvider, out analyzers, out generators);
+            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);
             }
+            return analyzers;
         }
 
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)

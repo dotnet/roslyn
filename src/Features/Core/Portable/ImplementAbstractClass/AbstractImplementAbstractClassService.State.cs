@@ -9,18 +9,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal partial class AbstractImplementAbstractClassService
+    internal partial class AbstractImplementAbstractClassService<TClassSyntax>
     {
         private class State
         {
-            public SyntaxNode Location { get; }
+            public TClassSyntax Location { get; }
             public INamedTypeSymbol ClassType { get; }
             public INamedTypeSymbol AbstractClassType { get; }
 
             // The members that are not implemented at all.
             public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; }
 
-            private State(SyntaxNode node, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType, IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers)
+            private State(TClassSyntax node, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType, IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers)
             {
                 this.Location = node;
                 this.ClassType = classType;
@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             }
 
             public static State Generate(
-                AbstractImplementAbstractClassService service,
+                AbstractImplementAbstractClassService<TClassSyntax> service,
                 Document document,
                 SemanticModel model,
-                SyntaxNode node,
+                TClassSyntax node,
                 CancellationToken cancellationToken)
             {
                 INamedTypeSymbol classType, abstractClassType;

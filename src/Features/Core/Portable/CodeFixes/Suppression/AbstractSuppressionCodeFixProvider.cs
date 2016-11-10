@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -71,49 +73,59 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return token;
         }
 
-        public Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
         }
 
-        internal async Task<IEnumerable<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return codeFixes.SelectMany(fix => fix.Action.GetCodeActions()).OfType<PragmaWarningCodeAction>();
+            return codeFixes.SelectMany(fix => fix.Action.NestedCodeActions)
+                            .OfType<PragmaWarningCodeAction>()
+                            .ToImmutableArray();
         }
 
-        private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (suppressionTargetInfo == null)
             {
-                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+                return ImmutableArray<CodeFix>.Empty;
             }
 
-            return await GetSuppressionsAsync(documentOpt: document, project: document.Project, diagnostics: diagnostics,
-                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: skipSuppressMessage, skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await GetSuppressionsAsync(
+                documentOpt: document, project: document.Project, diagnostics: diagnostics,
+                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: skipSuppressMessage,
+                skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+            Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
-                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+                return ImmutableArray<CodeFix>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var suppressionTargetInfo = new SuppressionTargetInfo() { TargetSymbol = compilation.Assembly };
-            return await GetSuppressionsAsync(documentOpt: null, project: project, diagnostics: diagnostics,
-                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await GetSuppressionsAsync(
+                documentOpt: null, project: project, diagnostics: diagnostics,
+                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: false,
+                skipUnsuppress: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+            Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             // We only care about diagnostics that can be suppressed/unsuppressed.
             diagnostics = diagnostics.Where(CanBeSuppressedOrUnsuppressed);
             if (diagnostics.IsEmpty())
             {
-                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+                return ImmutableArray<CodeFix>.Empty;
             }
 
             if (!skipSuppressMessage)
@@ -123,13 +135,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
             }
 
-            var result = new List<CodeFix>();
+            var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
                 if (!diagnostic.IsSuppressed)
                 {
-                    var nestedActions = new List<NestedSuppressionCodeAction>();
-
+                    var nestedActions = ArrayBuilder<NestedSuppressionCodeAction>.GetInstance();
                     if (diagnostic.Location.IsInSource && documentOpt != null)
                     {
                         // pragma warning disable.
@@ -143,7 +154,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
                     }
 
-                    result.Add(new CodeFix(project, new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                    if (nestedActions.Count > 0)
+                    {
+                        var codeAction = new TopLevelSuppressionCodeAction(
+                            diagnostic, nestedActions.ToImmutableAndFree());
+                        result.Add(new CodeFix(project, codeAction, diagnostic));
+                    }
                 }
                 else if (!skipUnsuppress)
                 {
@@ -155,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         internal class SuppressionTargetInfo
@@ -192,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var nodeWithTokens = GetNodeWithTokens(startToken, endToken, root);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             ISymbol targetSymbol = null;

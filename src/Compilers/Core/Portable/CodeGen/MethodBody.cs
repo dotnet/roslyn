@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Data used when emitting EnC delta:
         private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
 
+        // Data used when emitting Dynamic Analysis resource:
+        private readonly DynamicAnalysisMethodBodyData _dynamicAnalysisDataOpt;
+
         public MethodBody(
             ImmutableArray<byte> ilBits,
             ushort maxStack,
@@ -56,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
             ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
-            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
+            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo,
+            DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt)
         {
             Debug.Assert(!locals.IsDefault);
             Debug.Assert(!exceptionHandlers.IsDefault);
@@ -80,12 +84,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
             _stateMachineAwaiterSlots = stateMachineAwaiterSlots;
+            _dynamicAnalysisDataOpt = dynamicAnalysisDataOpt;
         }
 
         void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => _dynamicAnalysisDataOpt;
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 

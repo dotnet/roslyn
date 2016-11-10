@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return false;
             }
 
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(start);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var token = root.FindTokenOnLeftOfPosition(start);
 
-            return tree.IsExpressionContext(start, token, attributes: false, cancellationToken: cancellationToken)
-                || tree.IsStatementContext(start, token, cancellationToken);
+            return root.SyntaxTree.IsExpressionContext(start, token, attributes: false, cancellationToken: cancellationToken)
+                || root.SyntaxTree.IsStatementContext(start, token, cancellationToken);
         }
     }
 }

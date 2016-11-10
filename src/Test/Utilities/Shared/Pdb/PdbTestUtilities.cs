@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
@@ -16,7 +17,7 @@ namespace Roslyn.Test.Utilities
             var cdi = CustomDebugInfoUtilities.GetCustomDebugInfoBytes(symReader, handle, methodVersion: 1);
             if (cdi == null)
             {
-                return default(EditAndContinueMethodDebugInformation);
+                return EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), default(ImmutableArray<byte>));
             }
 
             return GetEncMethodDebugInfo(cdi);

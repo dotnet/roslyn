@@ -60,11 +60,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsTrivia As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Friend NotOverridable Overrides Function GetSlot(index As Integer) As GreenNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend NotOverridable Overrides Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetTrailingTrivia() As GreenNode
             Return Nothing
         End Function
 
@@ -72,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend NotOverridable Overrides Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetLeadingTrivia() As GreenNode
             Return Nothing
         End Function
 
@@ -80,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend Overrides Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-            writer.Write(Text) 'write text of token itself
+        Protected Overrides Sub WriteTriviaTo(writer As System.IO.TextWriter)
+            writer.Write(Text) 'write text of trivia itself
         End Sub
 
         Public NotOverridable Overrides Function ToFullString() As String

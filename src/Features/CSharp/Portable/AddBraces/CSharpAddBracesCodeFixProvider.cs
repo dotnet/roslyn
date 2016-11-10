@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    FeaturesResources.AddBraces,
+                    FeaturesResources.Add_braces,
                     c => AddBracesAsync(context, c)),
                 context.Diagnostics);
 
@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     return GetNewBlock(statement, forSyntax.Statement);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachSyntax = (ForEachStatementSyntax)statement;
+                case SyntaxKind.ForEachVariableStatement:
+                    var forEachSyntax = (CommonForEachStatementSyntax)statement;
                     return GetNewBlock(statement, forEachSyntax.Statement);
 
                 case SyntaxKind.WhileStatement:

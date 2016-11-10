@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,12 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
         {
             Contract.ThrowIfNull(project);
-
-            if (codeFixProvider == null)
-            {
-                throw new ArgumentNullException(nameof(codeFixProvider));
-            }
-
             if (diagnosticIds == null)
             {
                 throw new ArgumentNullException(nameof(diagnosticIds));
@@ -78,22 +72,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnosticIds.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.DiagnosticCannotBeNull, nameof(diagnosticIds));
-            }
-
-            if (fixAllDiagnosticProvider == null)
-            {
-                throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
+                throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
             }
 
             this.FixAllProvider = fixAllProvider;
             this.Document = document;
             this.Project = project;
-            this.CodeFixProvider = codeFixProvider;
+            this.CodeFixProvider = codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider));
             this.Scope = scope;
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.DiagnosticProvider = fixAllDiagnosticProvider;
+            this.DiagnosticProvider = fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
         }
 
         internal bool IsFixMultiple => this.DiagnosticProvider.IsFixMultiple;
@@ -164,6 +153,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return originalFixDiagnostics
                 .Where(fixAllProviderInfo.CanBeFixed)
                 .Select(d => d.Id);
+        }
+
+        internal string GetDefaultFixAllTitle()
+        {
+            var diagnosticIds = this.DiagnosticIds;
+            string diagnosticId;
+            if (diagnosticIds.Count() == 1)
+            {
+                diagnosticId = diagnosticIds.Single();
+            }
+            else
+            {
+                diagnosticId = string.Join(",", diagnosticIds.ToArray());
+            }
+
+            switch (this.Scope)
+            {
+                case FixAllScope.Custom:
+                    return string.Format(WorkspacesResources.Fix_all_0, diagnosticId);
+
+                case FixAllScope.Document:
+                    var document = this.Document;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, document.Name);
+
+                case FixAllScope.Project:
+                    var project = this.Project;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, project.Name);
+
+                case FixAllScope.Solution:
+                    return string.Format(WorkspacesResources.Fix_all_0_in_Solution, diagnosticId);
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
 
         #region FixMultiple

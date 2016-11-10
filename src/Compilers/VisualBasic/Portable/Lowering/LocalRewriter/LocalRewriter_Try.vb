@@ -13,11 +13,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
             Debug.Assert(_unstructuredExceptionHandling.Context Is Nothing)
 
-            Dim rewrittenTryBlock = RewriteTryBlock(node.TryBlock)
+            Dim rewrittenTryBlock = RewriteTryBlock(node)
             Dim rewrittenCatchBlocks = VisitList(node.CatchBlocks)
-            Dim rewrittenFinally = RewriteFinallyBlock(node.FinallyBlockOpt)
+            Dim rewrittenFinally = RewriteFinallyBlock(node)
 
-            Return RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
+            Dim rewritten As BoundStatement = RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
+
+            If Me.Instrument(node) Then
+                Dim syntax = TryCast(node.Syntax, TryBlockSyntax)
+
+                If syntax IsNot Nothing Then
+                    rewritten = _instrumenter.InstrumentTryStatement(node, rewritten)
+                End If
+            End If
+
+            Return rewritten
         End Function
 
         ''' <summary>
@@ -53,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function RewriteTryStatement(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             tryBlock As BoundBlock,
             catchBlocks As ImmutableArray(Of BoundCatchBlock),
             finallyBlockOpt As BoundBlock,
@@ -88,50 +98,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportErrorsOnCatchBlockHelpers([catch])
             Next
 
-            ' Add a sequence point for End Try
-            ' Note that scope the point is outside of Try/Catch/Finally 
-            If Me.GenerateDebugInfo Then
-                Dim syntax = TryCast(syntaxNode, TryBlockSyntax)
-
-                If syntax IsNot Nothing Then
-                    newTry = New BoundStatementList(syntaxNode,
-                                                    ImmutableArray.Create(Of BoundStatement)(
-                                                        newTry,
-                                                        New BoundSequencePoint(syntax.EndTryStatement, Nothing)
-                                                    )
-                                                )
-                End If
-            End If
-
             Return newTry
         End Function
 
-        Private Function RewriteFinallyBlock(node As BoundBlock) As BoundBlock
+        Private Function RewriteFinallyBlock(tryStatement As BoundTryStatement) As BoundBlock
+            Dim node As BoundBlock = tryStatement.FinallyBlockOpt
+
             If node Is Nothing Then
                 Return node
             End If
 
             Dim newFinally = DirectCast(Visit(node), BoundBlock)
 
-            If GenerateDebugInfo Then
+            If Instrument(tryStatement) Then
                 Dim syntax = TryCast(node.Syntax, FinallyBlockSyntax)
 
                 If syntax IsNot Nothing Then
-                    newFinally = PrependWithSequencePoint(newFinally, syntax.FinallyStatement)
+                    newFinally = PrependWithPrologue(newFinally, _instrumenter.CreateFinallyBlockPrologue(tryStatement))
                 End If
             End If
 
             Return newFinally
         End Function
 
-        Private Function RewriteTryBlock(node As BoundBlock) As BoundBlock
+        Private Function RewriteTryBlock(tryStatement As BoundTryStatement) As BoundBlock
+            Dim node As BoundBlock = tryStatement.TryBlock
             Dim newTry = DirectCast(Visit(node), BoundBlock)
 
-            If GenerateDebugInfo Then
+            If Instrument(tryStatement) Then
                 Dim syntax = TryCast(node.Syntax, TryBlockSyntax)
 
                 If syntax IsNot Nothing Then
-                    newTry = PrependWithSequencePoint(newTry, syntax.TryStatement)
+                    newTry = PrependWithPrologue(newTry, _instrumenter.CreateTryBlockPrologue(tryStatement))
                 End If
             End If
 
@@ -144,18 +142,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newFilter = VisitExpressionNode(node.ExceptionFilterOpt)
             Dim newCatchBody As BoundBlock = DirectCast(Visit(node.Body), BoundBlock)
 
-            If GenerateDebugInfo Then
+            If Instrument(node) Then
                 Dim syntax = TryCast(node.Syntax, CatchBlockSyntax)
 
                 If syntax IsNot Nothing Then
                     If newFilter IsNot Nothing Then
                         ' if we have a filter, we want to stop before the filter expression
                         ' and associate the sequence point with whole Catch statement
-                        newFilter = New BoundSequencePointExpression(syntax.CatchStatement,
-                                                                     newFilter,
-                                                                     newFilter.Type)
+                        ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                        ' the containing method is edited while methods invoked in the condition are being executed.
+                        newFilter = _instrumenter.InstrumentCatchBlockFilter(node, newFilter, _currentMethodOrLambda)
                     Else
-                        newCatchBody = PrependWithSequencePoint(newCatchBody, syntax.CatchStatement)
+                        newCatchBody = PrependWithPrologue(newCatchBody, _instrumenter.CreateCatchBlockPrologue(node))
                     End If
                 End If
             End If
@@ -172,12 +170,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 errorLineNumber = New BoundLocal(node.Syntax, _currentLineTemporary, isLValue:=False, type:=_currentLineTemporary.Type)
             End If
 
-            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
-            ' the containing method is edited while methods invoked in the condition are being executed.
             Return node.Update(node.LocalOpt,
                                newExceptionSource,
                                errorLineNumber,
-                               If(newFilter IsNot Nothing, AddConditionSequencePoint(newFilter, node), Nothing),
+                               newFilter,
                                newCatchBody,
                                node.IsSynthesizedAsyncCatchAll)
         End Function

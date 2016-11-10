@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>DiagnosticAnalyzer</Name>
+    <Description>&lt;No description available&gt;</Description>
+    <Icon></Icon>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <SortOrder>952</SortOrder>
+    <TemplateID>bb967cab-2ca5-4dac-8809-65b2b28a6350</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>DiagnosticAnalyzer</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="$projectname$.csproj" File="DiagnosticAnalyzer.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="DiagnosticAnalyzer.cs" OpenInEditor="true" OpenOrder="2">DiagnosticAnalyzer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="CodeFixProvider.cs" OpenInEditor="true" OpenOrder="3" >CodeFixProvider.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="ReadMe.txt" OpenInEditor="true" OpenOrder="1">ReadMe.txt</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Diagnostic.nuspec">Diagnostic.nuspec</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Resources.resx">Resources.resx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Resources.Designer.cs">Resources.Designer.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="tools\install.ps1">install.ps1</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="tools\uninstall.ps1">uninstall.ps1</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKAnalyzerTemplateWizard</FullClassName>
+  </WizardExtension>
+  <WizardData>
+    <packages repository="extension" repositoryId="3a012d4e-6057-4e7c-8123-6d4be1d4723c">
+      <package id="Microsoft.CodeAnalysis.Analyzers" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Common" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="System.Collections.Immutable" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="System.Reflection.Metadata" version="0.0.0" skipAssemblyReferences="false" />
+      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+      <package id="NuGet.CommandLine" />
+    </packages>
+  </WizardData>
+</VSTemplate>

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,18 +64,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.AddItem(SymbolCompletionItem.Create(
                     displayText: uninitializedMember.Name,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: uninitializedMember,
-                    descriptionPosition: initializerLocation.SourceSpan.Start,
-                    rules: s_rules
-                    ));
+                    contextPosition: initializerLocation.SourceSpan.Start,
+                    rules: s_rules));
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 

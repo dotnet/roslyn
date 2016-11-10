@@ -1,13 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -75,7 +73,9 @@ namespace Microsoft.CodeAnalysis
 
             if (openDocs != null)
             {
-                foreach (var docId in openDocs)
+                // ClearOpenDocument will remove the document from the original set.
+                var copyOfOpenDocs = openDocs.ToList();
+                foreach (var docId in copyOfOpenDocs)
                 {
                     this.ClearOpenDocument(docId);
                 }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!this.CanOpenDocuments)
             {
-                throw new NotSupportedException(WorkspacesResources.OpenDocumentNotSupported);
+                throw new NotSupportedException(WorkspacesResources.This_workspace_does_not_support_opening_and_closing_documents);
             }
         }
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (ProjectHasOpenDocuments(projectId))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.ProjectContainsOpenDocuments, this.GetProjectName(projectId)));
+                throw new ArgumentException(string.Format(WorkspacesResources._0_still_contains_open_documents, this.GetProjectName(projectId)));
             }
         }
 
@@ -355,13 +355,16 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
+                DocumentId oldActiveContextDocumentId;
+
                 using (_stateLock.DisposableWait())
                 {
+                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
                     _bufferToDocumentInCurrentContextMap[container] = documentId;
                 }
 
                 // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(this.CurrentSolution.GetDocument(documentId));
+                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
         }
 
@@ -370,7 +373,7 @@ namespace Microsoft.CodeAnalysis
             if (this.IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.DocumentIsOpen,
+                    string.Format(WorkspacesResources._0_is_still_open,
                     this.GetDocumentName(documentId)));
             }
         }
@@ -380,7 +383,7 @@ namespace Microsoft.CodeAnalysis
             if (!this.IsDocumentOpen(documentId))
             {
                 throw new ArgumentException(string.Format(
-                    WorkspacesResources.DocumentIsNotOpen,
+                    WorkspacesResources._0_is_not_open,
                     this.GetDocumentName(documentId)));
             }
         }
@@ -435,7 +438,7 @@ namespace Microsoft.CodeAnalysis
                     // Note: we pass along the newText here so that clients can easily get the text
                     // of an opened document just by calling TryGetText without any blocking.
                     currentSolution = oldSolution.WithDocumentTextLoader(documentId,
-                        new ReuseVersionLoader(oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
+                        new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);

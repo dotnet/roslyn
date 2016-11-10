@@ -1,14 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 return TryExternalGotoDefinition(document, position, cancellationToken, out message);
             }
 
-            message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+            message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
             return false;
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 }
                 else
                 {
-                    message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                    message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
                     return false;
                 }
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 
             if (implementations.Count == 0)
             {
-                message = EditorFeaturesResources.SymbolHasNoImplementations;
+                message = EditorFeaturesResources.The_symbol_has_no_implementations;
                 return false;
             }
             else if (implementations.Count == 1)
@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                     implementation => CreateItemsForImplementation(implementation, mapping.Solution));
 
                 var presenter = _navigableItemPresenters.First();
-                presenter.Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(mapping.Project, mapping.Symbol), navigableItems);
+
+                var taggedParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(mapping.Project, mapping.Symbol);
+
+                presenter.Value.DisplayResult(taggedParts.JoinText(), navigableItems);
                 message = null;
                 return true;
             }
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             return NavigableItemFactory.GetItemsFromPreferredSourceLocations(
                 solution,
                 implementation,
-                displayString: symbolDisplayService.ToDisplayString(implementation));
+                displayTaggedParts: symbolDisplayService.ToDisplayParts(implementation).ToTaggedText());
         }
 
         private bool TryExternalGotoDefinition(Document document, int position, CancellationToken cancellationToken, out string message)
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else
             {
-                message = EditorFeaturesResources.CannotNavigateToTheSymbol;
+                message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
                 return false;
             }
         }

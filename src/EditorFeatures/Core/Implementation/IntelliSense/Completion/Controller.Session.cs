@@ -76,20 +76,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return Controller.GetCaretPointInViewBuffer();
             }
 
-            private void OnPresenterSessionItemCommitted(object sender, PresentationItemEventArgs e)
+            private void OnPresenterSessionItemCommitted(object sender, CompletionItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                this.Controller.CommitItem(e.PresentationItem);
+                this.Controller.CommitItem(e.CompletionItem);
             }
 
-            private void OnPresenterSessionItemSelected(object sender, PresentationItemEventArgs e)
+            private void OnPresenterSessionItemSelected(object sender, CompletionItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                SetModelSelectedItem(m => e.PresentationItem.IsSuggestionModeItem ? m.DefaultSuggestionModeItem : e.PresentationItem);
+                SetModelSelectedItem(m => e.CompletionItem);
             }
 
             private void OnPresenterSessionCompletionItemFilterStateChanged(
@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // Update the filter state for the model.  Note: if we end up filtering everything
                 // out we do *not* want to dismiss the completion list. 
                 this.FilterModel(CompletionFilterReason.ItemFiltersChanged,
-                    dismissIfEmptyAllowed: false, filterState: e.FilterState);
+                    dismissIfEmptyAllowed: false,
+                    recheckCaretPosition: false,
+                    filterState: e.FilterState);
             }
         }
     }

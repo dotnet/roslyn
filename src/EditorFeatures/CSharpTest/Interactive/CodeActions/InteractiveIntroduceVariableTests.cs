@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,22 +10,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
         protected Task TestAsync(string initial, string expected, int index = 0, bool compareTokens = true)
         {
-            return TestAsync(initial, expected, Options.Script, index, compareTokens);
+            return TestAsync(initial, expected, Options.Script, null, index, compareTokens);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestAsync(
-                @"void Foo() { Bar([|1 + 1|]); Bar(1 + 1); }",
-                @"void Foo() { const int {|Rename:V|} = 1 + 1; Bar(V); Bar(1 + 1); }",
+@"void Foo()
+{
+    Bar([|1 + 1|]);
+    Bar(1 + 1);
+}",
+@"void Foo()
+{
+    const int {|Rename:V|} = 1 + 1;
+    Bar(V);
+    Bar(1 + 1);
+}",
                 index: 2);
         }
 
@@ -32,8 +42,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix2()
         {
             await TestAsync(
-                @"void Foo() { Bar([|1 + 1|]); Bar(1 + 1); }",
-                @"void Foo() { const int {|Rename:V|} = 1 + 1; Bar(V); Bar(V); }",
+@"void Foo()
+{
+    Bar([|1 + 1|]);
+    Bar(1 + 1);
+}",
+@"void Foo()
+{
+    const int {|Rename:V|} = 1 + 1;
+    Bar(V);
+    Bar(V);
+}",
                 index: 3);
         }
 
@@ -67,8 +86,14 @@ int i = V + V;";
         public async Task TestParameterFix1()
         {
             await TestAsync(
-                @"void Bar(int i = [|1 + 1|], int j = 1 + 1) { }",
-                @"private const int {|Rename:V|} = 1 + 1; void Bar(int i = V, int j = 1 + 1) { }",
+@"void Bar(int i = [|1 + 1|], int j = 1 + 1)
+{
+}",
+@"private const int {|Rename:V|} = 1 + 1;
+
+void Bar(int i = V, int j = 1 + 1)
+{
+}",
                 index: 0);
         }
 
@@ -76,8 +101,14 @@ int i = V + V;";
         public async Task TestParameterFix2()
         {
             await TestAsync(
-                @"void Bar(int i = [|1 + 1|], int j = 1 + 1) { }",
-                @"private const int {|Rename:V|} = 1 + 1; void Bar(int i = V, int j = V) { }",
+@"void Bar(int i = [|1 + 1|], int j = 1 + 1)
+{
+}",
+@"private const int {|Rename:V|} = 1 + 1;
+
+void Bar(int i = V, int j = V)
+{
+}",
                 index: 1);
         }
 
@@ -85,8 +116,16 @@ int i = V + V;";
         public async Task TestAttributeFix1()
         {
             await TestAsync(
-                @"[Foo([|1 + 1|], 1 + 1)]void Bar() { }",
-                @"private const int {|Rename:V|} = 1 + 1; [Foo(V, 1 + 1)]void Bar() { }",
+@"[Foo([|1 + 1|], 1 + 1)]
+void Bar()
+{
+}",
+@"private const int {|Rename:V|} = 1 + 1;
+
+[Foo(V, 1 + 1)]
+void Bar()
+{
+}",
                 index: 0);
         }
 
@@ -94,8 +133,16 @@ int i = V + V;";
         public async Task TestAttributeFix2()
         {
             await TestAsync(
-                @"[Foo([|1 + 1|], 1 + 1)]void Bar() { }",
-                @"private const int {|Rename:V|} = 1 + 1; [Foo(V, V)]void Bar() { }",
+@"[Foo([|1 + 1|], 1 + 1)]
+void Bar()
+{
+}",
+@"private const int {|Rename:V|} = 1 + 1;
+
+[Foo(V, V)]
+void Bar()
+{
+}",
                 index: 1);
         }
 

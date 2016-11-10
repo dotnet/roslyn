@@ -12,8 +12,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -23,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Manages metadata references for VS projects. 
     /// </summary>
     /// <remarks>
-    /// The references correspond to hierarchy nodes in the Solution Explorer. 
     /// They monitor changes in the underlying files and provide snapshot references (subclasses of <see cref="PortableExecutableReference"/>) 
     /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
     /// from <see cref="ITemporaryStorageService"/>.
@@ -36,26 +33,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly MetadataCache _metadataCache;
         private readonly ImmutableArray<string> _runtimeDirectories;
 
-        private readonly IVsFileChangeEx _fileChangeService;
-        private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
-        private readonly IVsSmartOpenScope _smartOpenScopeService;
         private readonly ITemporaryStorageService _temporaryStorageService;
+
+        internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
+
+        /// <summary>
+        /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
+        /// use of this field or derived types should be synchronized with <see cref="_readerWriterLock"/> to ensure
+        /// you don't grab the field and then use it while shutdown continues.
+        /// </summary>
+        private IVsSmartOpenScope SmartOpenScopeServiceOpt { get; set; }
+
+        internal IVsFileChangeEx FileChangeService { get; }
+
+        private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
 
         internal VisualStudioMetadataReferenceManager(IServiceProvider serviceProvider, ITemporaryStorageService temporaryStorageService)
         {
             _metadataCache = new MetadataCache();
             _runtimeDirectories = GetRuntimeDirectories();
 
-            _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
-            _smartOpenScopeService = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
 
-            _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
+            FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             _temporaryStorageService = temporaryStorageService;
 
-            Debug.Assert(_xmlMemberIndexService != null);
-            Debug.Assert(_smartOpenScopeService != null);
-            Debug.Assert(_fileChangeService != null);
+            Debug.Assert(XmlMemberIndexService != null);
+            Debug.Assert(SmartOpenScopeServiceOpt != null);
+            Debug.Assert(FileChangeService != null);
             Debug.Assert(temporaryStorageService != null);
+        }
+
+        internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)
+        {
+            var key = new FileKey(fullPath, snapshotTimestamp);
+
+            // check existing metadata
+            ValueSource<AssemblyMetadata> source;
+            if (_metadataCache.TryGetSource(key, out source))
+            {
+                var metadata = source as RecoverableMetadataValueSource;
+                if (metadata != null)
+                {
+                    return metadata.GetStorages();
+                }
+            }
+
+            return null;
         }
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
@@ -88,16 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
                     RuntimeEnvironment.GetRuntimeDirectory()
                 }).Select(FileUtilities.NormalizeDirectoryPath).ToImmutableArray();
-        }
-
-        internal IVsXMLMemberIndexService XmlMemberIndexService
-        {
-            get { return _xmlMemberIndexService; }
-        }
-
-        internal IVsFileChangeEx FileChangeService
-        {
-            get { return _fileChangeService; }
         }
 
         /// <exception cref="IOException"/>
@@ -272,28 +287,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, out IMetaDataInfo info, out IntPtr pImage, out long length)
         {
-            // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
-            // it won't be changed in the middle of VS running.
-            var fullPath = fileKey.FullPath;
-
-            info = default(IMetaDataInfo);
-            pImage = default(IntPtr);
-            length = default(long);
-
-            var ppUnknown = default(object);
-            if (ErrorHandler.Failed(_smartOpenScopeService.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out ppUnknown)))
+            // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
+            // doesn't race against 
+            using (_readerWriterLock.DisposableRead())
             {
-                return false;
-            }
+                // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
+                // it won't be changed in the middle of VS running.
+                var fullPath = fileKey.FullPath;
 
-            info = ppUnknown as IMetaDataInfo;
-            if (info == null)
-            {
-                return false;
-            }
+                info = default(IMetaDataInfo);
+                pImage = default(IntPtr);
+                length = default(long);
 
-            CorFileMapping mappingType;
-            return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out mappingType)) && mappingType == CorFileMapping.Flat;
+                if (SmartOpenScopeServiceOpt == null)
+                {
+                    return false;
+                }
+
+                var ppUnknown = default(object);
+                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out ppUnknown)))
+                {
+                    return false;
+                }
+
+                info = ppUnknown as IMetaDataInfo;
+                if (info == null)
+                {
+                    return false;
+                }
+
+                CorFileMapping mappingType;
+                return ErrorHandler.Succeeded(info.GetFileMapping(out pImage, out length, out mappingType)) && mappingType == CorFileMapping.Flat;
+            }
         }
 
         /// <exception cref="IOException"/>
@@ -302,14 +327,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage> storages,
             Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataFactory)
         {
-            ImmutableArray<ModuleMetadata>.Builder moduleBuilder = null;
+            var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
 
             string assemblyDir = null;
             foreach (string moduleName in manifestModule.GetModuleNames())
             {
-                if (moduleBuilder == null)
+                if (moduleBuilder.Count == 0)
                 {
-                    moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>();
                     moduleBuilder.Add(manifestModule);
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
@@ -320,8 +344,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 moduleBuilder.Add(metadata);
             }
 
-            var modules = (moduleBuilder != null) ? moduleBuilder.ToImmutable() : ImmutableArray.Create(manifestModule);
-            return AssemblyMetadata.Create(modules);
+            if (moduleBuilder.Count == 0)
+            {
+                moduleBuilder.Add(manifestModule);
+            }
+
+            return AssemblyMetadata.Create(
+                moduleBuilder.ToImmutableAndFree());
+        }
+
+        public void DisconnectFromVisualStudioNativeServices()
+        {
+            using (_readerWriterLock.DisposableWrite())
+            {
+                // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
+                // Windows Error Reporting as we try creating metadata for compilations.
+                SmartOpenScopeServiceOpt = null;
+            }
         }
     }
 }

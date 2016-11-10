@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
 using Roslyn.Utilities;
+using System;
+using System.Reflection.Metadata;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-    
-    internal sealed class PooledBlobBuilder : BlobBuilder
+    internal sealed class PooledBlobBuilder : BlobBuilder, IDisposable
     {
         private const int PoolSize = 128;
         private const int ChunkSize = 1024;
@@ -43,6 +42,11 @@ namespace Microsoft.Cci
         public new void Free()
         {
             base.Free();
+        }
+
+        void IDisposable.Dispose()
+        {
+            Free();
         }
     }
 }
