@@ -3449,6 +3449,7 @@ class C
     static void Main()
     {
         var x = (a: PrintAndReturn(1), b: 2, c: 3, d: PrintAndReturn(4), e: 5, f: 6, g: PrintAndReturn(7), h: PrintAndReturn(""Alice""), i: 2, j: 3, k: 4, l: 5, m: 6, n: PrintAndReturn(7), o: PrintAndReturn(""Bob""), p: 2, q: PrintAndReturn(3));
+        x.ToString();
     }
 
     static T PrintAndReturn<T>(T i)
@@ -3658,10 +3659,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17),
-                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         var x = (1, 1);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
         }
 
@@ -3774,10 +3772,7 @@ namespace System
             comp.VerifyDiagnostics(
                 // (7,39): error CS0229: Ambiguity between '(string, string).Item1' and '(string, string).Item1'
                 //         System.Console.WriteLine($"{x.Item1}");
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39),
-                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         var x = ("Alice", "Bob");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39)
                 );
         }
 
@@ -20044,66 +20039,102 @@ public class C
     {
         // Warnings
 
-        (int, int) t1 = default((int, int));
-        (int, int) t2 = (1, 2);
-
-        (string, string) t3 = (null, null);
-        (string, string) t4 = (""hello"", ""world"");
-        (S, (S, S)) t5 = (new S(), (new S(), new S()));
-
-        // No warnings
-
-        (C, int) tuple = (new C(), 2);
-
-        (int, int) t6 = ((C, int))(new C(), 2); // implicit tuple conversion with a user conversion on an element
-        (int, int) t61 = ((C, int))tuple;
-
-        (int, int) t7 = (new C(), 2); // implicit tuple literal conversion with a user conversion on an element 
-        (int, int) t71 = tuple;
-
-        (int, int) t8 = ((int, int))(((C, int))(new C(), 2)); // explicit tuple conversion with a user conversion on an element 
-        (int, int) t81 = ((int, int))tuple;
-
-        (C, C) t9 = (new C(), new C());
-        (C, (C, C)) t10 = (new C(), (new C(), new C()));
-
         int[] array = new int[] { 42 };
         unsafe
         {
             fixed (int* p = &array[0])
             {
-                (int*, int*) t14 = (p, p); // converted tuple literal with a pointer type
-                (string, int*) t15 = (null, p); // implicit tuple literal conversion on a converted tuple literal with a pointer type
-                (string, (int*, int*)) t16 = (null, (p, p));
+                (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type
+                (string, int*) t2 = (null, p); // implicit tuple literal conversion on a converted tuple literal with a pointer type
+                (string, (int*, int*)) t3 = (null, (p, p));
             }
         }
-        (S, (S, S)) t17 = (new S(), (new S() { /* object initializer */ }, new S()));
+
+        (int, int) t4 = default((int, int));
+        (int, int) t5 = (1, 2);
+
+        (string, string) t6 = (null, null);
+        (string, string) t7 = (""hello"", ""world"");
+        (S, (S, S)) t8 = (new S(), (new S(), new S()));
+
+        (int, int) t9 = ((C, int))(new C(), 2); // implicit tuple conversion with a user conversion on an element
+        (int, int) t10 = (new C(), 2); // implicit tuple literal conversion with a user conversion on an element
+        (int, int) t11 = ((int, int))(((C, int))(new C(), 2)); // explicit tuple conversion with a user conversion on an element
+
+        (C, C) t12 = (new C(), new C());
+        (C, (C, C)) t13 = (new C(), (new C(), new C()));
+        (S, (S, S)) t14 = (new S(), (new S() { /* object initializer */ }, new S()));
+
+        // No warnings
+
+        (C, int) tuple = (new C(), 2);
+        (int, int) t20 = ((C, int))tuple;
+        (int, int) t21 = tuple;
+        (int, int) t22 = ((int, int))tuple;
+
+        C c1 = (1, 2);
+        (int, int) intTuple = (1, 2);
+        C c2 = intTuple;
+
+        int i1 = 1;
+        int i2 = i1;
     }
 
     public static implicit operator int(C c)
     {
         return 0;
     }
+    public static implicit operator C((int, int) t)
+    {
+        return new C();
+    }
 }
 public struct S { }
 ";
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (8,20): warning CS0219: The variable 't1' is assigned but its value is never used
-                //         (int, int) t1 = default((int, int));
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(8, 20),
-                // (9,20): warning CS0219: The variable 't2' is assigned but its value is never used
-                //         (int, int) t2 = (1, 2);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(9, 20),
-                // (11,26): warning CS0219: The variable 't3' is assigned but its value is never used
-                //         (string, string) t3 = (null, null);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t3").WithArguments("t3").WithLocation(11, 26),
-                // (12,26): warning CS0219: The variable 't4' is assigned but its value is never used
-                //         (string, string) t4 = ("hello", "world");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t4").WithArguments("t4").WithLocation(12, 26),
-                // (13,21): warning CS0219: The variable 't5' is assigned but its value is never used
-                //         (S, (S, S)) t5 = (new S(), (new S(), new S()));
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t5").WithArguments("t5").WithLocation(13, 21)
+                // (13,30): warning CS0219: The variable 't1' is assigned but its value is never used
+                //                 (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(13, 30),
+                // (14,32): warning CS0219: The variable 't2' is assigned but its value is never used
+                //                 (string, int*) t2 = (null, p); // implicit tuple literal conversion on a converted tuple literal with a pointer type
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(14, 32),
+                // (15,40): warning CS0219: The variable 't3' is assigned but its value is never used
+                //                 (string, (int*, int*)) t3 = (null, (p, p));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t3").WithArguments("t3").WithLocation(15, 40),
+                // (19,20): warning CS0219: The variable 't4' is assigned but its value is never used
+                //         (int, int) t4 = default((int, int));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t4").WithArguments("t4").WithLocation(19, 20),
+                // (20,20): warning CS0219: The variable 't5' is assigned but its value is never used
+                //         (int, int) t5 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t5").WithArguments("t5").WithLocation(20, 20),
+                // (22,26): warning CS0219: The variable 't6' is assigned but its value is never used
+                //         (string, string) t6 = (null, null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t6").WithArguments("t6").WithLocation(22, 26),
+                // (23,26): warning CS0219: The variable 't7' is assigned but its value is never used
+                //         (string, string) t7 = ("hello", "world");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t7").WithArguments("t7").WithLocation(23, 26),
+                // (24,21): warning CS0219: The variable 't8' is assigned but its value is never used
+                //         (S, (S, S)) t8 = (new S(), (new S(), new S()));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t8").WithArguments("t8").WithLocation(24, 21),
+                // (26,20): warning CS0219: The variable 't9' is assigned but its value is never used
+                //         (int, int) t9 = ((C, int))(new C(), 2); // implicit tuple conversion with a user conversion on an element
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t9").WithArguments("t9").WithLocation(26, 20),
+                // (27,20): warning CS0219: The variable 't10' is assigned but its value is never used
+                //         (int, int) t10 = (new C(), 2); // implicit tuple literal conversion with a user conversion on an element
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t10").WithArguments("t10").WithLocation(27, 20),
+                // (28,20): warning CS0219: The variable 't11' is assigned but its value is never used
+                //         (int, int) t11 = ((int, int))(((C, int))(new C(), 2)); // explicit tuple conversion with a user conversion on an element
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t11").WithArguments("t11").WithLocation(28, 20),
+                // (30,16): warning CS0219: The variable 't12' is assigned but its value is never used
+                //         (C, C) t12 = (new C(), new C());
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t12").WithArguments("t12").WithLocation(30, 16),
+                // (31,21): warning CS0219: The variable 't13' is assigned but its value is never used
+                //         (C, (C, C)) t13 = (new C(), (new C(), new C()));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t13").WithArguments("t13").WithLocation(31, 21),
+                // (32,21): warning CS0219: The variable 't14' is assigned but its value is never used
+                //         (S, (S, S)) t14 = (new S(), (new S() { /* object initializer */ }, new S()));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t14").WithArguments("t14").WithLocation(32, 21)
                 );
         }
     }

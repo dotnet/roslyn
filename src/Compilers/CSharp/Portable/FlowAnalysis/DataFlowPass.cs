@@ -576,7 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This reflects the Dev10 compiler's rules for when a variable initialization is considered a "use"
         /// for the purpose of suppressing the warning about unused variables.
-        /// Updated to apply the same rule within elements of tuple conversions and literals.
         /// </summary>
         internal static bool WriteConsideredUse(TypeSymbol type, BoundExpression value)
         {
@@ -602,21 +601,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // conversions. A cast from int to IntPtr is also treated as an explicit
                         // user-defined conversion. Therefore the IntPtr ConversionKind is included
                         // here.
-                        if (IsUserDefinedOrIntPtrConversion(boundConversion.Conversion))
+                        if (boundConversion.ConversionKind.IsUserDefinedConversion() ||
+                            boundConversion.ConversionKind == ConversionKind.IntPtr)
                         {
                             return true;
                         }
-
-                        if (boundConversion.Conversion.IsTupleLiteralConversion ||
-                            boundConversion.Conversion.IsTupleConversion)
-                        {
-                            var underlyingConversions = boundConversion.Conversion.UnderlyingConversions;
-                            if (underlyingConversions.Any(c => IsUserDefinedOrIntPtrConversion(c)))
-                            {
-                                return true;
-                            }
-                        }
-
                         return WriteConsideredUse(null, boundConversion.Operand);
                     }
                 case BoundKind.DefaultOperator:
@@ -624,33 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
-
-                case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                    Debug.Assert(type == null || type.IsTupleType);
-                    var typeIsTuple = type?.IsTupleType == true;
-                    var typeTupleTypes = typeIsTuple ? ((TupleTypeSymbol)type).TupleElementTypes : ImmutableArray<TypeSymbol>.Empty;
-                    var valueTupleArguments = ((BoundTupleExpression)value).Arguments;
-
-                    Debug.Assert(!typeIsTuple || valueTupleArguments.Length == typeTupleTypes.Length);
-
-                    for (int i = 0; i < valueTupleArguments.Length; i++)
-                    {
-                        if (WriteConsideredUse(typeIsTuple ? typeTupleTypes[i] : null, valueTupleArguments[i]))
-                        {
-                            return true;
-                        }
-                    }
                     return false;
-
                 default:
                     return true;
             }
-        }
-
-        private static bool IsUserDefinedOrIntPtrConversion(Conversion conversion)
-        {
-            return conversion.Kind.IsUserDefinedConversion() || conversion.Kind == ConversionKind.IntPtr;
         }
 
         private void NoteWrite(BoundExpression n, BoundExpression value, bool read)

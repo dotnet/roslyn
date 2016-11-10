@@ -17846,6 +17846,8 @@ Class C
         Dim y11 As String = "hello"
         Dim y12 As (Integer, Integer) = (1, 2)
         Dim y13 As (String, String) = ("hello", "world")
+        Dim tuple As (String, String) = ("hello", "world")
+        Dim y14 As (String, String) = tuple
     End Sub
 End Class
 
