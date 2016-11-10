@@ -562,6 +562,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var addImportService = document.GetLanguageService<IAddImportService>();
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
+
+            // We need to create our using in two passes.  This is because we need a using
+            // directive so we can figure out where to put it.  Then, once we figure out
+            // where to put it, we might need to change it a bit (i.e. removing 'global' 
+            // from it if necessary).  So we first create a dummy using directive just to
+            // determine which container we're going in.  Then we'll use the container to
+            // help create the final using.
             var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
 
             var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
