@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public partial class CSharpCompilation
     {
-        private readonly WellKnownMembersSignatureComparer _wellKnownMemberSignatureComparer;
+        internal readonly WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer;
 
         /// <summary>
         /// An array of cached well known types available for use in this Compilation.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
+                    result = GetRuntimeMember(type, ref descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
                 Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
-            Debug.Assert(type >= WellKnownType.First && type <= WellKnownType.Last && type != WellKnownType.ExtSentinel);
+            Debug.Assert(type.IsValid());
 
             int index = (int)type - (int)WellKnownType.First;
             if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)
@@ -108,7 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
-                    result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    if (type.IsValueTupleType())
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
+                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
+                    }
+                    else
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    }
                 }
 
                 if ((object)Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) != null)
@@ -155,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var wkType = GetWellKnownType(wellKnownType);
-            return type.Equals(wkType, ignoreDynamic: false) || type.IsDerivedFrom(wkType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
         internal override bool IsSystemTypeReference(ITypeSymbol type)
@@ -491,6 +499,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert(type.ContainsTuple());
+
+            var stringType = GetSpecialType(SpecialType.System_String);
+            Debug.Assert((object)stringType != null);
+            var names = TupleNamesEncoder.Encode(type, stringType);
+
+            Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
+
+            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
+            var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
+        }
+
+        internal static class TupleNamesEncoder
+        {
+            public static ImmutableArray<string> Encode(TypeSymbol type)
+            {
+                var namesBuilder = ArrayBuilder<string>.GetInstance();
+
+                if (!TryGetNames(type, namesBuilder))
+                {
+                    namesBuilder.Free();
+                    return default(ImmutableArray<string>);
+                }
+
+                return namesBuilder.ToImmutableAndFree();
+            }
+
+            public static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol stringType)
+            {
+                var namesBuilder = ArrayBuilder<string>.GetInstance();
+
+                if (!TryGetNames(type, namesBuilder))
+                {
+                    namesBuilder.Free();
+                    return default(ImmutableArray<TypedConstant>);
+                }
+
+                var names = namesBuilder.SelectAsArray((name, constantType) =>
+                    new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
+                namesBuilder.Free();
+                return names;
+            }
+
+            internal static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            {
+                type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
+                return namesBuilder.Any(name => name != null);
+            }
+
+            private static bool AddNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            {
+                if (type.IsTupleType)
+                {
+                    if (type.TupleElementNames.IsDefaultOrEmpty)
+                    {
+                        // If none of the tuple elements have names, put
+                        // null placeholders in.
+                        // TODO(https://github.com/dotnet/roslyn/issues/12347):
+                        // A possible optimization could be to emit an empty attribute
+                        // if all the names are missing, but that has to be true
+                        // recursively.
+                        namesBuilder.AddMany(null, type.TupleElementTypes.Length);
+                    }
+                    else
+                    {
+                        namesBuilder.AddRange(type.TupleElementNames);
+                    }
+                }
+                // Always recur into nested types
+                return false;
+            }
+        }
+
         /// <summary>
         /// Used to generate the dynamic attributes for the required typesymbol.
         /// </summary>
@@ -499,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType, int customModifiersCount, RefKind refKind)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
+                Encode(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
@@ -513,21 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantsBuilder.ToImmutableAndFree();
             }
 
-            internal static ImmutableArray<bool> Encode(TypeSymbol type, int customModifiersCount, RefKind refKind)
-            {
-                var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, transformFlagsBuilder, addCustomModifierFlags: true);
-                return transformFlagsBuilder.ToImmutableAndFree();
-            }
-
             internal static ImmutableArray<bool> EncodeWithoutCustomModifierFlags(TypeSymbol type, RefKind refKind)
             {
                 var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
+                Encode(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
                 return transformFlagsBuilder.ToImmutableAndFree();
             }
 
-            private static void EncodeInternal(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
+            internal static void Encode(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
             {
                 Debug.Assert(!transformFlagsBuilder.Any());
 
@@ -766,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class WellKnownMembersSignatureComparer : SpecialMembersSignatureComparer
+        internal sealed class WellKnownMembersSignatureComparer : SpecialMembersSignatureComparer
         {
             private readonly CSharpCompilation _compilation;
 
@@ -778,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
                 WellKnownType wellKnownId = (WellKnownType)typeId;
-                if (wellKnownId >= WellKnownType.First && wellKnownId <= WellKnownType.Last)
+                if (wellKnownId.IsWellKnownType())
                 {
                     return (type == _compilation.GetWellKnownType(wellKnownId));
                 }

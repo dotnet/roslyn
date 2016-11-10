@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{143FE684-6E1C-41DF-9C60-84C7772DC49C}</ProjectGuid>
@@ -12,7 +9,6 @@
     <RootNamespace>Roslyn.VisualStudio.Setup.Next</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup.Next</AssemblyName>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -22,6 +18,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
+    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
@@ -35,11 +32,40 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
+      <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
+      <Name>ServicesVisualStudio.Next</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Xaml\Impl\XamlVisualStudio.csproj">
+      <Project>{971e832b-7471-48b5-833e-5913188ec0e4}</Project>
+      <Name>XamlVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
+    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -53,7 +79,23 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="snapshotService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="project.json" />
+    <Content Include="codeAnalysisService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="remoteHostService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="remoteSymbolSearchUpdateEngine.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -64,7 +106,5 @@
     </Compile>
     <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -12,11 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
-        private static readonly Dictionary<string, string> s_experimentalFeatures = new Dictionary<string, string> { { MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true" }, { MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true" } };
-        public static readonly CSharpParseOptions ExperimentalParseOptions =
-            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
-
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new InlineTemporaryCodeRefactoringProvider();
         }
@@ -65,14 +61,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
         {
-            await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+            await TestMissingAsync(
+@"class C
+{
+    int [||]x = 42;
+
+    void M()
+    {
+        System.Console.WriteLine(x);
+    }
+}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12838"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task WithRefInitializer1()
         {
-            await TestMissingAsync(@"
-class C
+            await TestMissingAsync(
+@"class C
 {
     ref int M()
     {
@@ -80,9 +85,7 @@ class C
         ref int [||]x = ref arr[2];
         return ref x;
     }
-}",
-                // TODO: propagating features to the project is currently NYI
-                parseOptions: ExperimentalParseOptions);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -112,28 +115,40 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping2()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping3()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping4()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -221,7 +236,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_NoConversion()
         {
-            await TestFixOneAsync(@"{ int [||]x = 3; x.ToString(); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 3;
+
+x.ToString(); }",
                        @"{ 3.ToString(); }");
         }
 
@@ -344,7 +362,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NoCastOnVar()
         {
-            await TestFixOneAsync(@"{ var [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ var [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -376,14 +397,18 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAnonymousType1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 42; var a = new { x }; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 42;
+var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestParenthesizedAtReference_Case3()
         {
-            await TestFixOneAsync(@"{ int [||]x = 1 + 1; int y = x * 2; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 1 + 1;
+int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
 
@@ -619,7 +644,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer()
         {
-            await TestFixOneAsync(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
+            await TestFixOneAsync(
+@"{ int[] [||]x = {
+    3,
+    4,
+    5
+};
+int a = Array.IndexOf(x, 3); }",
                        @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
         }
 
@@ -2212,8 +2243,8 @@ unsafe class C
         public async Task DontInlineStackAlloc()
         {
             await TestMissingAsync(
-            @"
-using System;
+@"using System;
+
 unsafe class C
 {
     static void M()
@@ -3063,7 +3094,10 @@ class C
 {
     static void M()
     {
-        int [||]a[10] = { 0, 0 };
+        int [||]a[10] = {
+            0,
+            0
+        };
         System.Console.WriteLine(a);
     }
 }");
@@ -3079,9 +3113,9 @@ class C
     {
         int [|x|] = 0;
 
-        #line hidden
+#line hidden
         Foo(x);
-        #line default
+#line default
     }
 }");
         }
@@ -3095,11 +3129,10 @@ class C
     void Main()
     {
         int [|x|] = 0;
-
         Foo(x);
-        #line hidden
+#line hidden
         Foo(x);
-        #line default
+#line default
     }
 }");
         }
@@ -3179,7 +3212,6 @@ compareTokens: false);
     void Main()
     {
         int [||]x = 0;
-
         Foo(x);
 #line hidden
         Foo(x);
@@ -3510,17 +3542,15 @@ class A
         public async Task TestConditionalAccessWithConversion()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(string[] args)
     {
         var [|x|] = args[0];
         return x?.Length == 0;
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(string[] args)
     {
@@ -3533,17 +3563,15 @@ class A
         public async Task TestSimpleConditionalAccess()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M(string[] args)
     {
         var [|x|] = args.Length.ToString();
         var y = x?.ToString();
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M(string[] args)
     {
@@ -3556,17 +3584,15 @@ class A
         public async Task TestConditionalAccessWithConditionalExpression()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M(string[] args)
     {
         var [|x|] = args[0]?.Length ?? 10;
         var y = x == 10 ? 10 : 4;
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M(string[] args)
     {
@@ -3580,8 +3606,7 @@ class A
         public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
             await TestAsync(
-            @"
-using System;
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3602,11 +3627,11 @@ class C
             var [|assembly|] = t?.Something().First();
             var identity = assembly?.ToArray();
         }
+
         return null;
     }
-}
-", @"
-using System;
+}", 
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3626,10 +3651,10 @@ class C
         {
             var identity = t?.Something().First()?.ToArray();
         }
+
         return null;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3637,8 +3662,7 @@ class C
         public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {
             await TestAsync(
-            @"
-using System;
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3664,11 +3688,11 @@ class C
             var [|assembly|] = (t?.Something2())()?.Something().First();
             var identity = assembly?.ToArray();
         }
+
         return null;
     }
-}
-", @"
-using System;
+}", 
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3693,27 +3717,25 @@ class C
         {
             var identity = (t?.Something2())()?.Something().First()?.ToArray();
         }
+
         return null;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAliasQualifiedNameIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M()
     {
         var [|g|] = global::System.Guid.Empty;
         var s = $""{g}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M()
     {
@@ -3726,17 +3748,15 @@ class A
         public async Task TestConditionalExpressionIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(bool b)
     {
         var [|x|] = b ? 19 : 23;
         var s = $""{x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(bool b)
     {
@@ -3749,17 +3769,15 @@ class A
         public async Task TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(bool b)
     {
         var [|x|] = b ? 19 : 23;
         var s = $""{x:x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(bool b)
     {
@@ -3772,17 +3790,15 @@ class A
         public async Task TestInvocationExpressionIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     public static void M(string s)
     {
         var [|x|] = s.ToUpper();
         var y = $""{x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     public static void M(string s)
     {
@@ -3796,17 +3812,15 @@ class A
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             await TestAsync(
-            @"
-class C
+@"class C
 {
     public void M()
     {
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     public void M()
     {
@@ -3820,17 +3834,15 @@ class C
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestAsync(
-            @"
-class C
+@"class C
 {
     public void M(int x)
     {
         var [|s1|] = $""hello {x}"";
         var s2 = string.Replace(s1, ""world"");
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     public void M(int x)
     {
@@ -3993,7 +4005,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4020,7 +4032,7 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4046,7 +4058,78 @@ class C
     }
 }";
 
-            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(code, expected, index: 0, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Deconstruction()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]temp = new C();
+        var (x1, x2) = temp;
+        var x3 = temp;
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var (x1, x2) = new C();
+        var x3 = new C();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(12802, "https://github.com/dotnet/roslyn/issues/12802")]
+        public async Task Deconstruction2()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        var [||]kvp = KVP.Create(42, ""hello"");
+        var(x1, x2) = kvp;
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            var expected = @"
+class Program
+{
+    static void Main()
+    {
+        var(x1, x2) = KVP.Create(42, ""hello"");
+    }
+}
+public static class KVP
+{
+    public static KVP<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return null; }
+}
+public class KVP<T1, T2>
+{
+    public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
+}";
+
+            await TestAsync(code, expected, index: 0);
         }
     }
 }

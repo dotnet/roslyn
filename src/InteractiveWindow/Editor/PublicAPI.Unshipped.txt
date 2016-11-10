@@ -1,2 +1,0 @@
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2.AddToHistory(string input) -> void

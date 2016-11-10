@@ -117,157 +117,157 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="FontAndColors_PreprocessorText" xml:space="preserve">
+  <data name="Preprocessor_Text" xml:space="preserve">
     <value>Preprocessor Text</value>
   </data>
-  <data name="FontAndColors_Punctuation" xml:space="preserve">
+  <data name="Punctuation" xml:space="preserve">
     <value>Punctuation</value>
   </data>
-  <data name="FontAndColors_UserTypes_Classes" xml:space="preserve">
+  <data name="User_Types_Classes" xml:space="preserve">
     <value>User Types - Classes</value>
   </data>
-  <data name="FontAndColors_UserTypes_Delegates" xml:space="preserve">
+  <data name="User_Types_Delegates" xml:space="preserve">
     <value>User Types - Delegates</value>
   </data>
-  <data name="FontAndColors_UserTypes_Enums" xml:space="preserve">
+  <data name="User_Types_Enums" xml:space="preserve">
     <value>User Types - Enums</value>
   </data>
-  <data name="FontAndColors_UserTypes_Interfaces" xml:space="preserve">
+  <data name="User_Types_Interfaces" xml:space="preserve">
     <value>User Types - Interfaces</value>
   </data>
-  <data name="FontAndColors_UserTypes_Structures" xml:space="preserve">
+  <data name="User_Types_Structures" xml:space="preserve">
     <value>User Types - Structures</value>
   </data>
-  <data name="FontAndColors_UserTypes_TypeParameters" xml:space="preserve">
+  <data name="User_Types_Type_Parameters" xml:space="preserve">
     <value>User Types - Type Parameters</value>
   </data>
-  <data name="FontAndColors_StringVerbatim" xml:space="preserve">
+  <data name="String_Verbatim" xml:space="preserve">
     <value>String - Verbatim</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_AttributeName" xml:space="preserve">
+  <data name="XML_Doc_Comments_Attribute_Name" xml:space="preserve">
     <value>XML Doc Comments - Attribute Name</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_CDataSection" xml:space="preserve">
+  <data name="XML_Doc_Comments_CData_Section" xml:space="preserve">
     <value>XML Doc Comments - CData Section</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_Text" xml:space="preserve">
+  <data name="XML_Doc_Comments_Text" xml:space="preserve">
     <value>XML Doc Comments - Text</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_Delimiter" xml:space="preserve">
+  <data name="XML_Doc_Comments_Delimiter" xml:space="preserve">
     <value>XML Doc Comments - Delimiter</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_Comment" xml:space="preserve">
+  <data name="XML_Doc_Comments_Comment" xml:space="preserve">
     <value>XML Doc Comments - Comment</value>
   </data>
-  <data name="FontAndColors_UserTypes_Modules" xml:space="preserve">
+  <data name="User_Types_Modules" xml:space="preserve">
     <value>User Types - Modules</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_AttributeName" xml:space="preserve">
+  <data name="VB_XML_Literals_Attribute_Name" xml:space="preserve">
     <value>VB XML Literals - Attribute Name</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_AttributeQuotes" xml:space="preserve">
+  <data name="VB_XML_Literals_Attribute_Quotes" xml:space="preserve">
     <value>VB XML Literals - Attribute Quotes</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_AttributeValue" xml:space="preserve">
+  <data name="VB_XML_Literals_Attribute_Value" xml:space="preserve">
     <value>VB XML Literals - Attribute Value</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_CDataSection" xml:space="preserve">
+  <data name="VB_XML_Literals_CData_Section" xml:space="preserve">
     <value>VB XML Literals - CData Section</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_Comment" xml:space="preserve">
+  <data name="VB_XML_Literals_Comment" xml:space="preserve">
     <value>VB XML Literals - Comment</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_Delimiter" xml:space="preserve">
+  <data name="VB_XML_Literals_Delimiter" xml:space="preserve">
     <value>VB XML Literals - Delimiter</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_EmbeddedExpression" xml:space="preserve">
+  <data name="VB_XML_Literals_Embedded_Expression" xml:space="preserve">
     <value>VB XML Literals - Embedded Expression</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_EntityReference" xml:space="preserve">
+  <data name="VB_XML_Literals_Entity_Reference" xml:space="preserve">
     <value>VB XML Literals - Entity Reference</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_Name" xml:space="preserve">
+  <data name="VB_XML_Literals_Name" xml:space="preserve">
     <value>VB XML Literals - Name</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_ProcessingInstruction" xml:space="preserve">
+  <data name="VB_XML_Literals_Processing_Instruction" xml:space="preserve">
     <value>VB XML Literals - Processing Instruction</value>
   </data>
-  <data name="FontAndColors_VBXmlLiterals_Text" xml:space="preserve">
+  <data name="VB_XML_Literals_Text" xml:space="preserve">
     <value>VB XML Literals - Text</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_AttributeQuotes" xml:space="preserve">
+  <data name="XML_Doc_Comments_Attribute_Quotes" xml:space="preserve">
     <value>XML Doc Comments - Attribute Quotes</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_AttributeValue" xml:space="preserve">
+  <data name="XML_Doc_Comments_Attribute_Value" xml:space="preserve">
     <value>XML Doc Comments - Attribute Value</value>
   </data>
-  <data name="FontAndColors_UnnecessaryCode" xml:space="preserve">
+  <data name="Unnecessary_Code" xml:space="preserve">
     <value>Unnecessary Code</value>
   </data>
-  <data name="RudeEdit" xml:space="preserve">
+  <data name="Rude_Edit" xml:space="preserve">
     <value>Rude Edit</value>
   </data>
-  <data name="RenameWillUpdateReferenceInFile" xml:space="preserve">
+  <data name="Rename_will_update_1_reference_in_1_file" xml:space="preserve">
     <value>Rename will update 1 reference in 1 file.</value>
   </data>
-  <data name="RenameWillUpdateReferencesInFile" xml:space="preserve">
+  <data name="Rename_will_update_0_references_in_1_file" xml:space="preserve">
     <value>Rename will update {0} references in 1 file.</value>
   </data>
-  <data name="RenameWillUpdateReferencesInMultipleFiles" xml:space="preserve">
+  <data name="Rename_will_update_0_references_in_1_files" xml:space="preserve">
     <value>Rename will update {0} references in {1} files.</value>
   </data>
-  <data name="ConflictsWillBeResolved" xml:space="preserve">
+  <data name="_0_conflict_s_will_be_resolved" xml:space="preserve">
     <value>{0} conflict(s) will be resolved</value>
   </data>
-  <data name="UnresolvableConflicts" xml:space="preserve">
+  <data name="_0_unresolvable_conflict_s" xml:space="preserve">
     <value>{0} unresolvable conflict(s)</value>
   </data>
-  <data name="Applying" xml:space="preserve">
+  <data name="Applying_0" xml:space="preserve">
     <value>Applying "{0}"...</value>
   </data>
-  <data name="AddingToWithContent" xml:space="preserve">
+  <data name="Adding_0_to_1_with_content_colon" xml:space="preserve">
     <value>Adding '{0}' to '{1}' with content:</value>
   </data>
-  <data name="AddingProject" xml:space="preserve">
+  <data name="Adding_project_0" xml:space="preserve">
     <value>Adding project '{0}'</value>
   </data>
-  <data name="RemovingProject" xml:space="preserve">
+  <data name="Removing_project_0" xml:space="preserve">
     <value>Removing project '{0}'</value>
   </data>
-  <data name="ChangingProjectReferencesFor" xml:space="preserve">
+  <data name="Changing_project_references_for_0" xml:space="preserve">
     <value>Changing project references for '{0}'</value>
   </data>
-  <data name="AddingReferenceTo" xml:space="preserve">
+  <data name="Adding_reference_0_to_1" xml:space="preserve">
     <value>Adding reference '{0}' to '{1}'</value>
   </data>
-  <data name="RemovingReferenceFrom" xml:space="preserve">
+  <data name="Removing_reference_0_from_1" xml:space="preserve">
     <value>Removing reference '{0}' from '{1}'</value>
   </data>
-  <data name="AddingAnalyzerReferenceTo" xml:space="preserve">
+  <data name="Adding_analyzer_reference_0_to_1" xml:space="preserve">
     <value>Adding analyzer reference '{0}' to '{1}'</value>
   </data>
-  <data name="RemovingAnalyzerReferenceFrom" xml:space="preserve">
+  <data name="Removing_analyzer_reference_0_from_1" xml:space="preserve">
     <value>Removing analyzer reference '{0}' from '{1}'</value>
   </data>
-  <data name="XMLEndTagCompletion" xml:space="preserve">
+  <data name="XML_End_Tag_Completion" xml:space="preserve">
     <value>XML End Tag Completion</value>
   </data>
-  <data name="CompletingTag" xml:space="preserve">
+  <data name="Completing_Tag" xml:space="preserve">
     <value>Completing Tag</value>
   </data>
-  <data name="Encapsulatefield" xml:space="preserve">
+  <data name="Encapsulate_Field" xml:space="preserve">
     <value>Encapsulate Field</value>
   </data>
-  <data name="ApplyingEncapsulateField" xml:space="preserve">
+  <data name="Applying_Encapsulate_Field_refactoring" xml:space="preserve">
     <value>Applying "Encapsulate Field" refactoring...</value>
   </data>
-  <data name="PleaseSelectTheDefinitionOf" xml:space="preserve">
+  <data name="Please_select_the_definition_of_the_field_to_encapsulate" xml:space="preserve">
     <value>Please select the definition of the field to encapsulate.</value>
   </data>
-  <data name="GivenWorkspaceDoesntSupportUndo" xml:space="preserve">
+  <data name="Given_Workspace_doesn_t_support_Undo" xml:space="preserve">
     <value>Given Workspace doesn't support Undo</value>
   </data>
-  <data name="DocumentMustBeContainedInWorkspace" xml:space="preserve">
+  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
   </data>
   <data name="Searching" xml:space="preserve">
@@ -276,470 +276,464 @@
   <data name="Canceled" xml:space="preserve">
     <value>Canceled.</value>
   </data>
-  <data name="NoInformationFound" xml:space="preserve">
+  <data name="No_information_found" xml:space="preserve">
     <value>No information found.</value>
   </data>
-  <data name="NoUsagesFound" xml:space="preserve">
+  <data name="No_usages_found" xml:space="preserve">
     <value>No usages found.</value>
   </data>
-  <data name="Implements" xml:space="preserve">
+  <data name="Implements_" xml:space="preserve">
     <value>Implements</value>
   </data>
-  <data name="ImplementedBy" xml:space="preserve">
+  <data name="Implemented_By" xml:space="preserve">
     <value>Implemented By</value>
   </data>
-  <data name="Overrides" xml:space="preserve">
+  <data name="Overrides_" xml:space="preserve">
     <value>Overrides</value>
   </data>
-  <data name="OverriddenBy" xml:space="preserve">
+  <data name="Overridden_By" xml:space="preserve">
     <value>Overridden By</value>
   </data>
-  <data name="DirectlyCalledIn" xml:space="preserve">
+  <data name="Directly_Called_In" xml:space="preserve">
     <value>Directly Called In</value>
   </data>
-  <data name="IndirectlyCalledIn" xml:space="preserve">
+  <data name="Indirectly_Called_In" xml:space="preserve">
     <value>Indirectly Called In</value>
   </data>
-  <data name="CalledIn" xml:space="preserve">
+  <data name="Called_In" xml:space="preserve">
     <value>Called In</value>
   </data>
-  <data name="ReferencedIn" xml:space="preserve">
+  <data name="Referenced_In" xml:space="preserve">
     <value>Referenced In</value>
   </data>
-  <data name="NoReferencesFound" xml:space="preserve">
+  <data name="No_references_found" xml:space="preserve">
     <value>No references found.</value>
   </data>
-  <data name="NoDerivedTypesFound" xml:space="preserve">
+  <data name="No_derived_types_found" xml:space="preserve">
     <value>No derived types found.</value>
   </data>
-  <data name="NoImplementationsFound" xml:space="preserve">
+  <data name="No_implementations_found" xml:space="preserve">
     <value>No implementations found.</value>
   </data>
-  <data name="Line" xml:space="preserve">
+  <data name="_0_Line_1" xml:space="preserve">
     <value>{0} - (Line {1})</value>
   </data>
-  <data name="ClassParts" xml:space="preserve">
+  <data name="Class_Parts" xml:space="preserve">
     <value>Class Parts</value>
   </data>
-  <data name="StructParts" xml:space="preserve">
+  <data name="Struct_Parts" xml:space="preserve">
     <value>Struct Parts</value>
   </data>
-  <data name="InterfaceParts" xml:space="preserve">
+  <data name="Interface_Parts" xml:space="preserve">
     <value>Interface Parts</value>
   </data>
-  <data name="TypeParts" xml:space="preserve">
+  <data name="Type_Parts" xml:space="preserve">
     <value>Type Parts</value>
   </data>
-  <data name="Inherits" xml:space="preserve">
+  <data name="Inherits_" xml:space="preserve">
     <value>Inherits</value>
   </data>
-  <data name="InheritedBy" xml:space="preserve">
+  <data name="Inherited_By" xml:space="preserve">
     <value>Inherited By</value>
   </data>
-  <data name="AlreadyTrackingDocumentWithIdenticalKey" xml:space="preserve">
+  <data name="Already_tracking_document_with_identical_key" xml:space="preserve">
     <value>Already tracking document with identical key</value>
   </data>
-  <data name="DocumentIsNotCurrentlyBeingTracked" xml:space="preserve">
+  <data name="document_is_not_currently_being_tracked" xml:space="preserve">
     <value>document is not currently being tracked</value>
   </data>
-  <data name="ComputingRenameInformation" xml:space="preserve">
+  <data name="Computing_Rename_information" xml:space="preserve">
     <value>Computing Rename information...</value>
   </data>
-  <data name="UpdatingFiles" xml:space="preserve">
+  <data name="Updating_files" xml:space="preserve">
     <value>Updating files...</value>
   </data>
-  <data name="RenameOperationWasCancelled" xml:space="preserve">
+  <data name="Rename_operation_was_cancelled_or_is_not_valid" xml:space="preserve">
     <value>Rename operation was cancelled or is not valid</value>
   </data>
-  <data name="RenameSymbol" xml:space="preserve">
+  <data name="Rename_Symbol" xml:space="preserve">
     <value>Rename Symbol</value>
   </data>
-  <data name="TextBufferChange" xml:space="preserve">
+  <data name="Text_Buffer_Change" xml:space="preserve">
     <value>Text Buffer Change</value>
   </data>
-  <data name="RenameOperationWasNotProperlyCompleted" xml:space="preserve">
+  <data name="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated" xml:space="preserve">
     <value>Rename operation was not properly completed. Some file might not have been updated.</value>
   </data>
-  <data name="RenameTo" xml:space="preserve">
+  <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename '{0}' to '{1}'</value>
   </data>
-  <data name="Warning" xml:space="preserve">
+  <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
   </data>
-  <data name="FromMetadata" xml:space="preserve">
+  <data name="from_metadata" xml:space="preserve">
     <value>from metadata</value>
   </data>
-  <data name="AutomaticLineEnder" xml:space="preserve">
+  <data name="Automatic_Line_Ender" xml:space="preserve">
     <value>Automatic Line Ender</value>
   </data>
-  <data name="AutomaticallyCompleting" xml:space="preserve">
+  <data name="Automatically_completing" xml:space="preserve">
     <value>Automatically completing...</value>
   </data>
-  <data name="AutomaticPairCompletion" xml:space="preserve">
+  <data name="Automatic_Pair_Completion" xml:space="preserve">
     <value>Automatic Pair Completion</value>
   </data>
-  <data name="AnActiveInlineRenameSessionIsActive" xml:space="preserve">
+  <data name="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one" xml:space="preserve">
     <value>An active inline rename session is still active. Complete it before starting a new one.</value>
   </data>
-  <data name="TheBufferIsNotPartOfAWorkspace" xml:space="preserve">
+  <data name="The_buffer_is_not_part_of_a_workspace" xml:space="preserve">
     <value>The buffer is not part of a workspace.</value>
   </data>
-  <data name="TheTokenIsNotContainedInWorkspace" xml:space="preserve">
+  <data name="The_token_is_not_contained_in_the_workspace" xml:space="preserve">
     <value>The token is not contained in the workspace.</value>
   </data>
-  <data name="YouMustRenameAnIdentifier" xml:space="preserve">
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
     <value>You must rename an identifier.</value>
   </data>
-  <data name="YouCannotRenameThisElement" xml:space="preserve">
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
     <value>You cannot rename this element.</value>
   </data>
-  <data name="PleaseResolveErrorsInYourCodeBeforeRenaming" xml:space="preserve">
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
     <value>Please resolve errors in your code before renaming this element.</value>
   </data>
-  <data name="YouCannotRenameOperators" xml:space="preserve">
+  <data name="You_cannot_rename_operators" xml:space="preserve">
     <value>You cannot rename operators.</value>
   </data>
-  <data name="YouCannotRenameElementsInMetadata" xml:space="preserve">
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
     <value>You cannot rename elements that are defined in metadata.</value>
   </data>
-  <data name="YouCannotRenameElementsFromPrevSubmissions" xml:space="preserve">
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
     <value>You cannot rename elements from previous submissions.</value>
   </data>
-  <data name="NavigationBars" xml:space="preserve">
+  <data name="Navigation_Bars" xml:space="preserve">
     <value>Navigation Bars</value>
   </data>
-  <data name="RefreshingNavigationBars" xml:space="preserve">
+  <data name="Refreshing_navigation_bars" xml:space="preserve">
     <value>Refreshing navigation bars...</value>
   </data>
-  <data name="FormatToken" xml:space="preserve">
+  <data name="Format_Token" xml:space="preserve">
     <value>Format Token</value>
   </data>
-  <data name="SmartIndenting" xml:space="preserve">
+  <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
   </data>
-  <data name="FindReferences" xml:space="preserve">
+  <data name="Find_References" xml:space="preserve">
     <value>Find References</value>
   </data>
-  <data name="FindingReferences" xml:space="preserve">
+  <data name="Finding_references" xml:space="preserve">
     <value>Finding references...</value>
   </data>
-  <data name="FindingReferencesOf" xml:space="preserve">
+  <data name="Finding_references_of_0" xml:space="preserve">
     <value>Finding references of "{0}"...</value>
   </data>
-  <data name="CommentSelection" xml:space="preserve">
+  <data name="Comment_Selection" xml:space="preserve">
     <value>Comment Selection</value>
   </data>
-  <data name="UncommentSelection" xml:space="preserve">
+  <data name="Uncomment_Selection" xml:space="preserve">
     <value>Uncomment Selection</value>
   </data>
-  <data name="CommentingCurrentlySelected" xml:space="preserve">
+  <data name="Commenting_currently_selected_text" xml:space="preserve">
     <value>Commenting currently selected text...</value>
   </data>
-  <data name="UncommentingCurrentlySelected" xml:space="preserve">
+  <data name="Uncommenting_currently_selected_text" xml:space="preserve">
     <value>Uncommenting currently selected text...</value>
   </data>
-  <data name="InsertNewLine" xml:space="preserve">
+  <data name="Insert_new_line" xml:space="preserve">
     <value>Insert new line</value>
   </data>
-  <data name="DocumentationComment" xml:space="preserve">
+  <data name="Documentation_Comment" xml:space="preserve">
     <value>Documentation Comment</value>
   </data>
-  <data name="InsertingDocumentationComment" xml:space="preserve">
+  <data name="Inserting_documentation_comment" xml:space="preserve">
     <value>Inserting documentation comment...</value>
   </data>
-  <data name="ExtractMethod" xml:space="preserve">
+  <data name="Extract_Method" xml:space="preserve">
     <value>Extract Method</value>
   </data>
-  <data name="ApplyingExtractMethodRefactoring" xml:space="preserve">
+  <data name="Applying_Extract_Method_refactoring" xml:space="preserve">
     <value>Applying "Extract Method" refactoring...</value>
   </data>
-  <data name="FormatDocument" xml:space="preserve">
+  <data name="Format_Document" xml:space="preserve">
     <value>Format Document</value>
   </data>
-  <data name="FormattingDocument" xml:space="preserve">
+  <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document...</value>
   </data>
   <data name="Formatting" xml:space="preserve">
     <value>Formatting</value>
   </data>
-  <data name="FormatSelection" xml:space="preserve">
+  <data name="Format_Selection" xml:space="preserve">
     <value>Format Selection</value>
   </data>
-  <data name="FormattingCurrentlySelected" xml:space="preserve">
+  <data name="Formatting_currently_selected_text" xml:space="preserve">
     <value>Formatting currently selected text...</value>
   </data>
-  <data name="CannotNavigateToTheSymbol" xml:space="preserve">
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
     <value>Cannot navigate to the symbol under the caret.</value>
   </data>
-  <data name="GoToDefinition" xml:space="preserve">
+  <data name="Go_to_Definition" xml:space="preserve">
     <value>Go to Definition</value>
   </data>
-  <data name="NavigatingToDefinition" xml:space="preserve">
+  <data name="Navigating_to_definition" xml:space="preserve">
     <value>Navigating to definition...</value>
   </data>
-  <data name="Project" xml:space="preserve">
-    <value>project </value>
-  </data>
-  <data name="Type" xml:space="preserve">
-    <value>type </value>
-  </data>
-  <data name="OrganizeDocument" xml:space="preserve">
+  <data name="Organize_Document" xml:space="preserve">
     <value>Organize Document</value>
   </data>
-  <data name="OrganizingDocument" xml:space="preserve">
+  <data name="Organizing_document" xml:space="preserve">
     <value>Organizing document...</value>
   </data>
-  <data name="HighlightedDefinition" xml:space="preserve">
+  <data name="Highlighted_Definition" xml:space="preserve">
     <value>Highlighted Definition</value>
   </data>
-  <data name="TheNewNameIsNotAValidIdentifier" xml:space="preserve">
+  <data name="The_new_name_is_not_a_valid_identifier" xml:space="preserve">
     <value>The new name is not a valid identifier.</value>
   </data>
-  <data name="InlineRenameFixup" xml:space="preserve">
+  <data name="Inline_Rename_Fixup" xml:space="preserve">
     <value>Inline Rename Fixup</value>
   </data>
-  <data name="InlineRenameResolvedConflict" xml:space="preserve">
+  <data name="Inline_Rename_Resolved_Conflict" xml:space="preserve">
     <value>Inline Rename Resolved Conflict</value>
   </data>
-  <data name="FontAndColors_InlineRename" xml:space="preserve">
+  <data name="Inline_Rename" xml:space="preserve">
     <value>Inline Rename</value>
   </data>
   <data name="Rename" xml:space="preserve">
     <value>Rename</value>
   </data>
-  <data name="StartRename" xml:space="preserve">
+  <data name="Start_Rename" xml:space="preserve">
     <value>Start Rename</value>
   </data>
-  <data name="ApplyConflictResolutionEdits" xml:space="preserve">
+  <data name="Display_conflict_resolutions" xml:space="preserve">
     <value>Display conflict resolutions</value>
   </data>
-  <data name="FindingTokenToRename" xml:space="preserve">
+  <data name="Finding_token_to_rename" xml:space="preserve">
     <value>Finding token to rename...</value>
   </data>
   <data name="Conflict" xml:space="preserve">
     <value>Conflict</value>
   </data>
-  <data name="TextNavigation" xml:space="preserve">
+  <data name="Text_Navigation" xml:space="preserve">
     <value>Text Navigation</value>
   </data>
-  <data name="FindingWordExtent" xml:space="preserve">
+  <data name="Finding_word_extent" xml:space="preserve">
     <value>Finding word extent...</value>
   </data>
-  <data name="FindingEnclosingSpan" xml:space="preserve">
+  <data name="Finding_enclosing_span" xml:space="preserve">
     <value>Finding enclosing span...</value>
   </data>
-  <data name="FindingSpanOfNextSibling" xml:space="preserve">
+  <data name="Finding_span_of_next_sibling" xml:space="preserve">
     <value>Finding span of next sibling...</value>
   </data>
-  <data name="FindingSpanOfPreviousSibling" xml:space="preserve">
+  <data name="Finding_span_of_previous_sibling" xml:space="preserve">
     <value>Finding span of previous sibling...</value>
   </data>
-  <data name="Rename1" xml:space="preserve">
+  <data name="Rename_colon_0" xml:space="preserve">
     <value>Rename: {0}</value>
   </data>
-  <data name="LightBulbSessionIsAlreadyDismissed" xml:space="preserve">
+  <data name="Light_bulb_session_is_already_dismissed" xml:space="preserve">
     <value>Light bulb session is already dismissed.</value>
   </data>
-  <data name="AutomaticPairCompletionEndPointMarkerColor" xml:space="preserve">
+  <data name="Automatic_Pair_Completion_End_Point_Marker_Color" xml:space="preserve">
     <value>Automatic Pair Completion End Point Marker Color</value>
   </data>
-  <data name="RenamingAnonymousTypeMemberNotSupported" xml:space="preserve">
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
     <value>Renaming anonymous type members is not yet supported.</value>
   </data>
-  <data name="EngineMustBeAttachedToAnInteractiveWindow" xml:space="preserve">
+  <data name="Engine_must_be_attached_to_an_Interactive_Window" xml:space="preserve">
     <value>Engine must be attached to an Interactive Window.</value>
   </data>
-  <data name="ChangesTheCurrentPromptSettings" xml:space="preserve">
+  <data name="Changes_the_current_prompt_settings" xml:space="preserve">
     <value>Changes the current prompt settings.</value>
   </data>
-  <data name="UnexpectedText" xml:space="preserve">
+  <data name="Unexpected_text_colon_0" xml:space="preserve">
     <value>Unexpected text: '{0}'</value>
   </data>
-  <data name="TheTriggerspanIsNotIncludedInWorkspace" xml:space="preserve">
+  <data name="The_triggerSpan_is_not_included_in_the_given_workspace" xml:space="preserve">
     <value>The triggerSpan is not included in the given workspace.</value>
   </data>
-  <data name="ThisSessionHasAlreadyBeenDismissed" xml:space="preserve">
+  <data name="This_session_has_already_been_dismissed" xml:space="preserve">
     <value>This session has already been dismissed.</value>
   </data>
-  <data name="TheTransactionIsAlreadyComplete" xml:space="preserve">
+  <data name="The_transaction_is_already_complete" xml:space="preserve">
     <value>The transaction is already complete.</value>
   </data>
-  <data name="NotASourceError" xml:space="preserve">
+  <data name="Not_a_source_error_line_column_unavailable" xml:space="preserve">
     <value>Not a source error, line/column unavailable</value>
   </data>
-  <data name="CantComparePositionsFromDiffSnapshots" xml:space="preserve">
+  <data name="Can_t_compare_positions_from_different_text_snapshots" xml:space="preserve">
     <value>Can't compare positions from different text snapshots</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_EntityReference" xml:space="preserve">
+  <data name="XML_Doc_Comments_Entity_Reference" xml:space="preserve">
     <value>XML Doc Comments - Entity Reference</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_Name" xml:space="preserve">
+  <data name="XML_Doc_Comments_Name" xml:space="preserve">
     <value>XML Doc Comments - Name</value>
   </data>
-  <data name="FontAndColors_XmlDocComments_ProcessingInstruction" xml:space="preserve">
+  <data name="XML_Doc_Comments_Processing_Instruction" xml:space="preserve">
     <value>XML Doc Comments - Processing Instruction</value>
   </data>
-  <data name="ActiveStatement" xml:space="preserve">
+  <data name="Active_Statement" xml:space="preserve">
     <value>Active Statement</value>
   </data>
-  <data name="LoadingPeekInformation" xml:space="preserve">
+  <data name="Loading_Peek_information" xml:space="preserve">
     <value>Loading Peek information...</value>
   </data>
   <data name="Peek" xml:space="preserve">
     <value>Peek</value>
   </data>
-  <data name="SymbolCannotBeNamespace" xml:space="preserve">
+  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
     <value>'symbol' cannot be a namespace.</value>
   </data>
-  <data name="ApplyRename" xml:space="preserve">
+  <data name="Apply1" xml:space="preserve">
     <value>_Apply</value>
   </data>
-  <data name="RenameOverloads" xml:space="preserve">
+  <data name="Include_overload_s" xml:space="preserve">
     <value>Include _overload(s)</value>
   </data>
-  <data name="SearchInComments" xml:space="preserve">
+  <data name="Include_comments" xml:space="preserve">
     <value>Include _comments</value>
   </data>
-  <data name="SearchInStrings" xml:space="preserve">
+  <data name="Include_strings" xml:space="preserve">
     <value>Include _strings</value>
   </data>
-  <data name="Apply" xml:space="preserve">
+  <data name="Apply2" xml:space="preserve">
     <value>Apply</value>
   </data>
-  <data name="ChangeSignature" xml:space="preserve">
+  <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
   </data>
-  <data name="PreviewChangesOf" xml:space="preserve">
+  <data name="Preview_Changes_0" xml:space="preserve">
     <value>Preview Changes - {0}</value>
   </data>
-  <data name="PreviewCodeChanges" xml:space="preserve">
+  <data name="Preview_Code_Changes_colon" xml:space="preserve">
     <value>Preview Code Changes:</value>
   </data>
-  <data name="PreviewChanges" xml:space="preserve">
+  <data name="Preview_Changes" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
-  <data name="FormatPaste" xml:space="preserve">
+  <data name="Format_Paste" xml:space="preserve">
     <value>Format Paste</value>
   </data>
-  <data name="FormattingPastedText" xml:space="preserve">
+  <data name="Formatting_pasted_text" xml:space="preserve">
     <value>Formatting pasted text...</value>
   </data>
-  <data name="TheDefinitionOfTheObjectIsHidden" xml:space="preserve">
+  <data name="The_definition_of_the_object_is_hidden" xml:space="preserve">
     <value>The definition of the object is hidden.</value>
   </data>
-  <data name="AutomaticFormatting" xml:space="preserve">
+  <data name="Automatic_Formatting" xml:space="preserve">
     <value>Automatic Formatting</value>
   </data>
-  <data name="ExtractMethodFailedReasons" xml:space="preserve">
+  <data name="Extract_method_failed_with_following_reasons_colon" xml:space="preserve">
     <value>Extract method failed with following reasons :</value>
   </data>
-  <data name="ExtractMethodStillGenerateCode" xml:space="preserve">
+  <data name="Do_you_still_want_to_proceed_it_will_generate_broken_code" xml:space="preserve">
     <value>Do you still want to proceed? it will generate broken code.</value>
   </data>
-  <data name="ExtractMethodAsyncErrorFix" xml:space="preserve">
+  <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
     <value>We can fix the error by not making struct "out/ref" parameter(s). 
 Do you want to proceed?</value>
   </data>
-  <data name="ChangeSignatureTitle" xml:space="preserve">
+  <data name="Change_Signature_colon" xml:space="preserve">
     <value>Change Signature:</value>
   </data>
-  <data name="RenameToTitle" xml:space="preserve">
+  <data name="Rename_0_to_1_colon" xml:space="preserve">
     <value>Rename '{0}' to '{1}':</value>
   </data>
-  <data name="EncapsulateFieldTitle" xml:space="preserve">
+  <data name="Encapsulate_Field_colon" xml:space="preserve">
     <value>Encapsulate Field:</value>
   </data>
-  <data name="CallHierarchy" xml:space="preserve">
+  <data name="Call_Hierarchy" xml:space="preserve">
     <value>Call Hierarchy</value>
   </data>
-  <data name="CallsTo" xml:space="preserve">
+  <data name="Calls_To_0" xml:space="preserve">
     <value>Calls To '{0}'</value>
   </data>
-  <data name="CallsToBaseMember" xml:space="preserve">
+  <data name="Calls_To_Base_Member_0" xml:space="preserve">
     <value>Calls To Base Member '{0}'</value>
   </data>
-  <data name="CallsToInterfaceImplementation" xml:space="preserve">
+  <data name="Calls_To_Interface_Implementation_0" xml:space="preserve">
     <value>Calls To Interface Implementation '{0}'</value>
   </data>
-  <data name="ComputingCallHierarchyInformation" xml:space="preserve">
+  <data name="Computing_Call_Hierarchy_Information" xml:space="preserve">
     <value>Computing Call Hierarchy Information</value>
   </data>
-  <data name="ImplementsArg" xml:space="preserve">
+  <data name="Implements_0" xml:space="preserve">
     <value>Implements '{0}'</value>
   </data>
   <data name="Initializers" xml:space="preserve">
     <value>Initializers</value>
   </data>
-  <data name="ReferencesToField" xml:space="preserve">
+  <data name="References_To_Field_0" xml:space="preserve">
     <value>References To Field '{0}'</value>
   </data>
-  <data name="CallsToOverrides" xml:space="preserve">
+  <data name="Calls_To_Overrides" xml:space="preserve">
     <value>Calls To Overrides</value>
   </data>
-  <data name="RenamePreviewChanges" xml:space="preserve">
+  <data name="Preview_changes1" xml:space="preserve">
     <value>_Preview changes</value>
   </data>
-  <data name="RenameApplyToolTip" xml:space="preserve">
+  <data name="Apply3" xml:space="preserve">
     <value>Apply</value>
   </data>
-  <data name="RenameCancelToolTip" xml:space="preserve">
+  <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="PreviewChangesRootNodeText" xml:space="preserve">
+  <data name="Changes" xml:space="preserve">
     <value>Changes</value>
   </data>
-  <data name="PreviewChangesSummaryText" xml:space="preserve">
+  <data name="Preview_changes2" xml:space="preserve">
     <value>Preview changes</value>
   </data>
   <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="IntelliSenseCommitFormatting" xml:space="preserve">
+  <data name="IntelliSense_Commit_Formatting" xml:space="preserve">
     <value>IntelliSense Commit Formatting</value>
   </data>
-  <data name="FontAndColors_RenameTracking" xml:space="preserve">
+  <data name="Rename_Tracking" xml:space="preserve">
     <value>Rename Tracking</value>
   </data>
-  <data name="RemovingFromWithContent" xml:space="preserve">
+  <data name="Removing_0_from_1_with_content_colon" xml:space="preserve">
     <value>Removing '{0}' from '{1}' with content:</value>
   </data>
-  <data name="OperationNotSupported" xml:space="preserve">
+  <data name="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation" xml:space="preserve">
     <value>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</value>
   </data>
-  <data name="BraceCompletion" xml:space="preserve">
+  <data name="Brace_Completion" xml:space="preserve">
     <value>Brace Completion</value>
   </data>
-  <data name="FixAllOccurrencesIn" xml:space="preserve">
+  <data name="Fix_all_occurrences_in" xml:space="preserve">
     <value>Fix all occurrences in</value>
   </data>
-  <data name="CannotApplyOperationWhileRenameSessionIsActive" xml:space="preserve">
+  <data name="Cannot_apply_operation_while_a_rename_session_is_active" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>
   </data>
-  <data name="TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable" xml:space="preserve">
+  <data name="The_rename_tracking_session_was_cancelled_and_is_no_longer_available" xml:space="preserve">
     <value>The rename tracking session was cancelled and is no longer available.</value>
   </data>
-  <data name="HighlightedWrittenReference" xml:space="preserve">
+  <data name="Highlighted_Written_Reference" xml:space="preserve">
     <value>Highlighted Written Reference</value>
   </data>
-  <data name="CursorMustBeOnAMemberName" xml:space="preserve">
+  <data name="Cursor_must_be_on_a_member_name" xml:space="preserve">
     <value>Cursor must be on a member name.</value>
   </data>
-  <data name="FontAndColors_BraceMatching" xml:space="preserve">
+  <data name="Brace_Matching" xml:space="preserve">
     <value>Brace Matching</value>
   </data>
-  <data name="GoToImplementationMessage" xml:space="preserve">
+  <data name="Locating_implementations" xml:space="preserve">
     <value>Locating implementations...</value>
   </data>
-  <data name="GoToImplementationTitle" xml:space="preserve">
+  <data name="Go_To_Implementation" xml:space="preserve">
     <value>Go To Implementation</value>
   </data>
-  <data name="SymbolHasNoImplementations" xml:space="preserve">
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>
   </data>
-  <data name="NewName1" xml:space="preserve">
+  <data name="New_name_colon_0" xml:space="preserve">
     <value>New name: {0}</value>
   </data>
-  <data name="InlineRenameInstructions" xml:space="preserve">
+  <data name="Modify_any_highlighted_location_to_begin_renaming" xml:space="preserve">
     <value>Modify any highlighted location to begin renaming.</value>
   </data>
   <data name="Paste" xml:space="preserve">
@@ -747,5 +741,8 @@ Do you want to proceed?</value>
   </data>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating...</value>
+  </data>
+  <data name="Suggestion_ellipses" xml:space="preserve">
+    <value>Suggestion ellipses (…)</value>
   </data>
 </root>

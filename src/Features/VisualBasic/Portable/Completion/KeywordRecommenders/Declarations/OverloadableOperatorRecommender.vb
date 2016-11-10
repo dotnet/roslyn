@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             ' If we have a Widening or Narrowing declaration, then we must be a CType operator
             If modifierFacts.NarrowingOrWideningKeyword.Kind <> SyntaxKind.None Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("CType", VBFeaturesResources.OperatorCTypeKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
             Else
                 ' We could just be a normal name, so we list all possible options here. Dev10 allows you to type
                 ' "Operator Narrowing", so we also list the Narrowing/Widening options as well.
@@ -41,55 +41,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Private Function GetToolTipForKeyword([operator] As String) As String
             Select Case [operator]
                 Case "+"
-                    Return VBFeaturesResources.PlusKeywordToolTip
+                    Return VBFeaturesResources.Returns_the_sum_of_two_numbers_or_the_positive_value_of_a_numeric_expression
                 Case "-"
-                    Return VBFeaturesResources.MinusKeywordToolTip
+                    Return VBFeaturesResources.Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression
                 Case "IsFalse"
-                    Return VBFeaturesResources.IsFalseKeywordToolTip
+                    Return VBFeaturesResources.Determines_whether_an_expression_is_false_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsFalse_on_that_class_or_structure
                 Case "IsTrue"
-                    Return VBFeaturesResources.IsTrueKeywordToolTip
+                    Return VBFeaturesResources.Determines_whether_an_expression_is_true_If_instances_of_any_class_or_structure_will_be_used_in_an_OrElse_clause_you_must_define_IsTrue_on_that_class_or_structure
                 Case "Not"
-                    Return VBFeaturesResources.NotKeywordToolTip
+                    Return VBFeaturesResources.Performs_logical_negation_on_a_Boolean_expression_or_bitwise_negation_on_a_numeric_expression_result_Not_expression
                 Case "*"
-                    Return VBFeaturesResources.MultiplicationKeywordToolTip
+                    Return VBFeaturesResources.Multiplies_two_numbers_and_returns_the_product
                 Case "/"
-                    Return VBFeaturesResources.DivisionKeywordToolTip
+                    Return VBFeaturesResources.Divides_two_numbers_and_returns_a_floating_point_result
                 Case "\"
-                    Return VBFeaturesResources.IntegerDivisionKeywordToolTip
+                    Return VBFeaturesResources.Divides_two_numbers_and_returns_an_integer_result
                 Case "&"
-                    Return VBFeaturesResources.ConcatKeywordToolTip
+                    Return VBFeaturesResources.Generates_a_string_concatenation_of_two_expressions
                 Case "^"
-                    Return VBFeaturesResources.ExponentiationKeywordToolTip
+                    Return VBFeaturesResources.Raises_a_number_to_the_power_of_another_number
                 Case ">>"
-                    Return VBFeaturesResources.RightShiftKeywordToolTip
+                    Return VBFeaturesResources.Performs_an_arithmetic_right_shift_on_a_bit_pattern
                 Case "<<"
-                    Return VBFeaturesResources.LeftShiftKeywordToolTip
+                    Return VBFeaturesResources.Performs_an_arithmetic_left_shift_on_a_bit_pattern
                 Case "="
-                    Return VBFeaturesResources.EqualsKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_they_are_equal_Otherwise_returns_False
                 Case "<>"
-                    Return VBFeaturesResources.NotEqualsKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_they_are_not_equal_Otherwise_returns_False
                 Case ">"
-                    Return VBFeaturesResources.GreaterThanKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_the_second_Otherwise_returns_False
                 Case ">="
-                    Return VBFeaturesResources.GreaterThanOrEqualsKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_the_first_is_greater_than_or_equal_to_the_second_Otherwise_returns_False
                 Case "<"
-                    Return VBFeaturesResources.LessThanKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_the_first_is_less_than_the_second_Otherwise_returns_False
                 Case "<="
-                    Return VBFeaturesResources.LessThanOrEqualsKeywordToolTip
+                    Return VBFeaturesResources.Compares_two_expressions_and_returns_True_if_the_first_is_less_than_or_equal_to_the_second_Otherwise_returns_False
                 Case "And"
-                    Return VBFeaturesResources.AndKeywordToolTip
+                    Return VBFeaturesResources.Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operands_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And_expression2
                 Case "Like"
-                    Return VBFeaturesResources.LikeKeywordToolTip
+                    Return VBFeaturesResources.Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_character_and_to_match_0_or_more_characters_result_string_Like_pattern
                 Case "Mod"
-                    Return VBFeaturesResources.ModKeywordToolTip
+                    Return VBFeaturesResources.Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2
                 Case "Or"
-                    Return VBFeaturesResources.OrKeywordToolTip
+                    Return VBFeaturesResources.Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Or_expression2
                 Case "Xor"
-                    Return VBFeaturesResources.XorKeywordToolTip
+                    Return VBFeaturesResources.Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2
                 Case "Narrowing"
-                    Return VBFeaturesResources.NarrowingKeywordToolTip
+                    Return VBFeaturesResources.Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_might_not_be_able_to_hold_some_of_the_possible_values_of_the_original_class_or_structure
                 Case "Widening"
-                    Return VBFeaturesResources.WideningKeywordToolTip
+                    Return VBFeaturesResources.Indicates_that_a_conversion_operator_CType_converts_a_class_or_structure_to_a_type_that_can_hold_all_possible_values_of_the_original_class_or_structure
                 Case Else
                     Return String.Empty
             End Select

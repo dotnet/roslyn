@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Arra
             Dim targetToken = context.TargetToken
             If targetToken.Kind = SyntaxKind.ReDimKeyword AndAlso targetToken.IsChildToken(Of ReDimStatementSyntax)(Function(statement) statement.ReDimKeyword) Then
                 Return SpecializedCollections.SingletonEnumerable(
-                    New RecommendedKeyword("Preserve", VBFeaturesResources.PreserveKeywordToolTip))
+                    New RecommendedKeyword("Preserve", VBFeaturesResources.Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

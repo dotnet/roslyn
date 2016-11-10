@@ -2235,6 +2235,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine,
 
+                // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder,                                 // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
+
                 // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetException
                 (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder,                                 // DeclaringTypeId
@@ -2283,6 +2290,13 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine,
+
+                // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder,                                 // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
 
                 // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException
                 (byte)MemberFlags.Method,                                                                                   // Flags
@@ -2339,6 +2353,13 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task,
+
+                // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,                               // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
 
                 // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException
                 (byte)MemberFlags.Method,                                                                                   // Flags
@@ -2827,6 +2848,15 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.GenericTypeParameter, 6,
                     (byte)SignatureTypeCode.GenericTypeParameter, 7,
 
+                // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
+                (byte)MemberFlags.Constructor,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_TupleElementNamesAttribute // DeclaringTypeId
+                                                        - WellKnownType.ExtSentinel),
+                0,                                                                                                               // Arity
+                    1,                                                                                                           // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                 // System_String__Format_IFormatProvider
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -2836,6 +2866,18 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
+                // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    5,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3098,12 +3140,14 @@ namespace Microsoft.CodeAnalysis
                 "CallByName",                               // Microsoft_VisualBasic_Interaction__CallByName
                 "MoveNext",                                 // System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext
                 "SetStateMachine",                          // System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine
+                "Create",                                   // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create
                 "SetException",                             // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetException
                 "SetResult",                                // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetResult
                 "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__AwaitOnCompleted
                 "AwaitUnsafeOnCompleted",                   // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__AwaitUnsafeOnCompleted
                 "Start",                                    // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Start_T
                 "SetStateMachine",                          // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetStateMachine
+                "Create",                                   // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create
                 "SetException",                             // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException
                 "SetResult",                                // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult
                 "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted
@@ -3111,6 +3155,7 @@ namespace Microsoft.CodeAnalysis
                 "Start",                                    // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T
                 "SetStateMachine",                          // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine
                 "Task",                                     // System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task
+                "Create",                                   // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create
                 "SetException",                             // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException
                 "SetResult",                                // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult
                 "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted
@@ -3187,7 +3232,10 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ValueTuple_T7__ctor
                 ".ctor",                                    // System_ValueTuple_TRest__ctor
 
+                ".ctor",                                    // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
+
                 "Format",                                   // System_String__Format_IFormatProvider
+                "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

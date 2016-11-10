@@ -1,21 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     Public Class SmartIndentProviderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent1()
             Dim provider = New SmartIndentProvider()

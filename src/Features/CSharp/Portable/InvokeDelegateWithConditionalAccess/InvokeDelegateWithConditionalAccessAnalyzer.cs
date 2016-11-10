@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -17,28 +18,41 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
-            IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-            CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
-
-        public override void Initialize(AnalysisContext context)
+        public InvokeDelegateWithConditionalAccessAnalyzer()
+            : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId, 
+                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Delegate_invocation_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
         {
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
         }
+
+        public bool OpenFileOnly(Workspace workspace) => false;
+
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
+            var options = syntaxContext.Options.GetOptionSet();
+            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall);
+            if (!styleOption.Value)
+            {
+                // Bail immediately if the user has disabled this feature.
+                return;
+            }
+
+            var severity = styleOption.Notification.Value;
+
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
+
+            // ?. is only available in C# 6.0 and above.  Don't offer this refactoring
+            // in projects targetting a lesser version.
+            if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
+            {
+                return;
+            }
+
             if (!ifStatement.Condition.IsKind(SyntaxKind.NotEqualsExpression))
             {
                 return;
@@ -77,12 +91,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var condition = (BinaryExpressionSyntax)ifStatement.Condition;
-            if (TryCheckVariableAndIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression))
+            if (TryCheckVariableAndIfStatementForm(
+                    syntaxContext, ifStatement, condition, 
+                    expressionStatement, invocationExpression,
+                    severity))
             {
                 return;
             }
 
-            TryCheckSingleIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression);
+            TryCheckSingleIfStatementForm(
+                syntaxContext, ifStatement, condition, 
+                expressionStatement, invocationExpression,
+                severity);
         }
 
         private bool TryCheckSingleIfStatementForm(
@@ -90,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             IfStatementSyntax ifStatement,
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
-            InvocationExpressionSyntax invocationExpression)
+            InvocationExpressionSyntax invocationExpression,
+            DiagnosticSeverity severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
 
@@ -115,18 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                         Location.Create(tree, expressionStatement.Span)
                     };
 
-                    var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
-
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, expressionStatement.SpanStart)),
-                        additionalLocations, properties));
-
-                    if (expressionStatement.Span.End != ifStatement.Span.End)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                            Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
-                            additionalLocations, properties));
-                    }
+                    ReportDiagnostics(
+                        syntaxContext, ifStatement, ifStatement, 
+                        expressionStatement, severity, additionalLocations,
+                        Constants.SingleIfStatementForm);
 
                     return true;
                 }
@@ -135,12 +148,50 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return false;
         }
 
+        private void ReportDiagnostics(
+            SyntaxNodeAnalysisContext syntaxContext,
+            StatementSyntax firstStatement,
+            IfStatementSyntax ifStatement,
+            ExpressionStatementSyntax expressionStatement, 
+            DiagnosticSeverity severity, 
+            List<Location> additionalLocations, 
+            string kind)
+        {
+            var tree = syntaxContext.Node.SyntaxTree;
+
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                Constants.Kind, kind);
+
+            var previousToken = expressionStatement.GetFirstToken().GetPreviousToken();
+            var nextToken = expressionStatement.GetLastToken().GetNextToken();
+
+            // Fade out the code up to the expression statement.
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
+                Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)),
+                additionalLocations, properties));
+
+            // Put a diagnostic with the appropriate severity on the expression-statement itself.
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(severity),
+                expressionStatement.GetLocation(),
+                additionalLocations, properties));
+
+            // If the if-statement extends past the expression statement, then fade out the rest.
+            if (nextToken.Span.Start < ifStatement.Span.End)
+            {
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(this.UnnecessaryWithSuggestionDescriptor,
+                    Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
+                    additionalLocations, properties));
+            }
+        }
+
         private bool TryCheckVariableAndIfStatementForm(
             SyntaxNodeAnalysisContext syntaxContext,
             IfStatementSyntax ifStatement,
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
-            InvocationExpressionSyntax invocationExpression)
+            InvocationExpressionSyntax invocationExpression,
+            DiagnosticSeverity severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
@@ -229,18 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Location.Create(tree, expressionStatement.Span)
             };
 
-            var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
-
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, expressionStatement.SpanStart)),
-                additionalLocations, properties));
-
-            if (expressionStatement.Span.End != ifStatement.Span.End)
-            {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                    Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
-                    additionalLocations, properties));
-            }
+            ReportDiagnostics(syntaxContext,
+                localDeclarationStatement, ifStatement, expressionStatement,
+                severity, additionalLocations, Constants.VariableAndIfStatementForm);
 
             return true;
         }

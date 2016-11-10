@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -13,14 +12,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     Friend Class MockCompletionProvider
         Inherits CommonCompletionProvider
 
-        Private ReadOnly _span As TextSpan
-
-        Public Sub New(span As TextSpan)
-            Me._span = span
-        End Sub
-
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim item = CommonCompletionItem.Create("DisplayText", _span, rules:=CompletionItemRules.Default)
+            Dim item = CommonCompletionItem.Create("DisplayText", rules:=CompletionItemRules.Default)
             context.AddItem(item)
 
             Return SpecializedTasks.EmptyTask

@@ -137,16 +137,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             bool hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
 
             return SyntaxFactory.MethodDeclaration(
-                default(SyntaxList<AttributeListSyntax>),
-                AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
-                returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                default(ExplicitInterfaceSpecifierSyntax),
-                name.ToIdentifierToken(),
-                AsTypeParameterList(typeParameters),
-                AsParameterList(parameters),
-                default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                hasBody ? CreateBlock(statements) : null,
-                !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
+                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                modifiers: AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+                returnType: returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
+                explicitInterfaceSpecifier: default(ExplicitInterfaceSpecifierSyntax),
+                identifier: name.ToIdentifierToken(),
+                typeParameterList: AsTypeParameterList(typeParameters),
+                parameterList: AsParameterList(parameters),
+                constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                body: hasBody ? CreateBlock(statements) : null,
+                expressionBody: null,
+                semicolonToken: !hasBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
         }
 
         public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode> parameters = null, SyntaxNode returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default(DeclarationModifiers), IEnumerable<SyntaxNode> statements = null)
@@ -853,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var arg = node as ArgumentSyntax;
-            if (arg != null)
+            if (arg != null && arg.Expression != null)
             {
                 return SyntaxFactory.AttributeArgument(default(NameEqualsSyntax), arg.NameColon, arg.Expression);
             }
@@ -3451,6 +3452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return root;
         }
+
+        internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
+            => trivia.IsRegularOrDocComment();
+
         #endregion
 
         #region Statements and Expressions
@@ -3475,6 +3480,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
+        }
+
+        public override SyntaxNode ThrowExpression(SyntaxNode expression)
+        {
+            return SyntaxFactory.ThrowExpression((ExpressionSyntax)expression);
         }
 
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
@@ -3538,6 +3548,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParenthesizeLeft((ExpressionSyntax)expression),
                 (SimpleNameSyntax)simpleName);
         }
+
+        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+            => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+
+        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+            => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
+
+        internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
+            => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
 
         // parenthesize the left hand size of a member access, invocation or element access expression
         private ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
@@ -3613,6 +3632,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.ElementAccessExpression(ParenthesizeLeft((ExpressionSyntax)expression), SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
         }
+
+        internal override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
+
+        internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxFactory.InterpolatedStringText(textToken);
+
+        internal override SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxFactory.Token(
+                SyntaxFactory.TriviaList(),
+                SyntaxKind.InterpolatedStringTextToken,
+                content, "",
+                SyntaxFactory.TriviaList());
+
+        internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
         {

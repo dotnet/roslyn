@@ -8,6 +8,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IBuiltInAnalyzer
     {
+        /// <summary>
+        /// This category will be used to run analyzer more efficiently by restricting scope of analysis
+        /// </summary>
         DiagnosticAnalyzerCategory GetAnalyzerCategory();
+
+        /// <summary>
+        /// This indicates whether this builtin analyzer will only run on opened files.
+        /// 
+        /// all analyzers that want to run on closed files must be able to run in remote host.
+        /// </summary>
+        bool OpenFileOnly(Workspace workspace);
     }
 }

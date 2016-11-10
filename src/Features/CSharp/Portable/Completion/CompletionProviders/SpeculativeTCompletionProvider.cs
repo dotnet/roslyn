@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 const string T = nameof(T);
-                context.AddItem(CommonCompletionItem.Create(T, context.DefaultItemSpan, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(T, glyph: Glyph.TypeParameter));
             }
         }
 
@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if ((!leftToken.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
                 syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
                 syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))

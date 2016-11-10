@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
-            private readonly bool _isGenerated;
 
             /// <summary>
             /// The text buffer that is open in the editor. When the file is closed, this is null.
@@ -46,36 +45,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
 
+            /// <summary>
+            /// Creates a <see cref="StandardTextDocument"/>.
+            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
+            /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
                 IVisualStudioHostProject project,
                 DocumentKey documentKey,
-                uint itemId,
+                Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
                 DocumentId id,
-                bool isGenerated)
+                EventHandler updatedOnDiskHandler,
+                EventHandler<bool> openedHandler,
+                EventHandler<bool> closingHandler)
             {
                 Contract.ThrowIfNull(documentProvider);
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
-                this.Folders = project.GetFolderNames(itemId);
+                _itemMoniker = documentKey.Moniker;
+
+                var itemid = this.GetItemId();
+                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
+                    ? SpecializedCollections.EmptyReadOnlyList<string>()
+                    : getFolderNames(itemid);
 
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _itemMoniker = documentKey.Moniker;
                 _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
 
                 _openTextBuffer = openTextBuffer;
                 _snapshotTracker = new ReiteratedVersionSnapshotTracker(openTextBuffer);
-                _isGenerated = isGenerated;
 
                 // The project system does not tell us the CodePage specified in the proj file, so
                 // we use null to auto-detect.
@@ -85,6 +93,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (openTextBuffer == null)
                 {
                     _fileChangeTracker.StartFileChangeListeningAsync();
+                }
+
+                if (updatedOnDiskHandler != null)
+                {
+                    UpdatedOnDisk += updatedOnDiskHandler;
+                }
+
+                if (openedHandler != null)
+                {
+                    Opened += openedHandler;
+                }
+
+                if (closingHandler != null)
+                {
+                    Closing += closingHandler;
                 }
             }
 
@@ -130,8 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: this.Folders,
                     sourceCodeKind: this.SourceCodeKind,
                     loader: this.Loader,
-                    filePath: this.FilePath,
-                    isGenerated: _isGenerated);
+                    filePath: this.FilePath);
             }
 
             internal void ProcessOpen(ITextBuffer openedBuffer, bool isCurrentContext)
@@ -237,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssertIsForeground();
 
-                if (_itemMoniker == null)
+                if (_itemMoniker == null || Project.Hierarchy == null)
                 {
                     return (uint)VSConstants.VSITEMID.Nil;
                 }

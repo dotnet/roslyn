@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -186,6 +184,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     }
                 }
             }
+        }
+
+        internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
+        {
+            return _languageServicesMap.TryGetValue(languageName, out languageServices);
         }
     }
 }

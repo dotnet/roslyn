@@ -1,0 +1,1236 @@
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
+
+    Public Class CodeGenRefReturnTests
+        Inherits BasicTestBase
+
+        <Fact()>
+        Public Sub LocalType()
+            Dim comp1 = CreateCSharpCompilation(
+"public class A<T>
+{
+#pragma warning disable 0649
+    private static T _f;
+    public static ref T F()
+    {
+        return ref _f;
+    }
+}
+public class B
+{
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = A(Of B).F()
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            comp2.VerifyEmitDiagnostics()
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.VariableDeclaratorSyntax).Single().Names(0)
+            Dim symbol = DirectCast(model.GetDeclaredSymbol(syntax), LocalSymbol)
+            Assert.Equal("o As B", symbol.ToTestDisplayString())
+            Assert.False(symbol.IsByRef)
+        End Sub
+
+        <Fact()>
+        Public Sub ArrayAccess()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+    public static ref T F<T>(T[] t, int i)
+    {
+        return ref t[i];
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a = {1, 2, 3}
+        C.F(a, 2) *= 2
+        For Each o in a
+            System.Console.Write(""{0} "", o)
+        Next
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="1 2 6")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       80 (0x50)
+  .maxstack  3
+  .locals init (Integer() V_0, //a
+                Integer& V_1,
+                Integer() V_2,
+                Integer V_3,
+                Integer V_4, //o
+                Boolean V_5)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newarr     "Integer"
+  IL_0007:  dup
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.2
+  IL_0015:  call       "Function C.F(Of Integer)(Integer(), Integer) As Integer"
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldind.i4
+  IL_001e:  ldc.i4.2
+  IL_001f:  mul.ovf
+  IL_0020:  stind.i4
+  IL_0021:  ldloc.0
+  IL_0022:  stloc.2
+  IL_0023:  ldc.i4.0
+  IL_0024:  stloc.3
+  IL_0025:  br.s       IL_0043
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  ldelem.i4
+  IL_002a:  stloc.s    V_4
+  IL_002c:  ldstr      "{0} "
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  box        "Integer"
+  IL_0038:  call       "Sub System.Console.Write(String, Object)"
+  IL_003d:  nop
+  IL_003e:  nop
+  IL_003f:  ldloc.3
+  IL_0040:  ldc.i4.1
+  IL_0041:  add.ovf
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.2
+  IL_0045:  ldlen
+  IL_0046:  conv.i4
+  IL_0047:  clt
+  IL_0049:  stloc.s    V_5
+  IL_004b:  ldloc.s    V_5
+  IL_004d:  brtrue.s   IL_0027
+  IL_004f:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub [Delegate]()
+            Dim comp1 = CreateCSharpCompilation(
+"public delegate ref T D<T>();
+public class C<T>
+{
+    public T F;
+    public ref T G()
+    {
+        return ref F;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        Dim d As D(Of Integer) = AddressOf o.G
+        d() = 2
+        System.Console.Write(o.F)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="2")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (C(Of Integer) V_0, //o
+                D(Of Integer) V_1) //d
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldftn      "Function C(Of Integer).G() As Integer"
+  IL_000e:  newobj     "Sub D(Of Integer)..ctor(Object, System.IntPtr)"
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  callvirt   "Function D(Of Integer).Invoke() As Integer"
+  IL_001a:  ldc.i4.2
+  IL_001b:  stind.i4
+  IL_001c:  ldloc.0
+  IL_001d:  ldfld      "C(Of Integer).F As Integer"
+  IL_0022:  call       "Sub System.Console.Write(Integer)"
+  IL_0027:  nop
+  IL_0028:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        ''' <summary>
+        ''' Locals should be values not references.
+        ''' </summary>
+        <Fact()>
+        Public Sub Local()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+    public static ref T F<T>(ref T t)
+    {
+        return ref t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim x = 2
+        Dim y = C.F(x)
+        y = 3
+        System.Console.Write(""{0} {1}"", x, y)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="2 3")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (Integer V_0, //x
+                Integer V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       "Function C.F(Of Integer)(ByRef Integer) As Integer"
+  IL_000a:  ldind.i4
+  IL_000b:  stloc.1
+  IL_000c:  ldc.i4.3
+  IL_000d:  stloc.1
+  IL_000e:  ldstr      "{0} {1}"
+  IL_0013:  ldloc.0
+  IL_0014:  box        "Integer"
+  IL_0019:  ldloc.1
+  IL_001a:  box        "Integer"
+  IL_001f:  call       "Sub System.Console.Write(String, Object, Object)"
+  IL_0024:  nop
+  IL_0025:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub SharedPropertyAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private static T _p;
+    public static ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        C(Of Double).P = 1.5
+        C(Of Double).P += 2.0
+        System.Console.Write(C(Of Double).P)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="3.5")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       "Function C(Of Double).get_P() As Double"
+  IL_0006:  ldc.r8     1.5
+  IL_000f:  stind.r8
+  IL_0010:  call       "Function C(Of Double).get_P() As Double"
+  IL_0015:  call       "Function C(Of Double).get_P() As Double"
+  IL_001a:  ldind.r8
+  IL_001b:  ldc.r8     2
+  IL_0024:  add
+  IL_0025:  stind.r8
+  IL_0026:  call       "Function C(Of Double).get_P() As Double"
+  IL_002b:  ldind.r8
+  IL_002c:  call       "Sub System.Console.Write(Double)"
+  IL_0031:  nop
+  IL_0032:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub PropertyAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        o.P = 1
+        o.P += 2
+        System.Console.Write(o.P)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="3")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0, //o
+                C(Of Integer) V_1)
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   "Function C(Of Integer).get_P() As Integer"
+  IL_000d:  ldc.i4.1
+  IL_000e:  stind.i4
+  IL_000f:  ldloc.0
+  IL_0010:  dup
+  IL_0011:  stloc.1
+  IL_0012:  callvirt   "Function C(Of Integer).get_P() As Integer"
+  IL_0017:  ldloc.1
+  IL_0018:  callvirt   "Function C(Of Integer).get_P() As Integer"
+  IL_001d:  ldind.i4
+  IL_001e:  ldc.i4.2
+  IL_001f:  add.ovf
+  IL_0020:  stind.i4
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   "Function C(Of Integer).get_P() As Integer"
+  IL_0027:  ldind.i4
+  IL_0028:  call       "Sub System.Console.Write(Integer)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub DefaultPropertyAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    private T[] _p = new T[10];
+    public ref T this[int index]
+    {
+        get { return ref _p[index]; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C(Of Integer)()
+        o(2) = 1
+        o(2) += 2
+        System.Console.Write(o(2))
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="3")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0, //o
+                C(Of Integer) V_1)
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C(Of Integer)..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  callvirt   "Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_000e:  ldc.i4.1
+  IL_000f:  stind.i4
+  IL_0010:  ldloc.0
+  IL_0011:  dup
+  IL_0012:  stloc.1
+  IL_0013:  ldc.i4.2
+  IL_0014:  callvirt   "Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0019:  ldloc.1
+  IL_001a:  ldc.i4.2
+  IL_001b:  callvirt   "Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0020:  ldind.i4
+  IL_0021:  ldc.i4.2
+  IL_0022:  add.ovf
+  IL_0023:  stind.i4
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.2
+  IL_0026:  callvirt   "Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_002b:  ldind.i4
+  IL_002c:  call       "Sub System.Console.Write(Integer)"
+  IL_0031:  nop
+  IL_0032:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub PropertyArgument()
+            Dim comp1 = CreateCSharpCompilation(
+"public class A<T>
+{
+    public A(T p)
+    {
+        _p = p;
+    }
+#pragma warning disable 0649
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}
+public class B
+{
+    public static void F(ref int i)
+    {
+        i *= 2;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim x = New A(Of Integer)(1)
+        Dim y = New A(Of Byte)(2)
+        B.F(x.P) ' No conversion, passed by ref
+        B.F(y.P) ' Widening conversion, passed by value with copy-back
+        System.Console.Write(""{0} {1}"", x.P, y.P)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="2 4")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       90 (0x5a)
+  .maxstack  3
+  .locals init (A(Of Integer) V_0, //x
+                A(Of Byte) V_1, //y
+                A(Of Byte) V_2,
+                Integer V_3)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Sub A(Of Integer)..ctor(Integer)"
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  newobj     "Sub A(Of Byte)..ctor(Byte)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   "Function A(Of Integer).get_P() As Integer"
+  IL_0015:  call       "Sub B.F(ByRef Integer)"
+  IL_001a:  nop
+  IL_001b:  ldloc.1
+  IL_001c:  dup
+  IL_001d:  stloc.2
+  IL_001e:  callvirt   "Function A(Of Byte).get_P() As Byte"
+  IL_0023:  ldind.u1
+  IL_0024:  stloc.3
+  IL_0025:  ldloca.s   V_3
+  IL_0027:  call       "Sub B.F(ByRef Integer)"
+  IL_002c:  nop
+  IL_002d:  ldloc.2
+  IL_002e:  callvirt   "Function A(Of Byte).get_P() As Byte"
+  IL_0033:  ldloc.3
+  IL_0034:  conv.ovf.u1
+  IL_0035:  stind.i1
+  IL_0036:  ldstr      "{0} {1}"
+  IL_003b:  ldloc.0
+  IL_003c:  callvirt   "Function A(Of Integer).get_P() As Integer"
+  IL_0041:  ldind.i4
+  IL_0042:  box        "Integer"
+  IL_0047:  ldloc.1
+  IL_0048:  callvirt   "Function A(Of Byte).get_P() As Byte"
+  IL_004d:  ldind.u1
+  IL_004e:  box        "Byte"
+  IL_0053:  call       "Sub System.Console.Write(String, Object, Object)"
+  IL_0058:  nop
+  IL_0059:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        ''' <summary>
+        ''' Setter of read/write property should be ignored.
+        ''' </summary>
+        <Fact()>
+        Public Sub ReadWriteProperty()
+            Dim ilSource = <![CDATA[
+.class public C
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ret
+  }
+  .field private int32 _f
+  .method public instance int32& F()
+  {
+    ldarg.0
+    ldflda int32 C::_f
+    ret
+  }
+  .field private int32 _p
+  .method public instance int32& get_P()
+  {
+    ldarg.0
+    ldflda int32 C::_p
+    ret
+  }
+  .method public instance void set_P(int32& val)
+  {
+    ldnull
+    throw
+  }
+  .property instance int32& P()
+  {
+    .get instance int32& C::get_P()
+    .set instance void C::set_P(int32& val)
+  }
+}]]>.Value
+            Dim ref1 = CompileIL(ilSource)
+            Dim comp = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C()
+        o.F() = 1
+        o.P = o.F()
+        o.P += 2
+        System.Console.Write(""{0}, {1}"", o.F(), o.P)
+    End Sub
+End Module",
+                referencedAssemblies:={MscorlibRef, SystemRef, MsvbRef, ref1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="1, 3")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       83 (0x53)
+  .maxstack  3
+  .locals init (C V_0, //o
+                C V_1)
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   "Function C.F() As Integer"
+  IL_000d:  ldc.i4.1
+  IL_000e:  stind.i4
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   "Function C.get_P() As Integer"
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   "Function C.F() As Integer"
+  IL_001b:  ldind.i4
+  IL_001c:  stind.i4
+  IL_001d:  ldloc.0
+  IL_001e:  dup
+  IL_001f:  stloc.1
+  IL_0020:  callvirt   "Function C.get_P() As Integer"
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   "Function C.get_P() As Integer"
+  IL_002b:  ldind.i4
+  IL_002c:  ldc.i4.2
+  IL_002d:  add.ovf
+  IL_002e:  stind.i4
+  IL_002f:  ldstr      "{0}, {1}"
+  IL_0034:  ldloc.0
+  IL_0035:  callvirt   "Function C.F() As Integer"
+  IL_003a:  ldind.i4
+  IL_003b:  box        "Integer"
+  IL_0040:  ldloc.0
+  IL_0041:  callvirt   "Function C.get_P() As Integer"
+  IL_0046:  ldind.i4
+  IL_0047:  box        "Integer"
+  IL_004c:  call       "Sub System.Console.Write(String, Object, Object)"
+  IL_0051:  nop
+  IL_0052:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        ''' <summary>
+        ''' Setter of read/write property should be ignored,
+        ''' even if mismatched signature.
+        ''' </summary>
+        <Fact()>
+        Public Sub ReadWriteProperty_DifferentSignatures()
+            Dim ilSource = <![CDATA[
+.class public C
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor()
+  {
+    ret
+  }
+  .field private object _p
+  .method public instance object& get_P()
+  {
+    ldarg.0
+    ldflda object C::_p
+    ret
+  }
+  .method public instance void set_P(object v)
+  {
+    ldnull
+    throw
+  }
+  .property instance object& P()
+  {
+    .get instance object& C::get_P()
+    .set instance void C::set_P(object)
+  }
+  .field private object _q
+  .method public instance object& get_Q(object i)
+  {
+    ldarg.0
+    ldflda object C::_q
+    ret
+  }
+  .method public instance void set_Q(object i, object v)
+  {
+    ldnull
+    throw
+  }
+  .property instance object& Q(object)
+  {
+    .get instance object& C::get_Q(object)
+    .set instance void C::set_Q(object, object)
+  }
+}]]>.Value
+            Dim ref1 = CompileIL(ilSource)
+            Dim comp = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C()
+        o.P = 1
+        o.Q(1) = 2
+        System.Console.Write(""{0}, {1}"", o.P, o.Q(1))
+    End Sub
+End Module",
+                referencedAssemblies:={MscorlibRef, SystemRef, MsvbRef, ref1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="1, 2")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       81 (0x51)
+  .maxstack  4
+  .locals init (C V_0) //o
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   "Function C.get_P() As Object"
+  IL_000d:  ldc.i4.1
+  IL_000e:  box        "Integer"
+  IL_0013:  stind.ref
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  box        "Integer"
+  IL_001b:  callvirt   "Function C.get_Q(Object) As Object"
+  IL_0020:  ldc.i4.2
+  IL_0021:  box        "Integer"
+  IL_0026:  stind.ref
+  IL_0027:  ldstr      "{0}, {1}"
+  IL_002c:  ldloc.0
+  IL_002d:  callvirt   "Function C.get_P() As Object"
+  IL_0032:  ldind.ref
+  IL_0033:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  box        "Integer"
+  IL_003f:  callvirt   "Function C.get_Q(Object) As Object"
+  IL_0044:  ldind.ref
+  IL_0045:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_004a:  call       "Sub System.Console.Write(String, Object, Object)"
+  IL_004f:  nop
+  IL_0050:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+            Dim p = comp.GetMember(Of PropertySymbol)("C.P")
+            Assert.True(p.ReturnsByRef)
+            Assert.Equal("Property C.P As System.Object", p.ToTestDisplayString())
+            Dim q = comp.GetMember(Of PropertySymbol)("C.Q")
+            Assert.True(q.ReturnsByRef)
+            Assert.Equal("Property C.Q(i As System.Object) As System.Object", q.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub Implement()
+            Dim comp1 = CreateCSharpCompilation(
+"public interface I
+{
+    ref object F();
+    ref object P { get; }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Class C
+    Implements I
+    Public Function F() As Object Implements I.F
+        Return Nothing
+    End Function
+    Public ReadOnly Property P As Object Implements I.P
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class",
+                referencedCompilations:={comp1})
+            comp2.AssertTheseDiagnostics(
+<error><![CDATA[
+BC30149: Class 'C' must implement 'Function F() As Object' for interface 'I'.
+    Implements I
+               ~
+BC30149: Class 'C' must implement 'ReadOnly Property P As Object' for interface 'I'.
+    Implements I
+               ~
+BC30401: 'F' cannot implement 'F' because there is no matching function on interface 'I'.
+    Public Function F() As Object Implements I.F
+                                             ~~~
+BC30401: 'P' cannot implement 'P' because there is no matching property on interface 'I'.
+    Public ReadOnly Property P As Object Implements I.P
+                                                    ~~~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        Public Sub Override()
+            Dim comp1 = CreateCSharpCompilation(
+"public abstract class A
+{
+    public abstract ref object F();
+    public abstract ref object P { get; }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"MustInherit Class B
+    Inherits A
+    Public Overrides Function F() As Object
+        Return Nothing
+    End Function
+    Public Overrides ReadOnly Property P As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class",
+                referencedCompilations:={comp1})
+            comp2.AssertTheseDiagnostics(
+<error><![CDATA[
+BC30437: 'Public Overrides Function F() As Object' cannot override 'Public MustOverride Overloads Function F() As Object' because they differ by their return types.
+    Public Overrides Function F() As Object
+                              ~
+BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Public MustOverride Overloads ReadOnly Property P As Object' because they differ by their return types.
+    Public Overrides ReadOnly Property P As Object
+                                       ~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        Public Sub Override_Metadata()
+            Dim ilSource = <![CDATA[
+.class public abstract A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& A::get_P()
+  }
+}
+.class public abstract B1 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object F() { ldnull throw }
+  .method public virtual instance object get_P() { ldnull throw }
+  .property instance object P()
+  {
+    .get instance object B1::get_P()
+  }
+}
+.class public abstract B2 extends A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  .method public virtual instance object& F() { ldnull throw }
+  .method public virtual instance object& get_P() { ldnull throw }
+  .property instance object& P()
+  {
+    .get instance object& B2::get_P()
+  }
+}]]>.Value
+            Dim ref1 = CompileIL(ilSource)
+            Dim comp = CreateVisualBasicCompilation(
+                Nothing,
+                "",
+                referencedAssemblies:={MscorlibRef, SystemRef, MsvbRef, ref1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            Dim method = comp.GetMember(Of MethodSymbol)("B1.F")
+            Assert.Equal("Function B1.F() As System.Object", method.ToTestDisplayString())
+            Assert.Equal("Function A.F() As System.Object", method.OverriddenMethod.ToTestDisplayString())
+
+            Dim [property] = comp.GetMember(Of PropertySymbol)("B1.P")
+            Assert.Equal("ReadOnly Property B1.P As System.Object", [property].ToTestDisplayString())
+            Assert.Null([property].OverriddenProperty)
+
+            method = comp.GetMember(Of MethodSymbol)("B2.F")
+            Assert.Equal("Function B2.F() As System.Object", method.ToTestDisplayString())
+            Assert.Null(method.OverriddenMethod)
+
+            [property] = comp.GetMember(Of PropertySymbol)("B2.P")
+            Assert.Equal("ReadOnly Property B2.P As System.Object", [property].ToTestDisplayString())
+            Assert.Equal("ReadOnly Property A.P As System.Object", [property].OverriddenProperty.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub ExpressionLambdas()
+            Dim comp1 = CreateCSharpCompilation(
+"public class A<T>
+{
+#pragma warning disable 0649
+    private static T _f;
+    public static ref T F()
+    {
+        return ref _f;
+    }
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Imports System
+Imports System.Linq.Expressions
+Module M
+    Sub Main()
+        Dim e As Expression(Of Action) = Sub() M(A(Of Integer).F())
+        Dim f As Expression(Of Action) = Sub() M(New A(Of Integer)().P)
+    End Sub
+    Sub M(i As Integer)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            comp2.AssertTheseDiagnostics(
+<error><![CDATA[
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        Dim e As Expression(Of Action) = Sub() M(A(Of Integer).F())
+                                                 ~~~~~~~~~~~~~~~~~
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        Dim f As Expression(Of Action) = Sub() M(New A(Of Integer)().P)
+                                                 ~~~~~~~~~~~~~~~~~~~~~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        Public Sub MidAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+#pragma warning disable 0649
+    private string _p = ""abcd"";
+    public ref string P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim o = New C()
+        Mid(o.P, 2, 2) = ""efg""
+        System.Console.Write(o.P)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="aefd")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (C V_0) //o
+  IL_0000:  nop
+  IL_0001:  newobj     "Sub C..ctor()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   "Function C.get_P() As String"
+  IL_000d:  ldc.i4.2
+  IL_000e:  ldc.i4.2
+  IL_000f:  ldstr      "efg"
+  IL_0014:  call       "Sub Microsoft.VisualBasic.CompilerServices.StringType.MidStmtStr(ByRef String, Integer, Integer, String)"
+  IL_0019:  nop
+  IL_001a:  ldloc.0
+  IL_001b:  callvirt   "Function C.get_P() As String"
+  IL_0020:  ldind.ref
+  IL_0021:  call       "Sub System.Console.Write(String)"
+  IL_0026:  nop
+  IL_0027:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        ''' <summary>
+        ''' Early-bound calls to ByRef-returning methods
+        ''' supported as arguments to late-bound methods.
+        ''' </summary>
+        <Fact()>
+        Public Sub RefReturnArgumentToLateBoundCall()
+            Dim comp1 = CreateCSharpCompilation(
+"public class A
+{
+#pragma warning disable 0649
+    private string _f;
+    public ref string F()
+    {
+        return ref _f;
+    }
+    private string _g;
+    public ref string G()
+    {
+        return ref _g;
+    }
+}
+public class B
+{
+    public void F(string a, ref string b)
+    {
+        a = a.ToLower();
+        b = b.ToLower();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a = New A()
+        a.F() = ""ABC""
+        a.G() = ""DEF""
+        F(New B(), a)
+        System.Console.Write(a.F() + a.G())
+    End Sub
+    Sub F(b As Object, a As A)
+        b.F(a.F(), a.G())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="ABCdef")
+            verifier.VerifyIL("M.F",
+            <![CDATA[
+{
+  // Code size      140 (0x8c)
+  .maxstack  10
+  .locals init (String& V_0,
+                String& V_1,
+                Object() V_2,
+                Boolean() V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldnull
+  IL_0003:  ldstr      "F"
+  IL_0008:  ldc.i4.2
+  IL_0009:  newarr     "Object"
+  IL_000e:  dup
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldarg.1
+  IL_0011:  callvirt   "Function A.F() As String"
+  IL_0016:  dup
+  IL_0017:  stloc.0
+  IL_0018:  ldind.ref
+  IL_0019:  stelem.ref
+  IL_001a:  dup
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldarg.1
+  IL_001d:  callvirt   "Function A.G() As String"
+  IL_0022:  dup
+  IL_0023:  stloc.1
+  IL_0024:  ldind.ref
+  IL_0025:  stelem.ref
+  IL_0026:  dup
+  IL_0027:  stloc.2
+  IL_0028:  ldnull
+  IL_0029:  ldnull
+  IL_002a:  ldc.i4.2
+  IL_002b:  newarr     "Boolean"
+  IL_0030:  dup
+  IL_0031:  ldc.i4.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  stelem.i1
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  dup
+  IL_0039:  stloc.3
+  IL_003a:  ldc.i4.1
+  IL_003b:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object, System.Type, String, Object(), String(), System.Type(), Boolean(), Boolean) As Object"
+  IL_0040:  pop
+  IL_0041:  ldloc.3
+  IL_0042:  ldc.i4.0
+  IL_0043:  ldelem.u1
+  IL_0044:  brtrue.s   IL_0048
+  IL_0046:  br.s       IL_0066
+  IL_0048:  ldloc.0
+  IL_0049:  ldloc.2
+  IL_004a:  ldc.i4.0
+  IL_004b:  ldelem.ref
+  IL_004c:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0051:  ldtoken    "String"
+  IL_0056:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_005b:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ChangeType(Object, System.Type) As Object"
+  IL_0060:  castclass  "String"
+  IL_0065:  stind.ref
+  IL_0066:  ldloc.3
+  IL_0067:  ldc.i4.1
+  IL_0068:  ldelem.u1
+  IL_0069:  brtrue.s   IL_006d
+  IL_006b:  br.s       IL_008b
+  IL_006d:  ldloc.1
+  IL_006e:  ldloc.2
+  IL_006f:  ldc.i4.1
+  IL_0070:  ldelem.ref
+  IL_0071:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0076:  ldtoken    "String"
+  IL_007b:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_0080:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ChangeType(Object, System.Type) As Object"
+  IL_0085:  castclass  "String"
+  IL_008a:  stind.ref
+  IL_008b:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        ''' <summary>
+        ''' Late-bound calls with ByRef return values not supported.
+        ''' </summary>
+        <Fact()>
+        Public Sub RefReturnLateBoundCall()
+            Dim comp1 = CreateCSharpCompilation(
+"public class A
+{
+#pragma warning disable 0649
+    private string _f = ""ABC"";
+    public string F()
+    {
+        return _f;
+    }
+    private string _g = ""DEF"";
+    public ref string G()
+    {
+        return ref _g;
+    }
+}
+public class B
+{
+    public void F(string a, ref string b)
+    {
+        a = a.ToLower();
+        b = b.ToLower();
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a = New A()
+        Try
+            F(New B(), a)
+        Catch e As System.Exception
+            System.Console.Write(e.Message)
+        End Try
+    End Sub
+    Sub F(b As B, a As Object)
+        b.F(a.F(), a.G())
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="Public member 'G' on type 'A' not found.")
+            verifier.VerifyIL("M.F",
+            <![CDATA[
+{
+  // Code size       93 (0x5d)
+  .maxstack  9
+  .locals init (Object V_0,
+                String V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldnull
+  IL_0004:  ldstr      "F"
+  IL_0009:  ldc.i4.0
+  IL_000a:  newarr     "Object"
+  IL_000f:  ldnull
+  IL_0010:  ldnull
+  IL_0011:  ldnull
+  IL_0012:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
+  IL_0017:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_001c:  ldarg.1
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  ldnull
+  IL_0020:  ldstr      "G"
+  IL_0025:  ldc.i4.0
+  IL_0026:  newarr     "Object"
+  IL_002b:  ldnull
+  IL_002c:  ldnull
+  IL_002d:  ldnull
+  IL_002e:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object, System.Type, String, Object(), String(), System.Type(), Boolean()) As Object"
+  IL_0033:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Object) As String"
+  IL_0038:  stloc.1
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  callvirt   "Sub B.F(String, ByRef String)"
+  IL_0040:  nop
+  IL_0041:  ldloc.0
+  IL_0042:  ldnull
+  IL_0043:  ldstr      "G"
+  IL_0048:  ldc.i4.1
+  IL_0049:  newarr     "Object"
+  IL_004e:  dup
+  IL_004f:  ldc.i4.0
+  IL_0050:  ldloc.1
+  IL_0051:  stelem.ref
+  IL_0052:  ldnull
+  IL_0053:  ldnull
+  IL_0054:  ldc.i4.1
+  IL_0055:  ldc.i4.0
+  IL_0056:  call       "Sub Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSetComplex(Object, System.Type, String, Object(), String(), System.Type(), Boolean, Boolean)"
+  IL_005b:  nop
+  IL_005c:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub InLambda()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+    public static ref T F<T>(ref T t)
+    {
+        return ref t;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim f = Sub(ByRef x As Integer, y As Integer) C.F(x) = y
+        Dim o = 2
+        f(o, 3)
+        System.Console.Write(o)
+    End Sub
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="3")
+            verifier.VerifyIL("M.Main",
+            <![CDATA[
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (VB$AnonymousDelegate_0(Of Integer, Integer) V_0, //f
+                Integer V_1) //o
+  IL_0000:  nop
+  IL_0001:  ldsfld     "M._Closure$__.$I0-0 As <generated method>"
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     "M._Closure$__.$I0-0 As <generated method>"
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     "M._Closure$__.$I As M._Closure$__"
+  IL_0014:  ldftn      "Sub M._Closure$__._Lambda$__0-0(ByRef Integer, Integer)"
+  IL_001a:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)"
+  IL_001f:  dup
+  IL_0020:  stsfld     "M._Closure$__.$I0-0 As <generated method>"
+  IL_0025:  stloc.0
+  IL_0026:  ldc.i4.2
+  IL_0027:  stloc.1
+  IL_0028:  ldloc.0
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  ldc.i4.3
+  IL_002c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer, Integer).Invoke(ByRef Integer, Integer)"
+  IL_0031:  nop
+  IL_0032:  ldloc.1
+  IL_0033:  call       "Sub System.Console.Write(Integer)"
+  IL_0038:  nop
+  IL_0039:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+    End Class
+
+End Namespace

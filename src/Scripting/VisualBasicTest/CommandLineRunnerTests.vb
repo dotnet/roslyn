@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
@@ -28,11 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         ) As CommandLineRunner
             Dim io = New TestConsoleIO(input)
 
+            Dim buildPaths = New BuildPaths(
+                clientDir:=AppContext.BaseDirectory,
+                workingDir:=If(workingDirectory, AppContext.BaseDirectory),
+                sdkDir:=CorLightup.Desktop.TryGetRuntimeDirectory(),
+                tempDir:=Path.GetTempPath())
+
             Dim compiler = New VisualBasicInteractiveCompiler(
                 responseFile,
-                If(workingDirectory, AppContext.BaseDirectory),
-                CorLightup.Desktop.TryGetRuntimeDirectory(),
-                AppContext.BaseDirectory,
+                buildPaths,
                 If(args, s_defaultArgs),
                 New NotImplementedAnalyzerLoader())
 
@@ -179,6 +184,25 @@ Type ""#help"" for more information.
 > ? System.Math.PI
 3.1415926535897931
 >", runner.Console.Out.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub Version()
+            Dim runner = CreateRunner({"/version"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/help"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/r:somefile"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/nologo"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
         End Sub
 
     End Class

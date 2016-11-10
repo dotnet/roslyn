@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
@@ -859,7 +859,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
@@ -881,7 +881,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
@@ -903,7 +903,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
@@ -973,7 +973,7 @@ $@"'object' does not contain a definition for 'x'
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){string.Format(ScriptingResources.AtFileLine, filePath, 10155)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){string.Format(ScriptingResources.AtFileLine, filePath, 10172)}
 ";
@@ -996,7 +996,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show ParametersFixture.Method<char>(ref char)
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){string.Format(ScriptingResources.AtFileLine, filePath, 10161)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){string.Format(ScriptingResources.AtFileLine, filePath, 10194)}
 ";

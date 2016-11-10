@@ -78,12 +78,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
         /// Returns null if no such symbol can be found in the specified solution.
         /// </summary>
-        public static Task<ISymbol> FindSourceDefinitionAsync(
+        public static async Task<ISymbol> FindSourceDefinitionAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
         {
+            var result = await FindSourceDefinitionAsync(
+                SymbolAndProjectId.Create(symbol, projectId: null),
+                solution, cancellationToken).ConfigureAwait(false);
+            return result.Symbol;
+        }
+
+        internal static Task<SymbolAndProjectId> FindSourceDefinitionAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol != null)
             {
                 symbol = symbol.GetOriginalUnreducedDefinition();
+                symbolAndProjectId = symbolAndProjectId.WithSymbol(symbol);
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Event:
@@ -95,18 +106,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     case SymbolKind.Property:
                     case SymbolKind.TypeParameter:
                     case SymbolKind.Namespace:
-                        return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
+                        return FindSourceDefinitionWorkerAsync(symbolAndProjectId, solution, cancellationToken);
                 }
             }
 
-            return SpecializedTasks.Default<ISymbol>();
+            return SpecializedTasks.Default<SymbolAndProjectId>();
         }
 
-        private static async Task<ISymbol> FindSourceDefinitionWorkerAsync(
-            ISymbol symbol,
+        private static async Task<SymbolAndProjectId> FindSourceDefinitionWorkerAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             // If it's already in source, then we might already be done
             if (InSource(symbol))
             {
@@ -114,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // symbol somewhere else. The common case for this is a merged INamespaceSymbol that spans assemblies.
                 if (symbol.ContainingAssembly == null)
                 {
-                    return symbol;
+                    return symbolAndProjectId;
                 }
 
                 // Just because it's a source symbol doesn't mean we have the final symbol we actually want. In retargeting cases,
@@ -132,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (symbol.ContainingAssembly.Equals(compilation.Assembly))
                         {
-                            return symbol;
+                            return SymbolAndProjectId.Create(symbol, sourceProject.Id);
                         }
                     }
                 }
@@ -140,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
-                return null;
+                return default(SymbolAndProjectId);
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
@@ -152,16 +164,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (result.Symbol != null && InSource(result.Symbol))
                 {
-                    return result.Symbol;
+                    return SymbolAndProjectId.Create(result.Symbol, project.Id);
                 }
                 else
                 {
-                    return result.CandidateSymbols.FirstOrDefault(InSource);
+                    return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
                 }
             }
             else
             {
-                return null;
+                return default(SymbolAndProjectId);
             }
         }
 

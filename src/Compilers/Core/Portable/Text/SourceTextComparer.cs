@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public int GetHashCode(SourceText obj)
         {
-            var checksum = obj.GetChecksum(useDefaultEncodingIfNull: true);
+            var checksum = obj.GetChecksum();
             var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
             var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
 

@@ -1,12 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{4462B57A-7245-4146-B504-D46FDE762948}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -14,16 +11,9 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
@@ -82,7 +72,9 @@
     <Compile Include="Attributes\AttributeTests_Security.cs" />
     <Compile Include="Attributes\AttributeTests_StructLayout.cs" />
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
+    <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
     <Compile Include="BreakingChanges.cs" />
@@ -95,6 +87,7 @@
     <Compile Include="CodeGen\CodeGenConditionalOperatorTests.cs" />
     <Compile Include="CodeGen\CodeGenConstructorInitTests.cs" />
     <Compile Include="CodeGen\CodeGenConversionTests.cs" />
+    <Compile Include="CodeGen\CodeGenDeconstructTests.cs" />
     <Compile Include="CodeGen\CodeGenDynamicTests.cs" />
     <Compile Include="CodeGen\CodeGenExplicitImplementationTests.cs" />
     <Compile Include="CodeGen\CodeGenExprLambdaTests.cs" />
@@ -105,6 +98,7 @@
     <Compile Include="CodeGen\CodeGenIncrementTests.cs" />
     <Compile Include="CodeGen\CodeGenInterfaceImplementation.cs" />
     <Compile Include="CodeGen\CodeGenIterators.cs" />
+    <Compile Include="CodeGen\CodeGenLocalFunctionTests.cs" />
     <Compile Include="CodeGen\CodeGenMscorlib.cs" />
     <Compile Include="CodeGen\CodeGenOperators.cs" />
     <Compile Include="CodeGen\CodeGenOptimizedNullableOperators.cs" />
@@ -131,11 +125,14 @@
     <Compile Include="CodeGen\IndexerTests.cs" />
     <Compile Include="CodeGen\CodeGenLockTests.cs" />
     <Compile Include="CodeGen\ObjectAndCollectionInitializerTests.cs" />
+    <Compile Include="CodeGen\PropertyTests.cs" />
     <Compile Include="CodeGen\SwitchTests.cs" />
     <Compile Include="CodeGen\UnsafeTests.cs" />
     <Compile Include="CodeGen\WinMdDelegateTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.cs" />
     <Compile Include="Emit\CompilationEmitTests.cs" />
     <Compile Include="Emit\DeterministicTests.cs" />
+    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
@@ -162,6 +159,7 @@
     <Compile Include="PDB\PDBIteratorTests.cs" />
     <Compile Include="PDB\PDBLambdaTests.cs" />
     <Compile Include="PDB\PDBTests.cs" />
+    <Compile Include="PDB\PDBTupleTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />
     <Compile Include="PDB\PDBWinMdExpTests.cs" />
     <Compile Include="PDB\PortablePdbTests.cs" />
@@ -194,8 +192,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

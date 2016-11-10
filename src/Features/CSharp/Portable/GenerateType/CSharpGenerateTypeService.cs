@@ -396,7 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1)
+                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
+                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression.Kind() != SyntaxKind.DeclarationExpression)
                     {
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
                     }
@@ -850,7 +851,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return updatedSolution;
                 }
 
-                var placeSystemNamespaceFirst = document.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst);
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
                 var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, placeSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
@@ -946,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
                 var parameterTypes = newObjectCreation.ArgumentList.Arguments.Select(
-                    a => speculativeModel.GetTypeInfo(a.Expression, cancellationToken).ConvertedType).ToList();
+                    a => a.DetermineParameterType(speculativeModel, cancellationToken)).ToList();
 
                 return GenerateConstructorHelpers.GetDelegatingConstructor(
                     document, symbolInfo, candidates, namedType, parameterTypes);

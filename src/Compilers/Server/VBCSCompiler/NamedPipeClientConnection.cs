@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         protected override async Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
         {
-            var buffer = SpecializedCollections.EmptyBytes;
+            var buffer = Array.Empty<byte>();
 
             while (!cancellationToken.IsCancellationRequested && _pipeStream.IsConnected)
             {

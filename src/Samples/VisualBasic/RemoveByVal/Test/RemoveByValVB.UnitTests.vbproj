@@ -1,11 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D4D09B9B-8421-40B9-B4A9-594DAD5AF8DD}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -14,8 +10,8 @@
     <NonShipping>true</NonShipping>
     <MyType>Windows</MyType>
     <OptionStrict>Off</OptionStrict>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\..\src\Features\Core\Portable\Features.csproj">
@@ -42,9 +38,41 @@
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
       <Name>UnitTestFramework</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
+      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
+      <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
+      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
+      <Name>BasicWorkspace</Name>
     </ProjectReference>
     <ProjectReference Include="..\Impl\RemoveByValVB.vbproj">
       <Project>{4900921D-C548-4FBB-9681-BAF88E09DB3C}</Project>
@@ -55,14 +83,14 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <NoWarn>41999,42016,42030,42104,42108,42109</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
     <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42030,42104,42108,42109</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
     <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
@@ -85,8 +113,5 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
                 var waitIndicator = GetWaitIndicator();
-                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.BuildingProject, allowCancel: true, showProgress: false);
+                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.Building_Project, allowCancel: true, showProgress: false);
 
                 var resetInteractiveTask = ResetInteractiveAsync(
                     interactiveWindow,
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             // Then reset the REPL
-            waitContext.Message = InteractiveEditorFeaturesResources.ResettingInteractive;
+            waitContext.Message = InteractiveEditorFeaturesResources.Resetting_Interactive;
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 
             // TODO: load context from an rsp file.

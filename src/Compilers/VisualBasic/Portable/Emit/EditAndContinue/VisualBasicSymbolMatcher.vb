@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Return Nothing
                     End If
 
-                    Return Me.VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                    Return VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                 End If
 
                 Dim member = TryCast(def, Cci.ITypeDefinitionMember)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim field = TryCast(def, Cci.IFieldDefinition)
                     If field IsNot Nothing Then
-                        Return Me.VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                        Return VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                     End If
                 End If
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Me._lazyTopLevelTypes
             End Function
 
-            Private Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
+            Private Shared Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
                 otherContainer As Cci.ITypeDefinition,
                 member As T,
                 getMembers As Func(Of Cci.ITypeDefinition, IEnumerable(Of T)),
@@ -396,6 +396,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim typeMap = TypeSubstitution.Create(otherDef, otherTypeParameters, otherTypeArguments, False)
                     Return otherDef.Construct(typeMap)
+                ElseIf type.IsTupleType Then
+                    Dim otherDef = DirectCast(Me.Visit(type.TupleUnderlyingType), NamedTypeSymbol)
+                    If otherDef Is Nothing OrElse Not otherDef.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length) Then
+                        Return Nothing
+                    End If
+
+                    Return TupleTypeSymbol.Create(otherDef, type.TupleElementNames)
                 End If
 
                 Debug.Assert(type.IsDefinition)
@@ -546,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Return Me._comparer.Equals(method.ReturnType, other.ReturnType) AndAlso
                     method.Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual) AndAlso
-                    method.TypeArguments.SequenceEqual(other.TypeArguments, AddressOf Me.AreTypesEqual)
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, AddressOf Me.AreTypesEqual)
             End Function
 
             Private Shared Function SubstituteTypeParameters(method As MethodSymbol) As MethodSymbol
@@ -563,6 +570,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
                 Debug.Assert(Not type.HasTypeArgumentsCustomModifiers)
                 Debug.Assert(Not other.HasTypeArgumentsCustomModifiers)
+
+                ' Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
+                Debug.Assert(Not type.IsTupleType)
+                Debug.Assert(Not other.IsTupleType)
+
                 Return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AddressOf Me.AreTypesEqual)
             End Function
 
@@ -577,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     [property].Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual)
             End Function
 
-            Private Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
+            Private Shared Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
                 Debug.Assert(type.Ordinal = other.Ordinal)
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
                 ' Comparing constraints is unnecessary: two methods cannot differ by

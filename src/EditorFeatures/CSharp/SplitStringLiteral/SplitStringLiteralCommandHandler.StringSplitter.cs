@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -19,17 +18,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             protected readonly Document Document;
             protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
-            protected readonly SyntaxTree SyntaxTree;
             protected readonly SyntaxNode Root;
             protected readonly int TabSize;
             protected readonly bool UseTabs;
             protected readonly CancellationToken CancellationToken;
 
-            public StringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, bool useTabs, int tabSize, CancellationToken cancellationToken)
+            public StringSplitter(Document document, int position, SyntaxNode root, SourceText sourceText, bool useTabs, int tabSize, CancellationToken cancellationToken)
             {
                 Document = document;
                 CursorPosition = position;
-                SyntaxTree = syntaxTree;
                 Root = root;
                 SourceText = sourceText;
                 UseTabs = useTabs;
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             public static StringSplitter Create(
                 Document document, int position,
-                SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText,
+                SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize, CancellationToken cancellationToken)
             {
                 var token = root.FindToken(position);
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
                     return new SimpleStringSplitter(
-                        document, position, syntaxTree, root,
+                        document, position, root,
                         sourceText, token, useTabs, tabSize,
                         cancellationToken);
                 }
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 if (interpolatedStringExpression != null)
                 {
                     return new InterpolatedStringSplitter(
-                        document, position, syntaxTree, root,
+                        document, position, root,
                         sourceText, interpolatedStringExpression,
                         useTabs, tabSize, cancellationToken);
                 }
@@ -92,19 +89,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected abstract BinaryExpressionSyntax CreateSplitString();
 
-            public async Task<int?> TrySplitAsync()
+            public int? TrySplit()
             {
                 if (!CheckToken())
                 {
                     return null;
                 }
 
-                return await TrySplitWorkerAsync().ConfigureAwait(false);
+                return TrySplitWorker();
             }
 
-            private async Task<int?> TrySplitWorkerAsync()
+            private int? TrySplitWorker()
             {
-                var newDocumentAndCaretPosition = await SplitStringAsync().ConfigureAwait(false);
+                var newDocumentAndCaretPosition = SplitString();
                 if (newDocumentAndCaretPosition == null)
                 {
                     return null;
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
-            private async Task<Tuple<Document, int>> SplitStringAsync()
+            private Tuple<Document, int> SplitString()
             {
                 var splitString = CreateSplitString();
 
@@ -135,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var newRoot = Root.ReplaceNode(nodeToReplace, splitString);
                 var rightExpression = newRoot.GetAnnotatedNodes(RightNodeAnnotation).Single();
 
-                var indentString = await GetIndentStringAsync(newRoot).ConfigureAwait(false);
+                var indentString = GetIndentString(newRoot);
                 if (indentString == null)
                 {
                     return null;
@@ -148,21 +145,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return Tuple.Create(newDocument2, rightExpression.Span.Start + indentString.Length + StringOpenQuoteLength());
             }
 
-            private async Task<string> GetIndentStringAsync(SyntaxNode newRoot)
+            private string GetIndentString(SyntaxNode newRoot)
             {
                 var newDocument = Document.WithSyntaxRoot(newRoot);
 
-                var indentationService = newDocument.GetLanguageService<IIndentationService>();
+                var indentationService = newDocument.GetLanguageService<ISynchronousIndentationService>();
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
-                var desiredIndentation = await indentationService.GetDesiredIndentationAsync(
-                    newDocument, originalLineNumber + 1, CancellationToken).ConfigureAwait(false);
+                var desiredIndentation = indentationService.GetDesiredIndentation(
+                    newDocument, originalLineNumber + 1, CancellationToken);
 
                 if (desiredIndentation == null)
                 {
                     return null;
                 }
 
-                var newSourceText = await newDocument.GetTextAsync(CancellationToken).ConfigureAwait(false);
+                var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);
                 var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.Value.BasePosition);
                 var baseOffsetInLine = desiredIndentation.Value.BasePosition - baseLine.Start;
 

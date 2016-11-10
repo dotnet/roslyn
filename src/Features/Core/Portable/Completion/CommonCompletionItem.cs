@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -16,20 +10,18 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
             string sortText = null,
             string filterText = null,
-            bool preselect = false,
+            int? matchPriority = null,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
         {
-            tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            tags = tags.NullToEmpty();
 
             if (glyph != null)
             {
@@ -42,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(CompletionTags.Warning);
             }
 
-            if (isArgumentName)
-            {
-                tags = tags.Add(CompletionTags.ArgumentName);
-            }
-
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
@@ -54,14 +41,13 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithPreselect(preselect)
+            rules = rules.WithMatchPriority(matchPriority.GetValueOrDefault())
                          .WithFormatOnCommit(shouldFormatOnCommit);
 
             return CompletionItem.Create(
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                span: span,
                 properties: properties,
                 tags: tags,
                 rules: rules);
@@ -89,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
-            return EncodeDescription(description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray());
+            return EncodeDescription(description.ToTaggedText());
         }
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)

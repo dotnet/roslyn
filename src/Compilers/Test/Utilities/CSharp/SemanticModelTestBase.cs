@@ -169,16 +169,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (ConstructorInitializerSyntax)constructorInitializers.FirstOrDefault();
         }
 
-
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc) where TNode : SyntaxNode
+        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc) where TNode : SyntaxNode
+        internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature) where TNode : SyntaxNode
         {
-            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, feature, new[] { SystemCoreRef });
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 

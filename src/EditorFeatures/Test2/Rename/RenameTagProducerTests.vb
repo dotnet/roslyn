@@ -345,10 +345,10 @@ public class Class1
     void Test(int i) {{ }}
     void M()
     {{
-{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.UnmergedChangeFromProject, "CSharpAssembly1")}
-{WorkspacesResources.BeforeHeader}
+{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.Unmerged_change_from_project_0, "CSharpAssembly1")}
+{WorkspacesResources.Before_colon}
         Test(5);
-{WorkspacesResources.AfterHeader}
+{WorkspacesResources.After_colon}
         Test((long)5);
 *|}}|}}/
         Test((double)5);

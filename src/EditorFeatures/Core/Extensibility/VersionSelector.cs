@@ -13,5 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             return items.OrderByDescending(i => i.Metadata.Version).First().Value;
         }
+
+        public static T SelectVersion<T>(
+            IEnumerable<Lazy<T, VisualStudioVersionMetadata>> items,
+            VisualStudioVersion version)
+        {
+            return items.First(i => i.Metadata.Version == version).Value;
+        }
     }
 }

@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // Next, check to see if we're typing in an interpolated string
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var token = root.FindTokenOnLeftOfPosition(position);
 
             if (!token.Span.IntersectsWith(position))
             {

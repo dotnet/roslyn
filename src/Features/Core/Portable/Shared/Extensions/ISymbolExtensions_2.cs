@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Roslyn.Utilities;
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 return Glyph.Error;
 
                             default:
-                                throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, nameof(symbol));
+                                throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
                         }
 
                         break;
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Assembly;
 
                 case SymbolKind.Parameter:
-                    return symbol.IsValueParameter()
+                    return symbol.IsImplicitValueParameter()
                         ? Glyph.Keyword
                         : Glyph.Parameter;
 
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.TypeParameter;
 
                 default:
-                    throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, nameof(symbol));
+                    throw new ArgumentException(FeaturesResources.The_symbol_does_not_have_an_icon, nameof(symbol));
             }
 
             switch (symbol.DeclaredAccessibility)
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return publicIcon;
         }
 
-        public static IEnumerable<SymbolDisplayPart> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
             var documentation = symbol.TypeSwitch(
                     (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
@@ -178,10 +179,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
-                : SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+                : SpecializedCollections.EmptyEnumerable<TaggedText>();
         }
 
-        public static Func<CancellationToken, IEnumerable<SymbolDisplayPart>> GetDocumentationPartsFactory(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
+        public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
+            this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
         {
             return c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
         }
@@ -212,6 +214,82 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 default:
                     return method.GetDocumentationComment().SummaryText;
             }
+        }
+
+        public static IList<SymbolDisplayPart> ToAwaitableParts(this ISymbol symbol, string awaitKeyword, string initializedVariableName, SemanticModel semanticModel, int position)
+        {
+            var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
+            var parts = new List<SymbolDisplayPart>();
+
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage_colon}\r\n  "));
+
+            var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
+            returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;
+            if (returnType != null)
+            {
+                if (semanticModel.Language == "C#")
+                {
+                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
+                    parts.Add(spacePart);
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
+                }
+                else
+                {
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "Dim"));
+                    parts.Add(spacePart);
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LocalName, null, initializedVariableName));
+                    parts.Add(spacePart);
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "as"));
+                    parts.Add(spacePart);
+                    parts.AddRange(returnType.ToMinimalDisplayParts(semanticModel, position));
+                }
+
+                parts.Add(spacePart);
+                parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "="));
+                parts.Add(spacePart);
+            }
+
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, awaitKeyword));
+            parts.Add(spacePart);
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, symbol.GetParameters().Any() ? "..." : ""));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, semanticModel.Language == "C#" ? ";" : ""));
+
+            return parts;
+        }
+
+        public static ITypeSymbol InferAwaitableReturnType(this ISymbol symbol, SemanticModel semanticModel, int position)
+        {
+            var methodSymbol = symbol as IMethodSymbol;
+            if (methodSymbol == null)
+            {
+                return null;
+            }
+
+            var returnType = methodSymbol.ReturnType;
+            if (returnType == null)
+            {
+                return null;
+            }
+
+            var potentialGetAwaiters = semanticModel.LookupSymbols(position, container: returnType, name: WellKnownMemberNames.GetAwaiter, includeReducedExtensionMethods: true);
+            var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
+            if (!getAwaiters.Any())
+            {
+                return null;
+            }
+
+            var getResults = getAwaiters.SelectMany(g => semanticModel.LookupSymbols(position, container: g.ReturnType, name: WellKnownMemberNames.GetResult));
+
+            var getResult = getResults.OfType<IMethodSymbol>().FirstOrDefault(g => !g.IsStatic);
+            if (getResult == null)
+            {
+                return null;
+            }
+
+            return getResult.ReturnType;
         }
     }
 }

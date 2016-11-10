@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(NavigableHighlightTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
@@ -59,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return textViewOpt.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
+            return textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return textViewOpt.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+            return textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType))
                               .Select(b => b.CurrentSnapshot.GetFullSpan())
                               .ToList();
         }
@@ -126,8 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
             {
-                var result = new List<ITagSpan<NavigableHighlightTag>>();
-
                 if (document != null)
                 {
                     var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(context, solution, result, documentHighlights).ConfigureAwait(false);
+                                await AddTagSpansAsync(context, solution, documentHighlights).ConfigureAwait(false);
                             }
                         }
                     }
@@ -152,7 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
             Solution solution,
-            List<ITagSpan<NavigableHighlightTag>> tags,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
@@ -190,6 +188,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 default:
                     return ReferenceHighlightTag.Instance;
             }
+        }
+
+        private static bool IsSupportedContentType(IContentType contentType)
+        {
+            // This list should match the list of exported content types above
+            return contentType.IsOfType(ContentTypeNames.RoslynContentType) ||
+                   contentType.IsOfType(ContentTypeNames.XamlContentType);
         }
     }
 }

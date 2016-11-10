@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -67,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var options = project.Solution.Options;
 
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
-            var title = NavigableItemFactory.GetSymbolDisplayString(project, symbol);
+            var displayParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(project, symbol);
+            var title = displayParts.JoinText();
+
             if (!preferredSourceLocations.Any())
             {
                 // Attempt to find source locations from external definition providers.
@@ -92,7 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     cancellationToken: cancellationToken);
             }
 
-            var navigableItems = preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToImmutableArray();
+            var navigableItems = preferredSourceLocations.Select(location =>
+                NavigableItemFactory.GetItemFromSymbolLocation(
+                    solution, symbol, location,
+                    displayTaggedParts: null)).ToImmutableArray();
             return TryGoToDefinition(navigableItems, title, options, presenters, throwOnHiddenDefinition);
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     if (throwOnHiddenDefinition)
                     {
                         const int E_FAIL = -2147467259;
-                        throw new COMException(EditorFeaturesResources.TheDefinitionOfTheObjectIsHidden, E_FAIL);
+                        throw new COMException(EditorFeaturesResources.The_definition_of_the_object_is_hidden, E_FAIL);
                     }
                     else
                     {
@@ -191,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             if (externalDefinitions != null && externalDefinitions.Any())
             {
                 var itemsArray = externalDefinitions.ToImmutableArrayOrEmpty();
-                var title = itemsArray[0].DisplayString;
+                var title = itemsArray[0].DisplayTaggedParts.JoinText();
                 return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition: true);
             }
 

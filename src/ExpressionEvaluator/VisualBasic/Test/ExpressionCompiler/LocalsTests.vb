@@ -1530,6 +1530,7 @@ End Class
         <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
         <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
+        <WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
         <Fact>
         Public Sub AsyncAndLambda()
             Const source =
@@ -1567,7 +1568,7 @@ End Class"
                     Assert.Equal(2, locals.Count)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "x", expectedILOpt:=
 "{
-  // Code size        7 (0x7)
+  // Code size       12 (0xc)
   .maxstack  1
   .locals init (Integer V_0,
                 Integer V_1,
@@ -1576,8 +1577,9 @@ End Class"
                 C.VB$StateMachine_3_M V_4,
                 System.Exception V_5)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Local_x As Integer""
-  IL_0006:  ret
+  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
+  IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_x As Integer""
+  IL_000b:  ret
 }")
                     VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedILOpt:=
 "{

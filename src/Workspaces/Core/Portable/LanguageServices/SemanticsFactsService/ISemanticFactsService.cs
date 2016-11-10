@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -44,6 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsTypeContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsNamespaceContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsMemberDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsPreProcessorDirectiveContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
@@ -76,8 +74,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool LastEnumValueHasInitializer(INamedTypeSymbol namedTypeSymbol);
 
-        bool SupportsParameterizedEvents { get; }
-
         /// <summary>
         /// return speculative semantic model for supported node. otherwise, it will return null
         /// </summary>
@@ -91,5 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
 
         bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
+
+        bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
     }
 }

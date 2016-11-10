@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me._typeParameterBinder
         End Function
 
-        Private Function HasTrailingSkippedTokensAndShouldReportError(reference As CrefReferenceSyntax) As Boolean
+        Private Shared Function HasTrailingSkippedTokensAndShouldReportError(reference As CrefReferenceSyntax) As Boolean
             Dim triviaList As SyntaxTriviaList = reference.GetTrailingTrivia()
             For Each trivia In triviaList
                 If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
 
                         If returnType IsNot Nothing Then
-                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringAll(returnType) Then
                                 ' Return type does not match
                                 Exit Select
                             End If
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -415,7 +415,7 @@ lAgain:
             Return symbols.ToImmutableAndFree()
         End Function
 
-        Private Function GetEnclosingCrefReference(nameFromCref As TypeSyntax, <Out> ByRef partOfSignatureOrReturnType As Boolean) As CrefReferenceSyntax
+        Private Shared Function GetEnclosingCrefReference(nameFromCref As TypeSyntax, <Out> ByRef partOfSignatureOrReturnType As Boolean) As CrefReferenceSyntax
             partOfSignatureOrReturnType = False
 
             Dim node As VisualBasicSyntaxNode = nameFromCref
@@ -706,7 +706,7 @@ lAgain:
             Return
         End Sub
 
-        Private Sub CollectConstructorsSymbolsStrict(containingSymbol As Symbol, symbols As ArrayBuilder(Of Symbol))
+        Private Shared Sub CollectConstructorsSymbolsStrict(containingSymbol As Symbol, symbols As ArrayBuilder(Of Symbol))
             Debug.Assert(symbols.Count = 0)
             If containingSymbol.Kind = SymbolKind.NamedType Then
                 symbols.AddRange(DirectCast(containingSymbol, NamedTypeSymbol).InstanceConstructors)
@@ -822,7 +822,7 @@ lAgain:
             lookupResult.Free()
         End Sub
 
-        Private Sub CreateTypeParameterSymbolsAndConstructSymbols(genericName As GenericNameSyntax,
+        Private Shared Sub CreateTypeParameterSymbolsAndConstructSymbols(genericName As GenericNameSyntax,
                                                                   symbols As ArrayBuilder(Of Symbol),
                                                                   typeParameters As Dictionary(Of String, CrefTypeParameterSymbol))
 
@@ -869,7 +869,7 @@ lAgain:
             Next
         End Sub
 
-        Private Sub CollectGoodOrAmbiguousFromLookupResult(lookupResult As LookupResult, symbols As ArrayBuilder(Of Symbol), preserveAlias As Boolean)
+        Private Shared Sub CollectGoodOrAmbiguousFromLookupResult(lookupResult As LookupResult, symbols As ArrayBuilder(Of Symbol), preserveAlias As Boolean)
             Dim di As DiagnosticInfo = lookupResult.Diagnostic
 
             If TypeOf di Is AmbiguousSymbolDiagnostic Then
@@ -892,7 +892,7 @@ lAgain:
             End If
         End Sub
 
-        Private Sub CollectOperatorsAndConversionsInType(crefOperator As CrefOperatorReferenceSyntax, argCount As Integer, type As TypeSymbol, symbols As ArrayBuilder(Of Symbol),
+        Private Shared Sub CollectOperatorsAndConversionsInType(crefOperator As CrefOperatorReferenceSyntax, argCount As Integer, type As TypeSymbol, symbols As ArrayBuilder(Of Symbol),
                                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
             If type Is Nothing Then
                 Return
@@ -1076,7 +1076,7 @@ lAgain:
             End Select
         End Sub
 
-        Private Sub CollectOperatorsAndConversionsInType(type As TypeSymbol,
+        Private Shared Sub CollectOperatorsAndConversionsInType(type As TypeSymbol,
                                                          symbols As ArrayBuilder(Of Symbol),
                                                          kind As MethodKind,
                                                          name1 As String,

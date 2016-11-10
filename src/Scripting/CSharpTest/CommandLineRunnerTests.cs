@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         // default csi.rsp
         private static readonly string[] s_defaultArgs = new[]
         {
-            "/r:System;System.Core;Microsoft.CSharp",
+            "/r:System;System.Core;Microsoft.CSharp;System.ValueTuple.dll",
             "/u:System;System.IO;System.Collections.Generic;System.Diagnostics;System.Dynamic;System.Linq;System.Linq.Expressions;System.Text;System.Threading.Tasks",
         };
 
@@ -37,12 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             string workingDirectory = null)
         {
             var io = new TestConsoleIO(input);
+            var buildPaths = new BuildPaths(
+                clientDir: AppContext.BaseDirectory,
+                workingDir: workingDirectory ?? AppContext.BaseDirectory,
+                sdkDir: null,
+                tempDir: Path.GetTempPath());
 
             var compiler = new CSharpInteractiveCompiler(
                 responseFile,
-                workingDirectory ?? AppContext.BaseDirectory,
-                null,
-                AppContext.BaseDirectory,
+                buildPaths,
                 args ?? s_defaultArgs,
                 new NotImplementedAnalyzerLoader());
 
@@ -163,6 +166,22 @@ Type ""#help"" for more information.
 1
 > Print(2)
 2
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void Tuples()
+        {
+            var runner = CreateRunner(input: "(1,2)");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> (1,2)
+[(1, 2)]
 > ", runner.Console.Out.ToString());
         }
 
@@ -426,6 +445,7 @@ Executes script-file.csx if specified, otherwise launches an interactive REPL (R
 
 Options:
   /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
   /i                             Drop to REPL after executing the specified script.
   /r:<file>                      Reference metadata from the specified assembly file (alternative form: /reference)
   /r:<file list>                 Reference metadata from the specified assembly files (alternative form: /reference)
@@ -435,6 +455,26 @@ Options:
   @<file>                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void Version()
+        {
+            var runner = CreateRunner(new[] { "/version" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/help" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/r:somefile" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+
+            runner = CreateRunner(new[] { "/version", "/nologo" });
+            Assert.Equal(0, runner.RunInteractive());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
         }
 
         [Fact]
@@ -822,7 +862,7 @@ Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBas
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11716")]
         [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {

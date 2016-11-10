@@ -2,41 +2,48 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
-    internal class ForceLowMemoryMode
+    internal sealed partial class ForceLowMemoryMode
     {
+        private readonly IOptionService _optionService;
         private MemoryHogger _hogger;
 
-        public static readonly ForceLowMemoryMode Instance = new ForceLowMemoryMode();
-
-        private ForceLowMemoryMode()
+        public ForceLowMemoryMode(IOptionService optionService)
         {
+            _optionService = optionService;
+
+            optionService.OptionChanged += Options_OptionChanged;
+
+            RefreshFromSettings();
         }
 
-        public int Size { get; set; } = 500; // default to 500 MB
-
-        public bool Enabled
+        private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            get
+            if (e.Option.Feature == nameof(ForceLowMemoryMode))
             {
-                return _hogger != null;
+                RefreshFromSettings();
+            }
+        }
+
+        private void RefreshFromSettings()
+        {
+            var enabled = _optionService.GetOption(Enabled);
+
+            if (_hogger != null)
+            {
+                _hogger.Cancel();
+                _hogger = null;
             }
 
-            set
+            if (enabled)
             {
-                if (value && _hogger == null)
-                {
-                    _hogger = new MemoryHogger();
-                    var ignore = _hogger.PopulateAndMonitorAsync(this.Size);
-                }
-                else if (!value && _hogger != null)
-                {
-                    _hogger.Cancel();
-                    _hogger = null;
-                }
+                _hogger = new MemoryHogger();
+                var ignore = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
             }
         }
 
@@ -46,7 +53,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             private const int MonitorDelay = 10000; // 10 seconds
 
             private readonly List<byte[]> _blocks = new List<byte[]>();
-            private bool _cancelled;
+            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             public MemoryHogger()
             {
@@ -59,54 +66,34 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             public void Cancel()
             {
-                _cancelled = true;
+                _cancellationTokenSource.Cancel();
             }
 
             public Task PopulateAndMonitorAsync(int size)
             {
                 // run on background thread
-                return Task.Run(() => this.PopulateAndMonitorWorkerAsync(size));
+                return Task.Factory.StartNew(() => this.PopulateAndMonitorWorkerAsync(size), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             }
 
             private async Task PopulateAndMonitorWorkerAsync(int size)
             {
                 try
                 {
-                    for (int n = 0; n < size && !_cancelled; n++)
-                    {
-                        var block = new byte[BlockSize];
-
-                        // initialize block bits (so the memory actually gets allocated.. silly runtime!)
-                        for (int i = 0; i < BlockSize; i++)
-                        {
-                            block[i] = 0xFF;
-                        }
-
-                        _blocks.Add(block);
-
-                        // don't hog the thread
-                        await Task.Yield();
-                    }
-                }
-                catch (OutOfMemoryException)
-                {
-                }
-
-                // monitor memory to keep it paged in
-                while (!_cancelled)
-                {
                     try
                     {
-                        // access all block bytes
-                        for (var b = 0; b < _blocks.Count && !_cancelled; b++)
+                        for (int n = 0; n < size; n++)
                         {
-                            var block = _blocks[b];
+                            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                            byte tmp;
-                            for (int i = 0; i < block.Length; i++)
+                            var block = new byte[BlockSize];
+
+                            // initialize block bits (so the memory actually gets allocated.. silly runtime!)
+                            for (int i = 0; i < BlockSize; i++)
                             {
-                                tmp = block[i];
+                                block[i] = 0xFF;
                             }
+
+                            _blocks.Add(block);
 
                             // don't hog the thread
                             await Task.Yield();
@@ -116,16 +103,47 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     {
                     }
 
-                    await Task.Delay(MonitorDelay);
+                    // monitor memory to keep it paged in
+                    while (true)
+                    {
+                        _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                        try
+                        {
+                            // access all block bytes
+                            for (var b = 0; b < _blocks.Count; b++)
+                            {
+                                _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                                var block = _blocks[b];
+
+                                byte tmp;
+                                for (int i = 0; i < block.Length; i++)
+                                {
+                                    tmp = block[i];
+                                }
+
+                                // don't hog the thread
+                                await Task.Yield();
+                            }
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                        }
+
+                        await Task.Delay(MonitorDelay, _cancellationTokenSource.Token).ConfigureAwait(false);
+                    }
                 }
-
-                _blocks.Clear();
-
-                // force garbage collection
-                for (int i = 0; i < 5; i++)
+                catch (OperationCanceledException)
                 {
-                    GC.Collect(GC.MaxGeneration);
-                    GC.WaitForPendingFinalizers();
+                    _blocks.Clear();
+
+                    // force garbage collection
+                    for (int i = 0; i < 5; i++)
+                    {
+                        GC.Collect(GC.MaxGeneration);
+                        GC.WaitForPendingFinalizers();
+                    }
                 }
             }
         }

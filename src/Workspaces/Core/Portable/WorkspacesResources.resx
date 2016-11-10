@@ -117,346 +117,343 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ErrorWhileReadingSpecifiedConfigFile" xml:space="preserve">
+  <data name="An_error_occurred_while_reading_the_specified_configuration_file_colon_0" xml:space="preserve">
     <value>An error occurred while reading the specified configuration file: {0}</value>
   </data>
-  <data name="RenameSymbolIsNotFromSource" xml:space="preserve">
+  <data name="Symbol_0_is_not_from_source" xml:space="preserve">
     <value>Symbol "{0}" is not from source.</value>
   </data>
-  <data name="InvalidDocumentationCommentId" xml:space="preserve">
+  <data name="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T" xml:space="preserve">
     <value>Documentation comment id must start with E, F, M, N, P or T</value>
   </data>
-  <data name="CycleDetectedInExtensions" xml:space="preserve">
+  <data name="Cycle_detected_in_extensions" xml:space="preserve">
     <value>Cycle detected in extensions</value>
   </data>
-  <data name="InvalidDestinationNode" xml:space="preserve">
+  <data name="Destination_type_must_be_a_0_but_given_one_is_1" xml:space="preserve">
     <value>Destination type must be a {0}, but given one is {1}.</value>
   </data>
-  <data name="InvalidDestinationNode2" xml:space="preserve">
+  <data name="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2" xml:space="preserve">
     <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
   </data>
-  <data name="InvalidDestinationNode3" xml:space="preserve">
+  <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
     <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
   </data>
-  <data name="CouldNotFindLocationToGen" xml:space="preserve">
+  <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
   </data>
-  <data name="InvalidLocationForCodeGen" xml:space="preserve">
+  <data name="No_location_provided_to_add_statements_to" xml:space="preserve">
     <value>No location provided to add statements to.</value>
   </data>
-  <data name="InvalidNonSourceLocationForCodeGen" xml:space="preserve">
+  <data name="Destination_location_was_not_in_source" xml:space="preserve">
     <value>Destination location was not in source.</value>
   </data>
-  <data name="DestinationLocationFromDifferentTree" xml:space="preserve">
+  <data name="Destination_location_was_from_a_different_tree" xml:space="preserve">
     <value>Destination location was from a different tree.</value>
   </data>
-  <data name="NodeIsOfTheWrongType" xml:space="preserve">
+  <data name="Node_is_of_the_wrong_type" xml:space="preserve">
     <value>Node is of the wrong type.</value>
   </data>
-  <data name="LocationMustBeNullOrFromSource" xml:space="preserve">
+  <data name="Location_must_be_null_or_from_source" xml:space="preserve">
     <value>Location must be null or from source.</value>
   </data>
-  <data name="DuplicateSourceFileInProject" xml:space="preserve">
+  <data name="Duplicate_source_file_0_in_project_1" xml:space="preserve">
     <value>Duplicate source file '{0}' in project '{1}'</value>
   </data>
-  <data name="RemovingProjectsNotSupported" xml:space="preserve">
+  <data name="Removing_projects_is_not_supported" xml:space="preserve">
     <value>Removing projects is not supported.</value>
   </data>
-  <data name="AddingProjectsNotSupported" xml:space="preserve">
+  <data name="Adding_projects_is_not_supported" xml:space="preserve">
     <value>Adding projects is not supported.</value>
   </data>
-  <data name="WorkspaceIsNotEmpty" xml:space="preserve">
+  <data name="Workspace_is_not_empty" xml:space="preserve">
     <value>Workspace is not empty.</value>
   </data>
-  <data name="ProjectOrDocumentNotInWorkspace" xml:space="preserve">
+  <data name="_0_is_not_part_of_the_workspace" xml:space="preserve">
     <value>'{0}' is not part of the workspace.</value>
   </data>
-  <data name="ProjectOrDocumentAlreadyInWorkspace" xml:space="preserve">
+  <data name="_0_is_already_part_of_the_workspace" xml:space="preserve">
     <value>'{0}' is already part of the workspace.</value>
   </data>
-  <data name="ProjectNotReferenced" xml:space="preserve">
+  <data name="_0_is_not_referenced" xml:space="preserve">
     <value>'{0}' is not referenced.</value>
   </data>
-  <data name="ProjectAlreadyReferenced" xml:space="preserve">
+  <data name="_0_is_already_referenced" xml:space="preserve">
     <value>'{0}' is already referenced.</value>
   </data>
-  <data name="CausesCircularProjectReference" xml:space="preserve">
+  <data name="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference" xml:space="preserve">
     <value>Adding project reference from '{0}' to '{1}' will cause a circular reference.</value>
   </data>
-  <data name="MetadataIsNotReferenced" xml:space="preserve">
+  <data name="Metadata_is_not_referenced" xml:space="preserve">
     <value>Metadata is not referenced.</value>
   </data>
-  <data name="MetadataIsAlreadyReferenced" xml:space="preserve">
+  <data name="Metadata_is_already_referenced" xml:space="preserve">
     <value>Metadata is already referenced.</value>
   </data>
-  <data name="AnalyzerIsNotPresent" xml:space="preserve">
+  <data name="_0_is_not_present" xml:space="preserve">
     <value>{0} is not present.</value>
   </data>
-  <data name="AnalyzerIsAlreadyPresent" xml:space="preserve">
+  <data name="_0_is_already_present" xml:space="preserve">
     <value>{0} is already present.</value>
   </data>
-  <data name="DocumentVersionIsDifferent" xml:space="preserve">
+  <data name="The_specified_document_is_not_a_version_of_this_document" xml:space="preserve">
     <value>The specified document is not a version of this document.</value>
   </data>
-  <data name="DocumentNotInProject" xml:space="preserve">
-    <value>The project does not contain the specified document.</value>
-  </data>
-  <data name="UnsupportedLanguage" xml:space="preserve">
+  <data name="The_language_0_is_not_supported" xml:space="preserve">
     <value>The language '{0}' is not supported.</value>
   </data>
-  <data name="ProjectAlreadyInSolution" xml:space="preserve">
+  <data name="The_solution_already_contains_the_specified_project" xml:space="preserve">
     <value>The solution already contains the specified project.</value>
   </data>
-  <data name="ProjectNotInSolution" xml:space="preserve">
+  <data name="The_solution_does_not_contain_the_specified_project" xml:space="preserve">
     <value>The solution does not contain the specified project.</value>
   </data>
-  <data name="ProjectDirectlyReferencesTargetProject" xml:space="preserve">
+  <data name="The_project_already_references_the_target_project" xml:space="preserve">
     <value>The project already references the target project.</value>
   </data>
-  <data name="ProjectTransitivelyReferencesTargetProject" xml:space="preserve">
+  <data name="The_project_already_transitively_references_the_target_project" xml:space="preserve">
     <value>The project already transitively references the target project.</value>
   </data>
-  <data name="DocumentAlreadyInSolution" xml:space="preserve">
+  <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
     <value>The solution already contains the specified document.</value>
   </data>
-  <data name="DocumentNotInSolution" xml:space="preserve">
+  <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
     <value>The solution does not contain the specified document.</value>
   </data>
-  <data name="TemporaryStorageCannotBeWrittenMultipleTimes" xml:space="preserve">
+  <data name="Temporary_storage_cannot_be_written_more_than_once" xml:space="preserve">
     <value>Temporary storage cannot be written more than once.</value>
   </data>
-  <data name="DocumentIsNotOpen" xml:space="preserve">
+  <data name="_0_is_not_open" xml:space="preserve">
     <value>'{0}' is not open.</value>
   </data>
-  <data name="InvalidLanguageNameOption" xml:space="preserve">
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
     <value>A language name cannot be specified for this option.</value>
   </data>
-  <data name="InvalidLanguageNameOption2" xml:space="preserve">
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
     <value>A language name must be specified for this option.</value>
   </data>
-  <data name="FileWasExternallyModified" xml:space="preserve">
+  <data name="File_was_externally_modified_colon_0" xml:space="preserve">
     <value>File was externally modified: {0}.</value>
   </data>
-  <data name="UnrecognizedLanguageName" xml:space="preserve">
+  <data name="Unrecognized_language_name" xml:space="preserve">
     <value>Unrecognized language name.</value>
   </data>
-  <data name="CantResolveMetadataReference" xml:space="preserve">
+  <data name="Can_t_resolve_metadata_reference_colon_0" xml:space="preserve">
     <value>Can't resolve metadata reference: '{0}'.</value>
   </data>
-  <data name="CantResolveAnalyzerReference" xml:space="preserve">
+  <data name="Can_t_resolve_analyzer_reference_colon_0" xml:space="preserve">
     <value>Can't resolve analyzer reference: '{0}'.</value>
   </data>
-  <data name="InvalidProjectBlockInSolutionFile" xml:space="preserve">
+  <data name="Invalid_project_block_expected_after_Project" xml:space="preserve">
     <value>Invalid project block, expected "=" after Project.</value>
   </data>
-  <data name="InvalidProjectBlockInSolutionFile2" xml:space="preserve">
+  <data name="Invalid_project_block_expected_after_project_name" xml:space="preserve">
     <value>Invalid project block, expected "," after project name.</value>
   </data>
-  <data name="InvalidProjectBlockInSolutionFile3" xml:space="preserve">
+  <data name="Invalid_project_block_expected_after_project_path" xml:space="preserve">
     <value>Invalid project block, expected "," after project path.</value>
   </data>
-  <data name="InvalidProjectBlockInSolutionFile4" xml:space="preserve">
+  <data name="Expected_0" xml:space="preserve">
     <value>Expected {0}.</value>
   </data>
-  <data name="StringIsNullOrEmpty" xml:space="preserve">
+  <data name="_0_must_be_a_non_null_and_non_empty_string" xml:space="preserve">
     <value>"{0}" must be a non-null and non-empty string.</value>
   </data>
-  <data name="MissingHeaderInSolutionFile" xml:space="preserve">
+  <data name="Expected_header_colon_0" xml:space="preserve">
     <value>Expected header: "{0}".</value>
   </data>
-  <data name="MissingEndOfFileInSolutionFile" xml:space="preserve">
+  <data name="Expected_end_of_file" xml:space="preserve">
     <value>Expected end-of-file.</value>
   </data>
-  <data name="MissingLineInSolutionFile" xml:space="preserve">
+  <data name="Expected_0_line" xml:space="preserve">
     <value>Expected {0} line.</value>
   </data>
-  <data name="InvalidSubmissionReference" xml:space="preserve">
+  <data name="This_submission_already_references_another_submission_project" xml:space="preserve">
     <value>This submission already references another submission project.</value>
   </data>
-  <data name="ProjectContainsOpenDocuments" xml:space="preserve">
+  <data name="_0_still_contains_open_documents" xml:space="preserve">
     <value>{0} still contains open documents.</value>
   </data>
-  <data name="DocumentIsOpen" xml:space="preserve">
+  <data name="_0_is_still_open" xml:space="preserve">
     <value>{0} is still open.</value>
   </data>
-  <data name="DuplicateKey" xml:space="preserve">
+  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
     <value>An element with the same key but a different value already exists.</value>
   </data>
-  <data name="ArraysWithMoreThanOneDimensionCannotBeSerialized" xml:space="preserve">
+  <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
     <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
-  <data name="ValueTooLargeToBeRepresented" xml:space="preserve">
+  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
     <value>Value too large to be represented as a 30 bit unsigned integer.</value>
   </data>
-  <data name="PathMustBeAbsolute" xml:space="preserve">
+  <data name="Specified_path_must_be_absolute" xml:space="preserve">
     <value>Specified path must be absolute.</value>
   </data>
-  <data name="CastIsRedundant" xml:space="preserve">
+  <data name="Cast_is_redundant" xml:space="preserve">
     <value>Cast is redundant.</value>
   </data>
-  <data name="NameCanBeSimplified" xml:space="preserve">
+  <data name="Name_can_be_simplified" xml:space="preserve">
     <value>Name can be simplified.</value>
   </data>
-  <data name="UnknownIdentifier" xml:space="preserve">
+  <data name="Unknown_identifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
-  <data name="CannotCodeGenUnsupportedOperator" xml:space="preserve">
+  <data name="Cannot_generate_code_for_unsupported_operator_0" xml:space="preserve">
     <value>Cannot generate code for unsupported operator '{0}'</value>
   </data>
-  <data name="InvalidParameterCountForBinaryOperator" xml:space="preserve">
+  <data name="Invalid_number_of_parameters_for_binary_operator" xml:space="preserve">
     <value>Invalid number of parameters for binary operator.</value>
   </data>
-  <data name="InvalidParameterCountForUnaryOperator" xml:space="preserve">
+  <data name="Invalid_number_of_parameters_for_unary_operator" xml:space="preserve">
     <value>Invalid number of parameters for unary operator.</value>
   </data>
-  <data name="AbsolutePathExpected" xml:space="preserve">
+  <data name="Absolute_path_expected" xml:space="preserve">
     <value>Absolute path expected.</value>
   </data>
-  <data name="CannotOpenProjectUnrecognizedFileExtension" xml:space="preserve">
+  <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
   </data>
-  <data name="CannotOpenProjectUnsupportedLanguage" xml:space="preserve">
+  <data name="Cannot_open_project_0_because_the_language_1_is_not_supported" xml:space="preserve">
     <value>Cannot open project '{0}' because the language '{1}' is not supported.</value>
   </data>
-  <data name="InvalidProjectFilePath" xml:space="preserve">
+  <data name="Invalid_project_file_path_colon_0" xml:space="preserve">
     <value>Invalid project file path: '{0}'</value>
   </data>
-  <data name="InvalidSolutionFilePath" xml:space="preserve">
+  <data name="Invalid_solution_file_path_colon_0" xml:space="preserve">
     <value>Invalid solution file path: '{0}'</value>
   </data>
-  <data name="ProjectFileNotFound" xml:space="preserve">
+  <data name="Project_file_not_found_colon_0" xml:space="preserve">
     <value>Project file not found: '{0}'</value>
   </data>
-  <data name="SolutionFileNotFound" xml:space="preserve">
+  <data name="Solution_file_not_found_colon_0" xml:space="preserve">
     <value>Solution file not found: '{0}'</value>
   </data>
-  <data name="UnmergedChangeFromProject" xml:space="preserve">
+  <data name="Unmerged_change_from_project_0" xml:space="preserve">
     <value>Unmerged change from project '{0}'</value>
   </data>
-  <data name="AddedHeader" xml:space="preserve">
+  <data name="Added_colon" xml:space="preserve">
     <value>Added:</value>
   </data>
-  <data name="FixAllOccurrencesOfDiagnostic" xml:space="preserve">
+  <data name="Fix_all_0" xml:space="preserve">
     <value>Fix all '{0}'</value>
   </data>
-  <data name="FixAllOccurrencesOfDiagnosticInScope" xml:space="preserve">
+  <data name="Fix_all_0_in_1" xml:space="preserve">
     <value>Fix all '{0}' in '{1}'</value>
   </data>
-  <data name="FixAllOccurrencesOfDiagnosticInSolution" xml:space="preserve">
+  <data name="Fix_all_0_in_Solution" xml:space="preserve">
     <value>Fix all '{0}' in Solution</value>
   </data>
-  <data name="AfterHeader" xml:space="preserve">
+  <data name="After_colon" xml:space="preserve">
     <value>After:</value>
   </data>
-  <data name="BeforeHeader" xml:space="preserve">
+  <data name="Before_colon" xml:space="preserve">
     <value>Before:</value>
   </data>
-  <data name="RemovedHeader" xml:space="preserve">
+  <data name="Removed_colon" xml:space="preserve">
     <value>Removed:</value>
   </data>
-  <data name="InvalidCodePage" xml:space="preserve">
+  <data name="Invalid_CodePage_value_colon_0" xml:space="preserve">
     <value>Invalid CodePage value: {0}</value>
   </data>
-  <data name="AddingAdditionalDocumentsNotSupported" xml:space="preserve">
+  <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
   </data>
-  <data name="AddingAnalyzerReferencesNotSupported" xml:space="preserve">
+  <data name="Adding_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Adding analyzer references is not supported.</value>
   </data>
-  <data name="AddingDocumentsNotSupported" xml:space="preserve">
+  <data name="Adding_documents_is_not_supported" xml:space="preserve">
     <value>Adding documents is not supported.</value>
   </data>
-  <data name="AddingMetadataReferenceNotSupported" xml:space="preserve">
+  <data name="Adding_metadata_references_is_not_supported" xml:space="preserve">
     <value>Adding metadata references is not supported.</value>
   </data>
-  <data name="AddingProjectReferencesNotSupported" xml:space="preserve">
+  <data name="Adding_project_references_is_not_supported" xml:space="preserve">
     <value>Adding project references is not supported.</value>
   </data>
-  <data name="ChangingAdditionalDocumentsIsNotSupported" xml:space="preserve">
+  <data name="Changing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Changing additional documents is not supported.</value>
   </data>
-  <data name="ChangingDocumentsNotSupported" xml:space="preserve">
+  <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
-  <data name="ChangingProjectPropertiesNotSupported" xml:space="preserve">
+  <data name="Changing_project_properties_is_not_supported" xml:space="preserve">
     <value>Changing project properties is not supported.</value>
   </data>
-  <data name="RemovingAdditionalDocumentsIsNotSupported" xml:space="preserve">
+  <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
   </data>
-  <data name="RemovingAnalyzerReferencesNotSupported" xml:space="preserve">
+  <data name="Removing_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Removing analyzer references is not supported.</value>
   </data>
-  <data name="RemovingDocumentsNotSupported" xml:space="preserve">
+  <data name="Removing_documents_is_not_supported" xml:space="preserve">
     <value>Removing documents is not supported.</value>
   </data>
-  <data name="RemovingMetadataReferencesNotSupported" xml:space="preserve">
+  <data name="Removing_metadata_references_is_not_supported" xml:space="preserve">
     <value>Removing metadata references is not supported.</value>
   </data>
-  <data name="RemovingProjectReferencesNotSupported" xml:space="preserve">
+  <data name="Removing_project_references_is_not_supported" xml:space="preserve">
     <value>Removing project references is not supported.</value>
   </data>
-  <data name="WorkspaceServicesUnavailable" xml:space="preserve">
+  <data name="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace" xml:space="preserve">
     <value>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</value>
   </data>
-  <data name="DiagnosticCannotBeNull" xml:space="preserve">
+  <data name="Supplied_diagnostic_cannot_be_null" xml:space="preserve">
     <value>Supplied diagnostic cannot be null.</value>
   </data>
-  <data name="DiagnosticsCannotBeEmpty" xml:space="preserve">
+  <data name="At_least_one_diagnostic_must_be_supplied" xml:space="preserve">
     <value>At least one diagnostic must be supplied.</value>
   </data>
-  <data name="DiagnosticMustHaveMatchingSpan" xml:space="preserve">
+  <data name="Diagnostic_must_have_span_0" xml:space="preserve">
     <value>Diagnostic must have span '{0}'</value>
   </data>
-  <data name="NoBinderException" xml:space="preserve">
+  <data name="Cannot_deserialize_type_0_no_binder_supplied" xml:space="preserve">
     <value>Cannot deserialize type '{0}', no binder supplied.</value>
   </data>
-  <data name="NoReaderException" xml:space="preserve">
+  <data name="Cannot_deserialize_type_0_it_has_no_deserialization_reader" xml:space="preserve">
     <value>Cannot deserialize type '{0}', it has no deserialization reader.</value>
   </data>
-  <data name="NotWritableException" xml:space="preserve">
+  <data name="The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable" xml:space="preserve">
     <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
   </data>
-  <data name="LabelForNodeIsInvalid" xml:space="preserve">
+  <data name="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1" xml:space="preserve">
     <value>Label for node '{0}' is invalid, it must be within [0, {1}).</value>
   </data>
-  <data name="MatchingNodesMustHaveTheSameLabel" xml:space="preserve">
+  <data name="Matching_nodes_0_and_1_must_have_the_same_label" xml:space="preserve">
     <value>Matching nodes '{0}' and '{1}' must have the same label.</value>
   </data>
-  <data name="NodeMustBeContainedInTheNewTree" xml:space="preserve">
+  <data name="Node_0_must_be_contained_in_the_new_tree" xml:space="preserve">
     <value>Node '{0}' must be contained in the new tree.</value>
   </data>
-  <data name="NodeMustBeContainedInTheOldTree" xml:space="preserve">
+  <data name="Node_0_must_be_contained_in_the_old_tree" xml:space="preserve">
     <value>Node '{0}' must be contained in the old tree.</value>
   </data>
-  <data name="TheMemberIsNotDeclaredWithinTheDeclarationOfTheSymbol" xml:space="preserve">
+  <data name="The_member_0_is_not_declared_within_the_declaration_of_the_symbol" xml:space="preserve">
     <value>The member '{0}' is not declared within the declaration of the symbol.</value>
   </data>
-  <data name="ThePositionIsNotWithinTheSymbolsDeclaration" xml:space="preserve">
+  <data name="The_position_is_not_within_the_symbol_s_declaration" xml:space="preserve">
     <value>The position is not within the symbol's declaration</value>
   </data>
-  <data name="TheSymbolCannotBeLocatedWithinTheCurrentSolution" xml:space="preserve">
+  <data name="The_symbol_0_cannot_be_located_within_the_current_solution" xml:space="preserve">
     <value>The symbol '{0}' cannot be located within the current solution.</value>
   </data>
-  <data name="ChangingCompilationOptionsNotSupported" xml:space="preserve">
+  <data name="Changing_compilation_options_is_not_supported" xml:space="preserve">
     <value>Changing compilation options is not supported.</value>
   </data>
-  <data name="ChangingParseOptionsNotSupported" xml:space="preserve">
+  <data name="Changing_parse_options_is_not_supported" xml:space="preserve">
     <value>Changing parse options is not supported.</value>
   </data>
-  <data name="TheNodeIsNotPartOfTheTree" xml:space="preserve">
+  <data name="The_node_is_not_part_of_the_tree" xml:space="preserve">
     <value>The node is not part of the tree.</value>
   </data>
-  <data name="OpenDocumentNotSupported" xml:space="preserve">
+  <data name="This_workspace_does_not_support_opening_and_closing_documents" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
   </data>
-  <data name="Usage" xml:space="preserve">
+  <data name="Usage_colon" xml:space="preserve">
     <value>Usage:</value>
   </data>
-  <data name="Exceptions" xml:space="preserve">
+  <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
-  <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
+  <data name="_0_returned_an_uninitialized_ImmutableArray" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
   </data>
   <data name="Failure" xml:space="preserve">
@@ -465,13 +462,117 @@
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="PopulateSwitch" xml:space="preserve">
+  <data name="Populate_switch" xml:space="preserve">
     <value>Populate switch</value>
   </data>
-  <data name="MemberAccessShouldBeQualified" xml:space="preserve">
+  <data name="Member_access_should_be_qualified" xml:space="preserve">
     <value>Member access should be qualified.</value>
   </data>
-  <data name="AddBraces" xml:space="preserve">
+  <data name="Add_braces_to_0_statement" xml:space="preserve">
     <value>Add braces to '{0}' statement.</value>
+  </data>
+  <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
+    <value>Options did not come from Workspace</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Enable_and_ignore_future_errors" xml:space="preserve">
+    <value>Enable and ignore future errors</value>
+  </data>
+  <data name="_0_encountered_an_error_and_has_been_disabled" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
+  </data>
+  <data name="Show_Stack_Trace" xml:space="preserve">
+    <value>Show Stack Trace</value>
+  </data>
+  <data name="Stream_is_too_long" xml:space="preserve">
+    <value>Stream is too long.</value>
+  </data>
+  <data name="Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function" xml:space="preserve">
+    <value>Option '{0}' has an unsupported type to use with {1}. You should specify a parsing function.</value>
+  </data>
+  <data name="Pascal_Case" xml:space="preserve">
+    <value>Pascal Case</value>
+  </data>
+  <data name="Abstract_Method" xml:space="preserve">
+    <value>Abstract Method</value>
+    <comment>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Async_Method" xml:space="preserve">
+    <value>Async Method</value>
+    <comment>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Begins_with_I" xml:space="preserve">
+    <value>Begins with I</value>
+    <comment>{locked:I}</comment>
+  </data>
+  <data name="Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Ends_with_Async" xml:space="preserve">
+    <value>Ends with Async</value>
+    <comment>{locked:async}</comment>
+  </data>
+  <data name="Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Non_Field_Members" xml:space="preserve">
+    <value>Non-Field Members</value>
+    <comment>{locked:field}</comment>
+  </data>
+  <data name="Private_Method" xml:space="preserve">
+    <value>Private Method</value>
+    <comment>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Private_or_Internal_Field" xml:space="preserve">
+    <value>Private or Internal Field</value>
+    <comment>{locked: private}{locked: internal}{locked:field}</comment>
+  </data>
+  <data name="Private_or_Internal_Static_Field" xml:space="preserve">
+    <value>Private or Internal Static Field</value>
+    <comment>{locked: private}{locked: internal}{locked:static}{locked:field}</comment>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Public_or_Protected_Field" xml:space="preserve">
+    <value>Public or Protected Field</value>
+    <comment>{locked: public}{locked: protected}{locked:field}</comment>
+  </data>
+  <data name="Static_Field" xml:space="preserve">
+    <value>Static Field</value>
+    <comment>{locked:static}{locked:field} (unless the capitalization should be handled differently)</comment>
+  </data>
+  <data name="Static_Method" xml:space="preserve">
+    <value>Static Method</value>
+    <comment>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Struct" xml:space="preserve">
+    <value>Struct</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Types" xml:space="preserve">
+    <value>Types</value>
+    <comment>{locked:types} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>{locked:method} unless the capitalization should be handled differently</comment>
   </data>
 </root>

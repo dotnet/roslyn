@@ -179,7 +179,7 @@ namespace Microsoft.Cci
             IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
             if (reference != null)
             {
-                AppendAssemblyQualifierIfNecessary(sb, pointer.GetTargetType(context), out isAssemQualified, context);
+                AppendAssemblyQualifierIfNecessary(sb, reference.GetTargetType(context), out isAssemQualified, context);
                 return;
             }
 

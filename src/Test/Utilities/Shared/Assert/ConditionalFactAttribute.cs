@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Text;
 using Xunit;
 
@@ -45,9 +46,10 @@ namespace Roslyn.Test.Utilities
     public class IsEnglishLocal : ExecutionCondition
     {
         public override bool ShouldSkip =>
-            !System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+            !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
+            !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 
-        public override string SkipReason => "Current culture is not en-US";
+        public override string SkipReason => "Current culture is not en";
     }
 
     public class IsRelease : ExecutionCondition

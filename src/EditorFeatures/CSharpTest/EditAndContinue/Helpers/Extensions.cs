@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldSpans,
-                description.TrackingSpans,
+                description.OldTrackingSpans,
                 description.NewSpans,
                 description.OldRegions,
                 description.NewRegions);

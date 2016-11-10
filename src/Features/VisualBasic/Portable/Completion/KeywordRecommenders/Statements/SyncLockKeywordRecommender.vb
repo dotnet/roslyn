@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("SyncLock", VBFeaturesResources.SyncLockKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("SyncLock", VBFeaturesResources.Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

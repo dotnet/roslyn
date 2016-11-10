@@ -23,6 +23,7 @@
 /r:System.Threading.Tasks.dll
 /r:System.Threading.Tasks.Parallel.dll
 /r:System.Threading.Thread.dll
+/r:System.ValueTuple.dll
 # imports
 /u:System
 /u:System.IO

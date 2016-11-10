@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ITextView textView,
             ITextBuffer subjectBuffer)
         {
-            return new FilteredRoslynCompletionSet(
+            return new VisualStudio15CompletionSet(
                 completionPresenterSession, textView, subjectBuffer);
         }
     }

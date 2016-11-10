@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -82,6 +81,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 get { return _registration.CorrelationId; }
             }
 
+            public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+            {
+                // add analyzer
+                _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
+
+                // and ask to re-analyze whole solution for the given analyzer
+                var set = _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                Reanalyze(analyzer, set);
+            }
+
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
@@ -137,9 +146,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                // TODO: remove this once prototype is done
-                //       it is here just because it was convenient to add per workspace option change monitoring 
-                //       for incremental analyzer
+                // Changing the UseV2Engine option is a no-op as we have a single engine now.
                 if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
                 {
                     _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
@@ -513,7 +520,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
                 }
 
-                if (projectChanges.GetAddedMetadataReferences().Any() || 
+                if (projectChanges.GetAddedMetadataReferences().Any() ||
                     projectChanges.GetAddedProjectReferences().Any() ||
                     projectChanges.GetAddedAnalyzerReferences().Any() ||
                     projectChanges.GetRemovedMetadataReferences().Any() ||
@@ -536,7 +543,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Document oldDocument, Document newDocument)
             {
                 var differenceService = newDocument.GetLanguageService<IDocumentDifferenceService>();
-                if (differenceService != null)
+
+                if (differenceService == null)
+                {
+                    // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
+                    // The whole document should be considered as changed in that case.
+                    await EnqueueWorkItemAsync(newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                }
+                else
                 {
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
 

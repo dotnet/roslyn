@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{E5A55C16-A5B9-4874-9043-A5266DC02F58}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -10,27 +11,47 @@
     <PlatformTarget>x86</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <Nonshipping>true</Nonshipping>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'"></PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractIntegrationTest.cs" />
+    <Compile Include="AbstractInteractiveWindowTest.cs" />
+    <Compile Include="CSharp\CSharpAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
+    <Compile Include="CSharp\CSharpIntelliSense.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
+    <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
+    <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
+    <Compile Include="VisualBasic\BasicIntelliSense.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="EnvDTE" />
+    <Reference Include="EnvDTE80" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
@@ -40,10 +61,145 @@
       <Project>{3BED15FD-D608-4573-B432-1569C1026F6D}</Project>
       <Name>VisualStudioTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj">
+      <Project>{49bfae50-1bce-48ae-bc89-78b7d90a3ecd}</Project>
+      <Name>BasicEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
+      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
+      <Name>BasicFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
+      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
+      <Name>BasicInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
+      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
+      <Name>BasicScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
+      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
+      <Name>BasicWorkspace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
+      <Project>{b0ce9307-ffdb-4838-a5ec-ce1f7cdc4ac2}</Project>
+      <Name>CSharpEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
+      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
+      <Name>CSharpFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
+      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
+      <Name>CSharpVisualStudioRepl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
+      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
+      <Name>CSharpWorkspace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Diagnostics\Diagnostics.csproj">
+      <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
+      <Name>Diagnostics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
+      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
+      <Name>InteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
+      <Project>{8e2a252e-a140-45a6-a81a-2652996ea589}</Project>
+      <Name>InteractiveFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
+      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
+      <Name>InteractiveHost</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
+      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
+      <Name>Scripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Def\ServicesVisualStudio.csproj">
+      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
+      <Name>ServicesVisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Impl\ServicesVisualStudioImpl.csproj">
+      <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
+      <Name>ServicesVisualStudioImpl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
+      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
+      <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
+      <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
+      <Name>VisualStudioInteractiveServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
+      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
+      <Name>VisualStudioText</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
+      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
+      <Name>WorkspacesTestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

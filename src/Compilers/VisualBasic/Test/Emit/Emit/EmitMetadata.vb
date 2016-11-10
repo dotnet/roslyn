@@ -296,7 +296,19 @@ End Class
 
                 Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName))
-                Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType))
+
+                Dim actual = From h In reader.ExportedTypes
+                             Let et = reader.GetExportedType(h)
+                             Select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{CInt(et.Attributes):X4}"
+
+                AssertEx.Equal(
+                {
+                    "NS1.Class4 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class7 0x27000001 (ExportedType) 0x0002",
+                    ".Class1 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class3 0x27000003 (ExportedType) 0x0002",
+                    ".Class2 0x26000002 (AssemblyFile) 0x0001"
+                }, actual)
             End Using
         End Sub
 

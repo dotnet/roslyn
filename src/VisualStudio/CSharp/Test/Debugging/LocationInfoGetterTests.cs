@@ -447,7 +447,7 @@ class C1
         {
         $$}
     }
-}", "N1.C1.x)", 2);
+}", "N1.C1", 4);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

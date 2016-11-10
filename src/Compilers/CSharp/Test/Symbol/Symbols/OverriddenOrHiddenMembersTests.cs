@@ -530,7 +530,7 @@ class DerivedClass : BaseClass
     public override ref int this[int i] { get { return ref field; } }
 }
 ";
-            var comp = CreateExperimentalCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -838,7 +838,7 @@ class Base4<U, V> : Base3<U, V>
 {
     public override U Property { set { } }
 }";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base2").WithArguments("Base2<A, B>", "Base<A, B>.Property.get"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4<U, V>", "Base3<U, V>.Method(U, V)"));
         }
@@ -2543,12 +2543,18 @@ class D : C
             Assert.Equal(0, ohmD.HiddenMembers.Length);
 
             comp.VerifyDiagnostics(
-                // (19,41): error CS1715: 'D.E': type must be 'System.Func<int>' to match overridden member 'C.E'
+                // (19,41): error CS1715: 'D.E': type must be 'Func<int>' to match overridden member 'C.E'
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>"),
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>").WithLocation(19, 41),
                 // (19,41): warning CS0067: The event 'D.E' is never used
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(19, 41),
+                // (9,41): warning CS0067: The event 'B.E' is never used
+                //     public override event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B.E").WithLocation(9, 41),
+                // (14,47): warning CS0067: The event 'C.E' is never used
+                //     public new virtual event System.Func<int> E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(14, 47));
         }
 
         [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]

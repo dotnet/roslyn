@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -303,22 +304,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _leadingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
-            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken), SyntaxList.List(_leadingTriviaCache), 0, 0);
+            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
+                _leadingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
         internal SyntaxTriviaList LexSyntaxTrailingTrivia()
         {
             _trailingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
-            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken), SyntaxList.List(_trailingTriviaCache), 0, 0);
+            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken), 
+                _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
         private SyntaxToken Create(ref TokenInfo info, SyntaxListBuilder leading, SyntaxListBuilder trailing, SyntaxDiagnosticInfo[] errors)
         {
             Debug.Assert(info.Kind != SyntaxKind.IdentifierToken || info.StringValue != null);
 
-            var leadingNode = SyntaxList.List(leading);
-            var trailingNode = SyntaxList.List(trailing);
+            var leadingNode = leading?.ToListNode();
+            var trailingNode = trailing?.ToListNode();
 
             SyntaxToken token;
             if (info.RequiresTextForXmlEntity)
@@ -929,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Allows underscores in integers, except at beginning and end
-        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
+        private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
         {
             if (TextWindow.PeekChar() == '_')
             {
@@ -1003,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
@@ -1033,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1054,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1085,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                 }
 
@@ -1283,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // TODO: Change to Int64.TryParse when it supports NumberStyles.AllowBinarySpecifier (inline this method into GetValueUInt32/64)
-        private bool TryParseBinaryUInt64(string text, out ulong value)
+        private static bool TryParseBinaryUInt64(string text, out ulong value)
         {
             value = 0;
             foreach (char c in text)
@@ -3147,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (error != null)
             {
-                this.AddError(error.Value, errorArgs ?? SpecializedCollections.EmptyArray<object>());
+                this.AddError(error.Value, errorArgs ?? Array.Empty<object>());
             }
         }
 

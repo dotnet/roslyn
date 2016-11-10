@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
         {
             var doc = GetDocument(initialText);
-            options = options ?? doc.Options;
+            options = options ?? await doc.GetOptionsAsync();
 
             var imported = await ImportAdder.AddImportsAsync(doc, options);
 
@@ -64,23 +64,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public async Task TestAddImport()
         {
             await TestAsync(
-@"class C 
+@"class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -90,25 +90,25 @@ class C
             await TestAsync(
 @"using N;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 using N;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 using N;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -118,25 +118,25 @@ class C
             await TestAsync(
 @"using N;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using N;
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using N;
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }",
     _ws.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
 );
@@ -149,27 +149,27 @@ class C
 @"using System.Collections;
 using System.Diagnostics;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -177,28 +177,28 @@ class C
         public async Task TestAddMultipleImportsInOrder()
         {
             await TestAsync(
-@"class C 
+@"class C
 {
-   public System.Collections.Generic.List<int> F;
-   public System.EventHandler Handler;
+    public System.Collections.Generic.List<int> F;
+    public System.EventHandler Handler;
 }",
 
 @"using System;
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
-   public System.EventHandler Handler;
+    public System.Collections.Generic.List<int> F;
+    public System.EventHandler Handler;
 }",
 
 @"using System;
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public List<int> F;
-   public EventHandler Handler;
+    public List<int> F;
+    public EventHandler Handler;
 }");
         }
 
@@ -208,23 +208,23 @@ class C
             await TestAsync(
 @"using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"using System.Collections.Generic;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -232,21 +232,21 @@ class C
         public async Task TestUnusedAddedImportIsRemovedBySimplifier()
         {
             await TestAsync(
-@"class C 
+@"class C
 {
-   public System.Int32 F;
+    public System.Int32 F;
 }",
 
 @"using System;
 
-class C 
+class C
 {
-   public System.Int32 F;
+    public System.Int32 F;
 }",
 
-@"class C 
+@"class C
 {
-   public int F;
+    public int F;
 }");
         }
 
@@ -342,27 +342,42 @@ namespace N
             // to Simplifier not reducing the namespace reference because it would 
             // become ambiguous, thus leaving an unused using directive
             await TestAsync(
-@"namespace N { class C { } }
-
-class C 
+@"namespace N
 {
-   public N.C F;
+    class C
+    {
+    }
+}
+
+class C
+{
+    public N.C F;
 }",
 
 @"using N;
 
-namespace N { class C { } }
-
-class C 
+namespace N
 {
-   public N.C F;
+    class C
+    {
+    }
+}
+
+class C
+{
+    public N.C F;
 }",
 
-@"namespace N { class C { } }
-
-class C 
+@"namespace N
 {
-   public N.C F;
+    class C
+    {
+    }
+}
+
+class C
+{
+    public N.C F;
 }");
         }
 
@@ -376,9 +391,9 @@ class C
 // Copyright (C) MyOrgnaization 2016
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -388,9 +403,9 @@ class C
 // --------------------------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -400,9 +415,9 @@ class C
 // --------------------------------------------------------------------------------------------------------------------
 using System.Collections.Generic;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -418,9 +433,9 @@ class C
 // --------------------------------------------------------------------------------------------------------------------
 using ZZZ;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -431,9 +446,9 @@ class C
 using System.Collections.Generic;
 using ZZZ;
 
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -444,9 +459,9 @@ class C
 using System.Collections.Generic;
 using ZZZ;
 
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -455,29 +470,23 @@ class C
         public async Task TestLeadingWhitespaceLinesArePreserved()
         {
             await TestAsync(
-@"
-
-class C 
+@"class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
-@"
+@"using System.Collections.Generic;
 
-using System.Collections.Generic;
-
-class C 
+class C
 {
-   public System.Collections.Generic.List<int> F;
+    public System.Collections.Generic.List<int> F;
 }",
 
-@"
+@"using System.Collections.Generic;
 
-using System.Collections.Generic;
-
-class C 
+class C
 {
-   public List<int> F;
+    public List<int> F;
 }");
         }
 
@@ -485,10 +494,10 @@ class C
         [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
         public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly()
         {
-            var externalCode = 
+            var externalCode =
 @"namespace N.M { public class A : System.Attribute { } }";
 
-            var code = 
+            var code =
 @"using System;
 using N.M;
 
@@ -510,7 +519,7 @@ class C
 
             var options = document.Project.Solution.Workspace.Options;
 
-            var compilation = await document.Project.Solution.GetCompilationAsync(document.Project, CancellationToken.None);
+            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
             Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
 

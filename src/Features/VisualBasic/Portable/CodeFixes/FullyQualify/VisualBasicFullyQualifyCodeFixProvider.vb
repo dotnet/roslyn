@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify

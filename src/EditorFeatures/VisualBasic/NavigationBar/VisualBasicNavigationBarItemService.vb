@@ -269,7 +269,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Return Not p.IsWithEvents
             End If
 
-            Return symbol.Kind = SymbolKind.Event
+            If symbol.Kind = SymbolKind.Event Then
+                Return True
+            End If
+
+            If symbol.Kind = SymbolKind.Field AndAlso Not symbol.IsImplicitlyDeclared Then
+                Return True
+            End If
+
+            Return False
         End Function
 
         ''' <summary>
@@ -366,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     childItems:=rightHandMemberItems)
             Else
                 Return New NavigationBarActionlessItem(
-                    String.Format(VBEditorResources.Events, containingType.Name),
+                    String.Format(VBEditorResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
                     spans:=allMethodSpans,
@@ -486,7 +494,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
 
             ' First figure out the location that we want to grab considering partial types
-            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)))
+            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
+            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(syntaxTree))
 
             If location Is Nothing Then
                 location = sourceLocations.FirstOrDefault
@@ -509,12 +518,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' We'll compute everything up front before we go mutate state
             Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim generatedTree = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
             Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
-            Dim indentSize = newDocument.Options.GetOption(FormattingOptions.IndentationSize)
+            Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
 
-            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.GenerateMember, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
+            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
                 ' WARNING: now that we've edited, nothing can check the cancellation token from here

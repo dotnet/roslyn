@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             // Only set documents read-only if they're part of a project that supports Enc.
             var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            var project = workspace?.ProjectTracker?.GetProject(document.Project.Id) as AbstractRoslynProject;
+            var project = workspace?.ProjectTracker?.GetProject(document.Project.Id);
 
-            if (project != null)
+            if (project?.EditAndContinueImplOpt != null)
             {
                 SessionReadOnlyReason sessionReason;
                 ProjectReadOnlyReason projectReason;

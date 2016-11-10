@@ -178,10 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
-                    var invokeMethodSymbol = invokeMethod as MethodSymbol;
-                    if (invokeMethodSymbol != null)
+                    if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefKindIfRequired(invokeMethodSymbol.RefKind);
+                        AddRefIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
+        private static bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
         {
             var elementNames = tupleSymbol.TupleElementNames;
             if (!elementNames.IsDefault)
@@ -444,19 +443,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPunctuation(SyntaxKind.OpenParenToken);
 
-            bool first = true;
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                if (!first)
+                if (i != 0)
                 {
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
 
-                first = false;
-
                 elementTypes[i].Accept(this.NotFirstVisitor);
-                if (hasNames)
+                if (hasNames && elementNames[i] != null)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));

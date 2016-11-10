@@ -50,13 +50,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
+    <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>
     <ProvideAutomationProperties("TextEditor", "Basic-Specific", Guids.VisualBasicPackageIdString, 104, 106)>
     <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service")>
     <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim")>
     <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     Friend Class VisualBasicPackage
-        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 

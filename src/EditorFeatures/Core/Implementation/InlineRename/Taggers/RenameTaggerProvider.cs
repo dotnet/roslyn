@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(ITextMarkerTag))]
     internal class RenameTaggerProvider : ITaggerProvider
     {

@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so that the same object is passed to both Monitor.Enter and Monitor.Exit.
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
 
-                rewrittenArgument = MakeConversion(
+                rewrittenArgument = MakeConversionNode(
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
-                    ConversionKind.Boxing,
+                    Conversion.Boxing,
                     argumentType,
                     @checked: false,
                     constantValueOpt: rewrittenArgument.ConstantValue);
@@ -120,9 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol, boundLockTakenTemp.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create(
-                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
+                        InstrumentLockTargetCapture(node, boundLockTempInit),
                         boundLockTakenTempInit,
                         new BoundTryStatement(
                             lockSyntax,
@@ -171,9 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create(
-                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
+                        InstrumentLockTargetCapture(node, boundLockTempInit),
                         enterCall,
                         new BoundTryStatement(
                             lockSyntax,
@@ -183,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement MakeInitialLockSequencePoint(BoundStatement statement, LockStatementSyntax lockSyntax)
+        private BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
-            return this.GenerateDebugInfo ?
-                new BoundSequencePointWithSpan(lockSyntax, statement, TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End)) :
-                statement;
+            return this.Instrument ?
+                _instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
+                lockTargetCapture;
         }
     }
 }

@@ -1,13 +1,24 @@
 {
-  "supports": { },
-  "dependencies": {
-    "Microsoft.VisualStudio.Imaging": "14.2.25123",
-    "Microsoft.VisualStudio.ImageCatalog": "14.2.25123",
-    "Microsoft.VisualStudio.Language.Intellisense": "14.2.25123",
-    "Microsoft.VisualStudio.Language.StandardClassification": "14.2.25123",
-    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.2.25123"
-  },
-  "frameworks": {
-    ".NETFramework,Version=v4.6": { }
-  }
+    "supports": { },
+    "dependencies": {
+        "Microsoft.VisualStudio.Imaging": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.ImageCatalog": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+        "Microsoft.VisualStudio.Language.StandardClassification": {
+            "version": "14.3.25407",
+            "suppressParent": "all"
+        },
+    },
+    "frameworks": {
+        ".NETFramework,Version=v4.6": { }
+    }
 }

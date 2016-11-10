@@ -244,6 +244,132 @@ End Module
         End Sub
 
         <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.DebugExe, expectedOutput:="a")
+        End Sub
+
+        <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals_Rel()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.ReleaseExe, expectedOutput:="a")
+        End Sub
+
+        <Fact()>
         Public Sub Simple_Task()
             CompileAndVerify(
 <compilation>
@@ -8405,27 +8531,26 @@ End Class
 
         <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
-        Public Sub MissingAsyncMethodBuilder()
-            Dim source = <compilation name="Async">
-                             <file name="a.vb">
+        Public Sub MissingAsyncVoidMethodBuilder()
+            Dim source =
+<compilation name="AsyncVoid">
+    <file name="a.vb">
 Public Class TestCase
     Async Sub M()
     End Sub
 End Class
     </file>
-                         </compilation>
-
+</compilation>
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
-
-            Using stream As New MemoryStream()
-                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors>
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
@@ -8437,8 +8562,80 @@ BC35000: Requested operation is not available because the runtime library functi
 BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
     Async Sub M()
               ~
-                    </errors>)
-            End Using
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder()
+            Dim source =
+<compilation name="AsyncTask">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task
+                   ~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder_T()
+            Dim source =
+<compilation name="AsyncTask_T">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task(Of Integer)
+        Return 3
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task(Of Integer)
+                   ~
+</errors>)
         End Sub
 
         <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
@@ -8877,6 +9074,79 @@ BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
                 </expected>)
         End Sub
 
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupWithConversionNoSpill()
+
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Public Class AsyncBug
+    Public Shared Sub Main()
+        AsyncBug.Boom().GetAwaiter().GetResult()
+    End Sub
+
+    Public Async Shared Function Boom() As Task
+        Dim func As Func(Of Type) = Addressof (Await Task.FromResult(1)).GetType
+        Console.WriteLine(func())
+    End Function
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[System.Int32]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupConversionWithSpill()
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+imports System.Threading.Tasks
+imports System
+imports System.Linq
+imports System.Collections.Generic
+
+class Program
+    class SomeClass
+        Public Function Method(value as Integer) as Boolean
+            Return value Mod 2 = 0
+        End Function
+    End Class
+
+    private Async Function Danger() as Task(Of SomeClass)
+        await Task.Yield()
+        return new SomeClass()
+    End Function
+
+    Async function Killer() as Task(Of IEnumerable(Of Boolean))
+        Return {1, 2, 3, 4, 5}.Select(AddressOf (Await Danger()).Method)
+    End Function
+
+    Shared Sub Main(args As String())
+        For Each b in new Program().Killer().GetAwaiter().GetResult() 
+            Console.WriteLine(b)
+        Next
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[False
+True
+False
+True
+False
+]]>
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
     End Class
 End Namespace
 

@@ -83,12 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
         {
-            if (spansTagged == null)
-            {
-                throw new ArgumentNullException(nameof(spansTagged));
-            }
-
-            this._spansTagged = spansTagged;
+            this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
         }
 
         public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)

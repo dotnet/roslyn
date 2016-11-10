@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var memberCref = qualifiedCrefSyntax.Member;
 
             // Currently we are dealing with only the NameMemberCrefs
-            if (optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp) &&
+            if (SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language) &&
                 (memberCref.Kind() == SyntaxKind.NameMemberCref))
             {
                 var nameMemberCref = ((NameMemberCrefSyntax)memberCref).Name;

@@ -1,10 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#r "../../../Roslyn.Test.Performance.Utilities.dll"
-
-// TestThisPlease()
-#load "../../util/test_util.csx"
-// IsVerbose()
-#load "../../util/tools_util.csx"
+#r "../Roslyn.Test.Performance.Utilities.dll"
 
 using System.IO;
 using System.Collections.Generic;
@@ -34,11 +29,11 @@ class CSharpCompilerTest: PerfTest
 
         string workingDirectory = Path.Combine(TempDirectory, "csharp");
 
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, IsVerbose(), _logger, workingDirectory);
+        ShellOutVital(Path.Combine(MyWorkingDirectory, @"..\csc.exe"), args, workingDirectory);
         _logger.Flush();
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 3;
     public override string Name => "csharp " + _rspFile;
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;
@@ -52,4 +47,4 @@ TestThisPlease(
     new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
-    );
+);

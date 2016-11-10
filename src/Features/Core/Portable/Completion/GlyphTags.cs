@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -14,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 case Glyph.Assembly:
                     return Assembly;
                 case Glyph.BasicFile:
-                    return File;
+                    return VisualBasicFile;
                 case Glyph.BasicProject:
-                    return Project;
+                    return VisualBasicProject;
                 case Glyph.ClassPublic:
                     return ClassPublic;
                 case Glyph.ClassProtected:
@@ -26,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 case Glyph.ClassInternal:
                     return ClassInternal;
                 case Glyph.CSharpFile:
-                    return File;
+                    return CSharpFile;
                 case Glyph.CSharpProject:
-                    return Project;
+                    return CSharpProject;
                 case Glyph.ConstantPublic:
                     return ConstantPublic;
                 case Glyph.ConstantProtected:
@@ -147,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Completion
                     return Snippet;
                 case Glyph.CompletionWarning:
                     return Warning;
+                case Glyph.StatusInformation:
+                    return StatusInformation;
                 default:
                     return ImmutableArray<string>.Empty;
             }
         }
 
         private static readonly ImmutableArray<string> Assembly = ImmutableArray.Create(CompletionTags.Assembly);
-        private static readonly ImmutableArray<string> File = ImmutableArray.Create(CompletionTags.File);
-        private static readonly ImmutableArray<string> Project = ImmutableArray.Create(CompletionTags.Project);
         private static readonly ImmutableArray<string> ClassPublic = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Public);
         private static readonly ImmutableArray<string> ClassProtected = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Protected);
         private static readonly ImmutableArray<string> ClassPrivate = ImmutableArray.Create(CompletionTags.Class, CompletionTags.Private);
@@ -172,7 +171,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly ImmutableArray<string> EnumPrivate = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Private);
         private static readonly ImmutableArray<string> EnumInternal = ImmutableArray.Create(CompletionTags.Enum, CompletionTags.Internal);
         private static readonly ImmutableArray<string> EnumMember = ImmutableArray.Create(CompletionTags.EnumMember);
-        private static readonly ImmutableArray<string> Error = ImmutableArray.Create(CompletionTags.Error);
         private static readonly ImmutableArray<string> EventPublic = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Public);
         private static readonly ImmutableArray<string> EventProtected = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Protected);
         private static readonly ImmutableArray<string> EventPrivate = ImmutableArray.Create(CompletionTags.Event, CompletionTags.Private);
@@ -217,6 +215,16 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly ImmutableArray<string> StructureInternal = ImmutableArray.Create(CompletionTags.Structure, CompletionTags.Internal);
         private static readonly ImmutableArray<string> TypeParameter = ImmutableArray.Create(CompletionTags.TypeParameter);
         private static readonly ImmutableArray<string> Snippet =ImmutableArray.Create(CompletionTags.Snippet);
+
+        private static readonly ImmutableArray<string> Error = ImmutableArray.Create(CompletionTags.Error);
         private static readonly ImmutableArray<string> Warning = ImmutableArray.Create(CompletionTags.Warning);
+        private static readonly ImmutableArray<string> StatusInformation = ImmutableArray.Create(CompletionTags.StatusInformation);
+
+        private static readonly ImmutableArray<string> CSharpFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.CSharp);
+        private static readonly ImmutableArray<string> VisualBasicFile = ImmutableArray.Create(CompletionTags.File, LanguageNames.VisualBasic);
+
+        private static readonly ImmutableArray<string> CSharpProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.CSharp);
+        private static readonly ImmutableArray<string> VisualBasicProject = ImmutableArray.Create(CompletionTags.Project, LanguageNames.VisualBasic);
+
     }
 }

@@ -5,12 +5,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal class IntellisenseFilter2 : IntellisenseFilter
     {
-        private readonly FilteredRoslynCompletionSet _completionSet;
+        private readonly Roslyn15CompletionSet _completionSet;
         public readonly CompletionItemFilter CompletionItemFilter;
 
         public IntellisenseFilter2(
-            FilteredRoslynCompletionSet completionSet, CompletionItemFilter filter, string language)
-            : base(ImageMonikers.GetImageMoniker(filter.Tags, language), GetToolTip(filter),
+            Roslyn15CompletionSet completionSet, CompletionItemFilter filter)
+            : base(ImageMonikers.GetImageMoniker(filter.Tags), GetToolTip(filter),
                    filter.AccessKey.ToString(), automationText: filter.Tags[0])
         {
             _completionSet = completionSet;

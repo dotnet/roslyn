@@ -1,12 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -632,7 +628,7 @@ class Program
             int indentationLine,
             int expectedSpace)
         {
-            Assert.NotNull(await Record.ExceptionAsync(async () => await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{')));
+            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{')));
         }
 
         private async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
@@ -640,7 +636,7 @@ class Program
             int indentationLine,
             int expectedSpace)
         {
-            Assert.NotNull(await Record.ExceptionAsync(async () => await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}')));
+            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}')));
         }
     }
 }

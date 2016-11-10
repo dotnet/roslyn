@@ -1,44 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
+    <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
@@ -49,43 +26,25 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGen\ItemTokenMap.cs" />
+    <Compile Include="Emit\DebugDocumentsBuilder.cs" />
+    <Compile Include="Emit\InstrumentationKind.cs" />
+    <Compile Include="EmbeddedText.cs" />
+    <Compile Include="Emit\EditAndContinue\LambdaSyntaxFacts.cs" />
+    <Compile Include="InternalUtilities\EncodingExtensions.cs" />
+    <Compile Include="InternalUtilities\BlobBuildingStream.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="InternalUtilities\IncrementalHash.cs" />
-    <Compile Include="System\Reflection\Blob.cs" />
-    <Compile Include="System\Reflection\BlobWriter.cs" />
-    <Compile Include="System\Reflection\BlobWriterImpl.cs" />
-    <Compile Include="System\Reflection\BlobBuilder.cs" />
-    <Compile Include="System\Reflection\BlobBuilder.Enumerators.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BranchBuilder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\LabelHandle.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCodeExtensions.cs" />
-    <Compile Include="System\Reflection\Metadata\ImageFormatLimitationException.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BlobEncoders.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\MethodBodyEncoder.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSizes.cs" />
-    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
-    <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
-    <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ManagedPEBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PEDirectoriesBuilder.cs" />
-    <Compile Include="System\Reflection\PortableExecutable\PESectionLocation.cs" />
-    <Compile Include="System\Reflection\Internal\Utilities\BlobUtilities.cs" />
+    <Compile Include="PEWriter\DebugSourceInfo.cs" />
+    <Compile Include="PEWriter\ExportedType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopShim.cs">
       <Link>DesktopShim.cs</Link>
     </Compile>
@@ -93,8 +52,12 @@
     <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
+    <Compile Include="CodeGen\DynamicAnalysisMethodBodyData.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" />
+    <Compile Include="FileSystem\CompilerPathUtilities.cs" />
+    <Compile Include="InternalUtilities\AssemblyIdentityUtils.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
@@ -117,20 +80,54 @@
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="PEWriter\NativeResourceWriter.cs" />
+    <Compile Include="PEWriter\MetadataWriter.DynamicAnalysis.cs" />
+    <Compile Include="PEWriter\SourceSpan.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorExtensions.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
+    <Compile Include="Symbols\ISourceAssemblySymbolInternal.cs" />
+    <Compile Include="Symbols\TypeCompareKind.cs" />
+    <Compile Include="Syntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.cs" />
+    <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Reversed.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithLotsOfChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxListBuilder.cs" />
+    <Compile Include="Syntax\InternalSyntax\SeparatedSyntaxList.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.Enumerator.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxList`1.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxNodeCache.cs" />
+    <Compile Include="Syntax\SyntaxList.cs" />
+    <Compile Include="Syntax\SyntaxList.SeparatedWithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithManyWeakChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithThreeChildren.cs" />
+    <Compile Include="Syntax\SyntaxList.WithTwoChildren.cs" />
+    <Compile Include="Syntax\InternalSyntax\SyntaxDiagnosticInfoList.cs" />
+    <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
+    <Compile Include="Syntax\SyntaxListBuilder`1.cs" />
+    <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
+    <Compile Include="Syntax\SyntaxTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
+    <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
-    <Compile Include="UnicodeCharacterUtilities.cs" />
+    <Compile Include="InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -168,7 +165,6 @@
     <Compile Include="CodeGen\ReferenceDependencyWalker.cs" />
     <Compile Include="CodeGen\ScopeType.cs" />
     <Compile Include="CodeGen\SequencePointList.cs" />
-    <Compile Include="CodeGen\StringTokenMap.cs" />
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.cs" />
     <Compile Include="CodeGen\SwitchIntegralJumpTableEmitter.SwitchBucket.cs" />
     <Compile Include="CodeGen\SwitchStringJumpTableEmitter.cs" />
@@ -212,7 +208,6 @@
     <Compile Include="Compilation\LoadDirective.cs" />
     <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
-    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResultBuilder.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisScope.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.AnalyzerStateData.cs" />
@@ -275,7 +270,6 @@
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
-    <Compile Include="Collections\PooledStringBuilder.cs" />
     <Compile Include="Collections\SmallConcurrentSetOfInts.cs" />
     <Compile Include="Collections\SmallDictionary.cs" />
     <Compile Include="Collections\UnionCollection.cs" />
@@ -385,13 +379,11 @@
     <Compile Include="InternalUtilities\ConsList`1.cs" />
     <Compile Include="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentXmlNames.cs" />
-    <Compile Include="InternalUtilities\EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="InternalUtilities\EnumField.cs" />
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="InternalUtilities\FileNameUtilities.cs" />
-    <Compile Include="InternalUtilities\HashAlgorithms.cs" />
     <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableListExtensions.cs" />
@@ -404,7 +396,6 @@
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />
     <Compile Include="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.cs" />
-    <Compile Include="InternalUtilities\SpecializedCollections.Empty.Array.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
@@ -434,7 +425,6 @@
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
-    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
@@ -448,7 +438,6 @@
     <Compile Include="MetadataReader\ModuleExtensions.cs" />
     <Compile Include="MetadataReader\PEAssembly.cs" />
     <Compile Include="MetadataReader\PEModule.cs" />
-    <Compile Include="MetadataReader\PortableCustomDebugInfoKinds.cs" />
     <Compile Include="MetadataReader\SymbolFactory.cs" />
     <Compile Include="MetadataReader\TypeAttributesExtensions.cs" />
     <Compile Include="MetadataReader\TypeNameDecoder.cs" />
@@ -484,20 +473,17 @@
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
-    <Compile Include="PortableShim.cs" />
     <Compile Include="RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="RuleSet\RuleSet.cs" />
     <Compile Include="RuleSet\RuleSetInclude.cs" />
     <Compile Include="RuleSet\RuleSetProcessor.cs" />
     <Compile Include="SourceFileResolver.cs" />
-    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
-    <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
     <Compile Include="PEWriter\ExceptionHandlerRegion.cs" />
@@ -559,9 +545,6 @@
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
-    <Compile Include="SourceGenerator\SourceGenerator.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorAttribute.cs" />
-    <Compile Include="SourceGenerator\SourceGeneratorContext.cs" />
     <Compile Include="SpecialMember.cs" />
     <Compile Include="SpecialMembers.cs" />
     <Compile Include="SpecialType.cs" />
@@ -670,7 +653,7 @@
     <Compile Include="Symbols\TypeParameterKind.cs" />
     <Compile Include="Symbols\VarianceKind.cs" />
     <Compile Include="Symbols\WellKnownMemberNames.cs" />
-    <Compile Include="Syntax\AbstractSyntaxNavigator.cs" />
+    <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\AbstractWarningStateMap.cs" />
     <Compile Include="Syntax\AnnotationExtensions.cs" />
     <Compile Include="Syntax\ChildSyntaxList.cs" />
@@ -810,19 +793,8 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

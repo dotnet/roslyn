@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private int _recursionDepth;
 
-        private void VisitArray<T>(ImmutableArray<T> list) where T : IOperation
+        internal void VisitArray<T>(ImmutableArray<T> list) where T : IOperation
         {
             if (!list.IsDefault)
             {

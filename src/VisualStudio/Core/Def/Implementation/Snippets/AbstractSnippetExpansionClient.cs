@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
+using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc);
         protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
@@ -105,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
+            
             SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
 
             if (isFullSnippetFormat)
@@ -115,7 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // specified in the snippet xml. In OnBeforeInsertion we have no guarantee that the
                 // snippet xml will be available, and changing the buffer during OnAfterInsertion can
                 // cause the underlying tracking spans to get out of sync.
-                AddReferencesAndImports(ExpansionSession, cancellationToken);
+                var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
+                AddReferencesAndImports(
+                    ExpansionSession, currentStartPosition, cancellationToken);
 
                 SetNewEndPosition(endPositionTrackingSpan);
             }
@@ -174,8 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var tabSize = document.Options.GetOption(FormattingOptions.TabSize);
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
+                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
                     }
                     else
                     {
@@ -510,7 +515,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void AddReferencesAndImports(IVsExpansionSession pSession, CancellationToken cancellationToken)
+        private void AddReferencesAndImports(
+            IVsExpansionSession pSession,
+            int position,
+            CancellationToken cancellationToken)
         {
             XElement snippetNode;
             if (!TryGetSnippetNode(pSession, out snippetNode))
@@ -524,8 +532,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var placeSystemNamespaceFirst = documentWithImports.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst);
-            documentWithImports = AddImports(documentWithImports, snippetNode, placeSystemNamespaceFirst, cancellationToken);
+            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+
+            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
@@ -568,7 +578,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine)
+                    string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
                     + Environment.NewLine + Environment.NewLine
                     + string.Join(Environment.NewLine, failedReferenceAdditions),
                     severity: NotificationSeverity.Warning);

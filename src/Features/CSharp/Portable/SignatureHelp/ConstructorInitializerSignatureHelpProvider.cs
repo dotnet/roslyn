@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -42,11 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ConstructorInitializerSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)
@@ -89,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
-                                             .Where(c => c.IsAccessibleWithin(within))
-                                             .Where(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                             .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
 
             if (!accessibleConstructors.Any())
@@ -103,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+            return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
+                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -138,11 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -155,9 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

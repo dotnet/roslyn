@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, span As TextSpan, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As CompletionTrigger, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments:=True)
 
@@ -69,23 +68,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' Maybe we're going to suggest the close tag
             If token.Kind = SyntaxKind.LessThanSlashToken Then
-                Return GetCloseTagItem(token, span)
+                Return GetCloseTagItem(token)
             ElseIf token.IsKind(SyntaxKind.XmlNameToken) AndAlso token.GetPreviousToken().IsKind(SyntaxKind.LessThanSlashToken) Then
-                Return GetCloseTagItem(token.GetPreviousToken(), span)
+                Return GetCloseTagItem(token.GetPreviousToken())
             End If
 
-            ' Maybe we're going to do attribute completion
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(False)
-            TryGetAttributes(token, position, span, items, declaration, semanticModel, cancellationToken)
-            If items.Any() Then
-                Return items
-            End If
-
-            items.AddRange(GetAlwaysVisibleItems(span))
+            Dim symbol As ISymbol = Nothing
 
             If declaration IsNot Nothing Then
-                items.AddRange(GetTagsForDeclaration(semanticModel, declaration, span, parent, cancellationToken))
+                symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
             End If
+
+            If symbol IsNot Nothing Then
+                ' Maybe we're going to do attribute completion
+                TryGetAttributes(token, position, items, symbol)
+                If items.Any() Then
+                    Return items
+                End If
+            End If
+
+            items.AddRange(GetAlwaysVisibleItems())
 
             Dim parentElement = token.GetAncestor(Of XmlElementSyntax)()
             If parentElement Is Nothing Then
@@ -94,41 +97,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim grandParent = parentElement.Parent
 
-            Dim symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
-
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span, symbol))
+                items.AddRange(GetNestedTags(symbol))
 
                 If GetStartTagName(grandParent) = ListTagName Then
-                    items.AddRange(GetListItems(span))
+                    items.AddRange(GetListItems())
                 End If
 
                 If GetStartTagName(grandParent) = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems(span))
+                    items.AddRange(GetListHeaderItems())
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span, symbol))
+                items.AddRange(GetNestedTags(symbol))
 
                 If GetStartTagName(token.Parent.Parent) = ListTagName Then
-                    items.AddRange(GetListItems(span))
+                    items.AddRange(GetListItems())
                 End If
 
                 If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems(span))
+                    items.AddRange(GetListHeaderItems())
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
-                items.AddRange(GetSingleUseTopLevelItems(parent, span))
-                items.AddRange(GetTopLevelRepeatableItems(span))
+                items.AddRange(GetTagsForSymbol(symbol, parent))
+                items.AddRange(GetSingleUseTopLevelItems(parent))
+                items.AddRange(GetTopLevelRepeatableItems())
             End If
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
                 If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
                     If GetStartTagName(parentElement.Parent) = ListTagName Then
-                        items.AddRange(GetListItems(span))
+                        items.AddRange(GetListItems())
                     End If
 
                     If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
-                        items.AddRange(GetListHeaderItems(span))
+                        items.AddRange(GetListHeaderItems())
                     End If
                 End If
             End If
@@ -136,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return items
         End Function
 
-        Private Function GetCloseTagItem(token As SyntaxToken, span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Function GetCloseTagItem(token As SyntaxToken) As IEnumerable(Of CompletionItem)
             Dim endTag = TryCast(token.Parent, XmlElementEndTagSyntax)
             If endTag Is Nothing Then
                 Return Nothing
@@ -155,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(CreateCompletionItem(span, nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(CreateCompletionItem(nameToken.ValueText, nameToken.ValueText & ">", String.Empty))
             End If
 
             Return Nothing
@@ -167,36 +169,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Sub TryGetAttributes(token As SyntaxToken,
                                      position As Integer,
-                                     span As TextSpan,
                                      items As List(Of CompletionItem),
-                                     declaration As DeclarationStatementSyntax,
-                                     semanticModel As SemanticModel,
-                                     cancellationToken As CancellationToken)
+                                     symbol As ISymbol)
             Dim startTagSyntax = token.GetAncestor(Of XmlElementStartTagSyntax)()
             If startTagSyntax IsNot Nothing Then
                 Dim targetToken = GetPreviousTokenIfTouchingText(token, position)
 
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is startTagSyntax.Name Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax, span))
+                    items.AddRange(GetAttributes(startTagSyntax))
                 End If
 
                 '<exception a|
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                     ' <exception |
-                    items.AddRange(GetAttributes(startTagSyntax, span))
+                    items.AddRange(GetAttributes(startTagSyntax))
                 End If
 
                 '<exception a=""|
                 If targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
-                    items.AddRange(GetAttributes(startTagSyntax, span))
+                    items.AddRange(GetAttributes(startTagSyntax))
                 End If
 
                 ' <param name="|"
                 If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.StartQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
                     targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.StartQuoteToken) Then
-                    Dim symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
-
                     Dim name = TryCast(startTagSyntax.Name, XmlNameSyntax)
                     Dim tagName = name.LocalName.ValueText
 
@@ -211,60 +208,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                     If attributeName = NameAttributeName Then
                         If tagName = ParamTagName Then
-                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(span, s.Name)))
+                            items.AddRange(symbol.GetParameters().Select(Function(s) CreateCompletionItem(s.Name)))
                         End If
 
                         If tagName = TypeParamTagName Then
-                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(span, s.Name)))
+                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) CreateCompletionItem(s.Name)))
                         End If
                     End If
                 End If
             End If
         End Sub
 
-        Private Function GetTagsForDeclaration(semanticModel As SemanticModel,
-                                               declaration As DeclarationStatementSyntax,
-                                               span As TextSpan,
-                                               parent As DocumentationCommentTriviaSyntax,
-                                               cancellationToken As CancellationToken) As IEnumerable(Of CompletionItem)
+        Private Function GetTagsForSymbol(symbol As ISymbol,
+                                          parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
             Dim items = New List(Of CompletionItem)()
 
-            Dim symbol = semanticModel.GetDeclaredSymbol(declaration)
             If symbol Is Nothing Then
                 Return items
             End If
 
             Dim method = TryCast(symbol, IMethodSymbol)
             If method IsNot Nothing Then
-                items.AddRange(GetTagsForMethod(method, span, parent))
+                items.AddRange(GetTagsForMethod(method, parent))
             End If
 
             Dim [property] = TryCast(symbol, IPropertySymbol)
             If [property] IsNot Nothing Then
-                items.AddRange(GetTagsForProperty([property], span, parent))
+                items.AddRange(GetTagsForProperty([property], parent))
             End If
 
             Dim type = TryCast(symbol, INamedTypeSymbol)
             If type IsNot Nothing Then
-                items.AddRange(GetTagsForType(type, span, parent))
+                items.AddRange(GetTagsForType(type, parent))
             End If
 
             Return items
         End Function
 
-        Private Function GetTagsForType(type As INamedTypeSymbol, span As TextSpan, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
+        Private Function GetTagsForType(type As INamedTypeSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
             Dim items = New List(Of CompletionItem)
 
             Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
             RemoveExistingTags(parent, typeParameters, Function(e) FindName(TypeParamTagName, e))
 
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             Return items
         End Function
 
         Private Function GetTagsForProperty([property] As IPropertySymbol,
-                                            span As TextSpan,
                                             parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
             Dim items = New List(Of CompletionItem)
 
@@ -285,19 +277,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If [property].IsIndexer Then
                 Dim parameters = [property].Parameters.Select(Function(p) p.Name).ToSet()
                 RemoveExistingTags(parent, parameters, Function(e) FindName(ParamTagName, e))
-                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(ParamTagName, p))))
+                items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
             End If
 
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             If value Then
-                items.Add(GetItem(ValueTagName, span))
+                items.Add(GetItem(ValueTagName))
             End If
 
             Return items
         End Function
 
-        Private Function GetTagsForMethod(method As IMethodSymbol, span As TextSpan, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
+        Private Function GetTagsForMethod(method As IMethodSymbol, parent As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
             Dim items = New List(Of CompletionItem)
 
             Dim parameters = method.Parameters.Select(Function(p) p.Name).ToSet()
@@ -318,11 +310,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
             Next
 
-            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(ParamTagName, p))))
-            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(span, FormatParameter(TypeParamTagName, p))))
+            items.AddRange(parameters.Select(Function(p) CreateCompletionItem(FormatParameter(ParamTagName, p))))
+            items.AddRange(typeParameters.Select(Function(p) CreateCompletionItem(FormatParameter(TypeParamTagName, p))))
 
             If returns Then
-                items.Add(GetItem(ReturnsTagName, span))
+                items.Add(GetItem(ReturnsTagName))
             End If
 
             Return items
@@ -342,12 +334,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Function GetSingleUseTopLevelItems(parentTrivia As DocumentationCommentTriviaSyntax, span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Function GetSingleUseTopLevelItems(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of CompletionItem)
             Dim names = New HashSet(Of String)({SummaryTagName, RemarksTagName, ExceptionTagName, IncludeTagName, PermissionTagName, ExampleTagName, CompletionListTagName})
 
             RemoveExistingTags(parentTrivia, names, Function(x) DirectCast(x.StartTag.Name, XmlNameSyntax).LocalName.ValueText)
 
-            Return names.Select(Function(n) GetItem(n, span))
+            Return names.Select(AddressOf GetItem)
         End Function
 
         Private Sub RemoveExistingTags(parentTrivia As DocumentationCommentTriviaSyntax, names As ISet(Of String), selector As Func(Of XmlElementSyntax, String))
@@ -359,12 +351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Next
         End Sub
 
-        Private Function GetAttributes(startTag As XmlElementStartTagSyntax, span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Function GetAttributes(startTag As XmlElementStartTagSyntax) As IEnumerable(Of CompletionItem)
             Dim nameSyntax = TryCast(startTag.Name, XmlNameSyntax)
             If nameSyntax IsNot Nothing Then
                 Dim name = nameSyntax.LocalName.ValueText
                 Dim existingAttributeNames = startTag.Attributes.OfType(Of XmlAttributeSyntax).Select(Function(a) DirectCast(a.Name, XmlNameSyntax).LocalName.ValueText)
-                Return GetAttributeItem(name, span).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
+                Return GetAttributeItem(name).Where(Function(i) Not existingAttributeNames.Contains(i.DisplayText))
             End If
 
             Return Nothing

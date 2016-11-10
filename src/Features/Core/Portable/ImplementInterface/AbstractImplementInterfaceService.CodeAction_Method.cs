@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var updatedMethod = method.EnsureNonConflictingNames(
                     this.State.ClassOrStructType, syntaxFacts, cancellationToken);
 
-                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                    accessibleWithin: this.State.ClassOrStructType,
-                    removeAttributeType: compilation.ComAliasNameAttributeType());
+                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                    this.State.ClassOrStructType,
+                    AttributesToRemove(compilation));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     updatedMethod,

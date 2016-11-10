@@ -1,8 +1,8 @@
 {
-  "dependencies": {
-
-    },
-    "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": { }
+  "dependencies": { },
+  "frameworks": {
+    "netstandard1.3": {
+      "imports": [ "portable-net45+win8", "dotnet" ]
     }
+  }
 }

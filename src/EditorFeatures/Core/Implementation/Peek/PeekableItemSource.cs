@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 return;
             }
 
-            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.LoadingPeekInformation, allowCancel: true, action: context =>
+            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancel: true, action: context =>
             {
                 var cancellationToken = context.CancellationToken;
 

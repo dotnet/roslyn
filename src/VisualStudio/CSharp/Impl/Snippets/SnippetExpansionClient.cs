@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
@@ -81,7 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
         }
 
-        internal override Document AddImports(Document document, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        internal override Document AddImports(
+            Document document, int position, XElement snippetNode,
+            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
             if (importsNode == null ||
@@ -103,9 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var node = root.FindToken(position).Parent;
+            var container = node.GetInnermostNamespaceDeclarationWithUsings() ?? (SyntaxNode)node.GetAncestorOrThis<CompilationUnitSyntax>();
 
-            var newRoot = ((CompilationUnitSyntax)root).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
+            var newContainer = container is NamespaceDeclarationSyntax n
+                ? (SyntaxNode)n.AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst, Formatter.Annotation)
+                : ((CompilationUnitSyntax)container).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
+
+            var newRoot = root.ReplaceNode(container, newContainer);
             var newDocument = document.WithSyntaxRoot(newRoot);
 
             var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -117,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(Document document, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var existingUsings = ((CompilationUnitSyntax)root).Usings;
             var newUsings = new List<UsingDirectiveSyntax>();
 

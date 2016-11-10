@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
@@ -75,7 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
             var rules = formattingRuleProvider.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var formatter = new SmartTokenFormatter(document.Options, rules, root);
+            var documentOptions = await document.GetOptionsAsync();
+            var formatter = new SmartTokenFormatter(documentOptions, rules, root);
             var changes = await formatter.FormatTokenAsync(workspace, token, CancellationToken.None);
 
             ApplyChanges(buffer, changes);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             }
         }
 
-        internal static async Task TestIndentationAsync(int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument)
+        internal static void TestIndentation(int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
@@ -140,13 +140,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             else
             {
                 var provider = new SmartIndent(textView);
-                actualIndentation = await provider.GetDesiredIndentationAsync(indentationLineFromBuffer);
+                actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
             }
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
         }
 
-        public static async Task TestIndentationAsync(int indentationLine, int? expectedIndentation, TestWorkspace workspace)
+        public static void TestIndentation(int indentationLine, int? expectedIndentation, TestWorkspace workspace)
         {
             var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var provider = new SmartIndent(textView.Object);
 
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
-            var actualIndentation = await provider.GetDesiredIndentationAsync(indentationLineFromBuffer);
+            var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation);
         }

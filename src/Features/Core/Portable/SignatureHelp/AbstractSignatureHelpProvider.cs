@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems CreateSignatureHelpItems(
-            IEnumerable<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
             if (items == null || !items.Any() || state == null)
             {
@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             items = Filter(items, state.ArgumentNames);
-            return new SignatureHelpItems(items.ToList(), applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
         }
 
-        private static IList<SignatureHelpItem> Filter(IEnumerable<SignatureHelpItem> items, IEnumerable<string> parameterNames)
+        private static IList<SignatureHelpItem> Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames)
         {
             if (parameterNames == null)
             {
@@ -75,35 +75,30 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
-            IEnumerable<SymbolDisplayPart> prefixParts,
-            IEnumerable<SymbolDisplayPart> separatorParts,
-            IEnumerable<SymbolDisplayPart> suffixParts,
-            IEnumerable<SignatureHelpParameter> parameters,
-            IEnumerable<SymbolDisplayPart> descriptionParts = null)
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            IList<SymbolDisplayPart> prefixParts,
+            IList<SymbolDisplayPart> separatorParts,
+            IList<SymbolDisplayPart> suffixParts,
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts = null)
         {
-            var item = new SymbolKeySignatureHelpItem(
-                orderSymbol, isVariadic, documentationFactory, prefixParts, separatorParts,
-                suffixParts, parameters, descriptionParts);
+            prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
+            separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position, symbolDisplayService);
+            suffixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position, symbolDisplayService);
+            parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService)).ToList();
+            descriptionParts = descriptionParts == null
+                ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
+                : descriptionParts;
 
-            return FixAnonymousTypeParts(orderSymbol, item, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService);
-        }
-
-        private SignatureHelpItem FixAnonymousTypeParts(
-            ISymbol orderSymbol, SignatureHelpItem item, SemanticModel semanticModel, int position, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService)
-        {
-            var currentItem = new SymbolKeySignatureHelpItem(
-                orderSymbol, item.IsVariadic, item.DocumentationFactory,
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.PrefixDisplayParts, semanticModel, position, symbolDisplayService),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SeparatorDisplayParts, semanticModel, position, symbolDisplayService),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(item.SuffixDisplayParts, semanticModel, position, symbolDisplayService),
-                item.Parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService)),
-                item.DescriptionParts);
+            var allParts = prefixParts.Concat(separatorParts)
+                                      .Concat(suffixParts)
+                                      .Concat(parameters.SelectMany(p => p.GetAllParts()))
+                                      .Concat(descriptionParts);
 
             var directAnonymousTypeReferences =
-                    from part in currentItem.GetAllParts()
-                    where part.Symbol.IsNormalAnonymousType()
-                    select (INamedTypeSymbol)part.Symbol;
+                from part in allParts
+                where part.Symbol.IsNormalAnonymousType()
+                select (INamedTypeSymbol)part.Symbol;
 
             var info = anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position, symbolDisplayService);
@@ -117,25 +112,33 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
                 anonymousTypeParts.AddRange(info.AnonymousTypesParts);
 
-                currentItem = new SymbolKeySignatureHelpItem(
+                return new SymbolKeySignatureHelpItem(
                     orderSymbol,
-                    currentItem.IsVariadic,
-                    currentItem.DocumentationFactory,
-                    info.ReplaceAnonymousTypes(currentItem.PrefixDisplayParts),
-                    info.ReplaceAnonymousTypes(currentItem.SeparatorDisplayParts),
-                    info.ReplaceAnonymousTypes(currentItem.SuffixDisplayParts),
-                    currentItem.Parameters.Select(p => ReplaceAnonymousTypes(p, info)),
-                    anonymousTypeParts);
+                    isVariadic,
+                    documentationFactory,
+                    info.ReplaceAnonymousTypes(prefixParts).ToTaggedText(),
+                    info.ReplaceAnonymousTypes(separatorParts).ToTaggedText(),
+                    info.ReplaceAnonymousTypes(suffixParts).ToTaggedText(),
+                    parameters.Select(p => ReplaceAnonymousTypes(p, info)).Select(p => (SignatureHelpParameter)p),
+                    anonymousTypeParts.ToTaggedText());
             }
 
-            return currentItem;
+            return new SymbolKeySignatureHelpItem(
+                orderSymbol,
+                isVariadic,
+                documentationFactory,
+                prefixParts.ToTaggedText(),
+                separatorParts.ToTaggedText(),
+                suffixParts.ToTaggedText(),
+                parameters.Select(p => (SignatureHelpParameter)p),
+                descriptionParts.ToTaggedText());
         }
 
-        private SignatureHelpParameter ReplaceAnonymousTypes(
-            SignatureHelpParameter parameter,
+        private SignatureHelpSymbolParameter ReplaceAnonymousTypes(
+            SignatureHelpSymbolParameter parameter,
             AnonymousTypeDisplayInfo info)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.DocumentationFactory,
@@ -143,14 +146,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
         }
 
-        private SignatureHelpParameter InlineDelegateAnonymousTypes(
-            SignatureHelpParameter parameter,
+        private SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
+            SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
             ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService)
         {
-            return new SignatureHelpParameter(
+            return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.DocumentationFactory,
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var finalItems = new List<SignatureHelpItem>();
             foreach (var item in itemsForCurrentDocument.Items)
             {
-                var symbolKey = ((SymbolKeySignatureHelpItem)item).SymbolKey;
+                var symbolKey = (item as SymbolKeySignatureHelpItem)?.SymbolKey;
                 if (symbolKey == null)
                 {
                     finalItems.Add(item);
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var related in relatedDocuments)
             {
                 // If we don't have symbol keys, give up.
-                if (related.Item2.Any(s => ((SymbolKeySignatureHelpItem)s).SymbolKey == null))
+                if (related.Item2.Any(s => (s as SymbolKeySignatureHelpItem)?.SymbolKey == null))
                 {
                     continue;
                 }
@@ -242,18 +245,19 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         private SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData, ISymbol symbol)
         {
-            var platformParts = platformData.ToDisplayParts();
-            if (platformParts.Count == 0)
+            var platformParts = platformData.ToDisplayParts().ToTaggedText();
+            if (platformParts.Length == 0)
             {
                 return item;
             }
 
-            var startingNewLine = new List<SymbolDisplayPart>();
+            var startingNewLine = new List<TaggedText>();
             startingNewLine.AddLineBreak();
 
-            var updatedDescription = item.DescriptionParts == null
-                ? item.DescriptionParts.Concat(startingNewLine.Concat(platformParts))
-                : startingNewLine.Concat(platformParts);
+            var concatted = startingNewLine.Concat(platformParts);
+            var updatedDescription = item.DescriptionParts.IsDefault
+                ? concatted
+                : item.DescriptionParts.Concat(concatted);
 
             item.DescriptionParts = updatedDescription.ToImmutableArrayOrEmpty();
             return item;

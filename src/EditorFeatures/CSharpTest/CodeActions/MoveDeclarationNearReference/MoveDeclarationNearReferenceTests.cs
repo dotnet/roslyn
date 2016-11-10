@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
 {
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new MoveDeclarationNearReferenceCodeRefactoringProvider();
         }
@@ -20,8 +20,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
         public async Task TestMove1()
         {
             await TestAsync(
-@"class C { void M() { int [||]x; { Console.WriteLine(x); } } }",
-@"class C { void M() { { int x; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        {
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            int x;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0);
         }
 
@@ -29,8 +47,24 @@ index: 0);
         public async Task TestMove2()
         {
             await TestAsync(
-@"class C { void M() { int [||]x; Console.WriteLine(); Console.WriteLine(x); } }",
-@"class C { void M() { Console.WriteLine(); int x; Console.WriteLine(x); } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        Console.WriteLine();
+        Console.WriteLine(x);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        Console.WriteLine();
+        int x;
+        Console.WriteLine(x);
+    }
+}",
 index: 0);
         }
 
@@ -38,8 +72,34 @@ index: 0);
         public async Task TestMove3()
         {
             await TestAsync(
-@"class C { void M() { int [||]x; Console.WriteLine(); { Console.WriteLine(x); } { Console.WriteLine(x); } }",
-@"class C { void M() { Console.WriteLine(); int x; { Console.WriteLine(x); } { Console.WriteLine(x); } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        Console.WriteLine();
+        {
+            Console.WriteLine(x);
+        }
+
+        {
+            Console.WriteLine(x);
+        }
+    }",
+@"class C
+{
+    void M()
+    {
+        Console.WriteLine();
+        int x;
+        {
+            Console.WriteLine(x);
+        }
+
+        {
+            Console.WriteLine(x);
+        }
+    }",
 index: 0);
         }
 
@@ -47,8 +107,26 @@ index: 0);
         public async Task TestMove4()
         {
             await TestAsync(
-@"class C { void M() { int [||]x; Console.WriteLine(); { Console.WriteLine(x); } }",
-@"class C { void M() { Console.WriteLine(); { int x; Console.WriteLine(x); } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        Console.WriteLine();
+        {
+            Console.WriteLine(x);
+        }
+    }",
+@"class C
+{
+    void M()
+    {
+        Console.WriteLine();
+        {
+            int x;
+            Console.WriteLine(x);
+        }
+    }",
 index: 0);
         }
 
@@ -56,8 +134,27 @@ index: 0);
         public async Task TestAssign1()
         {
             await TestAsync(
-@"class C { void M() { int [||]x; { x = 5; Console.WriteLine(x); } } }",
-@"class C { void M() { { int x = 5; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        {
+            x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            int x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0);
         }
 
@@ -65,8 +162,27 @@ index: 0);
         public async Task TestAssign2()
         {
             await TestAsync(
-@"class C { void M() { int [||]x = 0; { x = 5; Console.WriteLine(x); } } }",
-@"class C { void M() { { int x = 5; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        int [||]x = 0;
+        {
+            x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            int x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0);
         }
 
@@ -74,8 +190,28 @@ index: 0);
         public async Task TestAssign3()
         {
             await TestAsync(
-@"class C { void M() { var [||]x = (short)0; { x = 5; Console.WriteLine(x); } } }",
-@"class C { void M() { { var x = (short)0; x = 5; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        var [||]x = (short)0;
+        {
+            x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            var x = (short)0;
+            x = 5;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0);
         }
 
@@ -83,7 +219,14 @@ index: 0);
         public async Task TestMissing1()
         {
             await TestMissingAsync(
-@"class C { void M() { int [||]x; Console.WriteLine(x); } }");
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        Console.WriteLine(x);
+    }
+}");
         }
 
         [WorkItem(538424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
@@ -91,14 +234,31 @@ index: 0);
         public async Task TestMissingWhenReferencedInDeclaration()
         {
             await TestMissingAsync(
-@"class Program { static void Main ( ) { object [ ] [||]x = { x = null } ; x . ToString ( ) ; } } ");
+@"class Program
+{
+    static void Main()
+    {
+        object[] [||]x = {
+            x = null
+        };
+        x.ToString();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task TestMissingWhenInDeclarationGroup()
         {
             await TestMissingAsync(
-@"class Program { static void Main ( ) { int [||]i = 5; int j = 10; Console.WriteLine(i); } } ");
+@"class Program
+{
+    static void Main()
+    {
+        int [||]i = 5;
+        int j = 10;
+        Console.WriteLine(i);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -106,7 +266,15 @@ index: 0);
         public async Task Regression8190()
         {
             await TestMissingAsync(
-@"class Program { void M() { { object x; [|object|] } } }");
+@"class Program
+{
+    void M()
+    {
+        {
+            object x;
+            [|object|] }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -237,8 +405,34 @@ compareTokens: false);
         public async Task TestWarnOnChangingScopes1()
         {
             await TestAsync(
-@"using System . Linq ; class Program { void Main ( ) { var [||]@lock = new object ( ) ; new [ ] { 1 } . AsParallel ( ) . ForAll ( ( i ) => { lock ( @lock ) { } } ) ; } } ",
-@"using System . Linq ; class Program { void Main ( ) { new [ ] { 1 } . AsParallel ( ) . ForAll ( ( i ) => { {|Warning:var @lock = new object ( ) ;|} lock ( @lock ) { } } ) ; } } ");
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var [||]@lock = new object();
+        new[] { 1 }.AsParallel().ForAll((i) => {
+            lock (@lock)
+            {
+            }
+        });
+    }
+}",
+@"using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        new[] { 1 }.AsParallel().ForAll((i) => {
+            {|Warning:var @lock = new object();|}
+            lock (@lock)
+            {
+            }
+        });
+    }
+}");
         }
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
@@ -246,8 +440,36 @@ compareTokens: false);
         public async Task TestWarnOnChangingScopes2()
         {
             await TestAsync(
-@"using System ; using System . Linq ; class Program { void Main ( ) { var [||]i = 0 ; foreach ( var v in new [ ] { 1 } ) { Console . Write ( i ) ; i ++ ; } } } ",
-@"using System ; using System . Linq ; class Program { void Main ( ) { foreach ( var v in new [ ] { 1 } ) { {|Warning:var i = 0 ;|} Console . Write ( i ) ; i ++ ; } } } ");
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var [||]i = 0;
+        foreach (var v in new[] { 1 })
+        {
+            Console.Write(i);
+            i++;
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        foreach (var v in new[] { 1 })
+        {
+            {|Warning:var i = 0;|}
+            Console.Write(i);
+            i++;
+        }
+    }
+}");
         }
 
         [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
@@ -348,7 +570,7 @@ compareTokens: false);
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -361,7 +583,6 @@ class Program
         // Comment about foo!
         // Comment about foo!
         int foo;
- 
         Console.WriteLine();
         Console.WriteLine(foo);
     }
@@ -372,10 +593,28 @@ class Program
         public async Task Tuple()
         {
             await TestAsync(
-@"class C { void M() { (int, string) [||]x; { Console.WriteLine(x); } } }",
-@"class C { void M() { { (int, string) x; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        (int, string) [||]x;
+        {
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            (int, string) x;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -383,10 +622,28 @@ withScriptOption: true);
         public async Task TupleWithNames()
         {
             await TestAsync(
-@"class C { void M() { (int a, string b) [||]x; { Console.WriteLine(x); } } }",
-@"class C { void M() { { (int a, string b) x; Console.WriteLine(x); } } }",
+@"class C
+{
+    void M()
+    {
+        (int a, string b) [||]x;
+        {
+            Console.WriteLine(x);
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        {
+            (int a, string b) x;
+            Console.WriteLine(x);
+        }
+    }
+}",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

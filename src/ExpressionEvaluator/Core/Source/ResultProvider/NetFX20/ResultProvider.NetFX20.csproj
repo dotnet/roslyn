@@ -3,26 +3,20 @@
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <OutDir>$(OutDir)NetFX20\</OutDir>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>MicrosoftSHA1Win8WinBlue</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
       <Link>Compiler\CaseInsensitiveComparison.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
@@ -37,7 +31,7 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
+    <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
@@ -58,6 +52,9 @@
     <Compile Include="..\..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Helpers\DateTimeUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\ExpressionCompiler\CustomTypeInfo.cs">
+      <Link>ExpressionCompiler\CustomTypeInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs">
       <Link>ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs</Link>
     </Compile>
@@ -69,10 +66,6 @@
       <Link>Helpers\SystemHelpers.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
@@ -80,8 +73,14 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>TRACE;DEBUG;NETFX20</DefineConstants>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DefineConstants>TRACE;NETFX20</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
@@ -105,7 +104,5 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

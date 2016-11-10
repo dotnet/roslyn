@@ -2232,7 +2232,7 @@ public class MyClass {
         return 1;
     }
 
-}")
+}", parseOptions: TestOptions.Regular6)
                 .VerifyDiagnostics(
                 // (7,22): error CS0118: 'myTest' is a 'variable' but is used like a 'type'
                 Diagnostic(ErrorCode.ERR_BadSKknown, "myTest").WithArguments("myTest", "variable", "type"));
@@ -4038,8 +4038,15 @@ public class iii
       }
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SwitchGoverningTypeValueExpected, Line = 18, Column = 15 } });
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (18,15): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
+                //       switch (a)   // CS0151, compiler cannot choose between int and long
+                Diagnostic(ErrorCode.ERR_V6SwitchGoverningTypeValueExpected, "a").WithLocation(18, 15),
+                // (20,15): error CS0029: Cannot implicitly convert type 'int' to 'iii'
+                //          case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "iii").WithLocation(20, 15)
+                );
         }
 
         [Fact]
@@ -4069,9 +4076,10 @@ namespace x
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-    // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
-    //             case 1:   // CS0152, two case 1 statements
-    Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13));
+                // (16,13): error CS0152: The switch statement contains multiple cases with the label value '1'
+                //             case 1:   // CS0152, two case 1 statements
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(16, 13)
+                );
         }
 
         [Fact]
@@ -5333,7 +5341,10 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
     // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (A) when (false) 
-    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25)
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25),
+    // (13,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(1); 
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 13)
                 );
         }
 
@@ -5364,6 +5375,39 @@ class Program
     // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
     //         catch (Exception) when (false) 
     Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    // (12,13): warning CS0162: Unreachable code detected
+    //             Console.WriteLine(x);
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void CS0162WRN_UnreachableCode_Filter_ConstantCondition3()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void M()
+    {
+        int x;
+        try { }
+        catch (Exception) when (true) 
+        {
+            Console.WriteLine(x);
+        }
+    }
+}
+";
+            // Unlike an unreachable code in if statement block we don't allow using
+            // a variable that's not definitely assigned. The reason why we allow it in an if statement
+            // is to make conditional compilation easier. Such scenario doesn't apply to filters.
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    //         catch (Exception) when (true) 
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 33),
     // (12,31): error CS0165: Use of unassigned local variable 'x'
     //             Console.WriteLine(x);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
@@ -7166,41 +7210,24 @@ class A
     public static int Main()
     {
         (a) => a;
-        (a, b) =>
-        {
-        };
+        (a, b) => { };
         int x = 0; int y = 0;
         x + y; x == 1;
     }
 }";
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-    // (7,16): error CS1001: Identifier expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
-    // (7,16): error CS1003: Syntax error, ',' expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
-    // (7,18): error CS1002: ; expected
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
     // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
-    // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
-    // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-    //         (a, b) =>
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
-    // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
-    // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x + y; x == 1;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
     //     public static int Main()
     Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
@@ -7216,49 +7243,29 @@ class A
     public static int Main()
     {
         (a) => a;
-        (a, b) =>
-        {
-        };
+        (a, b) => { };
         int x = 0; int y = 0;
         x + y; x == 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { });
+            var comp = CreateCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
-                // (7,9): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(a, b)").WithArguments("tuples", "tuples").WithLocation(7, 9),
-                // (7,16): error CS1001: Identifier expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
-                // (7,16): error CS1003: Syntax error, ',' expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
-                // (7,18): error CS1002: ; expected
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         (a) => a;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-                // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
-                // (7,13): error CS0246: The type or namespace name 'b' could not be found (are you missing a using directive or an assembly reference?)
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "b").WithArguments("b").WithLocation(7, 13),
-                // (7,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (a, b) =>
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(a, b)").WithArguments("System.ValueTuple`2").WithLocation(7, 9),
-                // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         x + y; x == 1;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
-                // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         x + y; x == 1;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
-                // (4,23): error CS0161: 'A.Main()': not all code paths return a value
-                //     public static int Main()
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
-                );
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a, b) => { };
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
         }
 
         [Fact]
@@ -7711,11 +7718,18 @@ class Test
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "w"),
+                //       using (StreamWriter w) // CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
                 // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x"),
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
                 // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y"));
+                //       using (StreamWriter x, y) // CS0210, CS0210
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
+                // (9,10): error CS0165: Use of unassigned local variable 'w'
+                //          w.WriteLine("Hello there");
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(9, 10)
+                );
         }
 
         [Fact]
@@ -11516,15 +11530,15 @@ class A
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?"),
-// (6,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var x = 0; // CS0822.cs
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var x = 0;"),
-// (7,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (int?)null + x;")
+                // (6,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var x = 0; // CS0822.cs
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var x = 0").WithLocation(6, 15),
+                // (7,15): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var y = (int?)null + x").WithLocation(7, 15),
+                // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23)
                 );
         }
 
@@ -19937,11 +19951,6 @@ class MyClass
         table[p] = o;
     }
 }
-
-abstract class Foo
-{
-    public int x; // no diagnostic when in abstract class (for no apparent reason except that's the way Dev10 does it)
-}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
@@ -22305,7 +22314,7 @@ class Test
         var p = null ?? null; //CS0019
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"));
         }
@@ -22329,7 +22338,7 @@ public class MyClass
         var test = new Top<int>.Outer<string>();
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (13,33): error CS0122: 'Top<int>.Outer<string>' is inaccessible due to its protection level
                 //          var test = new Top<int>.Outer<string>();
                 Diagnostic(ErrorCode.ERR_BadAccess, "new Top<int>.Outer<string>()").WithArguments("Top<int>.Outer<string>"));
@@ -22355,7 +22364,7 @@ class Test
         Method1(10, 20); //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Method1(int, long)' and 'Test.Method1(long, int)'
                 //          Method1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method1").WithArguments("Test.Method1(int, long)", "Test.Method1(long, int)"));
@@ -22384,7 +22393,7 @@ class Test
         var i1 = new Class1(10, 20);  //CS0121
     }
 }
-", parseOptions: TestOptions.Regular).VerifyDiagnostics(
+").VerifyDiagnostics(
                 // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'Class1.Class1(int, long)' and 'Class1.Class1(long, int)'
                 //          new Class1(10, 20)
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Class1").WithArguments("Class1.Class1(int, long)", "Class1.Class1(long, int)"));
@@ -22750,7 +22759,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
     //         var x = 123 ?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
@@ -22819,7 +22828,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
     //         var x1 = p.P1 ?.ToString;
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
@@ -22857,7 +22866,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -22900,7 +22909,7 @@ class Program
 }
 
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
     // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
     //         var p = intPtr?.ToPointer();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
@@ -23048,6 +23057,101 @@ class C
                );
         }
 
+        [WorkItem(12900, "https://github.com/dotnet/roslyn/issues/12900")]
+        [Fact]
+        public void CSharp7FeaturesInExprTrees()
+        {
+            var source = @"
+using System;
+//using System.Collections;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        // out variable declarations
+        Expression<Func<bool>> e1 = () => TryGetThree(out int x) && x == 3; // ERROR 1
+
+        // pattern matching
+        object o = 3;
+        Expression<Func<bool>> e2 = () => o is int y && y == 3; // ERROR 2
+
+        // direct tuple creation could be OK, as it is just a constructor invocation,
+        // not for long tuples the generated code is more complex, and we would
+        // prefer custom expression trees to express the semantics.
+        Expression<Func<object>> e3 = () => (1, o); // ERROR 3: tuple literal
+        Expression<Func<(int, int)>> e4 = () => (1, 2); // ERROR 4: tuple literal
+
+        // tuple conversions
+        (byte, byte) t1 = (1, 2);
+        Expression<Func<(byte a, byte b)>> e5 = () => t1; // OK, identity conversion
+        Expression<Func<(int, int)>> e6 = () => t1; // ERROR 5: tuple conversion
+
+        Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
+    }
+
+    static bool TryGetThree(out int three)
+    {
+        three = 3;
+        return true;
+    }
+
+    static int three = 3;
+    static ref int GetRefThree()
+    {
+        return ref three;
+    }
+    static int TakeRef(ref int x)
+    {
+        Console.WriteLine(""wow"");
+        return x;
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// Indicates that the use of <see cref=""System.ValueTuple""/> on a member is meant to be treated as a tuple with element names.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct )]
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (10,59): error CS8198: An expression tree may not contain an out argument variable declaration.
+                //         Expression<Func<bool>> e1 = () => TryGetThree(out int x) && x == 3; // ERROR 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOutVariable, "int x").WithLocation(10, 59),
+                // (14,43): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<bool>> e2 = () => o is int y && y == 3; // ERROR 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, "o is int y").WithLocation(14, 43),
+                // (19,45): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<object>> e3 = () => (1, o); // ERROR 3: tuple literal
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(1, o)").WithLocation(19, 45),
+                // (20,49): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<(int, int)>> e4 = () => (1, 2); // ERROR 4: tuple literal
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(1, 2)").WithLocation(20, 49),
+                // (25,49): error CS8144: An expression tree may not contain a tuple conversion.
+                //         Expression<Func<(int, int)>> e6 = () => t1; // ERROR 5: tuple conversion
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleConversion, "t1").WithLocation(25, 49),
+                // (27,54): error CS8156: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         Expression<Func<int>> e7 = () => TakeRef(ref GetRefThree()); // ERROR 6: calling ref-returning method
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "GetRefThree()").WithLocation(27, 54)
+                );
+        }
+
         [Fact]
         public void DictionaryInitializerInCS5()
         {
@@ -23122,7 +23226,7 @@ class Program
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,65 +13,40 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly string _diagnosticId;
-        private readonly LocalizableString _title;
-        private readonly LocalizableString _message;
-        private readonly DiagnosticDescriptor _noneDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _infoDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _warningDiagnosticDescriptor;
-        private readonly DiagnosticDescriptor _errorDiagnosticDescriptor;
-        private readonly Dictionary<DiagnosticSeverity, DiagnosticDescriptor> _severityToDescriptorMap;
-
-        public CSharpTypeStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
+        protected CSharpTypeStyleDiagnosticAnalyzerBase(
+            string diagnosticId, LocalizableString title, LocalizableString message)
+            : base(diagnosticId, title, message)
         {
-            _diagnosticId = diagnosticId;
-            _title = title;
-            _message = message;
-            _noneDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden);
-            _infoDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Info);
-            _warningDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Warning);
-            _errorDiagnosticDescriptor = CreateDiagnosticDescriptor(DiagnosticSeverity.Error);
-            _severityToDescriptorMap =
-                new Dictionary<DiagnosticSeverity, DiagnosticDescriptor>
-                {
-                    {DiagnosticSeverity.Hidden, _noneDiagnosticDescriptor },
-                    {DiagnosticSeverity.Info, _infoDiagnosticDescriptor },
-                    {DiagnosticSeverity.Warning, _warningDiagnosticDescriptor },
-                    {DiagnosticSeverity.Error, _errorDiagnosticDescriptor },
-                };
         }
 
-        private DiagnosticDescriptor CreateDiagnosticDescriptor(DiagnosticSeverity severity) =>
-            new DiagnosticDescriptor(
-                _diagnosticId,
-                _title,
-                _message,
-                DiagnosticCategory.Style,
-                severity,
-                isEnabledByDefault: true);
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(_noneDiagnosticDescriptor, _infoDiagnosticDescriptor,
-                                  _warningDiagnosticDescriptor, _errorDiagnosticDescriptor);
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() =>
-            DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override void Initialize(AnalysisContext context)
+        public bool OpenFileOnly(Workspace workspace)
         {
-            context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
+            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
+            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
+            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
+
+            return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
+                     whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
+                     wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
         }
+
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(
+                HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
 
         protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
         protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
-        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
-        protected static ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
-            initializer.Value is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer.Value).Expression.WalkDownParentheses()
-                : initializer.Value.WalkDownParentheses();
+        protected static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) =>
+            initializer is CheckedExpressionSyntax
+                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
+                : initializer.WalkDownParentheses();
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
@@ -80,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
-            var optionSet = GetOptionSet(context.Options);
+            var optionSet = context.Options.GetOptionSet();
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -119,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                 if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
                 {
-                    var descriptor = _severityToDescriptorMap[state.GetDiagnosticSeverityPreference()];
+                    // The severity preference is not Hidden, as indicated by shouldAnalyze.
+                    var descriptor = CreateDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }
@@ -141,17 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return isSupportedParentKind &&
                    variableDeclaration.Variables.Count == 1 &&
                    variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
-        }
-
-        private OptionSet GetOptionSet(AnalyzerOptions analyzerOptions)
-        {
-            var workspaceOptions = analyzerOptions as WorkspaceAnalyzerOptions;
-            if (workspaceOptions != null)
-            {
-                return workspaceOptions.Workspace.Options;
-            }
-
-            return null;
         }
     }
 }

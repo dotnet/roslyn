@@ -6,7 +6,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End Get
         End Property
 
-        Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
@@ -43,35 +43,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim snippetInfoService = document.GetLanguageService(Of ISnippetInfoService)()
 
             If snippetInfoService Is Nothing Then
-                Return SpecializedTasks.EmptyTask
+                Return
             End If
 
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
-            Dim itemSpan = CommonCompletionUtilities.GetWordSpan(
-                document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken),
-                position,
-                AddressOf Char.IsLetterOrDigit,
-                AddressOf Char.IsLetterOrDigit)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
+            Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
 
             context.IsExclusive = True
-            context.AddItems(CreateCompletionItems(snippets, itemSpan))
-
-            Return SpecializedTasks.EmptyTask
+            context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
         End Function
 
         Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
         Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Create(
             commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, s_commitChars)))
 
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Shared ReadOnly s_tupleRules As CompletionItemRules = s_rules.
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+
+        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
-                                                                  s.Shortcut,
-                                                                  span,
-                                                                  description:=s.Description.ToSymbolDisplayParts(),
-                                                                  glyph:=Glyph.Snippet,
-                                                                  rules:=s_rules))
+                                       s.Shortcut,
+                                       description:=s.Description.ToSymbolDisplayParts(),
+                                       glyph:=Glyph.Snippet,
+                                       rules:=If(isTupleContext, s_tupleRules, s_rules)))
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -79,10 +77,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Public Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
+        Public Sub Commit(completionItem As CompletionItem,
+                          textView As ITextView,
+                          subjectBuffer As ITextBuffer,
+                          triggerSnapshot As ITextSnapshot,
+                          commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
             Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, _editorAdaptersFactoryService)
-
-            Dim caretPoint = textView.GetCaretPoint(subjectBuffer)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

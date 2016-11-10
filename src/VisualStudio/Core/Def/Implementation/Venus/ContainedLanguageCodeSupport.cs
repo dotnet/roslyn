@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
             var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
             var point = codeModel.GetStartPoint(typeNode, EnvDTE.vsCMPart.vsCMPartBody);
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
             var methods = type.GetMembers().OfType<IMethodSymbol>().Where(m => m.CompatibleSignatureToDelegate((INamedTypeSymbol)eventType));
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType || ((INamedTypeSymbol)eventType).DelegateInvokeMethod == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
             var handlesExpressions = useHandlesClause ?
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var codeModel = targetDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
             var syntaxFacts = targetDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-            var targetSyntaxTree = targetDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
@@ -207,13 +207,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (insertionPoint == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.MemberInsertionFailed);
+                throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, new CodeGenerationOptions(autoInsertionLocation: false), cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
-            newRoot = Simplifier.ReduceAsync(targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            newRoot = Simplifier.ReduceAsync(
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace,
-                targetDocument.Options,
+                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
                 formattingRules,
                 cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
@@ -320,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-                var undoTitle = string.Format(EditorFeaturesResources.RenameTo, symbol.Name, newName);
+                var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
                 using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
                 {
                     // Notify third parties about the coming rename operation on the workspace, and let
@@ -426,10 +427,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return ns;
 
                 case ContainedLanguageRenameType.CLRT_OTHER:
-                    throw new NotSupportedException(ServicesVSResources.ElementRenameFailed);
+                    throw new NotSupportedException(ServicesVSResources.Can_t_rename_other_elements);
 
                 default:
-                    throw new InvalidOperationException(ServicesVSResources.UnknownRenameType);
+                    throw new InvalidOperationException(ServicesVSResources.Unknown_rename_type);
             }
         }
 
@@ -445,7 +446,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
             else
             {
-                throw new NotSupportedException(ServicesVSResources.SymbolTypeIdInvalid);
+                throw new NotSupportedException(ServicesVSResources.IDs_are_not_supported_for_this_symbol_type);
             }
         }
 
@@ -477,7 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException();
             }
 
-            var containingTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var containingTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeLocation = type.Locations.FirstOrDefault(d => d.SourceTree == containingTree);
             if (typeLocation == null)
             {

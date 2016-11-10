@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get
@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
 #Enable Warning RS0010
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim body = _generateMethodBody(Me, diagnostics)
             Debug.Assert(body IsNot Nothing)
 
@@ -438,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' Can't do this until the return type has been computed.
             TypeParameterChecker.Check(Me, _allTypeParameters)
 
-            Dim syntax As VisualBasicSyntaxNode = body.Syntax
+            Dim syntax As SyntaxNode = body.Syntax
             Dim statementsBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
             statementsBuilder.Add(body)
             ' Insert an implicit return statement if necessary.
@@ -577,6 +577,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Throw ExceptionUtilities.UnexpectedValue(body.Kind)
             End Select
         End Function
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim returnType = Me.ReturnType
+            If returnType.ContainsTupleNames() AndAlso DeclaringCompilation.HasTupleNamesAttributes() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(returnType))
+            End If
+        End Sub
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Return localPosition

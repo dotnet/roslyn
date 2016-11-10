@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
         /// </summary>
-        public TextSpan Span { get; }
+        public TextSpan Span { get; internal set; }
 
         /// <summary>
         /// Additional information attached to a completion item by it creator.
@@ -68,8 +68,28 @@ namespace Microsoft.CodeAnalysis.Completion
             this.SortText = sortText ?? this.DisplayText;
             this.Span = span;
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            this.Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
+        }
+
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        public static CompletionItem Create(
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+            string displayText,
+            string filterText = null,
+            string sortText = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default(ImmutableArray<string>),
+            CompletionItemRules rules = null)
+        {
+            return new CompletionItem(
+                span: default(TextSpan),
+                displayText: displayText,
+                filterText: filterText,
+                sortText: sortText,
+                properties: properties,
+                tags: tags,
+                rules: rules);
         }
 
         /// <summary>
@@ -83,14 +103,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
+        [Obsolete("Use the Create overload that does not take a span", error: true)]
         public static CompletionItem Create(
             string displayText,
-            string filterText = null,
-            string sortText = null,
-            TextSpan span = default(TextSpan),
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            string filterText,
+            string sortText,
+            TextSpan span,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules)
         {
             return new CompletionItem(
                 span: span,
@@ -107,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default(Optional<string>),
             Optional<string> filterText = default(Optional<string>),
             Optional<string> sortText = default(Optional<string>),
-            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string,string>>),
+            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string, string>>),
             Optional<ImmutableArray<string>> tags = default(Optional<ImmutableArray<string>>),
             Optional<CompletionItemRules> rules = default(Optional<CompletionItemRules>))
         {
@@ -119,18 +140,18 @@ namespace Microsoft.CodeAnalysis.Completion
             var newTags = tags.HasValue ? tags.Value : this.Tags;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
 
-            if (newSpan == this.Span
-                && newDisplayText == this.DisplayText
-                && newFilterText == this.FilterText
-                && newSortText == this.SortText
-                && newProperties == this.Properties
-                && newTags == this.Tags
-                && newRules == this.Rules)
+            if (newSpan == this.Span &&
+                newDisplayText == this.DisplayText &&
+                newFilterText == this.FilterText &&
+                newSortText == this.SortText &&
+                newProperties == this.Properties &&
+                newTags == this.Tags &&
+                newRules == this.Rules)
             {
                 return this;
             }
 
-            return Create(
+            return new CompletionItem(
                 displayText: newDisplayText,
                 filterText: newFilterText,
                 span: newSpan,
@@ -143,9 +164,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
+        [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
         public CompletionItem WithSpan(TextSpan span)
         {
-            return With(span: span);
+            return this;
         }
 
         /// <summary>

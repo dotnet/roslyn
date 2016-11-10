@@ -36,12 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected AbstractEditorFactory(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
 
             _editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -288,13 +283,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId);
 
-            var rootToFormat = addedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            var documentOptions = addedDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, addedDocument.Options, cancellationToken);
+            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
             var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            string targetLineEnding = addedDocument.Options.GetOption(FormattingOptions.NewLine);
+            string targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

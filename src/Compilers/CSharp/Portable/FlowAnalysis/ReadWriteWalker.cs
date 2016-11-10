@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteWrite(variable, value, read);
         }
 
-        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
+        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
         {
             base.CheckAssigned(expr, fieldSymbol, node);
             if (!IsInside && node.Span.Contains(RegionSpan) && (expr.Kind == BoundKind.FieldAccess))
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
+            var local = node.IterationVariableOpt;
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Compute the underlying lambda parameter symbol for a range variable, if any.
         /// </summary>
         /// <param name="underlying">The bound node for the expansion of the range variable</param>
-        private ParameterSymbol GetRangeVariableUnderlyingParameter(BoundNode underlying)
+        private static ParameterSymbol GetRangeVariableUnderlyingParameter(BoundNode underlying)
         {
             while (underlying != null)
             {

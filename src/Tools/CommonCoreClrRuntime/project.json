@@ -1,12 +1,16 @@
-﻿{
-  "dependencies": {
-    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc2-23931",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23931",
-    "System.Runtime": "4.0.20"
-  },
-  "frameworks": {
-    "dnxcore50": {
-      "imports": "portable-net452"
+{
+    "dependencies": {
+        "Microsoft.NETCore.Runtime.CoreCLR": "1.0.3-rc4-24221-02",
+        "Microsoft.NETCore.TestHost": "1.0.0",
+        "System.Runtime": "4.1.0"
+    },
+    "frameworks": {
+        // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458
+        "netstandard1.6": {
+            "imports": "portable-net452"
+        },
+        "NETCoreApp1.0": {
+            "imports": "portable-net452"
+        }
     }
-  }
 }

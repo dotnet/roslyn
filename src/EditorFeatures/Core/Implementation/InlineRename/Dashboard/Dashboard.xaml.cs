@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -114,12 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void ConnectToPresentationSource(PresentationSource presentationSource)
         {
-            if (presentationSource == null)
-            {
-                throw new ArgumentNullException(nameof(presentationSource));
-            }
-
-            _presentationSource = presentationSource;
+            _presentationSource = presentationSource ?? throw new ArgumentNullException(nameof(presentationSource));
 
             if (Application.Current != null && Application.Current.MainWindow != null)
             {
@@ -205,16 +200,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             PositionDashboard();
         }
 
-        public string RenameOverloads { get { return EditorFeaturesResources.RenameOverloads; } }
+        public string RenameOverloads { get { return EditorFeaturesResources.Include_overload_s; } }
         public Visibility RenameOverloadsVisibility { get { return _model.RenameOverloadsVisibility; } }
         public bool IsRenameOverloadsEditable { get { return _model.IsRenameOverloadsEditable; } }
-        public string SearchInComments { get { return EditorFeaturesResources.SearchInComments; } }
-        public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
-        public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }
-        public string PreviewChanges { get { return EditorFeaturesResources.RenamePreviewChanges; } }
-        public string RenameInstructions { get { return EditorFeaturesResources.InlineRenameInstructions; } }
-        public string ApplyToolTip { get { return EditorFeaturesResources.RenameApplyToolTip + " (Enter)"; } }
-        public string CancelToolTip { get { return EditorFeaturesResources.RenameCancelToolTip + " (Esc)"; } }
+        public string SearchInComments { get { return EditorFeaturesResources.Include_comments; } }
+        public string SearchInStrings { get { return EditorFeaturesResources.Include_strings; } }
+        public string ApplyRename { get { return EditorFeaturesResources.Apply1; } }
+        public string PreviewChanges { get { return EditorFeaturesResources.Preview_changes1; } }
+        public string RenameInstructions { get { return EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming; } }
+        public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
+        public string CancelToolTip { get { return EditorFeaturesResources.Cancel + " (Esc)"; } }
 
         private void OnElementSizeChanged(object sender, SizeChangedEventArgs e)
         {

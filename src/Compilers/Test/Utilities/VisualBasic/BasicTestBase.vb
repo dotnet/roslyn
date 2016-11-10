@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -41,6 +42,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
@@ -59,6 +61,7 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
+            emitOptions,
             verify)
     End Function
 
@@ -83,6 +86,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            Nothing,
             verify)
     End Function
 
@@ -119,6 +123,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
@@ -136,6 +141,7 @@ Public MustInherit Class BasicTestBase
                                    expectedSignatures,
                                    options,
                                    parseOptions,
+                                   emitOptions,
                                    verify)
 
     End Function
@@ -152,6 +158,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
@@ -170,6 +177,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            emitOptions,
             verify)
     End Function
 

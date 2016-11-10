@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,11 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal partial class CSharpTypeStyleDiagnosticAnalyzerBase
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase
     {
         internal class State
         {
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
-                var initializerExpression = GetInitializerExpression(initializer);
+                var initializerExpression = GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
             }
@@ -93,11 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// </remarks>
             private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
             {
-                var predefinedType = GetTypeSyntaxFromDeclaration(declarationStatement) as PredefinedTypeSyntax;
-
-                return predefinedType != null
-                    ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
-                    : false;
+                return TypeStyleHelper.IsPredefinedType(
+                    GetTypeSyntaxFromDeclaration(declarationStatement));
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)

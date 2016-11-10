@@ -1,15 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -17,11 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract partial class AbstractCodeGenerationService : ICodeGenerationService
     {
         private readonly ISymbolDeclarationService _symbolDeclarationService;
+        protected readonly Workspace Workspace;
 
         protected AbstractCodeGenerationService(
-            ISymbolDeclarationService symbolDeclarationService)
+            ISymbolDeclarationService symbolDeclarationService,
+            Workspace workspace)
         {
             _symbolDeclarationService = symbolDeclarationService;
+            Workspace = workspace;
         }
 
         public TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (!(destination is TDeclarationNode))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode, typeof(TDeclarationNode).Name, destination.GetType().Name),
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_but_given_one_is_1, typeof(TDeclarationNode).Name, destination.GetType().Name),
                     nameof(destination));
             }
         }
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode2))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode2,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_or_a_1_but_given_one_is_2,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode3))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode3,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, destination.GetType().Name),
                     nameof(destination));
             }
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 !(destination is TDeclarationNode4))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode3,
+                    string.Format(WorkspacesResources.Destination_type_must_be_a_0_1_or_2_but_given_one_is_3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
                     nameof(destination));
             }
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (destinationDeclaration == null)
             {
-                throw new ArgumentException(WorkspacesResources.CouldNotFindLocationToGen);
+                throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
 
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
@@ -307,7 +308,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return options;
         }
 
-        public Task<Document> AddEventAsync(Solution solution, INamedTypeSymbol destination, IEventSymbol @event, CodeGenerationOptions options, CancellationToken cancellationToken)
+        public virtual Task<Document> AddEventAsync(
+            Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
+            CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             return GetEditAsync(
                 solution,
@@ -401,17 +404,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (location == null)
             {
-                throw new ArgumentException(WorkspacesResources.InvalidLocationForCodeGen);
+                throw new ArgumentException(WorkspacesResources.No_location_provided_to_add_statements_to);
             }
 
             if (!location.IsInSource)
             {
-                throw new ArgumentException(WorkspacesResources.InvalidNonSourceLocationForCodeGen);
+                throw new ArgumentException(WorkspacesResources.Destination_location_was_not_in_source);
             }
 
             if (location.SourceTree != destinationMember.SyntaxTree)
             {
-                throw new ArgumentException(WorkspacesResources.DestinationLocationFromDifferentTree);
+                throw new ArgumentException(WorkspacesResources.Destination_location_was_from_a_different_tree);
             }
         }
 

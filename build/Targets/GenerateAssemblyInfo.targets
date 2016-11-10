@@ -17,7 +17,7 @@
       <_Parameter1>$(BuildVersion)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
-      <_Parameter1>$(BuildVersion)</_Parameter1>
+      <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
 
@@ -65,6 +65,12 @@
           Outputs="$(GeneratedAssemblyInfoFile)"
           DependsOnTargets="PrepareForBuild"
           Condition="('$(Language)' == 'C#' or '$(Language)' == 'VB')">
+
+    <CreateItem Include="System.Reflection.AssemblyMetadataAttribute"
+            AdditionalMetadata="_Parameter1=Serviceable;_Parameter2=True"
+            Condition="'$(ServiceablePackage)' == 'true'">
+      <Output TaskParameter="Include" ItemName="AssemblyVersionAttribute" />
+    </CreateItem>
 
     <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
     <WriteCodeFragmentEx 

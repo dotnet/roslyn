@@ -61,1028 +61,1172 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Insert space before and after binary operators.
+        ///   Looks up a localized string similar to _Always add new line on enter.
         /// </summary>
-        internal static string BinaryOperatorSpace {
+        internal static string Always_add_new_line_on_enter {
             get {
-                return ResourceManager.GetString("BinaryOperatorSpace", resourceCulture);
+                return ResourceManager.GetString("Always_add_new_line_on_enter", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ignore spaces around binary operators.
+        ///   Looks up a localized string similar to Always include snippets.
         /// </summary>
-        internal static string BinaryOperatorSpaceIgnore {
+        internal static string Always_include_snippets {
             get {
-                return ResourceManager.GetString("BinaryOperatorSpaceIgnore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove spaces before and after binary operators.
-        /// </summary>
-        internal static string BinaryOperatorSpaceRemove {
-            get {
-                return ResourceManager.GetString("BinaryOperatorSpaceRemove", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to C#.
-        /// </summary>
-        internal static string C {
-            get {
-                return ResourceManager.GetString("C", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place &quot;catch&quot; on new line.
-        /// </summary>
-        internal static string CatchOnNewLine {
-            get {
-                return ResourceManager.GetString("CatchOnNewLine", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
-        /// </summary>
-        internal static string DoNotPreferThis {
-            get {
-                return ResourceManager.GetString("DoNotPreferThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place &quot;else&quot; on new line.
-        /// </summary>
-        internal static string ElseOnNewLine {
-            get {
-                return ResourceManager.GetString("ElseOnNewLine", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place &quot;finally&quot; on new line.
-        /// </summary>
-        internal static string FinallyOnNewLine {
-            get {
-                return ResourceManager.GetString("FinallyOnNewLine", resourceCulture);
+                return ResourceManager.GetString("Always_include_snippets", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
-        internal static string FormatOnCloseBraceCheckBox {
+        internal static string Automatically_format_block_on_close_brace {
             get {
-                return ResourceManager.GetString("FormatOnCloseBraceCheckBox", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_block_on_close_brace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatically format on _paste.
         /// </summary>
-        internal static string FormatOnPasteCheckBox {
+        internal static string Automatically_format_on_paste {
             get {
-                return ResourceManager.GetString("FormatOnPasteCheckBox", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_on_paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatically format on return.
+        /// </summary>
+        internal static string Automatically_format_on_return {
+            get {
+                return ResourceManager.GetString("Automatically_format_on_return", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
-        internal static string FormatOnSemicolonCheckBox {
+        internal static string Automatically_format_statement_on_semicolon {
             get {
-                return ResourceManager.GetString("FormatOnSemicolonCheckBox", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_statement_on_semicolon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Place goto labels in leftmost column.
+        ///   Looks up a localized string similar to Automatically format when typing.
         /// </summary>
-        internal static string GotoLeftmost {
+        internal static string Automatically_format_when_typing {
             get {
-                return ResourceManager.GetString("GotoLeftmost", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent labels normally.
-        /// </summary>
-        internal static string GotoNoIndent {
-            get {
-                return ResourceManager.GetString("GotoNoIndent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place goto labels one indent less than current.
-        /// </summary>
-        internal static string GotoOneLess {
-            get {
-                return ResourceManager.GetString("GotoOneLess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent block contents.
-        /// </summary>
-        internal static string IndentBlock {
-            get {
-                return ResourceManager.GetString("IndentBlock", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent open and close braces.
-        /// </summary>
-        internal static string IndentBraces {
-            get {
-                return ResourceManager.GetString("IndentBraces", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent case contents.
-        /// </summary>
-        internal static string IndentSwitchCaseContents {
-            get {
-                return ResourceManager.GetString("IndentSwitchCaseContents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Indent case labels.
-        /// </summary>
-        internal static string IndentSwitchCaseLabels {
-            get {
-                return ResourceManager.GetString("IndentSwitchCaseLabels", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert Snippet.
-        /// </summary>
-        internal static string InsertSnippet {
-            get {
-                return ResourceManager.GetString("InsertSnippet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Label Indentation.
-        /// </summary>
-        internal static string LabelIndentation {
-            get {
-                return ResourceManager.GetString("LabelIndentation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to New line options for braces.
-        /// </summary>
-        internal static string NewLineBraces {
-            get {
-                return ResourceManager.GetString("NewLineBraces", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to New line options for expressions.
-        /// </summary>
-        internal static string NewLineExpressions {
-            get {
-                return ResourceManager.GetString("NewLineExpressions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place query expression clauses on new line.
-        /// </summary>
-        internal static string NewLineForClausesInQuery {
-            get {
-                return ResourceManager.GetString("NewLineForClausesInQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place members in anonymous types on new line.
-        /// </summary>
-        internal static string NewLineForMembersInAnonymousTypes {
-            get {
-                return ResourceManager.GetString("NewLineForMembersInAnonymousTypes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place members in object initializers on new line.
-        /// </summary>
-        internal static string NewLineForMembersInObjectInit {
-            get {
-                return ResourceManager.GetString("NewLineForMembersInObjectInit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to New line options for keywords.
-        /// </summary>
-        internal static string NewLineKeywords {
-            get {
-                return ResourceManager.GetString("NewLineKeywords", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for types.
-        /// </summary>
-        internal static string NewLinesBracesType {
-            get {
-                return ResourceManager.GetString("NewLinesBracesType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for property, indexer, and event accessors.
-        /// </summary>
-        internal static string NewLinesForBracesAccessors {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesAccessors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for anonymous methods.
-        /// </summary>
-        internal static string NewLinesForBracesInAnonymousMethods {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesInAnonymousMethods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for anonymous types.
-        /// </summary>
-        internal static string NewLinesForBracesInAnonymousTypes {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesInAnonymousTypes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for control blocks.
-        /// </summary>
-        internal static string NewLinesForBracesInControlBlocks {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesInControlBlocks", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for lambda expression.
-        /// </summary>
-        internal static string NewLinesForBracesInLambdaExpressionBody {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesInLambdaExpressionBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for object, collection and array initializers.
-        /// </summary>
-        internal static string NewLinesForBracesInObjectCollectionArrayInitializers {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesInObjectCollectionArrayInitializers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for methods.
-        /// </summary>
-        internal static string NewLinesForBracesMethod {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for properties, indexers, and events.
-        /// </summary>
-        internal static string NewLinesForBracesProperty {
-            get {
-                return ResourceManager.GetString("NewLinesForBracesProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Move local declaration to the extracted method if it is not used elsewhere.
-        /// </summary>
-        internal static string Option_AllowMovingDeclaration {
-            get {
-                return ResourceManager.GetString("Option_AllowMovingDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Show completion list after a character is typed.
-        /// </summary>
-        internal static string Option_BringUpOnIdentifier {
-            get {
-                return ResourceManager.GetString("Option_BringUpOnIdentifier", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable full solution _analysis.
-        /// </summary>
-        internal static string Option_ClosedFileDiagnostics {
-            get {
-                return ResourceManager.GetString("Option_ClosedFileDiagnostics", resourceCulture);
+                return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Completion Lists.
         /// </summary>
-        internal static string Option_CompletionLists {
+        internal static string Completion_Lists {
             get {
-                return ResourceManager.GetString("Option_CompletionLists", resourceCulture);
+                return ResourceManager.GetString("Completion_Lists", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Show procedure line separators.
+        ///   Looks up a localized string similar to C#.
         /// </summary>
-        internal static string Option_DisplayLineSeparators {
+        internal static string CSharp {
             get {
-                return ResourceManager.GetString("Option_DisplayLineSeparators", resourceCulture);
+                return ResourceManager.GetString("CSharp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
+        /// </summary>
+        internal static string Do_not_prefer_this {
+            get {
+                return ResourceManager.GetString("Do_not_prefer_this", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to _Don&apos;t put ref or out on custom struct.
         /// </summary>
-        internal static string Option_DontPutOutOrRefOnStruct {
+        internal static string Don_t_put_ref_or_out_on_custom_struct {
             get {
-                return ResourceManager.GetString("Option_DontPutOutOrRefOnStruct", resourceCulture);
+                return ResourceManager.GetString("Don_t_put_ref_or_out_on_custom_struct", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Editor Help.
         /// </summary>
-        internal static string Option_EditorHelp {
+        internal static string Editor_Help {
             get {
-                return ResourceManager.GetString("Option_EditorHelp", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Highlight related _keywords under cursor.
-        /// </summary>
-        internal static string Option_EnableHighlightKeywords {
-            get {
-                return ResourceManager.GetString("Option_EnableHighlightKeywords", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Highlight references to symbol under cursor.
-        /// </summary>
-        internal static string Option_EnableHighlightReferences {
-            get {
-                return ResourceManager.GetString("Option_EnableHighlightReferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enter _outlining mode when files open.
-        /// </summary>
-        internal static string Option_EnterOutliningMode {
-            get {
-                return ResourceManager.GetString("Option_EnterOutliningMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
-        /// </summary>
-        internal static string Option_ExtractMethod {
-            get {
-                return ResourceManager.GetString("Option_ExtractMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Generate XML documentation comments for ///.
-        /// </summary>
-        internal static string Option_GenerateXmlDocCommentsForTripleSlash {
-            get {
-                return ResourceManager.GetString("Option_GenerateXmlDocCommentsForTripleSlash", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Highlighting.
-        /// </summary>
-        internal static string Option_Highlighting {
-            get {
-                return ResourceManager.GetString("Option_Highlighting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
-        /// </summary>
-        internal static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments {
-            get {
-                return ResourceManager.GetString("Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Add new line on enter after end of fully typed word.
-        /// </summary>
-        internal static string Option_InsertNewlineOnEnterWithWholeWord {
-            get {
-                return ResourceManager.GetString("Option_InsertNewlineOnEnterWithWholeWord", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Optimize for solution size.
-        /// </summary>
-        internal static string Option_OptimizeForSolutionSize {
-            get {
-                return ResourceManager.GetString("Option_OptimizeForSolutionSize", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Large.
-        /// </summary>
-        internal static string Option_OptimizeForSolutionSize_Large {
-            get {
-                return ResourceManager.GetString("Option_OptimizeForSolutionSize_Large", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Regular.
-        /// </summary>
-        internal static string Option_OptimizeForSolutionSize_Regular {
-            get {
-                return ResourceManager.GetString("Option_OptimizeForSolutionSize_Regular", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Small.
-        /// </summary>
-        internal static string Option_OptimizeForSolutionSize_Small {
-            get {
-                return ResourceManager.GetString("Option_OptimizeForSolutionSize_Small", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Outlining.
-        /// </summary>
-        internal static string Option_Outlining {
-            get {
-                return ResourceManager.GetString("Option_Outlining", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Performance.
-        /// </summary>
-        internal static string Option_Performance {
-            get {
-                return ResourceManager.GetString("Option_Performance", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Place &apos;System&apos; directives first when sorting usings.
-        /// </summary>
-        internal static string Option_PlaceSystemNamespaceFirst {
-            get {
-                return ResourceManager.GetString("Option_PlaceSystemNamespaceFirst", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show preview for rename _tracking.
-        /// </summary>
-        internal static string Option_RenameTrackingPreview {
-            get {
-                return ResourceManager.GetString("Option_RenameTrackingPreview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Selection In Completion List.
-        /// </summary>
-        internal static string Option_SelectionInCompletionList {
-            get {
-                return ResourceManager.GetString("Option_SelectionInCompletionList", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place _keywords in completion lists.
-        /// </summary>
-        internal static string Option_ShowKeywords {
-            get {
-                return ResourceManager.GetString("Option_ShowKeywords", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Place _code snippets in completion lists.
-        /// </summary>
-        internal static string Option_ShowSnippets {
-            get {
-                return ResourceManager.GetString("Option_ShowSnippets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Split string literals on _enter.
-        /// </summary>
-        internal static string Option_Split_string_literals_on_enter {
-            get {
-                return ResourceManager.GetString("Option_Split_string_literals_on_enter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
-        /// </summary>
-        internal static string Option_Suggest_usings_for_types_in_NuGet_packages {
-            get {
-                return ResourceManager.GetString("Option_Suggest_usings_for_types_in_NuGet_packages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggest usings for types in _reference assemblies.
-        /// </summary>
-        internal static string Option_Suggest_usings_for_types_in_reference_assemblies {
-            get {
-                return ResourceManager.GetString("Option_Suggest_usings_for_types_in_reference_assemblies", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using Directives.
-        /// </summary>
-        internal static string Option_Using_Directives {
-            get {
-                return ResourceManager.GetString("Option_Using_Directives", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to predefined type preferences:.
-        /// </summary>
-        internal static string PredefinedTypesGroupTitle {
-            get {
-                return ResourceManager.GetString("PredefinedTypesGroupTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer explicit type.
-        /// </summary>
-        internal static string PreferExplicitType {
-            get {
-                return ResourceManager.GetString("PreferExplicitType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to For locals, parameters and members.
-        /// </summary>
-        internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
-            get {
-                return ResourceManager.GetString("PreferIntrinsicPredefinedTypeKeywordInDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to For member access expressions.
-        /// </summary>
-        internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
-            get {
-                return ResourceManager.GetString("PreferIntrinsicPredefinedTypeKeywordInMemberAccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
-        /// </summary>
-        internal static string PreferThis {
-            get {
-                return ResourceManager.GetString("PreferThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;var&apos;.
-        /// </summary>
-        internal static string PreferVar {
-            get {
-                return ResourceManager.GetString("PreferVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
-        /// </summary>
-        internal static string QualifyEventAccessWithThis {
-            get {
-                return ResourceManager.GetString("QualifyEventAccessWithThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify field access with &apos;this&apos;.
-        /// </summary>
-        internal static string QualifyFieldAccessWithThis {
-            get {
-                return ResourceManager.GetString("QualifyFieldAccessWithThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;this.&apos; preferences:.
-        /// </summary>
-        internal static string QualifyGroupTitle {
-            get {
-                return ResourceManager.GetString("QualifyGroupTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify method access with &apos;this&apos;.
-        /// </summary>
-        internal static string QualifyMethodAccessWithThis {
-            get {
-                return ResourceManager.GetString("QualifyMethodAccessWithThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify property access with &apos;this&apos;.
-        /// </summary>
-        internal static string QualifyPropertyAccessWithThis {
-            get {
-                return ResourceManager.GetString("QualifyPropertyAccessWithThis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set other spacing options.
-        /// </summary>
-        internal static string SetOtherSpacingOptions {
-            get {
-                return ResourceManager.GetString("SetOtherSpacingOptions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set spacing for brackets.
-        /// </summary>
-        internal static string SetSpacingForBrackets {
-            get {
-                return ResourceManager.GetString("SetSpacingForBrackets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set spacing for delimiters.
-        /// </summary>
-        internal static string SetSpacingForDelimiters {
-            get {
-                return ResourceManager.GetString("SetSpacingForDelimiters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set spacing for method calls.
-        /// </summary>
-        internal static string SetSpacingForMethodCalls {
-            get {
-                return ResourceManager.GetString("SetSpacingForMethodCalls", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set spacing for method declarations.
-        /// </summary>
-        internal static string SetSpacingForMethodDeclarations {
-            get {
-                return ResourceManager.GetString("SetSpacingForMethodDeclarations", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set spacing for operators.
-        /// </summary>
-        internal static string SetSpacingForOperators {
-            get {
-                return ResourceManager.GetString("SetSpacingForOperators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Inference preferences:.
-        /// </summary>
-        internal static string SetTypeInferencePreferences {
-            get {
-                return ResourceManager.GetString("SetTypeInferencePreferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after cast.
-        /// </summary>
-        internal static string SpaceAfterCast {
-            get {
-                return ResourceManager.GetString("SpaceAfterCast", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after colon for base or interface in type declaration.
-        /// </summary>
-        internal static string SpaceAfterColonInBaseTypeDeclaration {
-            get {
-                return ResourceManager.GetString("SpaceAfterColonInBaseTypeDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after comma.
-        /// </summary>
-        internal static string SpaceAfterComma {
-            get {
-                return ResourceManager.GetString("SpaceAfterComma", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after keywords in control flow statements.
-        /// </summary>
-        internal static string SpaceAfterControlFlowStatementKeyword {
-            get {
-                return ResourceManager.GetString("SpaceAfterControlFlowStatementKeyword", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after dot.
-        /// </summary>
-        internal static string SpaceAfterDot {
-            get {
-                return ResourceManager.GetString("SpaceAfterDot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space between method name and its opening parenthesis.
-        /// </summary>
-        internal static string SpaceAfterMethodCallName {
-            get {
-                return ResourceManager.GetString("SpaceAfterMethodCallName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space after semicolon in &quot;for&quot; statement.
-        /// </summary>
-        internal static string SpaceAfterSemicolonsInForStatement {
-            get {
-                return ResourceManager.GetString("SpaceAfterSemicolonsInForStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space before colon for base or interface in type declaration.
-        /// </summary>
-        internal static string SpaceBeforeColonInBaseTypeDeclaration {
-            get {
-                return ResourceManager.GetString("SpaceBeforeColonInBaseTypeDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space before comma.
-        /// </summary>
-        internal static string SpaceBeforeComma {
-            get {
-                return ResourceManager.GetString("SpaceBeforeComma", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space before dot.
-        /// </summary>
-        internal static string SpaceBeforeDot {
-            get {
-                return ResourceManager.GetString("SpaceBeforeDot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space before open square bracket.
-        /// </summary>
-        internal static string SpaceBeforeOpenSquareBracket {
-            get {
-                return ResourceManager.GetString("SpaceBeforeOpenSquareBracket", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space before semicolon in &quot;for&quot; statement.
-        /// </summary>
-        internal static string SpaceBeforeSemicolonsInForStatement {
-            get {
-                return ResourceManager.GetString("SpaceBeforeSemicolonsInForStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty argument list parentheses.
-        /// </summary>
-        internal static string SpaceBetweenEmptyMethodCallParentheses {
-            get {
-                return ResourceManager.GetString("SpaceBetweenEmptyMethodCallParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty parameter list parentheses.
-        /// </summary>
-        internal static string SpaceBetweenEmptyMethodDeclarationParentheses {
-            get {
-                return ResourceManager.GetString("SpaceBetweenEmptyMethodDeclarationParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within empty square brackets.
-        /// </summary>
-        internal static string SpaceBetweenEmptySquareBrackets {
-            get {
-                return ResourceManager.GetString("SpaceBetweenEmptySquareBrackets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ignore spaces in declaration statements.
-        /// </summary>
-        internal static string SpacesIgnoreAroundVariableDeclaration {
-            get {
-                return ResourceManager.GetString("SpacesIgnoreAroundVariableDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within parentheses of type casts.
-        /// </summary>
-        internal static string SpaceWithinCastParentheses {
-            get {
-                return ResourceManager.GetString("SpaceWithinCastParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within parentheses of expressions.
-        /// </summary>
-        internal static string SpaceWithinExpressionParentheses {
-            get {
-                return ResourceManager.GetString("SpaceWithinExpressionParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within argument list parentheses.
-        /// </summary>
-        internal static string SpaceWithinMethodCallParentheses {
-            get {
-                return ResourceManager.GetString("SpaceWithinMethodCallParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space within parameter list parentheses.
-        /// </summary>
-        internal static string SpaceWithinMethodDeclarationParenthesis {
-            get {
-                return ResourceManager.GetString("SpaceWithinMethodDeclarationParenthesis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert spaces within parentheses of control flow statements.
-        /// </summary>
-        internal static string SpaceWithinOtherParentheses {
-            get {
-                return ResourceManager.GetString("SpaceWithinOtherParentheses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert spaces within square brackets.
-        /// </summary>
-        internal static string SpaceWithinSquareBrackets {
-            get {
-                return ResourceManager.GetString("SpaceWithinSquareBrackets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert space between method name and its opening parenthesis.
-        /// </summary>
-        internal static string SpacingAfterMethodDeclarationName {
-            get {
-                return ResourceManager.GetString("SpacingAfterMethodDeclarationName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Surround With.
-        /// </summary>
-        internal static string SurroundWith {
-            get {
-                return ResourceManager.GetString("SurroundWith", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to For built-in types.
-        /// </summary>
-        internal static string UseImplicitTypeForIntrinsicTypes {
-            get {
-                return ResourceManager.GetString("UseImplicitTypeForIntrinsicTypes", resourceCulture);
+                return ResourceManager.GetString("Editor_Help", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Elsewhere.
         /// </summary>
-        internal static string UseImplicitTypeWhenPossible {
+        internal static string Elsewhere {
             get {
-                return ResourceManager.GetString("UseImplicitTypeWhenPossible", resourceCulture);
+                return ResourceManager.GetString("Elsewhere", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to When variable type is apparent.
+        ///   Looks up a localized string similar to Enable full solution _analysis.
         /// </summary>
-        internal static string UseImplicitTypeWhenTypeIsApparent {
+        internal static string Enable_full_solution_analysis {
             get {
-                return ResourceManager.GetString("UseImplicitTypeWhenTypeIsApparent", resourceCulture);
+                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
+        ///   Looks up a localized string similar to Enter key behavior:.
         /// </summary>
-        internal static string UseVarWhenGeneratingLocals {
+        internal static string Enter_key_behavior_colon {
             get {
-                return ResourceManager.GetString("UseVarWhenGeneratingLocals", resourceCulture);
+                return ResourceManager.GetString("Enter_key_behavior_colon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;var&apos; preferences:.
+        ///   Looks up a localized string similar to Enter _outlining mode when files open.
         /// </summary>
-        internal static string VarGroupTitle {
+        internal static string Enter_outlining_mode_when_files_open {
             get {
-                return ResourceManager.GetString("VarGroupTitle", resourceCulture);
+                return ResourceManager.GetString("Enter_outlining_mode_when_files_open", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Leave statements and member declarations on the same line.
+        ///   Looks up a localized string similar to Extract Method.
         /// </summary>
-        internal static string WrappingKeepStatementsOnSingleLine {
+        internal static string Extract_Method {
             get {
-                return ResourceManager.GetString("WrappingKeepStatementsOnSingleLine", resourceCulture);
+                return ResourceManager.GetString("Extract_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For built-in types.
+        /// </summary>
+        internal static string For_built_in_types {
+            get {
+                return ResourceManager.GetString("For_built_in_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Generate XML documentation comments for ///.
+        /// </summary>
+        internal static string Generate_XML_documentation_comments_for {
+            get {
+                return ResourceManager.GetString("Generate_XML_documentation_comments_for", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Highlight matching portions of completion list items.
+        /// </summary>
+        internal static string Highlight_matching_portions_of_completion_list_items {
+            get {
+                return ResourceManager.GetString("Highlight_matching_portions_of_completion_list_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Highlight references to symbol under cursor.
+        /// </summary>
+        internal static string Highlight_references_to_symbol_under_cursor {
+            get {
+                return ResourceManager.GetString("Highlight_references_to_symbol_under_cursor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlight related _keywords under cursor.
+        /// </summary>
+        internal static string Highlight_related_keywords_under_cursor {
+            get {
+                return ResourceManager.GetString("Highlight_related_keywords_under_cursor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlighting.
+        /// </summary>
+        internal static string Highlighting {
+            get {
+                return ResourceManager.GetString("Highlighting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ignore spaces around binary operators.
+        /// </summary>
+        internal static string Ignore_spaces_around_binary_operators {
+            get {
+                return ResourceManager.GetString("Ignore_spaces_around_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ignore spaces in declaration statements.
+        /// </summary>
+        internal static string Ignore_spaces_in_declaration_statements {
+            get {
+                return ResourceManager.GetString("Ignore_spaces_in_declaration_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
+        /// </summary>
+        internal static string Include_snippets_when_Tab_is_typed_after_an_identifier {
+            get {
+                return ResourceManager.GetString("Include_snippets_when_Tab_is_typed_after_an_identifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent block contents.
+        /// </summary>
+        internal static string Indent_block_contents {
+            get {
+                return ResourceManager.GetString("Indent_block_contents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent case contents.
+        /// </summary>
+        internal static string Indent_case_contents {
+            get {
+                return ResourceManager.GetString("Indent_case_contents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent case labels.
+        /// </summary>
+        internal static string Indent_case_labels {
+            get {
+                return ResourceManager.GetString("Indent_case_labels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent labels normally.
+        /// </summary>
+        internal static string Indent_labels_normally {
+            get {
+                return ResourceManager.GetString("Indent_labels_normally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent open and close braces.
+        /// </summary>
+        internal static string Indent_open_and_close_braces {
+            get {
+                return ResourceManager.GetString("Indent_open_and_close_braces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Insert * at the start of new lines when writing /* */ comments.
+        /// </summary>
+        internal static string Insert_at_the_start_of_new_lines_when_writing_comments {
+            get {
+                return ResourceManager.GetString("Insert_at_the_start_of_new_lines_when_writing_comments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert Snippet.
+        /// </summary>
+        internal static string Insert_Snippet {
+            get {
+                return ResourceManager.GetString("Insert_Snippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after cast.
+        /// </summary>
+        internal static string Insert_space_after_cast {
+            get {
+                return ResourceManager.GetString("Insert_space_after_cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after colon for base or interface in type declaration.
+        /// </summary>
+        internal static string Insert_space_after_colon_for_base_or_interface_in_type_declaration {
+            get {
+                return ResourceManager.GetString("Insert_space_after_colon_for_base_or_interface_in_type_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after comma.
+        /// </summary>
+        internal static string Insert_space_after_comma {
+            get {
+                return ResourceManager.GetString("Insert_space_after_comma", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after dot.
+        /// </summary>
+        internal static string Insert_space_after_dot {
+            get {
+                return ResourceManager.GetString("Insert_space_after_dot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after keywords in control flow statements.
+        /// </summary>
+        internal static string Insert_space_after_keywords_in_control_flow_statements {
+            get {
+                return ResourceManager.GetString("Insert_space_after_keywords_in_control_flow_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space after semicolon in &quot;for&quot; statement.
+        /// </summary>
+        internal static string Insert_space_after_semicolon_in_for_statement {
+            get {
+                return ResourceManager.GetString("Insert_space_after_semicolon_in_for_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before and after binary operators.
+        /// </summary>
+        internal static string Insert_space_before_and_after_binary_operators {
+            get {
+                return ResourceManager.GetString("Insert_space_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before colon for base or interface in type declaration.
+        /// </summary>
+        internal static string Insert_space_before_colon_for_base_or_interface_in_type_declaration {
+            get {
+                return ResourceManager.GetString("Insert_space_before_colon_for_base_or_interface_in_type_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before comma.
+        /// </summary>
+        internal static string Insert_space_before_comma {
+            get {
+                return ResourceManager.GetString("Insert_space_before_comma", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before dot.
+        /// </summary>
+        internal static string Insert_space_before_dot {
+            get {
+                return ResourceManager.GetString("Insert_space_before_dot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before open square bracket.
+        /// </summary>
+        internal static string Insert_space_before_open_square_bracket {
+            get {
+                return ResourceManager.GetString("Insert_space_before_open_square_bracket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space before semicolon in &quot;for&quot; statement.
+        /// </summary>
+        internal static string Insert_space_before_semicolon_in_for_statement {
+            get {
+                return ResourceManager.GetString("Insert_space_before_semicolon_in_for_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space between method name and its opening parenthesis.
+        /// </summary>
+        internal static string Insert_space_between_method_name_and_its_opening_parenthesis1 {
+            get {
+                return ResourceManager.GetString("Insert_space_between_method_name_and_its_opening_parenthesis1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space between method name and its opening parenthesis.
+        /// </summary>
+        internal static string Insert_space_between_method_name_and_its_opening_parenthesis2 {
+            get {
+                return ResourceManager.GetString("Insert_space_between_method_name_and_its_opening_parenthesis2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within argument list parentheses.
+        /// </summary>
+        internal static string Insert_space_within_argument_list_parentheses {
+            get {
+                return ResourceManager.GetString("Insert_space_within_argument_list_parentheses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within empty argument list parentheses.
+        /// </summary>
+        internal static string Insert_space_within_empty_argument_list_parentheses {
+            get {
+                return ResourceManager.GetString("Insert_space_within_empty_argument_list_parentheses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within empty parameter list parentheses.
+        /// </summary>
+        internal static string Insert_space_within_empty_parameter_list_parentheses {
+            get {
+                return ResourceManager.GetString("Insert_space_within_empty_parameter_list_parentheses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within empty square brackets.
+        /// </summary>
+        internal static string Insert_space_within_empty_square_brackets {
+            get {
+                return ResourceManager.GetString("Insert_space_within_empty_square_brackets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within parameter list parentheses.
+        /// </summary>
+        internal static string Insert_space_within_parameter_list_parentheses {
+            get {
+                return ResourceManager.GetString("Insert_space_within_parameter_list_parentheses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within parentheses of expressions.
+        /// </summary>
+        internal static string Insert_space_within_parentheses_of_expressions {
+            get {
+                return ResourceManager.GetString("Insert_space_within_parentheses_of_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert space within parentheses of type casts.
+        /// </summary>
+        internal static string Insert_space_within_parentheses_of_type_casts {
+            get {
+                return ResourceManager.GetString("Insert_space_within_parentheses_of_type_casts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert spaces within parentheses of control flow statements.
+        /// </summary>
+        internal static string Insert_spaces_within_parentheses_of_control_flow_statements {
+            get {
+                return ResourceManager.GetString("Insert_spaces_within_parentheses_of_control_flow_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert spaces within square brackets.
+        /// </summary>
+        internal static string Insert_spaces_within_square_brackets {
+            get {
+                return ResourceManager.GetString("Insert_spaces_within_square_brackets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Label Indentation.
+        /// </summary>
+        internal static string Label_Indentation {
+            get {
+                return ResourceManager.GetString("Label_Indentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Large.
+        /// </summary>
+        internal static string Large {
+            get {
+                return ResourceManager.GetString("Large", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Leave block on single line.
         /// </summary>
-        internal static string WrappingPreserveSingleLine {
+        internal static string Leave_block_on_single_line {
             get {
-                return ResourceManager.GetString("WrappingPreserveSingleLine", resourceCulture);
+                return ResourceManager.GetString("Leave_block_on_single_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leave statements and member declarations on the same line.
+        /// </summary>
+        internal static string Leave_statements_and_member_declarations_on_the_same_line {
+            get {
+                return ResourceManager.GetString("Leave_statements_and_member_declarations_on_the_same_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Move local declaration to the extracted method if it is not used elsewhere.
+        /// </summary>
+        internal static string Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere {
+            get {
+                return ResourceManager.GetString("Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Never add new line on enter.
+        /// </summary>
+        internal static string Never_add_new_line_on_enter {
+            get {
+                return ResourceManager.GetString("Never_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never include snippets.
+        /// </summary>
+        internal static string Never_include_snippets {
+            get {
+                return ResourceManager.GetString("Never_include_snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line options for braces.
+        /// </summary>
+        internal static string New_line_options_for_braces {
+            get {
+                return ResourceManager.GetString("New_line_options_for_braces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line options for expressions.
+        /// </summary>
+        internal static string New_line_options_for_expressions {
+            get {
+                return ResourceManager.GetString("New_line_options_for_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line options for keywords.
+        /// </summary>
+        internal static string New_line_options_for_keywords {
+            get {
+                return ResourceManager.GetString("New_line_options_for_keywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;null&apos; checking:.
+        /// </summary>
+        internal static string null_checking_colon {
+            get {
+                return ResourceManager.GetString("null_checking_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
+        /// </summary>
+        internal static string Only_add_new_line_on_enter_after_end_of_fully_typed_word {
+            get {
+                return ResourceManager.GetString("Only_add_new_line_on_enter_after_end_of_fully_typed_word", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Optimize for solution size.
+        /// </summary>
+        internal static string Optimize_for_solution_size {
+            get {
+                return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Performance.
+        /// </summary>
+        internal static string Performance {
+            get {
+                return ResourceManager.GetString("Performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place &quot;catch&quot; on new line.
+        /// </summary>
+        internal static string Place_catch_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_catch_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place _code snippets in completion lists.
+        /// </summary>
+        internal static string Place_code_snippets_in_completion_lists {
+            get {
+                return ResourceManager.GetString("Place_code_snippets_in_completion_lists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place &quot;else&quot; on new line.
+        /// </summary>
+        internal static string Place_else_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_else_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place &quot;finally&quot; on new line.
+        /// </summary>
+        internal static string Place_finally_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_finally_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place goto labels in leftmost column.
+        /// </summary>
+        internal static string Place_goto_labels_in_leftmost_column {
+            get {
+                return ResourceManager.GetString("Place_goto_labels_in_leftmost_column", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place goto labels one indent less than current.
+        /// </summary>
+        internal static string Place_goto_labels_one_indent_less_than_current {
+            get {
+                return ResourceManager.GetString("Place_goto_labels_one_indent_less_than_current", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place _keywords in completion lists.
+        /// </summary>
+        internal static string Place_keywords_in_completion_lists {
+            get {
+                return ResourceManager.GetString("Place_keywords_in_completion_lists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place members in anonymous types on new line.
+        /// </summary>
+        internal static string Place_members_in_anonymous_types_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_members_in_anonymous_types_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place members in object initializers on new line.
+        /// </summary>
+        internal static string Place_members_in_object_initializers_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_members_in_object_initializers_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for anonymous methods.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_anonymous_methods {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_anonymous_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for anonymous types.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_anonymous_types {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_anonymous_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for control blocks.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_control_blocks {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_control_blocks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for lambda expression.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_lambda_expression {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_lambda_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for methods.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_methods {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for object, collection and array initializers.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_object_collection_and_array_initializers {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_object_collection_and_array_initializers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for properties, indexers, and events.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_properties_indexers_and_events {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_properties_indexers_and_events", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for property, indexer, and event accessors.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_property_indexer_and_event_accessors {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_property_indexer_and_event_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place open brace on new line for types.
+        /// </summary>
+        internal static string Place_open_brace_on_new_line_for_types {
+            get {
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place query expression clauses on new line.
+        /// </summary>
+        internal static string Place_query_expression_clauses_on_new_line {
+            get {
+                return ResourceManager.GetString("Place_query_expression_clauses_on_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Place &apos;System&apos; directives first when sorting usings.
+        /// </summary>
+        internal static string Place_System_directives_first_when_sorting_usings {
+            get {
+                return ResourceManager.GetString("Place_System_directives_first_when_sorting_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to predefined type preferences:.
+        /// </summary>
+        internal static string predefined_type_preferences_colon {
+            get {
+                return ResourceManager.GetString("predefined_type_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer block body.
+        /// </summary>
+        internal static string Prefer_block_body {
+            get {
+                return ResourceManager.GetString("Prefer_block_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional delegate call.
+        /// </summary>
+        internal static string Prefer_conditional_delegate_call {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_delegate_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit type.
+        /// </summary>
+        internal static string Prefer_explicit_type {
+            get {
+                return ResourceManager.GetString("Prefer_explicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer expression body.
+        /// </summary>
+        internal static string Prefer_expression_body {
+            get {
+                return ResourceManager.GetString("Prefer_expression_body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;as&apos; with &apos;null&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_as_with_null_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_as_with_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;is&apos; with &apos;cast&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_is_with_cast_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_is_with_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
+        /// </summary>
+        internal static string Prefer_this {
+            get {
+                return ResourceManager.GetString("Prefer_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer throw-expression.
+        /// </summary>
+        internal static string Prefer_throw_expression {
+            get {
+                return ResourceManager.GetString("Prefer_throw_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;var&apos;.
+        /// </summary>
+        internal static string Prefer_var {
+            get {
+                return ResourceManager.GetString("Prefer_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
+        /// </summary>
+        internal static string Qualify_event_access_with_this {
+            get {
+                return ResourceManager.GetString("Qualify_event_access_with_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify field access with &apos;this&apos;.
+        /// </summary>
+        internal static string Qualify_field_access_with_this {
+            get {
+                return ResourceManager.GetString("Qualify_field_access_with_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify method access with &apos;this&apos;.
+        /// </summary>
+        internal static string Qualify_method_access_with_this {
+            get {
+                return ResourceManager.GetString("Qualify_method_access_with_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify property access with &apos;this&apos;.
+        /// </summary>
+        internal static string Qualify_property_access_with_this {
+            get {
+                return ResourceManager.GetString("Qualify_property_access_with_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular.
+        /// </summary>
+        internal static string Regular {
+            get {
+                return ResourceManager.GetString("Regular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove spaces before and after binary operators.
+        /// </summary>
+        internal static string Remove_spaces_before_and_after_binary_operators {
+            get {
+                return ResourceManager.GetString("Remove_spaces_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selection In Completion List.
+        /// </summary>
+        internal static string Selection_In_Completion_List {
+            get {
+                return ResourceManager.GetString("Selection_In_Completion_List", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set other spacing options.
+        /// </summary>
+        internal static string Set_other_spacing_options {
+            get {
+                return ResourceManager.GetString("Set_other_spacing_options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set spacing for brackets.
+        /// </summary>
+        internal static string Set_spacing_for_brackets {
+            get {
+                return ResourceManager.GetString("Set_spacing_for_brackets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set spacing for delimiters.
+        /// </summary>
+        internal static string Set_spacing_for_delimiters {
+            get {
+                return ResourceManager.GetString("Set_spacing_for_delimiters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set spacing for method calls.
+        /// </summary>
+        internal static string Set_spacing_for_method_calls {
+            get {
+                return ResourceManager.GetString("Set_spacing_for_method_calls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set spacing for method declarations.
+        /// </summary>
+        internal static string Set_spacing_for_method_declarations {
+            get {
+                return ResourceManager.GetString("Set_spacing_for_method_declarations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set spacing for operators.
+        /// </summary>
+        internal static string Set_spacing_for_operators {
+            get {
+                return ResourceManager.GetString("Set_spacing_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion item _filters.
+        /// </summary>
+        internal static string Show_completion_item_filters {
+            get {
+                return ResourceManager.GetString("Show_completion_item_filters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list after a character is _deleted.
+        /// </summary>
+        internal static string Show_completion_list_after_a_character_is_deleted {
+            get {
+                return ResourceManager.GetString("Show_completion_list_after_a_character_is_deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show completion list after a character is typed.
+        /// </summary>
+        internal static string Show_completion_list_after_a_character_is_typed {
+            get {
+                return ResourceManager.GetString("Show_completion_list_after_a_character_is_typed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show preview for rename _tracking.
+        /// </summary>
+        internal static string Show_preview_for_rename_tracking {
+            get {
+                return ResourceManager.GetString("Show_preview_for_rename_tracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show procedure line separators.
+        /// </summary>
+        internal static string Show_procedure_line_separators {
+            get {
+                return ResourceManager.GetString("Show_procedure_line_separators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Small.
+        /// </summary>
+        internal static string Small {
+            get {
+                return ResourceManager.GetString("Small", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets behavior.
+        /// </summary>
+        internal static string Snippets_behavior {
+            get {
+                return ResourceManager.GetString("Snippets_behavior", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split string literals on _enter.
+        /// </summary>
+        internal static string Split_string_literals_on_enter {
+            get {
+                return ResourceManager.GetString("Split_string_literals_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
+        /// </summary>
+        internal static string Suggest_usings_for_types_in_NuGet_packages {
+            get {
+                return ResourceManager.GetString("Suggest_usings_for_types_in_NuGet_packages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suggest usings for types in _reference assemblies.
+        /// </summary>
+        internal static string Suggest_usings_for_types_in_reference_assemblies {
+            get {
+                return ResourceManager.GetString("Suggest_usings_for_types_in_reference_assemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Surround With.
+        /// </summary>
+        internal static string Surround_With {
+            get {
+                return ResourceManager.GetString("Surround_With", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;this.&apos; preferences:.
+        /// </summary>
+        internal static string this_preferences_colon {
+            get {
+                return ResourceManager.GetString("this_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Inference preferences:.
+        /// </summary>
+        internal static string Type_Inference_preferences_colon {
+            get {
+                return ResourceManager.GetString("Type_Inference_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
+        /// </summary>
+        internal static string Use_var_when_generating_locals {
+            get {
+                return ResourceManager.GetString("Use_var_when_generating_locals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using Directives.
+        /// </summary>
+        internal static string Using_Directives {
+            get {
+                return ResourceManager.GetString("Using_Directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;var&apos; preferences:.
+        /// </summary>
+        internal static string var_preferences_colon {
+            get {
+                return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When variable type is apparent.
+        /// </summary>
+        internal static string When_variable_type_is_apparent {
+            get {
+                return ResourceManager.GetString("When_variable_type_is_apparent", resourceCulture);
             }
         }
     }

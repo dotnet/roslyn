@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Using", VBFeaturesResources.UsingKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Using", VBFeaturesResources.A_Using_block_does_three_things_colon_it_creates_and_initializes_variables_in_the_resource_list_it_runs_the_code_in_the_block_and_it_disposes_of_the_variables_before_exiting_Resources_used_in_the_Using_block_must_implement_System_IDisposable_Using_resource1_bracket_resource2_bracket_End_Using))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

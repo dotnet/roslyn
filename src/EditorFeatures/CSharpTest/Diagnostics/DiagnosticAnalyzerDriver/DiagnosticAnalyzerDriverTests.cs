@@ -29,26 +29,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            // AllInOneCSharpCode has no pattern matching.
-            var syntaxKindsPatterns = new HashSet<SyntaxKind>();
-            syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
+            var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
-            // AllInOneCSharpCode has no replace/original.
-            syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
+            // AllInOneCSharpCode has no deconstruction or declaration expression
+            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
+            syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsMissing);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }
@@ -148,7 +145,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.GetDocumentState());
+                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
@@ -166,6 +163,8 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public bool OpenFileOnly(Workspace workspace) => false;
+
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
                 return DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;

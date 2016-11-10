@@ -1061,17 +1061,17 @@ public interface IFoo
 using System;
 
 //
-// {FeaturesResources.Summary}
+// {FeaturesResources.Summary_colon}
 //     T:IFoo
 public interface [|IFoo|]
 {{
     //
-    // {FeaturesResources.Summary}
+    // {FeaturesResources.Summary_colon}
     //     P:IFoo.Prop1
     Uri Prop1 {{ get; set; }}
 
     //
-    // {FeaturesResources.Summary}
+    // {FeaturesResources.Summary_colon}
     //     M:IFoo.Method1
     Uri Method1();
 }}
@@ -1085,16 +1085,16 @@ public interface [|IFoo|]
 Imports System
 
 '
-' {FeaturesResources.Summary}
+' {FeaturesResources.Summary_colon}
 '     T:IFoo
 Public Interface [|IFoo|]
     '
-    ' {FeaturesResources.Summary}
+    ' {FeaturesResources.Summary_colon}
     '     P:IFoo.Prop1
     Property Prop1 As Uri
 
     '
-    ' {FeaturesResources.Summary}
+    ' {FeaturesResources.Summary_colon}
     '     M:IFoo.Method1
     Function Method1() As Uri
 End Interface

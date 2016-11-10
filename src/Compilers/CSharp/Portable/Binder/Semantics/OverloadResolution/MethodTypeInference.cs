@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 /*
 SPEC:
@@ -96,6 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeSymbol>[] _lowerBounds;
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
+
+        /// <summary>
+        /// For error recovery, we allow a mismatch between the number of arguments and parameters
+        /// during type inference. This sometimes enables inferring the type for a lambda parameter.
+        /// </summary>
+        private int NumberArgumentsToProcess => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
 
         public static MethodTypeInferenceResult Infer(
             Binder binder,
@@ -204,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics
-            )
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -524,14 +529,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
-            Debug.Assert(_arguments.Length == _formalParameterTypes.Length);
 
             // We expect that we have been handed a list of arguments and a list of the 
             // formal parameter types they correspond to; all the details about named and 
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var argument = _arguments[arg];
 
@@ -645,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      then T becomes int and U becomes string
             if (target.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -659,30 +663,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
 
-            try
+            // NOTE: we are losing tuple element names when recursing into argument expressions.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple literal is used to infer a single type param
+
+            for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (sourceArguments.Length != destTypes.Count)
-                {
-                    return;
-                }
-
-                // NOTE: we are losing tuple element names when recursing into argument expressions.
-                //       that is ok, because we are inferring type parameters used in the matching elements, 
-                //       This is not the situation where entire tuple literal is used to infer a single type param
-
-                for (int i = 0; i < sourceArguments.Length; i++)
-                {
-                    var sourceArgument = sourceArguments[i];
-                    var destType = destTypes[i];
-                    MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
-                }
-            }
-            finally
-            {
-                destTypes.Free();
+                var sourceArgument = sourceArguments[i];
+                var destType = destTypes[i];
+                MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
             }
         }
 
@@ -795,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: where the output types contain unfixed type parameters but the input
             // SPEC: types do not, an output type inference is made from Ei to Ti.
 
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
@@ -827,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (formalType.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -842,26 +834,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
 
-            try
+            for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (sourceArguments.Length != destTypes.Count)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < sourceArguments.Length; i++)
-                {
-                    var sourceArgument = sourceArguments[i];
-                    var destType = destTypes[i];
-                    MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
-                }
-            }
-            finally
-            {
-                destTypes.Free();
+                var sourceArgument = sourceArguments[i];
+                var destType = destTypes[i];
+                MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
             }
         }
 
@@ -961,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateParameters = delegateType.DelegateParameters();
-            if (delegateParameters.IsEmpty)
+            if (delegateParameters.IsDefaultOrEmpty)
             {
                 return false;
             }
@@ -1067,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixed(iParam));
             Debug.Assert(IsUnfixed(jParam));
 
-            for (int iArg = 0; iArg < _arguments.Length; iArg++)
+            for (int iArg = 0, length = this.NumberArgumentsToProcess; iArg < length; iArg++)
             {
                 var formalParameterType = _formalParameterTypes[iArg];
                 var argument = _arguments[iArg];
@@ -1604,26 +1584,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       that is ok, because we are inferring type parameters used in the matching elements, 
             //       This is not the situation where entire tuple type used to infer a single type param
 
-            bool hasTuples = false;
-            if (source.IsTupleType)
-            {
-                source = source.TupleUnderlyingType;
-                hasTuples = true;
-            }
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> targetTypes;
 
-            if (target.IsTupleType)
-            {
-                target = target.TupleUnderlyingType;
-                hasTuples = true;
-            }
-
-            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !target.TryGetElementTypesIfTupleOrCompatible(out targetTypes) ||
+                sourceTypes.Length != targetTypes.Length)
             {
                 return false;
             }
 
-            // NOTE: inference from tuple type is exact since tuples are non-variant.
-            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                ExactInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -1752,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     return;
             // }
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            if (LowerBoundTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1865,6 +1840,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LowerBoundInference(source.GetNullableUnderlyingType(), target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
+            return true;
+        }
+
+        private bool LowerBoundTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)target != null);
+
+            // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple type used to infer a single type param
+
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> targetTypes;
+
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !target.TryGetElementTypesIfTupleOrCompatible(out targetTypes) ||
+                sourceTypes.Length != targetTypes.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                LowerBoundInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -2110,15 +2112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
             // SPEC:   then an exact inference is made from U1 to V1.
 
-            if (ExactNullableInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            Debug.Assert(source.IsReferenceType);
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            // NOTE: spec would ask us to do the following checks, but since the value types
+            //       are trivially handled as exact inference in the callers, we do not have to.
+
+            //if (ExactNullableInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
+
+            //if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
 
             // SPEC: * Otherwise... cases for constructed types
 
@@ -2456,43 +2463,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-            // SPEC: * If among the remaining candidate types there is a unique type V to
-            // SPEC:   which there is an implicit conversion from all the other candidate
-            // SPEC:   types, then the parameter is fixed to V.
-            TypeSymbol best = null;
-            foreach (var candidate in candidates)
-            {
-                foreach (var candidate2 in candidates)
+                // SPEC: * If among the remaining candidate types there is a unique type V to
+                // SPEC:   which there is an implicit conversion from all the other candidate
+                // SPEC:   types, then the parameter is fixed to V.
+                TypeSymbol best = null;
+                foreach (var candidate in candidates)
                 {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    foreach (var candidate2 in candidates)
                     {
-                        goto OuterBreak;
-                    }
-                }
-
-                if ((object)best == null)
-                {
-                    best = candidate;
-                }
-                else if (best.Equals(candidate, ignoreDynamic: true))
-                {
-                    if (candidate.IsTupleType)
-                    {
-                        best = candidate.TupleUnderlyingType;
-                        break;
+                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                        {
+                            goto OuterBreak;
+                        }
                     }
 
-                    // SPEC: 4.7 The Dynamic Type
-                    //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-                    //
-                    // This rule doesn't have to be implemented explicitly due to special handling of 
-                    // conversions from dynamic in ImplicitConversionExists helper.
-                    // 
-                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+                    if ((object)best == null)
+                    {
+                        best = candidate;
+                    }
+                    else if (best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    {
+                        // SPEC: 4.7 The Dynamic Type
+                        //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                        //
+                        // This rule doesn't have to be implemented explicitly due to special handling of 
+                        // conversions from dynamic in ImplicitConversionExists helper.
+                        // 
+                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
-                        // best candidate is not unique
-                        return false;
+                        best = MergeTupleNames(MergeDynamic(best, candidate, _conversions.CorLibrary), candidate);
                     }
 
                     OuterBreak:
@@ -2515,6 +2515,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Returns first or a modified version of first with merged dynamic flags from both types.
+        /// </summary>
+        internal static TypeSymbol MergeDynamic(TypeSymbol first, TypeSymbol second, AssemblySymbol corLibrary)
+        {
+            // SPEC: 4.7 The Dynamic Type
+            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
+            {
+                return first;
+            }
+            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
+            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
+            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
+
+            return DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
+        }
+
+        /// <summary>
+        /// Returns first or a modified version of first with common tuple names from both types.
+        /// </summary>
+        internal static TypeSymbol MergeTupleNames(TypeSymbol first, TypeSymbol second)
+        {
+            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
+                !first.ContainsTupleNames())
+            {
+                return first;
+            }
+
+            Debug.Assert(first.ContainsTuple());
+
+            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
+            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
+
+            ImmutableArray<string> mergedNames;
+            if (names1.IsDefault || names2.IsDefault)
+            {
+                mergedNames = default(ImmutableArray<string>);
+            }
+            else
+            {
+                Debug.Assert(names1.Length == names2.Length);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
+
+                if (mergedNames.All(n => n == null))
+                {
+                    mergedNames = default(ImmutableArray<string>);
+                }
+            }
+
+            return TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
+        }
+
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC VIOLATION: For the purpose of algorithm in Fix method, dynamic type is not considered convertible to any other type, including object.
@@ -2523,7 +2576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return _conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+            return _conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2563,36 +2616,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var anonymousFunction = (UnboundLambda)source;
-
-            // If the anonymous function is an anonymous method with no formal parameter
-            // list then infer the return type; there are no parameters to be typed, so
-            // we should be able to work out the return type regardless of the delegate type.
-
-            // Future optimization: we could return null if
-            // the delegate has any out parameters, since this will then not be applicable.
-
-            if (!anonymousFunction.HasSignature)
+            if (anonymousFunction.HasSignature)
             {
-                return anonymousFunction.InferReturnType(null, ref useSiteDiagnostics);
-            }
+                // Optimization: 
+                // We know that the anonymous function has a parameter list. If it does not
+                // have the same arity as the delegate, then it cannot possibly be applicable.
+                // Rather than have type inference fail, we will simply not make a return
+                // type inference and have type inference continue on.  Either inference
+                // will fail, or we will infer a nonapplicable method. Either way, there
+                // is no change to the semantics of overload resolution.
 
-            // Optimization: 
-            // We know that the anonymous function has a parameter list. If it does not
-            // have the same arity as the delegate, then it cannot possibly be applicable.
-            // Rather than have type inference fail, we will simply not make a return
-            // type inference and have type inference continue on.  Either inference
-            // will fail, or we will infer a nonapplicable method. Either way, there
-            // is no change to the semantics of overload resolution.
+                var originalDelegateParameters = target.DelegateParameters();
+                if (originalDelegateParameters.IsDefault)
+                {
+                    return null;
+                }
 
-            var originalDelegateParameters = target.DelegateParameters();
-            if (originalDelegateParameters.IsDefault)
-            {
-                return null;
-            }
-
-            if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
-            {
-                return null;
+                if (originalDelegateParameters.Length != anonymousFunction.ParameterCount)
+                {
+                    return null;
+                }
             }
 
             var fixedDelegate = GetFixedDelegate(target);
@@ -2679,7 +2722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<TypeSymbol> InferTypeArgumentsFromFirstArgument(
             ConversionsBase conversions,
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

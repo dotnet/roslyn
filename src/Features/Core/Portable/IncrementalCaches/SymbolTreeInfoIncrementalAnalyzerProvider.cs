@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
+
+            /// <summary>
+            /// Note: can be <code>null</code> if were unable to create a SymbolTreeInfo
+            /// (for example, if the metadata was bogus and we couldn't read it in).
+            /// </summary>
             public readonly SymbolTreeInfo SymbolTreeInfo;
 
             /// <summary>
@@ -155,7 +160,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                     solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
@@ -273,9 +278,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 MetadataInfo metadataInfo;
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
+                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
+                    // We still want to cache that result so that don't try to continuously produce
+                    // this info over and over again.
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
                 }

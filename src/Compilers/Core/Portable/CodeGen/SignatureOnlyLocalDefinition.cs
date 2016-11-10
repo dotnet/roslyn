@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -37,7 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<TypedConstant> DynamicTransformFlags
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return ImmutableArray<TypedConstant>.Empty; }
+        }
+
+        public ImmutableArray<TypedConstant> TupleElementNames
+        {
+            get { return ImmutableArray<TypedConstant>.Empty; }
         }
 
         /// <remarks>
@@ -45,8 +49,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
         public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.DebuggerHidden;
-
-        public bool IsDynamic => false;
 
         public bool IsPinned
         {

@@ -33,12 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, vbCrLf)
         End Function
 
-        Protected Shared Function GetSeparatorParts() As IEnumerable(Of SymbolDisplayPart)
+        Protected Shared Function GetSeparatorParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CommaToken), Space()}
         End Function
 
-        Protected Shared Function Convert(parameter As IParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpParameter
-            Return New SignatureHelpParameter(
+        Protected Shared Function Convert(parameter As IParameterSymbol,
+                                          semanticModel As SemanticModel,
+                                          position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpSymbolParameter
+            Return New SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),

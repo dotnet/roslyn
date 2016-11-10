@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,22 +6,25 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
-    internal abstract class AbstractFindReferencesService : IFindReferencesService
+    internal abstract partial class AbstractFindReferencesService :
+        ForegroundThreadAffinitizedObject, IFindReferencesService, IStreamingFindReferencesService
     {
-        private readonly IEnumerable<IReferencedSymbolsPresenter> _referenceSymbolPresenters;
+        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
         private readonly IEnumerable<IFindReferencesResultProvider> _externalReferencesProviders;
 
         protected AbstractFindReferencesService(
-            IEnumerable<IReferencedSymbolsPresenter> referenceSymbolPresenters,
+            IEnumerable<IDefinitionsAndReferencesPresenter> referenceSymbolPresenters,
             IEnumerable<INavigableItemsPresenter> navigableItemPresenters,
             IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
         {
@@ -30,33 +33,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             _externalReferencesProviders = externalReferencesProviders;
         }
 
-        private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(Document document, int position, IWaitContext waitContext)
+        /// <summary>
+        /// Common helper for both the synchronous and streaming versions of FAR. 
+        /// It returns the symbol we want to search for and the solution we should
+        /// be searching.
+        /// 
+        /// Note that the <see cref="Solution"/> returned may absolutely *not* be
+        /// the same as <code>document.Project.Solution</code>.  This is because 
+        /// there may be symbol mapping involved (for example in Metadata-As-Source
+        /// scenarios).
+        /// </summary>
+        private async Task<Tuple<ISymbol, Project>> GetRelevantSymbolAndProjectAtPositionAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
-            var cancellationToken = waitContext.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
 
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (symbol != null)
+            if (symbol == null)
             {
-                // If this document is not in the primary workspace, we may want to search for results
-                // in a solution different from the one we started in. Use the starting workspace's
-                // ISymbolMappingService to get a context for searching in the proper solution.
-                var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
-
-                var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-                if (mapping != null)
-                {
-                    var displayName = mapping.Symbol.IsConstructor() ? mapping.Symbol.ContainingType.Name : mapping.Symbol.Name;
-
-                    waitContext.Message = string.Format(EditorFeaturesResources.FindingReferencesOf, displayName);
-
-                    var result = await SymbolFinder.FindReferencesAsync(mapping.Symbol, mapping.Solution, cancellationToken).ConfigureAwait(false);
-                    var searchSolution = mapping.Solution;
-
-                    return Tuple.Create(result, searchSolution);
-                }
+                return null;
             }
 
-            return null;
+            // If this document is not in the primary workspace, we may want to search for results
+            // in a solution different from the one we started in. Use the starting workspace's
+            // ISymbolMappingService to get a context for searching in the proper solution.
+            var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+
+            var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
+            if (mapping == null)
+            {
+                return null;
+            }
+
+            return Tuple.Create(mapping.Symbol, mapping.Project);
         }
 
         /// <summary>
@@ -75,42 +84,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             }
         }
 
-        /// <summary>
-        /// Finds references using <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/>
-        /// </summary>
-        private async Task AddSymbolReferencesAsync(Document document, int position, ArrayBuilder<INavigableItem> builder, IWaitContext waitContext)
-        {
-            var result = await this.FindReferencedSymbolsAsync(document, position, waitContext).ConfigureAwait(false);
-            if (result != null)
-            {
-                var referencedSymbols = result.Item1;
-                var searchSolution = result.Item2;
-
-                var q = from r in referencedSymbols
-                        from loc in r.Locations
-                        select NavigableItemFactory.GetItemFromSymbolLocation(searchSolution, r.Definition, loc.Location);
-
-                builder.AddRange(q);
-            }
-        }
-
-        public async Task<IEnumerable<INavigableItem>> FindReferencesAsync(Document document, int position, IWaitContext waitContext)
+        private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(
+            Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
 
-            var builder = ArrayBuilder<INavigableItem>.GetInstance();
-            await AddExternalReferencesAsync(document, position, builder, cancellationToken).ConfigureAwait(false);
-
-            // TODO: Merging references from SymbolFinder and external providers might lead to duplicate or counter-intuitive results.
-            // TODO: For now, we avoid merging and just display the results either from SymbolFinder or the external result providers but not both.
-            if (builder.Count == 0)
+            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndProject == null)
             {
-                await AddSymbolReferencesAsync(document, position, builder, waitContext).ConfigureAwait(false);
+                return null;
             }
 
-            // realize the list here so that the consumer await'ing the result doesn't lazily cause
-            // them to be created on an inappropriate thread.
-            return builder.ToArrayAndFree();
+            var symbol = symbolAndProject.Item1;
+            var project = symbolAndProject.Item2;
+
+            var displayName = GetDisplayName(symbol);
+
+            waitContext.Message = string.Format(
+                EditorFeaturesResources.Finding_references_of_0, displayName);
+
+            var result = await SymbolFinder.FindReferencesAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
+
+            return Tuple.Create(result, project.Solution);
+        }
+
+        private static string GetDisplayName(ISymbol symbol)
+        {
+            return symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
         }
 
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // First see if we have any external navigable item references.
             // If so, we display the results as navigable items.
-            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);            
+            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
             if (succeeded)
             {
                 return true;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             if (result != null && result.Any())
             {
-                var title = result.First().DisplayString;
+                var title = result.First().DisplayTaggedParts.JoinText();
                 foreach (var presenter in _navigableItemPresenters)
                 {
                     presenter.DisplayResult(title, result);
@@ -176,15 +176,75 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         {
             if (result != null && result.Item1 != null)
             {
-                var searchSolution = result.Item2;
+                var solution = result.Item2;
+                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var definitionsAndReferences = factory.CreateDefinitionsAndReferences(
+                    solution, result.Item1);
+
                 foreach (var presenter in _referenceSymbolPresenters)
                 {
-                    presenter.DisplayResult(searchSolution, result.Item1);
+                    presenter.DisplayResult(definitionsAndReferences);
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public async Task FindReferencesAsync(
+            Document document, int position, FindReferencesContext context)
+        {
+            // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
+            // we return to the caller's context.  that's so the call to 
+            // CallThirdPartyExtensionsAsync will happen on the UI thread.  We need
+            // this to maintain the threading guarantee we had around that method
+            // from pre-Roslyn days.
+            var findReferencesProgress = await FindReferencesWorkerAsync(
+                document, position, context).ConfigureAwait(true);
+            if (findReferencesProgress == null)
+            {
+                return;
+            }
+
+            // After the FAR engine is done call into any third party extensions to see
+            // if they want to add results.
+            await findReferencesProgress.CallThirdPartyExtensionsAsync().ConfigureAwait(true);
+        }
+
+        private async Task<ProgressAdapter> FindReferencesWorkerAsync(
+            Document document, int position, FindReferencesContext context)
+        {
+            var cancellationToken = context.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Find the symbol we want to search and the solution we want to search in.
+            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            if (symbolAndProject == null)
+            {
+                return null;
+            }
+
+            var symbol = symbolAndProject.Item1;
+            var project = symbolAndProject.Item2;
+
+            var displayName = GetDisplayName(symbol);
+            context.SetSearchLabel(displayName);
+
+            var progressAdapter = new ProgressAdapter(project.Solution, context);
+
+            // Now call into the underlying FAR engine to find reference.  The FAR
+            // engine will push results into the 'progress' instance passed into it.
+            // We'll take those results, massage them, and forward them along to the 
+            // FindReferencesContext instance we were given.
+            await SymbolFinder.FindReferencesAsync(
+                SymbolAndProjectId.Create(symbol, project.Id),
+                project.Solution,
+                progressAdapter,
+                documents: null,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return progressAdapter;
         }
     }
 }

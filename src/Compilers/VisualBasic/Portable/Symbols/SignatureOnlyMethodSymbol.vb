@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _returnType = returnType
             _returnTypeCustomModifiers = returnTypeCustomModifiers
             _parameters = parameters
-            _explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
+            _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty()
             _containingType = m_containingType
             _methodKind = methodKind
             _name = name
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

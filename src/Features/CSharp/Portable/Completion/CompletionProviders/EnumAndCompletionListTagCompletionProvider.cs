@@ -58,6 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
+                // Don't show up within member access
+                // This previously worked because the type inferrer didn't work
+                // in member access expressions.
+                if (token.IsKind(SyntaxKind.DotToken))
+                {
+                    return;
+                }
+
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
@@ -106,10 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var item = SymbolCompletionItem.Create(
                     displayText: displayText,
                     insertionText: null,
-                    span: context.DefaultItemSpan,
                     symbol: alias ?? type,
-                    descriptionPosition: position,
-                    preselect: true,
+                    contextPosition: position,
+                    matchPriority: MatchPriority.Preselect,
                     rules: s_rules);
 
                 context.AddItem(item);
@@ -120,13 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static readonly CompletionItemRules s_rules =
-            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')));
+            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
+                                       .WithMatchPriority(MatchPriority.Preselect)
+                                       .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
         private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {

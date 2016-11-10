@@ -2,9 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
-        private readonly ICompletionSetFactory _completionSetFactory;
+        private readonly ImmutableArray<Lazy<ICompletionSetFactory, VisualStudioVersionMetadata>> _completionSetFactories;
 
         [ImportingConstructor]
         public CompletionPresenter(
@@ -30,14 +35,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
-            _completionSetFactory = VersionSelector.SelectHighest(completionSetFactories);
+            _completionSetFactories = completionSetFactories.AsImmutableOrEmpty();
         }
 
-        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession session)
+        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(
+            ITextView textView, ITextBuffer subjectBuffer, ICompletionSession session)
         {
             AssertIsForeground();
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(document.Project.Solution.Options, document.Project.Language)
+                ? VersionSelector.SelectHighest(_completionSetFactories)
+                : VersionSelector.SelectVersion(_completionSetFactories, VisualStudioVersion.Dev14);
+
             return new CompletionPresenterSession(
-                _completionSetFactory, _completionBroker, _glyphService, textView, subjectBuffer);
+                completionSetFactory, _completionBroker, _glyphService, textView, subjectBuffer);
+        }
+
+        private bool NeedsDev15CompletionSetFactory(OptionSet options, string language)
+        {
+            return CompletionOptions.GetDev15CompletionOptions().Any(
+                o => options.GetOption(o, language));
         }
 
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)

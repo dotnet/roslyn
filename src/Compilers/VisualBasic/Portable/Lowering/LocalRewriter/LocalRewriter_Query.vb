@@ -79,63 +79,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(firstUnmappedRangeVariable = nodeRangeVariables.Length)
             End If
 
-            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = _createSequencePointsForTopLevelNonCompilerGeneratedExpressions
-            Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
-            Dim sequencePointSpan As TextSpan
+            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery
+            Dim synthesizedKind As SynthesizedLambdaKind = node.LambdaSymbol.SynthesizedKind
+            Dim instrumentQueryLambdaBody As Boolean = synthesizedKind = SynthesizedLambdaKind.AggregateQueryLambda OrElse
+                                                       synthesizedKind = SynthesizedLambdaKind.LetVariableQueryLambda
 
-#If Not DEBUG Then
-            If GenerateDebugInfo Then
-#End If
-
-            Select Case node.LambdaSymbol.SynthesizedKind
-                Case SynthesizedLambdaKind.AggregateQueryLambda
-                    Dim aggregateClause = DirectCast(node.Syntax.Parent.Parent, AggregateClauseSyntax)
-
-                    If aggregateClause.AggregationVariables.Count = 1 Then
-                        ' We are dealing with a simple case of an Aggregate clause - a single aggregate
-                        ' function in the Into clause. This lambda is responsible for calculating that
-                        ' aggregate function. Actually, it includes all code generated for the entire
-                        ' Aggregate clause. We should create sequence point for the entire clause
-                        ' rather than sequence points for the top level expressions within the lambda.
-                        createSequencePoint = aggregateClause
-                        sequencePointSpan = aggregateClause.Span
-                    Else
-                        ' We should create sequence point that spans from beginning of the Aggregate clause 
-                        ' to the beginning of the Into clause because all that code is involved into group calculation.
-
-                        createSequencePoint = aggregateClause
-                        If aggregateClause.AdditionalQueryOperators.Count = 0 Then
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.Variables.Last.Span.End)
-                        Else
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.AdditionalQueryOperators.Last.Span.End)
-                        End If
-                    End If
-
-                Case SynthesizedLambdaKind.LetVariableQueryLambda
-                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
-                    Debug.Assert(node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable))
-
-                    createSequencePoint = node.Syntax
-                    sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
-            End Select
-
-            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
-#If Not DEBUG Then
-            End If
-#End If
+            _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = Not instrumentQueryLambdaBody
 
             Dim returnstmt As BoundStatement = New BoundReturnStatement(node.Syntax,
                                                                         VisitExpressionNode(node.Expression),
                                                                         Nothing,
                                                                         Nothing)
 
-            If createSequencePoint IsNot Nothing AndAlso GenerateDebugInfo Then
-                returnstmt = New BoundSequencePointWithSpan(createSequencePoint, returnstmt, sequencePointSpan)
+            If instrumentQueryLambdaBody AndAlso Instrument Then
+                returnstmt = _instrumenter.InstrumentQueryLambdaBody(node, returnstmt)
             End If
 
-            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
+            _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
 
             For Each rangeVar As RangeVariableSymbol In nodeRangeVariables
                 _rangeVariableMap.Remove(rangeVar)
@@ -166,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub PopulateRangeVariableMapForAnonymousType(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             anonymousTypeInstance As BoundExpression,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol),
             ByRef firstUnmappedRangeVariable As Integer
@@ -181,10 +141,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       propertyDef,
                                                                       Nothing,
                                                                       PropertyAccessKind.Get,
-                                                                      False,
-                                                                      anonymousTypeInstance,
-                                                                      ImmutableArray(Of BoundExpression).Empty,
-                                                                      propertyDef.Type)
+                                                                      isWriteable:=False,
+                                                                      isLValue:=False,
+                                                                      receiverOpt:=anonymousTypeInstance,
+                                                                      arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod
                     getCallOrPropertyAccess = New BoundCall(syntax,

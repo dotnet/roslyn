@@ -8,14 +8,14 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -43,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
         private uint _runningDocumentTableEventsCookie;
 
+        private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
+
         [ImportingConstructor]
         public MiscellaneousFilesWorkspace(
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -52,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(assertIsForeground: true);
+
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -169,6 +173,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
+            _foregroundThreadAffinitization.AssertIsForeground();
+
             if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
             {
                 TryUntrackClosingDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
@@ -179,6 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void TrackOpenedDocument(uint docCookie, string moniker)
         {
+            _foregroundThreadAffinitization.AssertIsForeground();
+
             var languageInformation = TryGetLanguageInformation(moniker);
 
             if (languageInformation == null)
@@ -212,14 +220,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void Registration_WorkspaceChanged(object sender, EventArgs e)
         {
+            // We may or may not be getting this notification from the foreground thread if another workspace
+            // is raising events on a background. Let's send it back to the UI thread since we can't talk
+            // to the RDT in the background thread. Since this is all asynchronous a bit more asynchrony is fine.
+            if (!_foregroundThreadAffinitization.IsForeground())
+            {
+                ScheduleTask(() => Registration_WorkspaceChanged(sender, e));
+                return;
+            }
+
+            _foregroundThreadAffinitization.AssertIsForeground();
+
             var workspaceRegistration = (WorkspaceRegistration)sender;
             uint docCookie;
 
-            // external workspace that listens to events from IVSRunningDocumentTable4 (just like MiscellaneousFilesWorkspace does) and registers the text buffer for opened document prior to Miscellaneous workspace getting notified of the docCookie - the prior contract assumes that MiscellaneousFilesWorkspace is always the first one to get notified
+            // Since WorkspaceChanged notifications may be asynchronous and happened on a different thread,
+            // we might have already unsubscribed for this synchronously from the RDT while we were in the process of sending this
+            // request back to the UI thread.
             if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out docCookie))
             {
-                // We haven't even started tracking the document corresponding to this registration - likely because some external workspace registered the document's buffer prior to MiscellaneousWorkspace getting notified of it.
-                // Just bail out for now, we will eventually receive the opened document notification and track its docCookie registration.
+                return;
+            }
+
+            // It's also theoretically possible that we are getting notified about a workspace change to a document that has
+            // been simultaneously removed from the RDT but we haven't gotten the notification. In that case, also bail.
+            if (!_runningDocumentTable.IsCookieValid(docCookie))
+            {
                 return;
             }
 
@@ -241,8 +267,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    // We should now claim this
-                    AttachToDocument(docCookie, moniker);
+                    // We should now try to claim this. The moniker we have here is the moniker after the rename if we're currently processing
+                    // a rename. It's possible in that case that this is being closed by the other workspace due to that rename. If the rename
+                    // is changing or removing the file extension, we wouldn't want to try attaching, which is why we have to re-check
+                    // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
+                    if (TryGetLanguageInformation(moniker) != null)
+                    {
+                        AttachToDocument(docCookie, moniker);
+                    }
                 }
             }
             else if (IsClaimedByAnotherWorkspace(workspaceRegistration))
@@ -288,6 +320,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void AttachToDocument(uint docCookie, string moniker)
         {
+            _foregroundThreadAffinitization.AssertIsForeground();
+
             var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
             var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
 
@@ -313,10 +347,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
             var document = _documentProvider.TryGetDocumentForFile(
                 hostProject,
-                (uint)VSConstants.VSITEMID.Nil,
                 moniker,
                 parseOptions.Kind,
-                isGenerated: false,
+                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true);
 
             // If the buffer has not yet been initialized, we won't get a document.
@@ -334,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Notify the document provider, so it knows the document is now open and a part of
             // the project
-            _documentProvider.NotifyDocumentRegisteredToProject(document);
+            _documentProvider.NotifyDocumentRegisteredToProjectAndStartToRaiseEvents(document);
 
             Contract.ThrowIfFalse(document.IsOpen);
 
@@ -346,6 +379,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void DetachFromDocument(uint docCookie, string moniker)
         {
+            _foregroundThreadAffinitization.AssertIsForeground();
+
             HostProject hostProject;
 
             if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
@@ -363,6 +398,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _hostProjects.Remove(hostProject.Id);
                 _docCookiesToHostProject.Remove(docCookie);
+
+                document.Dispose();
 
                 return;
             }
@@ -414,9 +451,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
+        IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
         {
-            return _hostProjects.Values;
+            return _hostProjects.Values.ToImmutableReadOnlyListOrEmpty<IVisualStudioHostProject>();
         }
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)

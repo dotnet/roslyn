@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Xml;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
 

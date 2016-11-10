@@ -155,7 +155,8 @@ namespace Roslyn.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
-            CompilationTestData testData
+            CompilationTestData testData,
+            EmitOptions emitOptions
         )
         {
             // A Compilation can appear multiple times in a depnedency graph as both a Compilation and as a MetadataReference
@@ -166,7 +167,7 @@ namespace Roslyn.Test.Utilities
 
             foreach (var referencedCompilation in referencedCompilations)
             {
-                var emitData = RuntimeUtilities.EmitCompilationCore(referencedCompilation, null, diagnostics, null);
+                var emitData = EmitCompilationCore(referencedCompilation, null, diagnostics, null, emitOptions);
                 if (emitData.HasValue)
                 {
                     var moduleData = new ModuleData(referencedCompilation.Assembly.Identity,
@@ -185,14 +186,15 @@ namespace Roslyn.Test.Utilities
                 EmitReferences(current, fullNameSet, dependencies, diagnostics);
             }
 
-            return RuntimeUtilities.EmitCompilationCore(compilation, manifestResources, diagnostics, testData);
+            return EmitCompilationCore(compilation, manifestResources, diagnostics, testData, emitOptions);
         }
 
         internal static EmitOutput? EmitCompilationCore(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
             DiagnosticBag diagnostics,
-            CompilationTestData testData
+            CompilationTestData testData,
+            EmitOptions emitOptions
         )
         {
             using (var executableStream = new MemoryStream())
@@ -212,8 +214,10 @@ namespace Roslyn.Test.Utilities
                         xmlDocumentationStream: null,
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        options: EmitOptions.Default,
+                        options: emitOptions ?? EmitOptions.Default,
                         debugEntryPoint: null,
+                        sourceLinkStream: null,
+                        embeddedTexts: null,
                         testData: testData,
                         cancellationToken: default(CancellationToken));
                 }
@@ -315,7 +319,7 @@ namespace Roslyn.Test.Utilities
 
     public interface IRuntimeEnvironment : IDisposable
     {
-        void Emit(Microsoft.CodeAnalysis.Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, bool usePdbForDebugging = false);
+        void Emit(Microsoft.CodeAnalysis.Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
         int Execute(string moduleName, string expectedOutput);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();

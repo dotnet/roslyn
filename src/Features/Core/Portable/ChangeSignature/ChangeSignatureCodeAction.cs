@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             _context = context;
         }
 
-        public override string Title
-        {
-            get { return FeaturesResources.ChangeSignature; }
-        }
+        public override string Title => FeaturesResources.Change_signature;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {

@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 Dim type = TryCast(context.SemanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol, ITypeSymbol)
                 Dim enclosingSymbol = context.SemanticModel.GetEnclosingNamedTypeOrAssembly(context.Position, cancellationToken)
                 If type IsNot Nothing AndAlso type.CanSupportCollectionInitializer(enclosingSymbol) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("From", VBFeaturesResources.FromCollectionInitializerKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("From", VBFeaturesResources.Identifies_a_list_of_values_as_a_collection_initializer))
                 End If
             End If
 

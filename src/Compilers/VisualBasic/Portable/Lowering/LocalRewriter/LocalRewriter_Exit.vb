@@ -16,7 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundGoto = Concat(RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(node.Syntax), boundGoto)
             End If
 
-            Return MarkStatementWithSequencePoint(boundGoto)
+            If Instrument(node, boundGoto) Then
+                boundGoto = _instrumenter.InstrumentExitStatement(node, boundGoto)
+            End If
+
+            Return boundGoto
         End Function
     End Class
 End Namespace

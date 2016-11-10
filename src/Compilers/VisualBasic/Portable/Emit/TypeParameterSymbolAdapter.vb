@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
@@ -182,19 +183,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Iterator Function IGenericParameterGetConstraints(context As EmitContext) As IEnumerable(Of ITypeReference) Implements IGenericParameter.GetConstraints
+        Private Iterator Function IGenericParameterGetConstraints(context As EmitContext) _
+            As IEnumerable(Of TypeReferenceWithAttributes) Implements IGenericParameter.GetConstraints
             Dim _module = DirectCast(context.Module, PEModuleBuilder)
             Dim seenValueType = False
             For Each t In Me.ConstraintTypesNoUseSiteDiagnostics
                 If t.SpecialType = SpecialType.System_ValueType Then
                     seenValueType = True
                 End If
-                Yield _module.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+
+                Dim typeRef As ITypeReference = _module.Translate(t,
+                                                                  syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                                  diagnostics:=context.Diagnostics)
+
+                Yield t.GetTypeRefWithAttributes(Me.DeclaringCompilation, typeRef)
             Next
             If Me.HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output
-                Yield _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
+                Dim typeRef As INamedTypeReference = _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
                                              DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+
+                Yield New Cci.TypeReferenceWithAttributes(typeRef)
             End If
         End Function
 

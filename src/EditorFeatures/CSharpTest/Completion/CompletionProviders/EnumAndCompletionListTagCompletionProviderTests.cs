@@ -465,5 +465,31 @@ enum Colors
 ";
             await VerifyItemExistsAsync(markup, "Colors");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterDot()
+        {
+            var markup =
+@"namespace ConsoleApplication253
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            M(E.$$)
+        }
+
+        static void M(E e) { }
+    }
+
+    enum E
+    {
+        A,
+        B,
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
     }
 }

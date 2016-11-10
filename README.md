@@ -5,14 +5,14 @@
 ### Windows - Unit Tests
 ||Debug x86|Debug x64|Release x86|Release x64|Determinism|
 |:--:|:--:|:--:|:--:|:--:|:--:|
-|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/windows_determinism/)|
-|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_debug_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_debug_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_debug_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_debug_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_release_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_release_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_release_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_release_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/windows_determinism/)|
+|**master**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/)|
+|**dev15-rc2**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/windows_determinism/)|
 
 ### Linux/Mac - Unit Tests
 ||Linux|Mac OSX|
 |:--:|:--:|:--:|
-|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/linux_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/linux_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/mac_debug/)|
-|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/linux_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/linux_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/mac_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/mac_debug/)|
+|**master**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/linux_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/linux_debug/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/)|
+|**dev15-rc2**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/linux_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/linux_debug/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15-rc2/job/mac_debug/)|
 
 [//]: # (End current test results)
 
@@ -33,7 +33,10 @@ nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
 nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
 ```
 
-To get the latest "preview" drop, published about once per month, add the `-pre` switch to the nuget commands.
+Daily NuGet builds of the project are also available in our MyGet feed:
+
+> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
+
 
 ### Source code
 
@@ -54,7 +57,6 @@ To get the latest "preview" drop, published about once per month, add the `-pre`
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
-* [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 * Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.
@@ -68,8 +70,7 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
 
-This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of conduct](http://www.dotnetfoundation.org/code-of-conduct).
-
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ### .NET Foundation
 

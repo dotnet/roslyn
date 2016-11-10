@@ -1,20 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>VB</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.VisualBasic</AssemblyName>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -70,10 +66,8 @@
       <Name>ServicesVisualStudioImpl</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'"></PropertyGroup>
   <ItemGroup>
     <Compile Include="BasicVSResources.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -133,8 +127,6 @@
     <Compile Include="Options\AutomationObject.vb" />
     <Compile Include="Options\Formatting\CodeStylePage.vb" />
     <Compile Include="Options\NamingStylesOptionPage.vb" />
-    <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
-    <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
     <Compile Include="Options\StyleOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPage.vb" />
     <Compile Include="Options\AdvancedOptionPageControl.xaml.vb">
@@ -143,7 +135,7 @@
     <Compile Include="Options\StyleViewModel.vb" />
     <Compile Include="Progression\VisualBasicGraphProvider.vb" />
     <Compile Include="Progression\VisualBasicProgressionLanguageService.vb" />
-    <Compile Include="ProjectSystemShim\ConvertedVisualBasicProjectOptions.vb" />
+    <Compile Include="ProjectSystemShim\VisualBasicProjectOptionsHelper.vb" />
     <Compile Include="ProjectSystemShim\EntryPointFinder.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbBuildStatusCallback.vb" />
     <Compile Include="ProjectSystemShim\Interop\IVbCompiler.vb" />
@@ -187,9 +179,6 @@
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -204,7 +193,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
@@ -227,6 +219,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Options\IntelliSenseOptionPageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -235,9 +231,12 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Options\IntelliSenseOptionPage.vb" />
+    <Compile Include="Options\IntelliSenseOptionPageControl.xaml.vb">
+      <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Options\IntelliSenseOptionPageStrings.vb" />
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

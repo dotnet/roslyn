@@ -83,6 +83,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return !projectState.IsEmpty();
             }
 
+            public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
+            {
+                // quick bail out
+                if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ProjectId>();
+                }
+
+                if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
+                {
+                    // see whether we actually have diagnostics
+                    var kv = _activeFileStates.First();
+                    if (kv.Value.IsEmpty)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ProjectId>();
+                    }
+
+                    // we do have diagnostics
+                    return SpecializedCollections.SingletonEnumerable(kv.Key.ProjectId);
+                }
+
+                return new HashSet<ProjectId>(
+                    _activeFileStates.Where(kv => !kv.Value.IsEmpty)
+                                     .Select(kv => kv.Key.ProjectId)
+                                     .Concat(_projectStates.Where(kv => !kv.Value.IsEmpty())
+                                                           .Select(kv => kv.Key)));
+            }
+
             public IEnumerable<DocumentId> GetDocumentsWithDiagnostics(ProjectId projectId)
             {
                 HashSet<DocumentId> set = null;

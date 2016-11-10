@@ -117,346 +117,394 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="C" xml:space="preserve">
+  <data name="CSharp" xml:space="preserve">
     <value>C#</value>
   </data>
-  <data name="SurroundWith" xml:space="preserve">
+  <data name="Surround_With" xml:space="preserve">
     <value>Surround With</value>
   </data>
-  <data name="InsertSnippet" xml:space="preserve">
+  <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="FormatOnCloseBraceCheckBox" xml:space="preserve">
+  <data name="Automatically_format_block_on_close_brace" xml:space="preserve">
     <value>Automatically format _block on }</value>
   </data>
-  <data name="FormatOnPasteCheckBox" xml:space="preserve">
+  <data name="Automatically_format_on_paste" xml:space="preserve">
     <value>Automatically format on _paste</value>
   </data>
-  <data name="FormatOnSemicolonCheckBox" xml:space="preserve">
+  <data name="Automatically_format_statement_on_semicolon" xml:space="preserve">
     <value>Automatically format _statement on ;</value>
   </data>
-  <data name="NewLineForMembersInAnonymousTypes" xml:space="preserve">
+  <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
     <value>Place members in anonymous types on new line</value>
   </data>
-  <data name="WrappingPreserveSingleLine" xml:space="preserve">
+  <data name="Leave_block_on_single_line" xml:space="preserve">
     <value>Leave block on single line</value>
   </data>
-  <data name="CatchOnNewLine" xml:space="preserve">
+  <data name="Place_catch_on_new_line" xml:space="preserve">
     <value>Place "catch" on new line</value>
   </data>
-  <data name="ElseOnNewLine" xml:space="preserve">
+  <data name="Place_else_on_new_line" xml:space="preserve">
     <value>Place "else" on new line</value>
   </data>
-  <data name="IndentBlock" xml:space="preserve">
+  <data name="Indent_block_contents" xml:space="preserve">
     <value>Indent block contents</value>
   </data>
-  <data name="IndentBraces" xml:space="preserve">
+  <data name="Indent_open_and_close_braces" xml:space="preserve">
     <value>Indent open and close braces</value>
   </data>
-  <data name="IndentSwitchCaseContents" xml:space="preserve">
+  <data name="Indent_case_contents" xml:space="preserve">
     <value>Indent case contents</value>
   </data>
-  <data name="IndentSwitchCaseLabels" xml:space="preserve">
+  <data name="Indent_case_labels" xml:space="preserve">
     <value>Indent case labels</value>
   </data>
-  <data name="FinallyOnNewLine" xml:space="preserve">
+  <data name="Place_finally_on_new_line" xml:space="preserve">
     <value>Place "finally" on new line</value>
   </data>
-  <data name="GotoLeftmost" xml:space="preserve">
+  <data name="Place_goto_labels_in_leftmost_column" xml:space="preserve">
     <value>Place goto labels in leftmost column</value>
   </data>
-  <data name="GotoNoIndent" xml:space="preserve">
+  <data name="Indent_labels_normally" xml:space="preserve">
     <value>Indent labels normally</value>
   </data>
-  <data name="GotoOneLess" xml:space="preserve">
+  <data name="Place_goto_labels_one_indent_less_than_current" xml:space="preserve">
     <value>Place goto labels one indent less than current</value>
   </data>
-  <data name="LabelIndentation" xml:space="preserve">
+  <data name="Label_Indentation" xml:space="preserve">
     <value>Label Indentation</value>
   </data>
-  <data name="NewLineForMembersInObjectInit" xml:space="preserve">
+  <data name="Place_members_in_object_initializers_on_new_line" xml:space="preserve">
     <value>Place members in object initializers on new line</value>
   </data>
-  <data name="NewLinesForBracesInAnonymousMethods" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_anonymous_methods" xml:space="preserve">
     <value>Place open brace on new line for anonymous methods</value>
   </data>
-  <data name="NewLinesForBracesInAnonymousTypes" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_anonymous_types" xml:space="preserve">
     <value>Place open brace on new line for anonymous types</value>
   </data>
-  <data name="NewLinesForBracesInControlBlocks" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_control_blocks" xml:space="preserve">
     <value>Place open brace on new line for control blocks</value>
   </data>
-  <data name="NewLinesForBracesInLambdaExpressionBody" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_lambda_expression" xml:space="preserve">
     <value>Place open brace on new line for lambda expression</value>
   </data>
-  <data name="NewLinesForBracesMethod" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_methods" xml:space="preserve">
     <value>Place open brace on new line for methods</value>
   </data>
-  <data name="NewLinesForBracesInObjectCollectionArrayInitializers" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
     <value>Place open brace on new line for object, collection and array initializers</value>
   </data>
-  <data name="NewLinesBracesType" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_types" xml:space="preserve">
     <value>Place open brace on new line for types</value>
   </data>
-  <data name="NewLineForClausesInQuery" xml:space="preserve">
+  <data name="Place_query_expression_clauses_on_new_line" xml:space="preserve">
     <value>Place query expression clauses on new line</value>
   </data>
-  <data name="WrappingKeepStatementsOnSingleLine" xml:space="preserve">
+  <data name="Leave_statements_and_member_declarations_on_the_same_line" xml:space="preserve">
     <value>Leave statements and member declarations on the same line</value>
   </data>
-  <data name="BinaryOperatorSpace" xml:space="preserve">
+  <data name="Insert_space_before_and_after_binary_operators" xml:space="preserve">
     <value>Insert space before and after binary operators</value>
   </data>
-  <data name="BinaryOperatorSpaceIgnore" xml:space="preserve">
+  <data name="Ignore_spaces_around_binary_operators" xml:space="preserve">
     <value>Ignore spaces around binary operators</value>
   </data>
-  <data name="BinaryOperatorSpaceRemove" xml:space="preserve">
+  <data name="Remove_spaces_before_and_after_binary_operators" xml:space="preserve">
     <value>Remove spaces before and after binary operators</value>
   </data>
-  <data name="SpaceAfterColonInBaseTypeDeclaration" xml:space="preserve">
+  <data name="Insert_space_after_colon_for_base_or_interface_in_type_declaration" xml:space="preserve">
     <value>Insert space after colon for base or interface in type declaration</value>
   </data>
-  <data name="SpaceAfterComma" xml:space="preserve">
+  <data name="Insert_space_after_comma" xml:space="preserve">
     <value>Insert space after comma</value>
   </data>
-  <data name="SpaceAfterDot" xml:space="preserve">
+  <data name="Insert_space_after_dot" xml:space="preserve">
     <value>Insert space after dot</value>
   </data>
-  <data name="SpaceAfterSemicolonsInForStatement" xml:space="preserve">
+  <data name="Insert_space_after_semicolon_in_for_statement" xml:space="preserve">
     <value>Insert space after semicolon in "for" statement</value>
   </data>
-  <data name="SpaceBeforeColonInBaseTypeDeclaration" xml:space="preserve">
+  <data name="Insert_space_before_colon_for_base_or_interface_in_type_declaration" xml:space="preserve">
     <value>Insert space before colon for base or interface in type declaration</value>
   </data>
-  <data name="SpaceBeforeComma" xml:space="preserve">
+  <data name="Insert_space_before_comma" xml:space="preserve">
     <value>Insert space before comma</value>
   </data>
-  <data name="SpaceBeforeDot" xml:space="preserve">
+  <data name="Insert_space_before_dot" xml:space="preserve">
     <value>Insert space before dot</value>
   </data>
-  <data name="SpaceBeforeSemicolonsInForStatement" xml:space="preserve">
+  <data name="Insert_space_before_semicolon_in_for_statement" xml:space="preserve">
     <value>Insert space before semicolon in "for" statement</value>
   </data>
-  <data name="SpaceWithinMethodCallParentheses" xml:space="preserve">
+  <data name="Insert_space_within_argument_list_parentheses" xml:space="preserve">
     <value>Insert space within argument list parentheses</value>
   </data>
-  <data name="SpaceBetweenEmptyMethodCallParentheses" xml:space="preserve">
+  <data name="Insert_space_within_empty_argument_list_parentheses" xml:space="preserve">
     <value>Insert space within empty argument list parentheses</value>
   </data>
-  <data name="SpaceAfterMethodCallName" xml:space="preserve">
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis1" xml:space="preserve">
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
-  <data name="SpaceBetweenEmptyMethodDeclarationParentheses" xml:space="preserve">
+  <data name="Insert_space_within_empty_parameter_list_parentheses" xml:space="preserve">
     <value>Insert space within empty parameter list parentheses</value>
   </data>
-  <data name="SpacingAfterMethodDeclarationName" xml:space="preserve">
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis2" xml:space="preserve">
     <value>Insert space between method name and its opening parenthesis</value>
   </data>
-  <data name="SpaceWithinMethodDeclarationParenthesis" xml:space="preserve">
+  <data name="Insert_space_within_parameter_list_parentheses" xml:space="preserve">
     <value>Insert space within parameter list parentheses</value>
   </data>
-  <data name="SpaceAfterControlFlowStatementKeyword" xml:space="preserve">
+  <data name="Insert_space_after_keywords_in_control_flow_statements" xml:space="preserve">
     <value>Insert space after keywords in control flow statements</value>
   </data>
-  <data name="SpaceWithinExpressionParentheses" xml:space="preserve">
+  <data name="Insert_space_within_parentheses_of_expressions" xml:space="preserve">
     <value>Insert space within parentheses of expressions</value>
   </data>
-  <data name="SpaceAfterCast" xml:space="preserve">
+  <data name="Insert_space_after_cast" xml:space="preserve">
     <value>Insert space after cast</value>
   </data>
-  <data name="SpaceWithinOtherParentheses" xml:space="preserve">
+  <data name="Insert_spaces_within_parentheses_of_control_flow_statements" xml:space="preserve">
     <value>Insert spaces within parentheses of control flow statements</value>
   </data>
-  <data name="SpaceWithinCastParentheses" xml:space="preserve">
+  <data name="Insert_space_within_parentheses_of_type_casts" xml:space="preserve">
     <value>Insert space within parentheses of type casts</value>
   </data>
-  <data name="SpacesIgnoreAroundVariableDeclaration" xml:space="preserve">
+  <data name="Ignore_spaces_in_declaration_statements" xml:space="preserve">
     <value>Ignore spaces in declaration statements</value>
   </data>
-  <data name="SetOtherSpacingOptions" xml:space="preserve">
+  <data name="Set_other_spacing_options" xml:space="preserve">
     <value>Set other spacing options</value>
   </data>
-  <data name="SetSpacingForBrackets" xml:space="preserve">
+  <data name="Set_spacing_for_brackets" xml:space="preserve">
     <value>Set spacing for brackets</value>
   </data>
-  <data name="SetSpacingForDelimiters" xml:space="preserve">
+  <data name="Set_spacing_for_delimiters" xml:space="preserve">
     <value>Set spacing for delimiters</value>
   </data>
-  <data name="SetSpacingForMethodCalls" xml:space="preserve">
+  <data name="Set_spacing_for_method_calls" xml:space="preserve">
     <value>Set spacing for method calls</value>
   </data>
-  <data name="SetSpacingForMethodDeclarations" xml:space="preserve">
+  <data name="Set_spacing_for_method_declarations" xml:space="preserve">
     <value>Set spacing for method declarations</value>
   </data>
-  <data name="SetSpacingForOperators" xml:space="preserve">
+  <data name="Set_spacing_for_operators" xml:space="preserve">
     <value>Set spacing for operators</value>
   </data>
-  <data name="SpaceWithinSquareBrackets" xml:space="preserve">
+  <data name="Insert_spaces_within_square_brackets" xml:space="preserve">
     <value>Insert spaces within square brackets</value>
   </data>
-  <data name="SpaceBeforeOpenSquareBracket" xml:space="preserve">
+  <data name="Insert_space_before_open_square_bracket" xml:space="preserve">
     <value>Insert space before open square bracket</value>
   </data>
-  <data name="SpaceBetweenEmptySquareBrackets" xml:space="preserve">
+  <data name="Insert_space_within_empty_square_brackets" xml:space="preserve">
     <value>Insert space within empty square brackets</value>
   </data>
-  <data name="NewLineBraces" xml:space="preserve">
+  <data name="New_line_options_for_braces" xml:space="preserve">
     <value>New line options for braces</value>
   </data>
-  <data name="NewLineExpressions" xml:space="preserve">
+  <data name="New_line_options_for_expressions" xml:space="preserve">
     <value>New line options for expressions</value>
   </data>
-  <data name="NewLineKeywords" xml:space="preserve">
+  <data name="New_line_options_for_keywords" xml:space="preserve">
     <value>New line options for keywords</value>
   </data>
-  <data name="UseVarWhenGeneratingLocals" xml:space="preserve">
+  <data name="Use_var_when_generating_locals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
-  <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
-    <value>For locals, parameters and members</value>
-  </data>
-  <data name="PreferIntrinsicPredefinedTypeKeywordInMemberAccess" xml:space="preserve">
-    <value>For member access expressions</value>
-  </data>
-  <data name="Option_AllowMovingDeclaration" xml:space="preserve">
+  <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
-  <data name="Option_ClosedFileDiagnostics" xml:space="preserve">
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
     <value>Enable full solution _analysis</value>
   </data>
-  <data name="Option_DisplayLineSeparators" xml:space="preserve">
+  <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
-  <data name="Option_DontPutOutOrRefOnStruct" xml:space="preserve">
+  <data name="Don_t_put_ref_or_out_on_custom_struct" xml:space="preserve">
     <value>_Don't put ref or out on custom struct</value>
   </data>
-  <data name="Option_EditorHelp" xml:space="preserve">
+  <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
-  <data name="Option_EnableHighlightKeywords" xml:space="preserve">
+  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
     <value>Highlight related _keywords under cursor</value>
   </data>
-  <data name="Option_EnableHighlightReferences" xml:space="preserve">
+  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
     <value>_Highlight references to symbol under cursor</value>
   </data>
-  <data name="Option_EnterOutliningMode" xml:space="preserve">
+  <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>Enter _outlining mode when files open</value>
   </data>
-  <data name="Option_ExtractMethod" xml:space="preserve">
+  <data name="Extract_Method" xml:space="preserve">
     <value>Extract Method</value>
   </data>
-  <data name="Option_GenerateXmlDocCommentsForTripleSlash" xml:space="preserve">
+  <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for ///</value>
   </data>
-  <data name="Option_Highlighting" xml:space="preserve">
+  <data name="Highlighting" xml:space="preserve">
     <value>Highlighting</value>
   </data>
-  <data name="Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments" xml:space="preserve">
+  <data name="Insert_at_the_start_of_new_lines_when_writing_comments" xml:space="preserve">
     <value>_Insert * at the start of new lines when writing /* */ comments</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize" xml:space="preserve">
+  <data name="Optimize_for_solution_size" xml:space="preserve">
     <value>Optimize for solution size</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Large" xml:space="preserve">
+  <data name="Large" xml:space="preserve">
     <value>Large</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Regular" xml:space="preserve">
+  <data name="Regular" xml:space="preserve">
     <value>Regular</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Small" xml:space="preserve">
+  <data name="Small" xml:space="preserve">
     <value>Small</value>
   </data>
-  <data name="Option_Using_Directives" xml:space="preserve">
+  <data name="Using_Directives" xml:space="preserve">
     <value>Using Directives</value>
   </data>
-  <data name="Option_Outlining" xml:space="preserve">
-    <value>Outlining</value>
-  </data>
-  <data name="Option_Performance" xml:space="preserve">
+  <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
-  <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
+  <data name="Place_System_directives_first_when_sorting_usings" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
   </data>
-  <data name="Option_BringUpOnIdentifier" xml:space="preserve">
+  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
-  <data name="Option_InsertNewlineOnEnterWithWholeWord" xml:space="preserve">
-    <value>_Add new line on enter after end of fully typed word</value>
-  </data>
-  <data name="Option_ShowKeywords" xml:space="preserve">
+  <data name="Place_keywords_in_completion_lists" xml:space="preserve">
     <value>Place _keywords in completion lists</value>
   </data>
-  <data name="Option_ShowSnippets" xml:space="preserve">
+  <data name="Place_code_snippets_in_completion_lists" xml:space="preserve">
     <value>Place _code snippets in completion lists</value>
   </data>
-  <data name="Option_CompletionLists" xml:space="preserve">
+  <data name="Completion_Lists" xml:space="preserve">
     <value>Completion Lists</value>
   </data>
-  <data name="Option_SelectionInCompletionList" xml:space="preserve">
+  <data name="Selection_In_Completion_List" xml:space="preserve">
     <value>Selection In Completion List</value>
   </data>
-  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
   </data>
-  <data name="NewLinesForBracesAccessors" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors" xml:space="preserve">
     <value>Place open brace on new line for property, indexer, and event accessors</value>
   </data>
-  <data name="NewLinesForBracesProperty" xml:space="preserve">
+  <data name="Place_open_brace_on_new_line_for_properties_indexers_and_events" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
-  <data name="Option_Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
+  <data name="Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
     <value>Suggest usings for types in _reference assemblies</value>
   </data>
-  <data name="Option_Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
+  <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>
   </data>
-  <data name="SetTypeInferencePreferences" xml:space="preserve">
+  <data name="Type_Inference_preferences_colon" xml:space="preserve">
     <value>Type Inference preferences:</value>
   </data>
-  <data name="UseImplicitTypeForIntrinsicTypes" xml:space="preserve">
+  <data name="For_built_in_types" xml:space="preserve">
     <value>For built-in types</value>
   </data>
-  <data name="UseImplicitTypeWhenPossible" xml:space="preserve">
+  <data name="Elsewhere" xml:space="preserve">
     <value>Elsewhere</value>
   </data>
-  <data name="UseImplicitTypeWhenTypeIsApparent" xml:space="preserve">
+  <data name="When_variable_type_is_apparent" xml:space="preserve">
     <value>When variable type is apparent</value>
   </data>
-  <data name="QualifyEventAccessWithThis" xml:space="preserve">
+  <data name="Qualify_event_access_with_this" xml:space="preserve">
     <value>Qualify event access with 'this'</value>
   </data>
-  <data name="QualifyFieldAccessWithThis" xml:space="preserve">
+  <data name="Qualify_field_access_with_this" xml:space="preserve">
     <value>Qualify field access with 'this'</value>
   </data>
-  <data name="QualifyMethodAccessWithThis" xml:space="preserve">
+  <data name="Qualify_method_access_with_this" xml:space="preserve">
     <value>Qualify method access with 'this'</value>
   </data>
-  <data name="QualifyPropertyAccessWithThis" xml:space="preserve">
+  <data name="Qualify_property_access_with_this" xml:space="preserve">
     <value>Qualify property access with 'this'</value>
   </data>
-  <data name="PreferExplicitType" xml:space="preserve">
+  <data name="Prefer_explicit_type" xml:space="preserve">
     <value>Prefer explicit type</value>
   </data>
-  <data name="PreferThis" xml:space="preserve">
+  <data name="Prefer_this" xml:space="preserve">
     <value>Prefer 'this.'</value>
   </data>
-  <data name="PreferVar" xml:space="preserve">
+  <data name="Prefer_var" xml:space="preserve">
     <value>Prefer 'var'</value>
   </data>
-  <data name="QualifyGroupTitle" xml:space="preserve">
+  <data name="this_preferences_colon" xml:space="preserve">
     <value>'this.' preferences:</value>
   </data>
-  <data name="VarGroupTitle" xml:space="preserve">
+  <data name="var_preferences_colon" xml:space="preserve">
     <value>'var' preferences:</value>
   </data>
-  <data name="DoNotPreferThis" xml:space="preserve">
+  <data name="Do_not_prefer_this" xml:space="preserve">
     <value>Do not prefer 'this.'</value>
   </data>
-  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+  <data name="predefined_type_preferences_colon" xml:space="preserve">
     <value>predefined type preferences:</value>
   </data>
-  <data name="Option_Split_string_literals_on_enter" xml:space="preserve">
+  <data name="Split_string_literals_on_enter" xml:space="preserve">
     <value>Split string literals on _enter</value>
+  </data>
+  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Enter_key_behavior_colon" xml:space="preserve">
+    <value>Enter key behavior:</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Always_add_new_line_on_enter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+  <data name="Never_add_new_line_on_enter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
+  </data>
+  <data name="Always_include_snippets" xml:space="preserve">
+    <value>Always include snippets</value>
+  </data>
+  <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
+    <value>Include snippets when ?-Tab is typed after an identifier</value>
+  </data>
+  <data name="Never_include_snippets" xml:space="preserve">
+    <value>Never include snippets</value>
+  </data>
+  <data name="Snippets_behavior" xml:space="preserve">
+    <value>Snippets behavior</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is _deleted</value>
+  </data>
+  <data name="null_checking_colon" xml:space="preserve">
+    <value>'null' checking:</value>
+  </data>
+  <data name="Prefer_throw_expression" xml:space="preserve">
+    <value>Prefer throw-expression</value>
+  </data>
+  <data name="Prefer_conditional_delegate_call" xml:space="preserve">
+    <value>Prefer conditional delegate call</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'is' with 'cast' check</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'as' with 'null' check</value>
+  </data>
+  <data name="Prefer_block_body" xml:space="preserve">
+    <value>Prefer block body</value>
+  </data>
+  <data name="Prefer_expression_body" xml:space="preserve">
+    <value>Prefer expression body</value>
+  </data>
+  <data name="Automatically_format_on_return" xml:space="preserve">
+    <value>Automatically format on return</value>
+  </data>
+  <data name="Automatically_format_when_typing" xml:space="preserve">
+    <value>Automatically format when typing</value>
   </data>
 </root>

@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' this assert will fire if code relies on implicit CLR coercions 
                 ' - i.e assigns int value to a short local.
                 ' in that case we should force lhs to be a real local
-                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.LValue.Type),
+                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringAll(node.LValue.Type),
                              "cannot use stack when assignment involves implicit coercion of the value")
 
                 RecordVarWrite(storedAssignmentLocal.LocalSymbol)
@@ -601,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' this assert will fire if code relies on implicit CLR coercions 
                     ' - i.e assigns int value to a short local.
                     ' in that case we should force lhs to be a real local
-                    Debug.Assert(node.Left.Type.IsSameTypeIgnoringCustomModifiers(node.Right.Type),
+                    Debug.Assert(node.Left.Type.IsSameTypeIgnoringAll(node.Right.Type),
                                  "cannot use stack when assignment involves implicit coercion of the value")
 
                     Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
@@ -677,7 +677,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = VisitArguments(node.Arguments, method.Parameters)
 
                 Debug.Assert(node.MethodGroupOpt Is Nothing)
-                Return node.Update(method, node.MethodGroupOpt, receiver, rewrittenArguments, node.ConstantValueOpt, node.SuppressObjectClone, node.Type)
+                Return node.Update(
+                    method,
+                    node.MethodGroupOpt,
+                    receiver,
+                    rewrittenArguments,
+                    node.ConstantValueOpt,
+                    isLValue:=node.IsLValue,
+                    suppressObjectClone:=node.SuppressObjectClone,
+                    type:=node.Type)
             End Function
 
             Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of BoundExpression)

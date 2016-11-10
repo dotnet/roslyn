@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             return symbol.TypeSwitch(
                 (IFieldSymbol field) => !field.IsConst,
-                (IPropertySymbol property) => property.SetMethod != null);
+                (IPropertySymbol property) => property.IsWritableInConstructor());
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
@@ -81,18 +79,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsField(ISymbol symbol)
         {
             return symbol.Kind == SymbolKind.Field;
-        }
-
-        protected CodeRefactoring CreateCodeRefactoring(
-            IList<TMemberDeclarationSyntax> selectedDeclarations,
-            IEnumerable<CodeAction> actions)
-        {
-#if false
-            var lastDeclaration = selectedDeclarations.Last();
-            var endSpan = new TextSpan(lastDeclaration.Span.End - 1, 1);
-            return new CodeRefactoring(actions, endSpan);
-#endif
-            return new CodeRefactoring(null, actions);
         }
 
         protected List<IParameterSymbol> DetermineParameters(
@@ -111,11 +97,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase()));
+                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
             return parameters;
         }
+
+        private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,

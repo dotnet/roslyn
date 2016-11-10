@@ -6,6 +6,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,16 +35,24 @@ namespace Microsoft.CodeAnalysis
         protected readonly SourceText sourceTextOpt;
         protected ValueSource<TextAndVersion> textAndVersionSource;
 
+        // Checksums for this solution state
+        private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
+
         protected TextDocumentState(
             SolutionServices solutionServices,
             DocumentInfo info,
             SourceText sourceTextOpt,
-            ValueSource<TextAndVersion> textAndVersionSource)
+            ValueSource<TextAndVersion> textAndVersionSource,
+            ValueSource<DocumentStateChecksums> lazyChecksums)
         {
             this.solutionServices = solutionServices;
             this.info = info;
             this.sourceTextOpt = sourceTextOpt;
             this.textAndVersionSource = textAndVersionSource;
+
+            // for now, let it re-calculate if anything changed.
+            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
+            _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
         public DocumentId Id
@@ -83,7 +93,8 @@ namespace Microsoft.CodeAnalysis
                 solutionServices: services,
                 info: info,
                 sourceTextOpt: null,
-                textAndVersionSource: textSource);
+                textAndVersionSource: textSource,
+                lazyChecksums: null);
         }
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
@@ -155,6 +166,20 @@ namespace Microsoft.CodeAnalysis
 
                 // try again after a delay
                 await Task.Delay(RetryDelay).ConfigureAwait(false);
+            }
+        }
+
+        public ITemporaryTextStorage Storage
+        {
+            get
+            {
+                var recoverableText = this.textAndVersionSource as RecoverableTextAndVersion;
+                if (recoverableText == null)
+                {
+                    return null;
+                }
+
+                return recoverableText.Storage;
             }
         }
 
@@ -254,7 +279,8 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 sourceTextOpt: null,
-                textAndVersionSource: newTextSource);
+                textAndVersionSource: newTextSource,
+                lazyChecksums: null);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -287,7 +313,8 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.info,
                 sourceTextOpt: null,
-                textAndVersionSource: newTextSource);
+                textAndVersionSource: newTextSource,
+                lazyChecksums: null);
         }
 
         private VersionStamp GetNewerVersion()

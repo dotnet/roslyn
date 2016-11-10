@@ -6217,7 +6217,7 @@ class P
     Action<int> b = (int x) => { };
     class B
     {
-        /// <see cref=""b""/>        
+        /// <see cref=""b""/>
         void a()
         {
         }

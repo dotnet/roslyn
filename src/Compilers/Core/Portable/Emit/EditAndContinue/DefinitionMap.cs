@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -225,7 +226,22 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var debugInfo = baseline.DebugInformationProvider(previousHandle);
+                EditAndContinueMethodDebugInformation debugInfo;
+                try
+                {
+                    debugInfo = baseline.DebugInformationProvider(previousHandle);
+                }
+                catch (InvalidDataException)
+                {
+                    // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(
+                        MessageProvider.ERR_ModuleEmitFailure,
+                        method.Locations.First(),
+                        $"Unable to read debug information of method '{MessageProvider.GetErrorDisplayString(method)}' (token 0x{MetadataTokens.GetToken(previousHandle):X8}) " + 
+                        $"from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+
+                    return null;
+                }
 
                 methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
@@ -287,7 +303,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncVariableSlotAllocator(
-                MessageProvider,
                 symbolMap,
                 mappedMethod.SyntaxMap,
                 mappedMethod.PreviousMethod,
@@ -299,8 +314,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
                 awaiterSlotCount,
-                awaiterMap);
+                awaiterMap,
+                GetLambdaSyntaxFacts());
         }
+
+        protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {

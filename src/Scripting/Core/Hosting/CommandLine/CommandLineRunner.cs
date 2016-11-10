@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
                 errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Debug.Assert(_compiler.Arguments.IsScriptRunner);
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
+
+            if (_compiler.Arguments.DisplayVersion)
+            {
+                _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
 
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
@@ -98,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
+                    code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
@@ -360,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 {
                     int notShown = errorsAndWarnings.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Error.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally

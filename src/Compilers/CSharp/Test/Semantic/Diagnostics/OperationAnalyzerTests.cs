@@ -4,18 +4,16 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private readonly static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
+        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EmptyArrayCSharp()
@@ -39,7 +37,7 @@ class C
         int[,][] arr12 = new int[0,0][];               // no
     }
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EmptyArrayAnalyzer() }, null, null, false,
                 Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0]").WithLocation(6, 22),
@@ -101,7 +99,7 @@ class D
     object OField = 33;
     object SField = ""Zap"";
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BoxingOperationAnalyzer() }, null, null, false,
                 Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "3").WithLocation(9, 25),
@@ -132,7 +130,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false,
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(6, 9),
                 Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(6, 9),
@@ -175,7 +173,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions)
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithIOperationsFeature())
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false
                 );
@@ -204,7 +202,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BigForTestAnalyzer() }, null, null, false,
                 Diagnostic(BigForTestAnalyzer.BigForDescriptor.Id, "for (x = 0; x < 2000000; x++) {}").WithLocation(9, 9),
@@ -268,7 +266,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
                 Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(44, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null, false,
@@ -334,7 +332,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false,
                 Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(16, 21),
@@ -416,7 +414,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 9),
@@ -489,7 +487,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 16),
@@ -545,7 +543,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LocalCouldBeConstAnalyzer() }, null, null, false,
                 Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(13, 13),
@@ -717,7 +715,7 @@ interface IDerived : IMiddle, IBase2
 }
 
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SymbolCouldHaveMoreSpecificTypeAnalyzer() }, null, null, false,
                 Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithArguments("a", "Middle").WithLocation(6, 16),
@@ -783,7 +781,7 @@ enum E
     D = 18
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SeventeenTestAnalyzer() }, null, null, false,
                 Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(4, 40),
@@ -824,7 +822,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullArgumentTestAnalyzer() }, null, null, false,
                 Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "null").WithLocation(16, 12),
@@ -866,7 +864,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 // (25,30): error CS1010: Newline in constant
                 //         var e2 = new Foo() { " };      
@@ -928,7 +926,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentTestAnalyzer() }, null, null, false,
                 Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Field = 10").WithLocation(28, 9),
@@ -969,7 +967,7 @@ class C
         int[][] arr14 = new int[][] { new int[] { 1,2,3 }, new[] { 1, 2, 3, 4, 5, 6 } };  // LargeList
     }
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ArrayInitializerTestAnalyzer() }, null, null, false,
                 Diagnostic(ArrayInitializerTestAnalyzer.DoNotUseLargeListOfArrayInitializersDescriptor.Id, "{ 1, 2, 3, 4, 5, 6 }").WithLocation(14, 32),
@@ -1003,7 +1001,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(12, 25),
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 29))
@@ -1068,7 +1066,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(37, 20),
                 Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(41, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CaseTestAnalyzer() }, null, null, false,
@@ -1110,7 +1108,7 @@ class D : C
         M2();
     }
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ExplicitVsImplicitInstanceAnalyzer() }, null, null, false,
                 Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ExplicitInstanceDescriptor.Id, "this").WithLocation(6, 9),
@@ -1147,7 +1145,7 @@ class C
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
@@ -1211,7 +1209,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false,
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "2").WithLocation(13, 15),
@@ -1241,7 +1239,7 @@ class C
     static int Bar(int P1 = 15, int F2 = 33) { return P1 + F2; }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EqualsValueTestAnalyzer() }, null, null, false,
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(4, 19),
@@ -1273,7 +1271,7 @@ class C
     public int UnFunkyField = 12;
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OwningSymbolTestAnalyzer() }, null, null, false,
                 Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(12, 17),
@@ -1297,7 +1295,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
@@ -1336,10 +1334,10 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
-                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", "Insufficient stack to continue executing the program safely. This can happen from having too many functions on the call stack or function on the stack using too much stack space.").WithLocation(1, 1),
+                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", new InsufficientExecutionStackException().Message).WithLocation(1, 1),
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
         }
 
@@ -1385,7 +1383,7 @@ class A
 
     private int _i = 0;
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll)
+            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidAddrOp, "a + b").WithLocation(7, 18),
                 Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(28, 23),
                 Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(33, 24))
@@ -1433,7 +1431,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LambdaTestAnalyzer() }, null, null, false,
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { }").WithLocation(8, 31),
@@ -1483,7 +1481,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
@@ -1510,7 +1508,7 @@ public class A
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyDiagnostics()
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LabelOperationsTestAnalyzer() }, null, null, false,
                  Diagnostic(LabelOperationsTestAnalyzer.LabelDescriptor.Id, "Wilma: goto Betty;").WithLocation(6, 9),
@@ -1570,7 +1568,7 @@ class C
    }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyDiagnostics()
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new UnaryAndBinaryOperationsTestAnalyzer() }, null, null, false,
                  Diagnostic(UnaryAndBinaryOperationsTestAnalyzer.BooleanNotDescriptor.Id, "!b").WithLocation(41, 13),
@@ -1617,7 +1615,7 @@ class C
    }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + 10", new object[] { "+", "A", "int"}).WithLocation(29, 13),
                                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x", new object[] { "-", "A"}).WithLocation(31, 13))
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false,
@@ -1648,7 +1646,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NullOperationSyntaxTestAnalyzer() }, null, null, false,
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(10, 9),
@@ -1674,7 +1672,7 @@ class X
         int i = global::MyType();
     }
 }";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 // (8,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
                 //         int x = null.Length;
@@ -1714,7 +1712,7 @@ public class A
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Nan").WithArguments("float", "Nan").WithLocation(6, 27),
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "-f").WithArguments("-", "string").WithLocation(11, 16),
@@ -1742,7 +1740,7 @@ public class A
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 // (4,28): error CS0225: The params parameter must be a single dimensional array
                 //     public static void Foo(params int a) {}
@@ -1793,7 +1791,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ConditionalAccessOperationTestAnalyzer() }, null, null, false,
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
@@ -1839,7 +1837,7 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
              .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(6, 16))
              .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LiteralTestAnalyzer() }, null, null, false,
                 Diagnostic("Literal", "null").WithArguments("null").WithLocation(6, 20),
@@ -1888,11 +1886,77 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new TrueFalseUnaryOperationTestAnalyzer() }, null, null, false,
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x && y").WithLocation(29, 13),
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(30, 18));
+        }
+        
+        [Fact, WorkItem(9202, "https://github.com/dotnet/roslyn/issues/9202")]
+        public void IOperationFeatureFlagCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public void M()
+    {
+        var a = 1;
+    }
+}
+
+";
+            // with IOperation disabled (by default), public methods
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.AnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.CompilationStartAnalysisContextAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelAnalyzer() }, null, null, true,
+                Diagnostic("AD0001").WithArguments("Microsoft.CodeAnalysis.UnitTests.Diagnostics.SemanticModelAnalyzer", "System.InvalidOperationException", "Feature 'IOperation' is disabled.").WithLocation(1, 1));
+
+            // with IOperation disabled (by default), internal methods
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelInternalAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(6, 17));
+
+            // with IOperation enabled, public methods
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextAnalyzer.OperationActionDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelAnalyzer.GetOperationDescriptor.Id, "1").WithLocation(6, 17));
+
+            // with IOperation enabled, internal methods
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(AnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CompilationStartAnalysisContextInternalAnalyzer() }, null, null, true,
+                Diagnostic(CompilationStartAnalysisContextInternalAnalyzer.OperationActionInternalDescriptor.Id, "1").WithArguments("Operation", "CompilationStart within Analysis").WithLocation(6, 17));
+
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SemanticModelInternalAnalyzer() }, null, null, true,
+                Diagnostic(SemanticModelInternalAnalyzer.GetOperationInternalDescriptor.Id, "1").WithLocation(6, 17));
         }
     }
 }

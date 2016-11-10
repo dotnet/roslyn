@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -21,10 +18,8 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -39,13 +34,16 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-rc3-24102-00\ref\netstandard1.5\System.Runtime.Loader.dll">
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0$(CoreFXVersionSuffix)\ref\netstandard1.5\System.Runtime.Loader.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
       <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
@@ -135,6 +133,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <!-- /TODO -->
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
@@ -157,7 +156,5 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

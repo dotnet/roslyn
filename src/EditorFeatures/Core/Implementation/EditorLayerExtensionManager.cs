@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowErrorInfoForCodeFix(
-                            codefixName: provider.GetType().Name,
-                            OnEnable: () => { EnableProvider(provider); LogEnableProvider(provider); },
-                            OnEnableAndIgnore: () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
-                            OnClose: () => LogLeaveDisabled(provider));
+                        _errorReportingService?.ShowErrorInfo(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled,  provider.GetType().Name),
+                            new ErrorReportingUI(WorkspacesResources.Show_Stack_Trace, ErrorReportingUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
+                            new ErrorReportingUI(WorkspacesResources.Enable, ErrorReportingUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
+                            new ErrorReportingUI(WorkspacesResources.Enable_and_ignore_future_errors, ErrorReportingUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
+                            new ErrorReportingUI(String.Empty, ErrorReportingUI.UIKind.Close, () => LogLeaveDisabled(provider)));
                     }
                     else
                     {
@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
 
                 _errorLoggerService?.LogException(provider, exception);
+            }
+
+            private void ShowDetailedErrorInfo(Exception exception)
+            {
+                _errorReportingService.ShowDetailedErrorInfo(exception);
             }
 
             private static void LogLeaveDisabled(object provider)

@@ -4,7 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
+Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
@@ -878,8 +878,8 @@ End Class
 
                 Await VerifyTagsAreCorrect(workspace, "BarFoo")
                 Assert.True(previewService.Called)
-                Assert.Equal(String.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), previewService.Title)
-                Assert.Equal(String.Format(EditorFeaturesResources.RenameToTitle, "Foo", "BarFoo"), previewService.Description)
+                Assert.Equal(String.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename), previewService.Title)
+                Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Foo", "BarFoo"), previewService.Description)
                 Assert.Equal("Foo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using
@@ -1069,7 +1069,7 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                editHandler.Apply(
+                Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().GetOperationsAsync(CancellationToken.None),

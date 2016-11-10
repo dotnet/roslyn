@@ -1,0 +1,8 @@
+﻿{
+    "dependencies": {
+        "StreamJsonRpc": "0.12.32-alpha-g90be50f449"
+    },
+    "frameworks": {
+        "net46": { }
+    }
+}

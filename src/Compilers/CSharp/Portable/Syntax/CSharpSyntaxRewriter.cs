@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System;
-using Roslyn.Utilities;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (visitedSeparator.RawKind == 0)
                         {
-                            throw new InvalidOperationException(CSharpResources.SeparatorIsExpected);
+                            throw new InvalidOperationException(CodeAnalysisResources.SeparatorIsExpected);
                         }
                         alternate.AddSeparator(visitedSeparator);
                     }
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (visitedNode == null)
                         {
-                            throw new InvalidOperationException(CSharpResources.ElementIsExpected);
+                            throw new InvalidOperationException(CodeAnalysisResources.ElementIsExpected);
                         }
                     }
                 }

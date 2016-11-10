@@ -186,6 +186,41 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Zips two immutable arrays together through a mapping function, producing another immutable array.
+        /// </summary>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> ZipAsArray<T1, T2, TResult>(this ImmutableArray<T1> self, ImmutableArray<T2> other, Func<T1, T2, TResult> map)
+        {
+            Debug.Assert(self.Length == other.Length);
+            switch (self.Length)
+            {
+                case 0:
+                    return ImmutableArray<TResult>.Empty;
+
+                case 1:
+                    return ImmutableArray.Create(map(self[0], other[0]));
+
+                case 2:
+                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]));
+
+                case 3:
+                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]));
+
+                case 4:
+                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3]));
+
+                default:
+                    var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+                    for (int i = 0; i < self.Length; i++)
+                    {
+                        builder.Add(map(self[i], other[i]));
+                    }
+
+                    return builder.ToImmutableAndFree();
+            }
+        }
+
+        /// <summary>
         /// Creates a new immutable array based on filtered elements by the predicate. The array must not be null.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -411,6 +446,11 @@ namespace Microsoft.CodeAnalysis
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
         {
             return first.AddRange(second);
+        }
+
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
+        {
+            return first.Add(second);
         }
 
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)

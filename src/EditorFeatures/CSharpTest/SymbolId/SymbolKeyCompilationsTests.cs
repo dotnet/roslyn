@@ -176,6 +176,39 @@ class C<T> : I<T>, I
             Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, SymbolKeyComparison.None));
         }
 
+        [Fact]
+        public void RecursiveReferenceToConstructedGeneric()
+        {
+            var src1 =
+@"using System.Collections.Generic;
+
+class C
+{
+    public void M<Z>(List<Z> list)
+    {
+        var v = list.Add(default(Z));
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib(src1);
+            var comp2 = CreateCompilationWithMscorlib(src1);
+
+            var symbols1 = GetSourceSymbols(comp1, includeLocal: true).ToList();
+            var symbols2 = GetSourceSymbols(comp1, includeLocal: true).ToList();
+
+            // First, make sure that all the symbols in this file resolve properly 
+            // to themselves.
+            ResolveAndVerifySymbolList(symbols1, symbols2, comp1);
+
+            // Now do this for the members of types we see.  We want this 
+            // so we hit things like the members of the constructed type
+            // List<Z>
+            var members1 = symbols1.OfType<INamespaceOrTypeSymbol>().SelectMany(n => n.GetMembers()).ToList();
+            var members2 = symbols2.OfType<INamespaceOrTypeSymbol>().SelectMany(n => n.GetMembers()).ToList();
+
+            ResolveAndVerifySymbolList(members1, members2, comp1);
+        }
+
         #endregion
 
         #region "Change to symbol"

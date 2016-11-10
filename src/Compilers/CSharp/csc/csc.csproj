@@ -1,11 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -14,8 +12,6 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -38,17 +34,20 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\BuildClient.cs">
+      <Link>BuildClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs">
+      <Link>BuildServerConnection.cs</Link>
+    </Compile>
     <Compile Include="..\..\Shared\DesktopBuildClient.cs">
       <Link>DesktopBuildClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\ExitingTraceListener.cs">
       <Link>ExitingTraceListener.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\Csc.cs">
       <Link>Csc.cs</Link>
@@ -59,16 +58,12 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="csc.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="App.config" />
     <None Include="csc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

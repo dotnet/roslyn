@@ -47,8 +47,17 @@ namespace Roslyn.Test.Utilities
 
         public override long Position
         {
-            get { return _getPosition(); }
-            set { _setPosition(value); }
+            get
+            {
+                if (!CanSeek) throw new NotSupportedException();
+                return _getPosition();
+            }
+
+            set
+            {
+                if (!CanSeek) throw new NotSupportedException();
+                _setPosition(value);
+            }
         }
 
         public override void Flush()
@@ -60,7 +69,12 @@ namespace Roslyn.Test.Utilities
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotSupportedException();
+            if (!CanSeek)
+            {
+                throw new NotSupportedException();
+            }
+
+            return 0;
         }
 
         public override void SetLength(long value)

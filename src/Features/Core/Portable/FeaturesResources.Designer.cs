@@ -62,20 +62,39 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to     {0} - {1}.
+        /// </summary>
+        internal static string _0_1 {
+            get {
+                return ResourceManager.GetString("_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Keyword.
+        /// </summary>
+        internal static string _0_Keyword {
+            get {
+                return ResourceManager.GetString("_0_Keyword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
-        internal static string AccessingCapturedVariableInLambda {
+        internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("AccessingCapturedVariableInLambda", resourceCulture);
+                return ResourceManager.GetString("Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_" +
+                        "the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Actions can not be empty..
         /// </summary>
-        internal static string ActionsCanNotBeEmpty {
+        internal static string Actions_can_not_be_empty {
             get {
-                return ResourceManager.GetString("ActionsCanNotBeEmpty", resourceCulture);
+                return ResourceManager.GetString("Actions_can_not_be_empty", resourceCulture);
             }
         }
         
@@ -89,236 +108,307 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add default switch case.
-        /// </summary>
-        internal static string Add_default_switch_case {
-            get {
-                return ResourceManager.GetString("Add_default_switch_case", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add missing switch cases.
-        /// </summary>
-        internal static string Add_missing_switch_cases {
-            get {
-                return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add braces.
         /// </summary>
-        internal static string AddBraces {
+        internal static string Add_braces {
             get {
-                return ResourceManager.GetString("AddBraces", resourceCulture);
+                return ResourceManager.GetString("Add_braces", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Add default case.
         /// </summary>
-        internal static string AddingAAroundAnActiveStatement {
+        internal static string Add_default_case {
             get {
-                return ResourceManager.GetString("AddingAAroundAnActiveStatement", resourceCulture);
+                return ResourceManager.GetString("Add_default_case", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding an abstract &apos;{0}&apos; or overriding an inherited &apos;{0}&apos; will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
-        internal static string AddingAbstractOrOverride {
+        internal static string Add_missing_cases {
             get {
-                return ResourceManager.GetString("AddingAbstractOrOverride", resourceCulture);
+                return ResourceManager.GetString("Add_missing_cases", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding a generic &apos;{0}&apos; will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Add missing param nodes.
         /// </summary>
-        internal static string AddingAGeneric {
+        internal static string Add_missing_param_nodes {
             get {
-                return ResourceManager.GetString("AddingAGeneric", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a method body will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAMethodBodyWillPrevent {
-            get {
-                return ResourceManager.GetString("AddingAMethodBodyWillPrevent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a new file will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingANewFile {
-            get {
-                return ResourceManager.GetString("AddingANewFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding an imported method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAnImportedMethod {
-            get {
-                return ResourceManager.GetString("AddingAnImportedMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAWillPreventTheDebugSession {
-            get {
-                return ResourceManager.GetString("AddingAWillPreventTheDebugSession", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; with the Handles clause will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAWithTheHandlesClause {
-            get {
-                return ResourceManager.GetString("AddingAWithTheHandlesClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding an extern &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingExternMember {
-            get {
-                return ResourceManager.GetString("AddingExternMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into a &apos;{1}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingInto {
-            get {
-                return ResourceManager.GetString("AddingInto", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into a class with explicit or sequential layout will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingIntoClassWithExplicitOrSequential {
-            get {
-                return ResourceManager.GetString("AddingIntoClassWithExplicitOrSequential", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a MustOverride &apos;{0}&apos; or overriding an inherited &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingMustOverrideOrOverrides {
-            get {
-                return ResourceManager.GetString("AddingMustOverrideOrOverrides", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a user defined &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingUserDefinedOperator {
-            get {
-                return ResourceManager.GetString("AddingUserDefinedOperator", resourceCulture);
+                return ResourceManager.GetString("Add_missing_param_nodes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
         /// </summary>
-        internal static string AddOptionalParametersTo {
+        internal static string Add_optional_parameters_to_0_1 {
             get {
-                return ResourceManager.GetString("AddOptionalParametersTo", resourceCulture);
+                return ResourceManager.GetString("Add_optional_parameters_to_0_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add parameters to &apos;{0}({1})&apos;.
         /// </summary>
-        internal static string AddParametersTo {
+        internal static string Add_parameters_to_0_1 {
             get {
-                return ResourceManager.GetString("AddParametersTo", resourceCulture);
+                return ResourceManager.GetString("Add_parameters_to_0_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add project reference to &apos;{0}&apos;..
         /// </summary>
-        internal static string AddProjectReferenceTo {
+        internal static string Add_project_reference_to_0 {
             get {
-                return ResourceManager.GetString("AddProjectReferenceTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add qualification..
-        /// </summary>
-        internal static string AddQualification {
-            get {
-                return ResourceManager.GetString("AddQualification", resourceCulture);
+                return ResourceManager.GetString("Add_project_reference_to_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
-        internal static string AddReferenceTo {
+        internal static string Add_reference_to_0 {
             get {
-                return ResourceManager.GetString("AddReferenceTo", resourceCulture);
+                return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Add &apos;this&apos; or &apos;Me&apos; qualification..
         /// </summary>
-        internal static string AddThisOrMeQualification {
+        internal static string Add_this_or_Me_qualification {
             get {
-                return ResourceManager.GetString("AddThisOrMeQualification", resourceCulture);
+                return ResourceManager.GetString("Add_this_or_Me_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuin" +
+                        "g", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into a &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; into a class with explicit or sequential layout will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_s" +
+                        "ession_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_wi" +
+                        "ll_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; with the Handles clause will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains" +
+                        "_an_anonymous_function_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a generic &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_generic_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_generic_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a method body will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_method_body_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_method_body_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a MustOverride &apos;{0}&apos; or overriding an inherited &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_sessi" +
+                        "on_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a new file will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_new_file_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_new_file_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding a user defined &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding an abstract &apos;{0}&apos; or overriding an inherited &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_" +
+                        "from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding an extern &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_an_extern_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_an_extern_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding an imported method will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Adding_an_imported_method_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All lowercase.
+        /// </summary>
+        internal static string All_lowercase {
+            get {
+                return ResourceManager.GetString("All_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All uppercase.
+        /// </summary>
+        internal static string All_uppercase {
+            get {
+                return ResourceManager.GetString("All_uppercase", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session..
         /// </summary>
-        internal static string AnActiveStatementHasBeenRemoved {
+        internal static string An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session {
             get {
-                return ResourceManager.GetString("AnActiveStatementHasBeenRemoved", resourceCulture);
+                return ResourceManager.GetString("An_active_statement_has_been_removed_from_its_original_method_You_must_revert_you" +
+                        "r_changes_to_continue_or_restart_the_debugging_session", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
+        /// </summary>
+        internal static string An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2 {
+            get {
+                return ResourceManager.GetString("An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        /// </summary>
+        internal static string Analyzer_0_threw_an_exception_of_type_1_with_message_2 {
+            get {
+                return ResourceManager.GetString("Analyzer_0_threw_an_exception_of_type_1_with_message_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw the following exception:
+        ///&apos;{1}&apos;..
+        /// </summary>
+        internal static string Analyzer_0_threw_the_following_exception_colon_1 {
+            get {
+                return ResourceManager.GetString("Analyzer_0_threw_the_following_exception_colon_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Anonymous Types:.
         /// </summary>
-        internal static string AnonymousTypes {
+        internal static string Anonymous_Types_colon {
             get {
-                return ResourceManager.GetString("AnonymousTypes", resourceCulture);
+                return ResourceManager.GetString("Anonymous_Types_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
-        internal static string ArgumentCannotBeEmpty {
+        internal static string Argument_cannot_be_empty {
             get {
-                return ResourceManager.GetString("ArgumentCannotBeEmpty", resourceCulture);
+                return ResourceManager.GetString("Argument_cannot_be_empty", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Argument cannot have a null element..
         /// </summary>
-        internal static string ArgumentElementCannotBeNull {
+        internal static string Argument_cannot_have_a_null_element {
             get {
-                return ResourceManager.GetString("ArgumentElementCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("Argument_cannot_have_a_null_element", resourceCulture);
             }
         }
         
@@ -334,45 +424,56 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Assigning to readonly fields must be done in a constructor : [{0}]..
         /// </summary>
-        internal static string AssigningToReadonlyFields {
+        internal static string Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket {
             get {
-                return ResourceManager.GetString("AssigningToReadonlyFields", resourceCulture);
+                return ResourceManager.GetString("Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracke" +
+                        "t", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Asynchronous method cannot have ref/out parameters : [{0}].
         /// </summary>
-        internal static string AsyncMethodWithRefOutParameters {
+        internal static string Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket {
             get {
-                return ResourceManager.GetString("AsyncMethodWithRefOutParameters", resourceCulture);
+                return ResourceManager.GetString("Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Attempt to connect to process #{0} failed, retrying ....
         /// </summary>
-        internal static string AttemptToConnectToProcess {
+        internal static string Attempt_to_connect_to_process_Sharp_0_failed_retrying {
             get {
-                return ResourceManager.GetString("AttemptToConnectToProcess", resourceCulture);
+                return ResourceManager.GetString("Attempt_to_connect_to_process_Sharp_0_failed_retrying", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to attribute.
         /// </summary>
-        internal static string Attribute {
+        internal static string attribute {
             get {
-                return ResourceManager.GetString("Attribute", resourceCulture);
+                return ResourceManager.GetString("attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is missing. Updating an async method or an iterator will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_d" +
+                        "ebug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to auto-property.
         /// </summary>
-        internal static string AutoProperty {
+        internal static string auto_property {
             get {
-                return ResourceManager.GetString("AutoProperty", resourceCulture);
+                return ResourceManager.GetString("auto_property", resourceCulture);
             }
         }
         
@@ -386,173 +487,161 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler.
+        ///   Looks up a localized string similar to Awaited task returns.
         /// </summary>
-        internal static string BuildToolBuild {
+        internal static string Awaited_task_returns {
             get {
-                return ResourceManager.GetString("BuildToolBuild", resourceCulture);
+                return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit And Continue.
+        ///   Looks up a localized string similar to Camel Case.
         /// </summary>
-        internal static string BuildToolEnC {
+        internal static string Camel_Case {
             get {
-                return ResourceManager.GetString("BuildToolEnC", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Live.
-        /// </summary>
-        internal static string BuildToolLive {
-            get {
-                return ResourceManager.GetString("BuildToolLive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot resolve reference &apos;{0}&apos;..
-        /// </summary>
-        internal static string CannotResolveReference {
-            get {
-                return ResourceManager.GetString("CannotResolveReference", resourceCulture);
+                return ResourceManager.GetString("Camel_Case", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to can&apos;t not construct final tree.
         /// </summary>
-        internal static string CantNotConstructFinalTree {
+        internal static string can_t_not_construct_final_tree {
             get {
-                return ResourceManager.GetString("CantNotConstructFinalTree", resourceCulture);
+                return ResourceManager.GetString("can_t_not_construct_final_tree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot resolve reference &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_resolve_reference_0 {
+            get {
+                return ResourceManager.GetString("Cannot_resolve_reference_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Capturing variable &apos;{0}&apos; that hasn&apos;t been captured before will prevent the debug session from continuing..
         /// </summary>
-        internal static string CapturingVariable {
+        internal static string Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("CapturingVariable", resourceCulture);
+                return ResourceManager.GetString("Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_sess" +
+                        "ion_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler.
+        ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
         /// </summary>
-        internal static string CategoryCompiler {
+        internal static string Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("CategoryCompiler", resourceCulture);
+                return ResourceManager.GetString("Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_co" +
+                        "ntinuing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Ceasing to capture variable &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string CategoryEditAndContinue {
+        internal static string Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("CategoryEditAndContinue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string CategoryStyle {
-            get {
-                return ResourceManager.GetString("CategoryStyle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change signature....
-        /// </summary>
-        internal static string ChangeSignature {
-            get {
-                return ResourceManager.GetString("ChangeSignature", resourceCulture);
+                return ResourceManager.GetString("Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
-        internal static string ChangeTo {
+        internal static string Change_0_to_1 {
             get {
-                return ResourceManager.GetString("ChangeTo", resourceCulture);
+                return ResourceManager.GetString("Change_0_to_1", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Changing the declaration scope of a captured variable &apos;{0}&apos; will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Change signature....
         /// </summary>
-        internal static string ChangingCapturedVariableScope {
+        internal static string Change_signature {
             get {
-                return ResourceManager.GetString("ChangingCapturedVariableScope", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changing the type of a captured variable &apos;{0}&apos; previously of type &apos;{1}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ChangingCapturedVariableType {
-            get {
-                return ResourceManager.GetString("ChangingCapturedVariableType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changing the parameters of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ChangingLambdaParameters {
-            get {
-                return ResourceManager.GetString("ChangingLambdaParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changing the return type of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ChangingLambdaReturnType {
-            get {
-                return ResourceManager.GetString("ChangingLambdaReturnType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ChangingQueryLambdaType {
-            get {
-                return ResourceManager.GetString("ChangingQueryLambdaType", resourceCulture);
+                return ResourceManager.GetString("Change_signature", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string ChangingTheConstraintFromTo {
+        internal static string Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ChangingTheConstraintFromTo", resourceCulture);
+                return ResourceManager.GetString("Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuin" +
+                        "g", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the declaration scope of a captured variable &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_se" +
+                        "ssion_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the parameters of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the return type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of a captured variable &apos;{0}&apos; previously of type &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_" +
+                        "debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Changing visibility of a constructor will prevent the debug session from continuing..
         /// </summary>
-        internal static string ChangingVisibilityOfConstructor {
+        internal static string Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ChangingVisibilityOfConstructor", resourceCulture);
+                return ResourceManager.GetString("Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continui" +
+                        "ng", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to class.
         /// </summary>
-        internal static string Class {
+        internal static string class_ {
             get {
-                return ResourceManager.GetString("Class", resourceCulture);
+                return ResourceManager.GetString("class_", resourceCulture);
             }
         }
         
@@ -566,20 +655,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collection initialization can be simplified.
+        /// </summary>
+        internal static string Collection_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compiler.
+        /// </summary>
+        internal static string Compiler1 {
+            get {
+                return ResourceManager.GetString("Compiler1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compiler.
+        /// </summary>
+        internal static string Compiler2 {
+            get {
+                return ResourceManager.GetString("Compiler2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing fix all occurrences code fix....
         /// </summary>
-        internal static string ComputingFixAllOccurrences {
+        internal static string Computing_fix_all_occurrences_code_fix {
             get {
-                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
+                return ResourceManager.GetString("Computing_fix_all_occurrences_code_fix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to const field.
+        /// </summary>
+        internal static string const_field {
+            get {
+                return ResourceManager.GetString("const_field", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to constant.
         /// </summary>
-        internal static string Constant {
+        internal static string constant {
             get {
-                return ResourceManager.GetString("Constant", resourceCulture);
+                return ResourceManager.GetString("constant", resourceCulture);
             }
         }
         
@@ -593,65 +718,49 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to const field.
-        /// </summary>
-        internal static string ConstField {
-            get {
-                return ResourceManager.GetString("ConstField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to constructor.
         /// </summary>
-        internal static string Constructor {
+        internal static string constructor {
             get {
-                return ResourceManager.GetString("Constructor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Parameters&apos; type or return type cannot be an anonymous type : [{0}].
-        /// </summary>
-        internal static string ContainsAnonymousType {
-            get {
-                return ResourceManager.GetString("ContainsAnonymousType", resourceCulture);
+                return ResourceManager.GetString("constructor", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Convert to interpolated string.
         /// </summary>
-        internal static string ConvertToInterpolatedString {
+        internal static string Convert_to_interpolated_string {
             get {
-                return ResourceManager.GetString("ConvertToInterpolatedString", resourceCulture);
+                return ResourceManager.GetString("Convert_to_interpolated_string", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Could not extract interface: The selection is not inside a class/interface/struct..
         /// </summary>
-        internal static string CouldNotExtractInterfaceSelection {
+        internal static string Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct {
             get {
-                return ResourceManager.GetString("CouldNotExtractInterfaceSelection", resourceCulture);
+                return ResourceManager.GetString("Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_s" +
+                        "truct", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Could not extract interface: The type does not contain any member that can be extracted to an interface..
         /// </summary>
-        internal static string CouldNotExtractInterfaceTypeMember {
+        internal static string Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface {
             get {
-                return ResourceManager.GetString("CouldNotExtractInterfaceTypeMember", resourceCulture);
+                return ResourceManager.GetString("Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_b" +
+                        "e_extracted_to_an_interface", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to delegate.
         /// </summary>
-        internal static string Delegate {
+        internal static string delegate_ {
             get {
-                return ResourceManager.GetString("Delegate", resourceCulture);
+                return ResourceManager.GetString("delegate_", resourceCulture);
             }
         }
         
@@ -665,110 +774,129 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing &apos;{0}&apos; that accessed captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeleteLambdaWithMultiScopeCapture {
-            get {
-                return ResourceManager.GetString("DeleteLambdaWithMultiScopeCapture", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Deleting &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string DeletingAAroundAnActiveStatement {
+        internal static string Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("DeletingAAroundAnActiveStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deleting a method body will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeletingAMethodBodyWillPrevent {
-            get {
-                return ResourceManager.GetString("DeletingAMethodBodyWillPrevent", resourceCulture);
+                return ResourceManager.GetString("Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continu" +
+                        "ing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Deleting &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string DeletingAWillPrevent {
+        internal static string Deleting_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("DeletingAWillPrevent", resourceCulture);
+                return ResourceManager.GetString("Deleting_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting a method body will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Deleting_a_method_body_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Deleting_a_method_body_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Deleting captured variable &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string DeletingCapturedVariable {
+        internal static string Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("DeletingCapturedVariable", resourceCulture);
+                return ResourceManager.GetString("Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
+        ///   Looks up a localized string similar to Document.
         /// </summary>
-        internal static string DisposeManagedStateTodo {
+        internal static string Document {
             get {
-                return ResourceManager.GetString("DisposeManagedStateTodo", resourceCulture);
+                return ResourceManager.GetString("Document", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit And Continue.
+        /// </summary>
+        internal static string Edit_And_Continue {
+            get {
+                return ResourceManager.GetString("Edit_And_Continue", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
-        internal static string EditAndContinue {
+        internal static string Edit_and_Continue1 {
             get {
-                return ResourceManager.GetString("EditAndContinue", resourceCulture);
+                return ResourceManager.GetString("Edit_and_Continue1", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (but still use field).
+        ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
-        internal static string EncapsulateField {
+        internal static string Edit_and_Continue2 {
             get {
-                return ResourceManager.GetString("EncapsulateField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Encapsulate fields (but still use field).
-        /// </summary>
-        internal static string EncapsulateFields {
-            get {
-                return ResourceManager.GetString("EncapsulateFields", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Encapsulate fields (and use property).
-        /// </summary>
-        internal static string EncapsulateFieldsUsages {
-            get {
-                return ResourceManager.GetString("EncapsulateFieldsUsages", resourceCulture);
+                return ResourceManager.GetString("Edit_and_Continue2", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (and use property).
         /// </summary>
-        internal static string EncapsulateFieldUsages {
+        internal static string Encapsulate_field_colon_0_and_use_property {
             get {
-                return ResourceManager.GetString("EncapsulateFieldUsages", resourceCulture);
+                return ResourceManager.GetString("Encapsulate_field_colon_0_and_use_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (but still use field).
+        /// </summary>
+        internal static string Encapsulate_field_colon_0_but_still_use_field {
+            get {
+                return ResourceManager.GetString("Encapsulate_field_colon_0_but_still_use_field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encapsulate fields (and use property).
+        /// </summary>
+        internal static string Encapsulate_fields_and_use_property {
+            get {
+                return ResourceManager.GetString("Encapsulate_fields_and_use_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encapsulate fields (but still use field).
+        /// </summary>
+        internal static string Encapsulate_fields_but_still_use_field {
+            get {
+                return ResourceManager.GetString("Encapsulate_fields_but_still_use_field", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to enum.
         /// </summary>
-        internal static string Enum {
+        internal static string enum_ {
             get {
-                return ResourceManager.GetString("Enum", resourceCulture);
+                return ResourceManager.GetString("enum_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to enum value.
+        /// </summary>
+        internal static string enum_value {
+            get {
+                return ResourceManager.GetString("enum_value", resourceCulture);
             }
         }
         
@@ -782,47 +910,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to enum value.
-        /// </summary>
-        internal static string EnumValue {
-            get {
-                return ResourceManager.GetString("EnumValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Roslyn.HostError.
-        /// </summary>
-        internal static string ErrorCategory {
-            get {
-                return ResourceManager.GetString("ErrorCategory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The selection contains an error or unknown type..
-        /// </summary>
-        internal static string ErrorOrUnknownType {
-            get {
-                return ResourceManager.GetString("ErrorOrUnknownType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to event.
         /// </summary>
-        internal static string Event {
+        internal static string event_ {
             get {
-                return ResourceManager.GetString("Event", resourceCulture);
+                return ResourceManager.GetString("event_", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to event accessor.
         /// </summary>
-        internal static string EventAccessor {
+        internal static string event_accessor {
             get {
-                return ResourceManager.GetString("EventAccessor", resourceCulture);
+                return ResourceManager.GetString("event_accessor", resourceCulture);
             }
         }
         
@@ -838,9 +939,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Exceptions:.
         /// </summary>
-        internal static string Exceptions {
+        internal static string Exceptions_colon {
             get {
-                return ResourceManager.GetString("Exceptions", resourceCulture);
+                return ResourceManager.GetString("Exceptions_colon", resourceCulture);
             }
         }
         
@@ -856,72 +957,63 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Extract Interface....
         /// </summary>
-        internal static string ExtractInterface {
+        internal static string Extract_Interface {
             get {
-                return ResourceManager.GetString("ExtractInterface", resourceCulture);
+                return ResourceManager.GetString("Extract_Interface", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Extract Method.
         /// </summary>
-        internal static string ExtractMethod {
+        internal static string Extract_Method {
             get {
-                return ResourceManager.GetString("ExtractMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown error occurred.
-        /// </summary>
-        internal static string ExtractMethodFailedWithUnknownReasons {
-            get {
-                return ResourceManager.GetString("ExtractMethodFailedWithUnknownReasons", resourceCulture);
+                return ResourceManager.GetString("Extract_Method", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Extract Method + Local.
         /// </summary>
-        internal static string ExtractMethodLocal {
+        internal static string Extract_Method_plus_Local {
             get {
-                return ResourceManager.GetString("ExtractMethodLocal", resourceCulture);
+                return ResourceManager.GetString("Extract_Method_plus_Local", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
         /// </summary>
-        internal static string FailedToCreateARemoteProcess {
+        internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
             get {
-                return ResourceManager.GetString("FailedToCreateARemoteProcess", resourceCulture);
+                return ResourceManager.GetString("Failed_to_create_a_remote_process_for_interactive_code_execution", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to initialize remote interactive process..
         /// </summary>
-        internal static string FailedToInitializeRemoteInteractiveProcess {
+        internal static string Failed_to_initialize_remote_interactive_process {
             get {
-                return ResourceManager.GetString("FailedToInitializeRemoteInteractiveProcess", resourceCulture);
+                return ResourceManager.GetString("Failed_to_initialize_remote_interactive_process", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to launch &apos;{0}&apos; process (exit code: {1}) with output: .
         /// </summary>
-        internal static string FailedToLaunchProcess {
+        internal static string Failed_to_launch_0_process_exit_code_colon_1_with_output_colon {
             get {
-                return ResourceManager.GetString("FailedToLaunchProcess", resourceCulture);
+                return ResourceManager.GetString("Failed_to_launch_0_process_exit_code_colon_1_with_output_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to field.
         /// </summary>
-        internal static string Field {
+        internal static string field {
             get {
-                return ResourceManager.GetString("Field", resourceCulture);
+                return ResourceManager.GetString("field", resourceCulture);
             }
         }
         
@@ -953,47 +1045,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to First word capitalized.
+        /// </summary>
+        internal static string First_word_capitalized {
+            get {
+                return ResourceManager.GetString("First_word_capitalized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix all occurrences.
         /// </summary>
-        internal static string FixAllOccurrences {
+        internal static string Fix_all_occurrences {
             get {
-                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Document.
-        /// </summary>
-        internal static string FixAllTitle_Document {
-            get {
-                return ResourceManager.GetString("FixAllTitle_Document", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project.
-        /// </summary>
-        internal static string FixAllTitle_Project {
-            get {
-                return ResourceManager.GetString("FixAllTitle_Project", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Solution.
-        /// </summary>
-        internal static string FixAllTitle_Solution {
-            get {
-                return ResourceManager.GetString("FixAllTitle_Solution", resourceCulture);
+                return ResourceManager.GetString("Fix_all_occurrences", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Fix Name Violation: {0}.
         /// </summary>
-        internal static string FixNamingViolation {
+        internal static string Fix_Name_Violation_colon_0 {
             get {
-                return ResourceManager.GetString("FixNamingViolation", resourceCulture);
+                return ResourceManager.GetString("Fix_Name_Violation_colon_0", resourceCulture);
             }
         }
         
@@ -1003,6 +1077,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string from_0 {
             get {
                 return ResourceManager.GetString("from_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
             }
         }
         
@@ -1025,6 +1108,141 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_abstract_method_0_in_1 {
+            get {
+                return ResourceManager.GetString("Generate_abstract_method_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate abstract property &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_abstract_property_0_in_1 {
+            get {
+                return ResourceManager.GetString("Generate_abstract_property_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate all.
+        /// </summary>
+        internal static string Generate_all {
+            get {
+                return ResourceManager.GetString("Generate_all", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Both.
+        /// </summary>
+        internal static string Generate_Both {
+            get {
+                return ResourceManager.GetString("Generate_Both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constant &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_constant_0_in_1 {
+            get {
+                return ResourceManager.GetString("Generate_constant_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constructor &apos;{0}({1})&apos;.
+        /// </summary>
+        internal static string Generate_constructor_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_constructor_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constructor in &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_constructor_in_0 {
+            get {
+                return ResourceManager.GetString("Generate_constructor_in_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate delegating constructor &apos;{0}({1})&apos;.
+        /// </summary>
+        internal static string Generate_delegating_constructor_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_delegating_constructor_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate enum member &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_enum_member_0_in_1 {
+            get {
+                return ResourceManager.GetString("Generate_enum_member_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
+        /// </summary>
+        internal static string Generate_Equals_object {
+            get {
+                return ResourceManager.GetString("Generate_Equals_object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate field &apos;{0}&apos; in &apos;{1}&apos;.
+        /// </summary>
+        internal static string Generate_field_0_in_1 {
+            get {
+                return ResourceManager.GetString("Generate_field_0_in_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate field assigning constructor &apos;{0}({1})&apos;.
+        /// </summary>
+        internal static string Generate_field_assigning_constructor_0_1 {
+            get {
+                return ResourceManager.GetString("Generate_field_assigning_constructor_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
+        /// </summary>
+        internal static string Generate_GetHashCode {
+            get {
+                return ResourceManager.GetString("Generate_GetHashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate local &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_local_0 {
+            get {
+                return ResourceManager.GetString("Generate_local_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate method &apos;{1}.{0}&apos;.
+        /// </summary>
+        internal static string Generate_method_1_0 {
+            get {
+                return ResourceManager.GetString("Generate_method_1_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate nested {0} &apos;{1}&apos;.
         /// </summary>
         internal static string Generate_nested_0_1 {
@@ -1034,326 +1252,209 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate type.
-        /// </summary>
-        internal static string Generate_type {
-            get {
-                return ResourceManager.GetString("Generate_type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
-        /// </summary>
-        internal static string Generate_variable {
-            get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
-        /// </summary>
-        internal static string GenerateAbstractMethod {
-            get {
-                return ResourceManager.GetString("GenerateAbstractMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate abstract property &apos;{0}&apos; in &apos;{1}&apos;.
-        /// </summary>
-        internal static string GenerateAbstractProperty {
-            get {
-                return ResourceManager.GetString("GenerateAbstractProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate all.
-        /// </summary>
-        internal static string GenerateAll {
-            get {
-                return ResourceManager.GetString("GenerateAll", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate Both.
-        /// </summary>
-        internal static string GenerateBoth {
-            get {
-                return ResourceManager.GetString("GenerateBoth", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate constant &apos;{0}&apos; in &apos;{1}&apos;.
-        /// </summary>
-        internal static string GenerateConstantIn {
-            get {
-                return ResourceManager.GetString("GenerateConstantIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate constructor &apos;{0}({1})&apos;.
-        /// </summary>
-        internal static string GenerateConstructor {
-            get {
-                return ResourceManager.GetString("GenerateConstructor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to generated code is overlapping with hidden portion of the code.
-        /// </summary>
-        internal static string GeneratedCodeIsOverlapping {
-            get {
-                return ResourceManager.GetString("GeneratedCodeIsOverlapping", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate delegating constructor &apos;{0}({1})&apos;.
-        /// </summary>
-        internal static string GenerateDelegatingConstructor {
-            get {
-                return ResourceManager.GetString("GenerateDelegatingConstructor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate enum member &apos;{0}&apos; in &apos;{1}&apos;.
-        /// </summary>
-        internal static string GenerateEnumMemberIn {
-            get {
-                return ResourceManager.GetString("GenerateEnumMemberIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;Equals(object)&apos;.
-        /// </summary>
-        internal static string GenerateEqualsObject {
-            get {
-                return ResourceManager.GetString("GenerateEqualsObject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate field assigning constructor &apos;{0}({1})&apos;.
-        /// </summary>
-        internal static string GenerateFieldAssigningConstructor {
-            get {
-                return ResourceManager.GetString("GenerateFieldAssigningConstructor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate field &apos;{0}&apos; in &apos;{1}&apos;.
-        /// </summary>
-        internal static string GenerateFieldIn {
-            get {
-                return ResourceManager.GetString("GenerateFieldIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate &apos;GetHashCode()&apos;.
-        /// </summary>
-        internal static string GenerateGetHashCode {
-            get {
-                return ResourceManager.GetString("GenerateGetHashCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate local &apos;{0}&apos;.
-        /// </summary>
-        internal static string GenerateLocal {
-            get {
-                return ResourceManager.GetString("GenerateLocal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate method &apos;{1}.{0}&apos;.
-        /// </summary>
-        internal static string GenerateMethodIn {
-            get {
-                return ResourceManager.GetString("GenerateMethodIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generate constructor in &apos;{0}&apos;.
-        /// </summary>
-        internal static string GenerateNewConstructorIn {
-            get {
-                return ResourceManager.GetString("GenerateNewConstructorIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate new type....
         /// </summary>
-        internal static string GenerateNewType {
+        internal static string Generate_new_type {
             get {
-                return ResourceManager.GetString("GenerateNewType", resourceCulture);
+                return ResourceManager.GetString("Generate_new_type", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Generate property &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string GeneratePropertyIn {
+        internal static string Generate_property_1_0 {
             get {
-                return ResourceManager.GetString("GeneratePropertyIn", resourceCulture);
+                return ResourceManager.GetString("Generate_property_1_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Generate read-only field &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string GenerateReadonlyField {
+        internal static string Generate_read_only_field_1_0 {
             get {
-                return ResourceManager.GetString("GenerateReadonlyField", resourceCulture);
+                return ResourceManager.GetString("Generate_read_only_field_1_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Generate read-only property &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string GenerateReadonlyProperty {
+        internal static string Generate_read_only_property_1_0 {
             get {
-                return ResourceManager.GetString("GenerateReadonlyProperty", resourceCulture);
+                return ResourceManager.GetString("Generate_read_only_property_1_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate type &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_type_0 {
+            get {
+                return ResourceManager.GetString("Generate_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate variable &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_variable_0 {
+            get {
+                return ResourceManager.GetString("Generate_variable_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to generated code is overlapping with hidden portion of the code.
+        /// </summary>
+        internal static string generated_code_is_overlapping_with_hidden_portion_of_the_code {
+            get {
+                return ResourceManager.GetString("generated_code_is_overlapping_with_hidden_portion_of_the_code", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to generating source for symbols of this type is not supported.
         /// </summary>
-        internal static string GeneratingSourceForSymbols {
+        internal static string generating_source_for_symbols_of_this_type_is_not_supported {
             get {
-                return ResourceManager.GetString("GeneratingSourceForSymbols", resourceCulture);
+                return ResourceManager.GetString("generating_source_for_symbols_of_this_type_is_not_supported", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to generic overload.
         /// </summary>
-        internal static string GenericOverload {
+        internal static string generic_overload {
             get {
-                return ResourceManager.GetString("GenericOverload", resourceCulture);
+                return ResourceManager.GetString("generic_overload", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to generic overloads.
         /// </summary>
-        internal static string GenericOverloads {
+        internal static string generic_overloads {
             get {
-                return ResourceManager.GetString("GenericOverloads", resourceCulture);
+                return ResourceManager.GetString("generic_overloads", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Global Namespace.
         /// </summary>
-        internal static string GlobalNamespace {
+        internal static string Global_Namespace {
             get {
-                return ResourceManager.GetString("GlobalNamespace", resourceCulture);
+                return ResourceManager.GetString("Global_Namespace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Hosting process exited with exit code {0}..
         /// </summary>
-        internal static string HostingProcessExitedWithExitCode {
+        internal static string Hosting_process_exited_with_exit_code_0 {
             get {
-                return ResourceManager.GetString("HostingProcessExitedWithExitCode", resourceCulture);
+                return ResourceManager.GetString("Hosting_process_exited_with_exit_code_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement Abstract Class.
+        /// </summary>
+        internal static string Implement_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface.
         /// </summary>
-        internal static string ImplementInterface {
+        internal static string Implement_interface {
             get {
-                return ResourceManager.GetString("ImplementInterface", resourceCulture);
+                return ResourceManager.GetString("Implement_interface", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface abstractly.
         /// </summary>
-        internal static string ImplementInterfaceAbstractly {
+        internal static string Implement_interface_abstractly {
             get {
-                return ResourceManager.GetString("ImplementInterfaceAbstractly", resourceCulture);
+                return ResourceManager.GetString("Implement_interface_abstractly", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface explicitly.
         /// </summary>
-        internal static string ImplementInterfaceExplicitly {
+        internal static string Implement_interface_explicitly {
             get {
-                return ResourceManager.GetString("ImplementInterfaceExplicitly", resourceCulture);
+                return ResourceManager.GetString("Implement_interface_explicitly", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface explicitly with Dispose pattern.
         /// </summary>
-        internal static string ImplementInterfaceExplicitlyWithDisposePattern {
+        internal static string Implement_interface_explicitly_with_Dispose_pattern {
             get {
-                return ResourceManager.GetString("ImplementInterfaceExplicitlyWithDisposePattern", resourceCulture);
+                return ResourceManager.GetString("Implement_interface_explicitly_with_Dispose_pattern", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface through &apos;{0}&apos;.
         /// </summary>
-        internal static string ImplementInterfaceThrough {
+        internal static string Implement_interface_through_0 {
             get {
-                return ResourceManager.GetString("ImplementInterfaceThrough", resourceCulture);
+                return ResourceManager.GetString("Implement_interface_through_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement interface with Dispose pattern.
         /// </summary>
-        internal static string ImplementInterfaceWithDisposePattern {
+        internal static string Implement_interface_with_Dispose_pattern {
             get {
-                return ResourceManager.GetString("ImplementInterfaceWithDisposePattern", resourceCulture);
+                return ResourceManager.GetString("Implement_interface_with_Dispose_pattern", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to in.
         /// </summary>
-        internal static string In {
+        internal static string in_ {
             get {
-                return ResourceManager.GetString("In", resourceCulture);
+                return ResourceManager.GetString("in_", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to in Source.
         /// </summary>
-        internal static string InsertConstructorToTypeWithInitializersWithLambdas {
+        internal static string in_Source {
             get {
-                return ResourceManager.GetString("InsertConstructorToTypeWithInitializersWithLambdas", resourceCulture);
+                return ResourceManager.GetString("in_Source", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to in Suppression File.
         /// </summary>
-        internal static string InsertLambdaWithMultiScopeCapture {
+        internal static string in_Suppression_File {
             get {
-                return ResourceManager.GetString("InsertLambdaWithMultiScopeCapture", resourceCulture);
+                return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
             }
         }
         
@@ -1363,6 +1464,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Install_0_1 {
             get {
                 return ResourceManager.GetString("Install_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Install package &apos;{0}&apos;.
+        /// </summary>
+        internal static string Install_package_0 {
+            get {
+                return ResourceManager.GetString("Install_package_0", resourceCulture);
             }
         }
         
@@ -1387,18 +1497,18 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Interactive Host not initialized..
         /// </summary>
-        internal static string InteractiveHostNotInitialized {
+        internal static string Interactive_Host_not_initialized {
             get {
-                return ResourceManager.GetString("InteractiveHostNotInitialized", resourceCulture);
+                return ResourceManager.GetString("Interactive_Host_not_initialized", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to interface.
         /// </summary>
-        internal static string Interface {
+        internal static string interface_ {
             get {
-                return ResourceManager.GetString("Interface", resourceCulture);
+                return ResourceManager.GetString("interface_", resourceCulture);
             }
         }
         
@@ -1414,135 +1524,153 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Introduce constant for &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceConstantFor {
+        internal static string Introduce_constant_for_0 {
             get {
-                return ResourceManager.GetString("IntroduceConstantFor", resourceCulture);
+                return ResourceManager.GetString("Introduce_constant_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce constant for all occurrences of &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceConstantForAllOccurrences {
+        internal static string Introduce_constant_for_all_occurrences_of_0 {
             get {
-                return ResourceManager.GetString("IntroduceConstantForAllOccurrences", resourceCulture);
+                return ResourceManager.GetString("Introduce_constant_for_all_occurrences_of_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce field for &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceFieldFor {
+        internal static string Introduce_field_for_0 {
             get {
-                return ResourceManager.GetString("IntroduceFieldFor", resourceCulture);
+                return ResourceManager.GetString("Introduce_field_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce field for all occurrences of &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceFieldForAllOccurrences {
+        internal static string Introduce_field_for_all_occurrences_of_0 {
             get {
-                return ResourceManager.GetString("IntroduceFieldForAllOccurrences", resourceCulture);
+                return ResourceManager.GetString("Introduce_field_for_all_occurrences_of_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce local constant for &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceLocalConstantFor {
+        internal static string Introduce_local_constant_for_0 {
             get {
-                return ResourceManager.GetString("IntroduceLocalConstantFor", resourceCulture);
+                return ResourceManager.GetString("Introduce_local_constant_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce local constant for all occurrences of &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceLocalConstantForAll {
+        internal static string Introduce_local_constant_for_all_occurrences_of_0 {
             get {
-                return ResourceManager.GetString("IntroduceLocalConstantForAll", resourceCulture);
+                return ResourceManager.GetString("Introduce_local_constant_for_all_occurrences_of_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce local for &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceLocalFor {
+        internal static string Introduce_local_for_0 {
             get {
-                return ResourceManager.GetString("IntroduceLocalFor", resourceCulture);
+                return ResourceManager.GetString("Introduce_local_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce local for all occurrences of &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceLocalForAllOccurrences {
+        internal static string Introduce_local_for_all_occurrences_of_0 {
             get {
-                return ResourceManager.GetString("IntroduceLocalForAllOccurrences", resourceCulture);
+                return ResourceManager.GetString("Introduce_local_for_all_occurrences_of_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce query variable for &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceQueryVariableFor {
+        internal static string Introduce_query_variable_for_0 {
             get {
-                return ResourceManager.GetString("IntroduceQueryVariableFor", resourceCulture);
+                return ResourceManager.GetString("Introduce_query_variable_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Introduce query variable for all occurrences of &apos;{0}&apos;.
         /// </summary>
-        internal static string IntroduceQueryVariableForAll {
+        internal static string Introduce_query_variable_for_all_occurrences_of_0 {
             get {
-                return ResourceManager.GetString("IntroduceQueryVariableForAll", resourceCulture);
+                return ResourceManager.GetString("Introduce_query_variable_for_all_occurrences_of_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to is.
         /// </summary>
-        internal static string Is {
+        internal static string is_ {
             get {
-                return ResourceManager.GetString("Is", resourceCulture);
+                return ResourceManager.GetString("is_", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} Keyword.
+        ///   Looks up a localized string similar to Keywords.
         /// </summary>
-        internal static string Keyword {
+        internal static string Keywords {
             get {
-                return ResourceManager.GetString("Keyword", resourceCulture);
+                return ResourceManager.GetString("Keywords", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to label.
         /// </summary>
-        internal static string Label {
+        internal static string label {
             get {
-                return ResourceManager.GetString("Label", resourceCulture);
+                return ResourceManager.GetString("label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live.
+        /// </summary>
+        internal static string Live {
+            get {
+                return ResourceManager.GetString("Live", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Loading context from &apos;{0}&apos;..
         /// </summary>
-        internal static string LoadingContextFrom {
+        internal static string Loading_context_from_0 {
             get {
-                return ResourceManager.GetString("LoadingContextFrom", resourceCulture);
+                return ResourceManager.GetString("Loading_context_from_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to local constant.
         /// </summary>
-        internal static string LocalConstant {
+        internal static string local_constant {
             get {
-                return ResourceManager.GetString("LocalConstant", resourceCulture);
+                return ResourceManager.GetString("local_constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local variable.
+        /// </summary>
+        internal static string local_variable {
+            get {
+                return ResourceManager.GetString("local_variable", resourceCulture);
             }
         }
         
@@ -1565,20 +1693,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to local variable.
+        ///   Looks up a localized string similar to location unknown.
         /// </summary>
-        internal static string LocalVariable {
+        internal static string location_unknown {
             get {
-                return ResourceManager.GetString("LocalVariable", resourceCulture);
+                return ResourceManager.GetString("location_unknown", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to location unknown.
+        ///   Looks up a localized string similar to Make containing scope async.
         /// </summary>
-        internal static string LocationUnknown {
+        internal static string Make_containing_scope_async {
             get {
-                return ResourceManager.GetString("LocationUnknown", resourceCulture);
+                return ResourceManager.GetString("Make_containing_scope_async", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make containing scope async (return Task).
+        /// </summary>
+        internal static string Make_containing_scope_async_return_Task {
+            get {
+                return ResourceManager.GetString("Make_containing_scope_async_return_Task", resourceCulture);
             }
         }
         
@@ -1594,18 +1731,18 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
-        internal static string Method {
+        internal static string method {
             get {
-                return ResourceManager.GetString("Method", resourceCulture);
+                return ResourceManager.GetString("method", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Method referenced implicitly.
         /// </summary>
-        internal static string MethodReferencedImplicitly {
+        internal static string Method_referenced_implicitly {
             get {
-                return ResourceManager.GetString("MethodReferencedImplicitly", resourceCulture);
+                return ResourceManager.GetString("Method_referenced_implicitly", resourceCulture);
             }
         }
         
@@ -1619,128 +1756,159 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
         /// </summary>
-        internal static string ModifyingACatchFinallyHandler {
+        internal static string Missing_prefix_colon_0 {
             get {
-                return ResourceManager.GetString("ModifyingACatchFinallyHandler", resourceCulture);
+                return ResourceManager.GetString("Missing_prefix_colon_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying a catch handler around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
         /// </summary>
-        internal static string ModifyingACatchHandlerAround {
+        internal static string Missing_suffix_colon_0 {
             get {
-                return ResourceManager.GetString("ModifyingACatchHandlerAround", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying source with experimental language features enabled will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAFileWithExperimentalFeaturesEnabled {
-            get {
-                return ResourceManager.GetString("ModifyingAFileWithExperimentalFeaturesEnabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a generic method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAGenericMethodWillPrevent {
-            get {
-                return ResourceManager.GetString("ModifyingAGenericMethodWillPrevent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a method inside the context of a generic type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAMethodInsideTheContext {
-            get {
-                return ResourceManager.GetString("ModifyingAMethodInsideTheContext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingATryCatchFinally {
-            get {
-                return ResourceManager.GetString("ModifyingATryCatchFinally", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsComplexQuery {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsComplexQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying an active &apos;{0}&apos; which contains &apos;On Error&apos; or &apos;Resume&apos; statements will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsOnErrorResume {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsOnErrorResume", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains the &apos;stackalloc&apos; operator will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsStackalloc {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsStackalloc", resourceCulture);
+                return ResourceManager.GetString("Missing_suffix_colon_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingAWhichContainsStaticLocal {
+        internal static string Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ModifyingAWhichContainsStaticLocal", resourceCulture);
+                return ResourceManager.GetString("Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_" +
+                        "continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_preve" +
+                        "nt_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains the &apos;stackalloc&apos; operator will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session" +
+                        "_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_" +
+                        "prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying a catch handler around an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_sessi" +
+                        "on_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying a generic method will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying a method inside the context of a generic type will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_se" +
+                        "ssion_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_pre" +
+                        "vent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying an active &apos;{0}&apos; which contains &apos;On Error&apos; or &apos;Resume&apos; statements will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_t" +
+                        "he_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying source with experimental language features enabled will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_source_with_experimental_language_features_enabled_will_prevent_the_deb" +
+                        "ug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Modifying the initializer of &apos;{0}&apos; in a generic type will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingTheInitializerInGenericType {
+        internal static string Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ModifyingTheInitializerInGenericType", resourceCulture);
+                return ResourceManager.GetString("Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_f" +
+                        "rom_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Modifying the initializer of &apos;{0}&apos; in a partial type will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingTheInitializerInPartialType {
+        internal static string Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ModifyingTheInitializerInPartialType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying whitespace or comments in a generic &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingTriviaInGenericMethodWillPrevent {
-            get {
-                return ResourceManager.GetString("ModifyingTriviaInGenericMethodWillPrevent", resourceCulture);
+                return ResourceManager.GetString("Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_f" +
+                        "rom_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Modifying whitespace or comments in &apos;{0}&apos; inside the context of a generic type will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingTriviaInMethodInsideTheContext {
+        internal static string Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("ModifyingTriviaInMethodInsideTheContext", resourceCulture);
+                return ResourceManager.GetString("Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_p" +
+                        "revent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying whitespace or comments in a generic &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_fr" +
+                        "om_continuing", resourceCulture);
             }
         }
         
@@ -1754,20 +1922,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move type to {0}.
+        /// </summary>
+        internal static string Move_type_to_0 {
+            get {
+                return ResourceManager.GetString("Move_type_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Moving &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string MovingAWillPreventTheDebug {
+        internal static string Moving_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("MovingAWillPreventTheDebug", resourceCulture);
+                return ResourceManager.GetString("Moving_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to namespace.
         /// </summary>
-        internal static string Namespace {
+        internal static string namespace_ {
             get {
-                return ResourceManager.GetString("Namespace", resourceCulture);
+                return ResourceManager.GetString("namespace_", resourceCulture);
             }
         }
         
@@ -1781,236 +1958,193 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rule violation: {0}.
+        /// </summary>
+        internal static string Naming_rule_violation_0 {
+            get {
+                return ResourceManager.GetString("Naming_rule_violation_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naming Styles.
         /// </summary>
-        internal static string NamingStylesDiagnosticTitle {
+        internal static string Naming_Styles {
             get {
-                return ResourceManager.GetString("NamingStylesDiagnosticTitle", resourceCulture);
+                return ResourceManager.GetString("Naming_Styles", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
+        ///   Looks up a localized string similar to no value..
         /// </summary>
-        internal static string NamingViolation_FirstWordMustBeginWithLowercase {
+        internal static string no_value {
             get {
-                return ResourceManager.GetString("NamingViolation_FirstWordMustBeginWithLowercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
-        /// </summary>
-        internal static string NamingViolation_FirstWordMustBeginWithUppercase {
-            get {
-                return ResourceManager.GetString("NamingViolation_FirstWordMustBeginWithUppercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string NamingViolation_MissingPrefix {
-            get {
-                return ResourceManager.GetString("NamingViolation_MissingPrefix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string NamingViolation_MissingSuffix {
-            get {
-                return ResourceManager.GetString("NamingViolation_MissingSuffix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
-        /// </summary>
-        internal static string NamingViolation_NonLeadingWordsMustBeginWithLowercase {
-            get {
-                return ResourceManager.GetString("NamingViolation_NonLeadingWordsMustBeginWithLowercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
-        /// </summary>
-        internal static string NamingViolation_NonLeadingWordsMustBeginWithUppercase {
-            get {
-                return ResourceManager.GetString("NamingViolation_NonLeadingWordsMustBeginWithUppercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
-        /// </summary>
-        internal static string NamingViolation_WordsCannotContainLowercaseLetters {
-            get {
-                return ResourceManager.GetString("NamingViolation_WordsCannotContainLowercaseLetters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
-        /// </summary>
-        internal static string NamingViolation_WordsCannotContainUppercaseLetters {
-            get {
-                return ResourceManager.GetString("NamingViolation_WordsCannotContainUppercaseLetters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
-        /// </summary>
-        internal static string NamingViolation_WordsMustBeginWithUppercase {
-            get {
-                return ResourceManager.GetString("NamingViolation_WordsMustBeginWithUppercase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; naming violation - {1}.
-        /// </summary>
-        internal static string NamingViolationDescription {
-            get {
-                return ResourceManager.GetString("NamingViolationDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The selection contains no active statement..
-        /// </summary>
-        internal static string NoActiveStatement {
-            get {
-                return ResourceManager.GetString("NoActiveStatement", resourceCulture);
+                return ResourceManager.GetString("no_value", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Non-invoked method cannot be replaced with property..
         /// </summary>
-        internal static string NonInvokedMethodCannotBeReplacedWithProperty {
+        internal static string Non_invoked_method_cannot_be_replaced_with_property {
             get {
-                return ResourceManager.GetString("NonInvokedMethodCannotBeReplacedWithProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
-        /// </summary>
-        internal static string NotAccessingCapturedVariableInLambda {
-            get {
-                return ResourceManager.GetString("NotAccessingCapturedVariableInLambda", resourceCulture);
+                return ResourceManager.GetString("Non_invoked_method_cannot_be_replaced_with_property", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Not Available.
         /// </summary>
-        internal static string NotAvailable {
+        internal static string Not_Available {
             get {
-                return ResourceManager.GetString("NotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ceasing to capture variable &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string NotCapturingVariable {
-            get {
-                return ResourceManager.GetString("NotCapturingVariable", resourceCulture);
+                return ResourceManager.GetString("Not_Available", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Note: Tab twice to insert the &apos;{0}&apos; snippet..
         /// </summary>
-        internal static string NoteTabTwiceToInsertTheSnippet {
+        internal static string Note_colon_Tab_twice_to_insert_the_0_snippet {
             get {
-                return ResourceManager.GetString("NoteTabTwiceToInsertTheSnippet", resourceCulture);
+                return ResourceManager.GetString("Note_colon_Tab_twice_to_insert_the_0_snippet", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods with a single argument can be replaced with a property..
+        ///   Looks up a localized string similar to Null check can be simplified.
         /// </summary>
-        internal static string OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty {
+        internal static string Null_check_can_be_simplified {
             get {
-                return ResourceManager.GetString("OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty", resourceCulture);
+                return ResourceManager.GetString("Null_check_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object initialization can be simplified.
+        /// </summary>
+        internal static string Object_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Object_initialization_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only methods with a single argument, which is not an out variable declaration, can be replaced with a property..
+        /// </summary>
+        internal static string Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property {
+            get {
+                return ResourceManager.GetString("Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_" +
+                        "be_replaced_with_a_property", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to operator.
         /// </summary>
-        internal static string Operator {
+        internal static string operator_ {
             get {
-                return ResourceManager.GetString("Operator", resourceCulture);
+                return ResourceManager.GetString("operator_", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to overload.
         /// </summary>
-        internal static string Overload {
+        internal static string overload {
             get {
-                return ResourceManager.GetString("Overload", resourceCulture);
+                return ResourceManager.GetString("overload", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to overloads.
         /// </summary>
-        internal static string Overloads {
+        internal static string overloads_ {
             get {
-                return ResourceManager.GetString("Overloads", resourceCulture);
+                return ResourceManager.GetString("overloads_", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to parameter.
         /// </summary>
-        internal static string Parameter {
+        internal static string parameter {
             get {
-                return ResourceManager.GetString("Parameter", resourceCulture);
+                return ResourceManager.GetString("parameter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Parameters:.
         /// </summary>
-        internal static string Parameters {
+        internal static string Parameters_colon {
             get {
-                return ResourceManager.GetString("Parameters", resourceCulture);
+                return ResourceManager.GetString("Parameters_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameters&apos; type or return type cannot be an anonymous type : [{0}].
+        /// </summary>
+        internal static string Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket {
+            get {
+                return ResourceManager.GetString("Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracke" +
+                        "t", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (Unknown).
+        /// </summary>
+        internal static string paren_Unknown_paren {
+            get {
+                return ResourceManager.GetString("paren_Unknown_paren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pascal Case.
+        /// </summary>
+        internal static string Pascal_Case {
+            get {
+                return ResourceManager.GetString("Pascal_Case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Pending&gt;.
+        /// </summary>
+        internal static string Pending {
+            get {
+                return ResourceManager.GetString("Pending", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to  + additional {0} {1}.
         /// </summary>
-        internal static string PlusAdditional {
+        internal static string plus_additional_0_1 {
             get {
-                return ResourceManager.GetString("PlusAdditional", resourceCulture);
+                return ResourceManager.GetString("plus_additional_0_1", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns.
+        ///   Looks up a localized string similar to Project.
         /// </summary>
-        internal static string PrefixTextForAwaitKeyword {
+        internal static string Project {
             get {
-                return ResourceManager.GetString("PrefixTextForAwaitKeyword", resourceCulture);
+                return ResourceManager.GetString("Project", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to     {0} - {1}.
+        ///   Looks up a localized string similar to project .
         /// </summary>
-        internal static string ProjectAvailability {
+        internal static string project_space {
             get {
-                return ResourceManager.GetString("ProjectAvailability", resourceCulture);
+                return ResourceManager.GetString("project_space", resourceCulture);
             }
         }
         
@@ -2026,9 +2160,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to property.
         /// </summary>
-        internal static string Property {
+        internal static string property_ {
             get {
-                return ResourceManager.GetString("Property", resourceCulture);
+                return ResourceManager.GetString("property_", resourceCulture);
             }
         }
         
@@ -2053,81 +2187,147 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
-        internal static string RangeVariable {
+        internal static string range_variable {
             get {
-                return ResourceManager.GetString("RangeVariable", resourceCulture);
+                return ResourceManager.GetString("range_variable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Re-triage {0}(currently &apos;{1}&apos;).
+        /// </summary>
+        internal static string Re_triage_0_currently_1 {
+            get {
+                return ResourceManager.GetString("Re_triage_0_currently_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
-        internal static string Remarks {
+        internal static string Remarks_colon {
             get {
-                return ResourceManager.GetString("Remarks", resourceCulture);
+                return ResourceManager.GetString("Remarks_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove qualification.
         /// </summary>
-        internal static string RemoveQualification {
+        internal static string Remove_qualification {
             get {
-                return ResourceManager.GetString("RemoveQualification", resourceCulture);
+                return ResourceManager.GetString("Remove_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string Remove_reference_to_0 {
+            get {
+                return ResourceManager.GetString("Remove_reference_to_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove Suppression.
         /// </summary>
-        internal static string RemoveSuppressionEquivalenceKeyPrefix {
+        internal static string Remove_Suppression {
             get {
-                return ResourceManager.GetString("RemoveSuppressionEquivalenceKeyPrefix", resourceCulture);
+                return ResourceManager.GetString("Remove_Suppression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove Suppression {0}.
         /// </summary>
-        internal static string RemoveSuppressionForId {
+        internal static string Remove_Suppression_0 {
             get {
-                return ResourceManager.GetString("RemoveSuppressionForId", resourceCulture);
+                return ResourceManager.GetString("Remove_Suppression_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove tag.
+        /// </summary>
+        internal static string Remove_tag {
+            get {
+                return ResourceManager.GetString("Remove_tag", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Remove Unnecessary Cast.
         /// </summary>
-        internal static string RemoveUnnecessaryCast {
+        internal static string Remove_Unnecessary_Cast {
             get {
-                return ResourceManager.GetString("RemoveUnnecessaryCast", resourceCulture);
+                return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing &apos;{0}&apos; that accessed captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_" +
+                        "will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Removing &apos;{0}&apos; that contains an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string RemovingThatContainsActiveStatement {
+        internal static string Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("RemovingThatContainsActiveStatement", resourceCulture);
+                return ResourceManager.GetString("Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_" +
+                        "continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename file to {0}.
+        /// </summary>
+        internal static string Rename_file_to_0 {
+            get {
+                return ResourceManager.GetString("Rename_file_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename type to {0}.
+        /// </summary>
+        internal static string Rename_type_to_0 {
+            get {
+                return ResourceManager.GetString("Rename_type_to_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Renaming &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string RenamingAWillPrevent {
+        internal static string Renaming_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("RenamingAWillPrevent", resourceCulture);
+                return ResourceManager.GetString("Renaming_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Renaming a captured variable, from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string RenamingCapturedVariable {
+        internal static string Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+                return ResourceManager.GetString("Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_cont" +
+                        "inuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
+        /// </summary>
+        internal static string Replace_0_and_1_with_property {
+            get {
+                return ResourceManager.GetString("Replace_0_and_1_with_property", resourceCulture);
             }
         }
         
@@ -2150,110 +2350,155 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replace &apos;{0}&apos; and &apos;{1}&apos; with property.
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
         /// </summary>
-        internal static string Replace0and1WithProperty {
+        internal static string Replace_0_with_property {
             get {
-                return ResourceManager.GetString("Replace0and1WithProperty", resourceCulture);
+                return ResourceManager.GetString("Replace_0_with_property", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with property.
+        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
         /// </summary>
-        internal static string Replace0WithProperty {
+        internal static string Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer {
             get {
-                return ResourceManager.GetString("Replace0WithProperty", resourceCulture);
+                return ResourceManager.GetString("Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Represents an object whose operations will be resolved at runtime..
         /// </summary>
-        internal static string RepresentsAnObjectWhoseOperations {
+        internal static string Represents_an_object_whose_operations_will_be_resolved_at_runtime {
             get {
-                return ResourceManager.GetString("RepresentsAnObjectWhoseOperations", resourceCulture);
+                return ResourceManager.GetString("Represents_an_object_whose_operations_will_be_resolved_at_runtime", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Requested assembly already loaded from &apos;{0}&apos;..
         /// </summary>
-        internal static string RequestedAssemblyAlreadyLoaded {
+        internal static string Requested_assembly_already_loaded_from_0 {
             get {
-                return ResourceManager.GetString("RequestedAssemblyAlreadyLoaded", resourceCulture);
+                return ResourceManager.GetString("Requested_assembly_already_loaded_from_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Returns:.
         /// </summary>
-        internal static string Returns {
+        internal static string Returns_colon {
             get {
-                return ResourceManager.GetString("Returns", resourceCulture);
+                return ResourceManager.GetString("Returns_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roslyn.HostError.
+        /// </summary>
+        internal static string Roslyn_HostError {
+            get {
+                return ResourceManager.GetString("Roslyn_HostError", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Searched in directories:.
         /// </summary>
-        internal static string SearchedInDirectories {
+        internal static string Searched_in_directories_colon {
             get {
-                return ResourceManager.GetString("SearchedInDirectories", resourceCulture);
+                return ResourceManager.GetString("Searched_in_directories_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Searched in directory:.
         /// </summary>
-        internal static string SearchedInDirectory {
+        internal static string Searched_in_directory_colon {
             get {
-                return ResourceManager.GetString("SearchedInDirectory", resourceCulture);
+                return ResourceManager.GetString("Searched_in_directory_colon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TODO: set large fields to null..
+        ///   Looks up a localized string similar to Simplify collection initialization.
         /// </summary>
-        internal static string SetLargeFieldsToNullTodo {
+        internal static string Simplify_collection_initialization {
             get {
-                return ResourceManager.GetString("SetLargeFieldsToNullTodo", resourceCulture);
+                return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
-        internal static string SimplifyMemberAccess {
+        internal static string Simplify_Member_Access {
             get {
-                return ResourceManager.GetString("SimplifyMemberAccess", resourceCulture);
+                return ResourceManager.GetString("Simplify_Member_Access", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Simplify Names.
         /// </summary>
-        internal static string SimplifyNames {
+        internal static string Simplify_Names {
             get {
-                return ResourceManager.GetString("SimplifyNames", resourceCulture);
+                return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify object initialization.
+        /// </summary>
+        internal static string Simplify_object_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution.
+        /// </summary>
+        internal static string Solution {
+            get {
+                return ResourceManager.GetString("Solution", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Specified file not found..
         /// </summary>
-        internal static string SpecifiedFileNotFound {
+        internal static string Specified_file_not_found {
             get {
-                return ResourceManager.GetString("SpecifiedFileNotFound", resourceCulture);
+                return ResourceManager.GetString("Specified_file_not_found", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Specified file not found: {0}.
         /// </summary>
-        internal static string SpecifiedFileNotFoundFormat {
+        internal static string Specified_file_not_found_colon_0 {
             get {
-                return ResourceManager.GetString("SpecifiedFileNotFoundFormat", resourceCulture);
+                return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         
@@ -2267,92 +2512,155 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Style.
+        /// </summary>
+        internal static string Style {
+            get {
+                return ResourceManager.GetString("Style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Summary:.
         /// </summary>
-        internal static string Summary {
+        internal static string Summary_colon {
             get {
-                return ResourceManager.GetString("Summary", resourceCulture);
+                return ResourceManager.GetString("Summary_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Suppress {0}.
         /// </summary>
-        internal static string SuppressionCodeActionTitle {
+        internal static string Suppress_0 {
             get {
-                return ResourceManager.GetString("SuppressionCodeActionTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;Pending&gt;.
-        /// </summary>
-        internal static string SuppressionPendingJustification {
-            get {
-                return ResourceManager.GetString("SuppressionPendingJustification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to in Suppression File.
-        /// </summary>
-        internal static string SuppressWithGlobalSuppressMessage {
-            get {
-                return ResourceManager.GetString("SuppressWithGlobalSuppressMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to in Source.
-        /// </summary>
-        internal static string SuppressWithPragma {
-            get {
-                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to no value..
-        /// </summary>
-        internal static string TextForSystemVoid {
-            get {
-                return ResourceManager.GetString("TextForSystemVoid", resourceCulture);
+                return ResourceManager.GetString("Suppress_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The address of a variable is used inside the selected code..
         /// </summary>
-        internal static string TheAddressOfAVariableIsUsed {
+        internal static string The_address_of_a_variable_is_used_inside_the_selected_code {
             get {
-                return ResourceManager.GetString("TheAddressOfAVariableIsUsed", resourceCulture);
+                return ResourceManager.GetString("The_address_of_a_variable_is_used_inside_the_selected_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
+        /// </summary>
+        internal static string The_assembly_0_does_not_contain_any_analyzers {
+            get {
+                return ResourceManager.GetString("The_assembly_0_does_not_contain_any_analyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
+        /// </summary>
+        internal static string The_first_word_0_must_begin_with_a_lower_case_character {
+            get {
+                return ResourceManager.GetString("The_first_word_0_must_begin_with_a_lower_case_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
+        /// </summary>
+        internal static string The_first_word_0_must_begin_with_an_upper_case_character {
+            get {
+                return ResourceManager.GetString("The_first_word_0_must_begin_with_an_upper_case_character", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The member is defined in metadata..
         /// </summary>
-        internal static string TheMemberIsDefinedInMetadata {
+        internal static string The_member_is_defined_in_metadata {
             get {
-                return ResourceManager.GetString("TheMemberIsDefinedInMetadata", resourceCulture);
+                return ResourceManager.GetString("The_member_is_defined_in_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selection contains an error or unknown type..
+        /// </summary>
+        internal static string The_selection_contains_an_error_or_unknown_type {
+            get {
+                return ResourceManager.GetString("The_selection_contains_an_error_or_unknown_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selection contains no active statement..
+        /// </summary>
+        internal static string The_selection_contains_no_active_statement {
+            get {
+                return ResourceManager.GetString("The_selection_contains_no_active_statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The symbol does not have an icon..
         /// </summary>
-        internal static string TheSymbolDoesNotHaveAnIcon {
+        internal static string The_symbol_does_not_have_an_icon {
             get {
-                return ResourceManager.GetString("TheSymbolDoesNotHaveAnIcon", resourceCulture);
+                return ResourceManager.GetString("The_symbol_does_not_have_an_icon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
+        /// </summary>
+        internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
+            get {
+                return ResourceManager.GetString("These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
+        /// </summary>
+        internal static string These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0 {
+            get {
+                return ResourceManager.GetString("These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
+        /// </summary>
+        internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
+        /// </summary>
+        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
+        /// </summary>
+        internal static string These_words_must_begin_with_upper_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_must_begin_with_upper_case_characters_colon_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to This signature does not contain parameters that can be changed..
         /// </summary>
-        internal static string ThisSignatureDoesNotContainParametersThatCanBeChanged {
+        internal static string This_signature_does_not_contain_parameters_that_can_be_changed {
             get {
-                return ResourceManager.GetString("ThisSignatureDoesNotContainParametersThatCanBeChanged", resourceCulture);
+                return ResourceManager.GetString("This_signature_does_not_contain_parameters_that_can_be_changed", resourceCulture);
             }
         }
         
@@ -2361,90 +2669,118 @@ namespace Microsoft.CodeAnalysis {
         ///
         ///Do you want to continue?.
         /// </summary>
-        internal static string ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata {
+        internal static string This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue {
             get {
-                return ResourceManager.GetString("ThisSymbolHasRelatedDefinitionsOrReferencesInMetadata", resourceCulture);
+                return ResourceManager.GetString("This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signat" +
+                        "ure_may_result_in_build_errors_Do_you_want_to_continue", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to To detect redundant calls.
         /// </summary>
-        internal static string ToDetectRedundantCalls {
+        internal static string To_detect_redundant_calls {
             get {
-                return ResourceManager.GetString("ToDetectRedundantCalls", resourceCulture);
+                return ResourceManager.GetString("To_detect_redundant_calls", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Re-triage {0}(currently &apos;{1}&apos;).
+        ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
         /// </summary>
-        internal static string TriageCodeActionTitleForTriagedDiagnostic {
+        internal static string TODO_colon_dispose_managed_state_managed_objects {
             get {
-                return ResourceManager.GetString("TriageCodeActionTitleForTriagedDiagnostic", resourceCulture);
+                return ResourceManager.GetString("TODO_colon_dispose_managed_state_managed_objects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: set large fields to null..
+        /// </summary>
+        internal static string TODO_colon_set_large_fields_to_null {
+            get {
+                return ResourceManager.GetString("TODO_colon_set_large_fields_to_null", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to type constraint.
         /// </summary>
-        internal static string TypeConstraint {
+        internal static string type_constraint {
             get {
-                return ResourceManager.GetString("TypeConstraint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
-        /// </summary>
-        internal static string TypeHelpForMoreInformation {
-            get {
-                return ResourceManager.GetString("TypeHelpForMoreInformation", resourceCulture);
+                return ResourceManager.GetString("type_constraint", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to type parameter.
         /// </summary>
-        internal static string TypeParameter {
+        internal static string type_parameter {
             get {
-                return ResourceManager.GetString("TypeParameter", resourceCulture);
+                return ResourceManager.GetString("type_parameter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; is hidden by another type parameter &apos;{1}&apos;..
         /// </summary>
-        internal static string TypeParameterIsHiddenByAnother {
+        internal static string Type_parameter_0_is_hidden_by_another_type_parameter_1 {
             get {
-                return ResourceManager.GetString("TypeParameterIsHiddenByAnother", resourceCulture);
+                return ResourceManager.GetString("Type_parameter_0_is_hidden_by_another_type_parameter_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Type parameters:.
         /// </summary>
-        internal static string TypeParameters {
+        internal static string Type_parameters_colon {
             get {
-                return ResourceManager.GetString("TypeParameters", resourceCulture);
+                return ResourceManager.GetString("Type_parameters_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
+        /// </summary>
+        internal static string Type_Sharphelp_for_more_information {
+            get {
+                return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Unable to create hosting process..
         /// </summary>
-        internal static string UnableToCreateHostingProcess {
+        internal static string Unable_to_create_hosting_process {
             get {
-                return ResourceManager.GetString("UnableToCreateHostingProcess", resourceCulture);
+                return ResourceManager.GetString("Unable_to_create_hosting_process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
+        /// </summary>
+        internal static string Unable_to_load_Analyzer_assembly_0_colon_1 {
+            get {
+                return ResourceManager.GetString("Unable_to_load_Analyzer_assembly_0_colon_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Unexpected interface member kind: {0}.
         /// </summary>
-        internal static string UnexpectedInterfaceMemberKind {
+        internal static string Unexpected_interface_member_kind_colon_0 {
             get {
-                return ResourceManager.GetString("UnexpectedInterfaceMemberKind", resourceCulture);
+                return ResourceManager.GetString("Unexpected_interface_member_kind_colon_0", resourceCulture);
             }
         }
         
@@ -2458,209 +2794,345 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown error occurred.
+        /// </summary>
+        internal static string Unknown_error_occurred {
+            get {
+                return ResourceManager.GetString("Unknown_error_occurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown symbol kind.
         /// </summary>
-        internal static string UnknownSymbolKind {
+        internal static string Unknown_symbol_kind {
             get {
-                return ResourceManager.GetString("UnknownSymbolKind", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
-        /// </summary>
-        internal static string UnsupportedDiagnosticReported {
-            get {
-                return ResourceManager.GetString("UnsupportedDiagnosticReported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating an active statement will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingAnActiveStatement {
-            get {
-                return ResourceManager.GetString("UpdatingAnActiveStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingAStatementAroundActive {
-            get {
-                return ResourceManager.GetString("UpdatingAStatementAroundActive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating a complex statement containing an await expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingAStatementContainingAwaitExpression {
-            get {
-                return ResourceManager.GetString("UpdatingAStatementContainingAwaitExpression", resourceCulture);
+                return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingAWillPrevent {
+        internal static string Updating_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingAWillPrevent", resourceCulture);
+                return ResourceManager.GetString("Updating_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Updating async or iterator modifier around an active statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a &apos;{0}&apos; statement around an active statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingStateMachineMethodAroundActive {
+        internal static string Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingStateMachineMethodAroundActive", resourceCulture);
+                return ResourceManager.GetString("Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_" +
+                        "from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is missing. Updating an async method or an iterator will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Updating a complex statement containing an await expression will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingStateMachineMethodMissingAttribute {
+        internal static string Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingStateMachineMethodMissingAttribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheAliasOfDeclareStatement {
-            get {
-                return ResourceManager.GetString("UpdatingTheAliasOfDeclareStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the base class and/or base interface(s) of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheBaseClassAndOrInterfaceOf {
-            get {
-                return ResourceManager.GetString("UpdatingTheBaseClassAndOrInterfaceOf", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the Handles clause of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheHandlesClause {
-            get {
-                return ResourceManager.GetString("UpdatingTheHandlesClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the Implements clause of a &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheImplementsClause {
-            get {
-                return ResourceManager.GetString("UpdatingTheImplementsClause", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the initializer of &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheInitializerOf {
-            get {
-                return ResourceManager.GetString("UpdatingTheInitializerOf", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the kind of an property/event accessor will prevent the debug session from continuing..
-        /// </summary>
-        internal static string UpdatingTheKindOfAccessor {
-            get {
-                return ResourceManager.GetString("UpdatingTheKindOfAccessor", resourceCulture);
+                return ResourceManager.GetString("Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debu" +
+                        "g_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating a field to an event or vice versa will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheKindOfField {
+        internal static string Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheKindOfField", resourceCulture);
+                return ResourceManager.GetString("Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_co" +
+                        "ntinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_an_active_statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_an_active_statement_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating async or iterator modifier around an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_d" +
+                        "ebug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_conti" +
+                        "nuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the base class and/or base interface(s) of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_sessi" +
+                        "on_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the Handles clause of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the Implements clause of a &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continu" +
+                        "ing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the initializer of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the kind of a method (Sub/Function) will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheKindOfMethod {
+        internal static string Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheKindOfMethod", resourceCulture);
+                return ResourceManager.GetString("Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_co" +
+                        "ntinuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the kind of a type will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheKindOfType {
+        internal static string Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheKindOfType", resourceCulture);
+                return ResourceManager.GetString("Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the kind of an property/event accessor will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_fr" +
+                        "om_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the library name of Declare Statement will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheLibraryNameOfDeclareStatement {
+        internal static string Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheLibraryNameOfDeclareStatement", resourceCulture);
+                return ResourceManager.GetString("Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_fro" +
+                        "m_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the modifiers of &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheModifiersOf {
+        internal static string Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheModifiersOf", resourceCulture);
+                return ResourceManager.GetString("Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the size of a &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheSizeOf {
+        internal static string Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheSizeOf", resourceCulture);
+                return ResourceManager.GetString("Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the type of &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheTypeOf {
+        internal static string Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheTypeOf", resourceCulture);
+                return ResourceManager.GetString("Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the underlying type of &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheUnderlyingTypeOf {
+        internal static string Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheUnderlyingTypeOf", resourceCulture);
+                return ResourceManager.GetString("Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating the variance of &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string UpdatingTheVarianceOf {
+        internal static string Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing {
             get {
-                return ResourceManager.GetString("UpdatingTheVarianceOf", resourceCulture);
+                return ResourceManager.GetString("Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use auto property.
+        /// </summary>
+        internal static string Use_auto_property {
+            get {
+                return ResourceManager.GetString("Use_auto_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for accessors.
+        /// </summary>
+        internal static string Use_block_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for constructors.
+        /// </summary>
+        internal static string Use_block_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for indexers.
+        /// </summary>
+        internal static string Use_block_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for operators.
+        /// </summary>
+        internal static string Use_block_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for properties.
+        /// </summary>
+        internal static string Use_block_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use coalesce expression.
+        /// </summary>
+        internal static string Use_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for accessors.
+        /// </summary>
+        internal static string Use_expression_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for constructors.
+        /// </summary>
+        internal static string Use_expression_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for indexers.
+        /// </summary>
+        internal static string Use_expression_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for operators.
+        /// </summary>
+        internal static string Use_expression_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for properties.
+        /// </summary>
+        internal static string Use_expression_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use framework type.
+        /// </summary>
+        internal static string Use_framework_type {
+            get {
+                return ResourceManager.GetString("Use_framework_type", resourceCulture);
             }
         }
         
@@ -2677,100 +3149,81 @@ namespace Microsoft.CodeAnalysis {
         ///   Looks up a localized string similar to Use locally installed &apos;{0}&apos; version &apos;{1}&apos;
         ///This version used in: {2}.
         /// </summary>
-        internal static string Use_locally_installed_0_version_1_This_version_used_in_2 {
+        internal static string Use_locally_installed_0_version_1_This_version_used_in_colon_2 {
             get {
-                return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_2", resourceCulture);
+                return ResourceManager.GetString("Use_locally_installed_0_version_1_This_version_used_in_colon_2", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use auto property.
+        ///   Looks up a localized string similar to Use null propagation.
         /// </summary>
-        internal static string UseAutoProperty {
+        internal static string Use_null_propagation {
             get {
-                return ResourceManager.GetString("UseAutoProperty", resourceCulture);
+                return ResourceManager.GetString("Use_null_propagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
+        /// </summary>
+        internal static string Use_throw_expression {
+            get {
+                return ResourceManager.GetString("Use_throw_expression", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to User Diagnostic Analyzer Failure..
         /// </summary>
-        internal static string UserDiagnosticAnalyzerFailure {
+        internal static string User_Diagnostic_Analyzer_Failure {
             get {
-                return ResourceManager.GetString("UserDiagnosticAnalyzerFailure", resourceCulture);
+                return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Variable declaration can be inlined.
         /// </summary>
-        internal static string UserDiagnosticAnalyzerThrows {
+        internal static string Variable_declaration_can_be_inlined {
             get {
-                return ResourceManager.GetString("UserDiagnosticAnalyzerThrows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw the following exception:
-        ///&apos;{1}&apos;..
-        /// </summary>
-        internal static string UserDiagnosticAnalyzerThrowsDescription {
-            get {
-                return ResourceManager.GetString("UserDiagnosticAnalyzerThrowsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
-        /// </summary>
-        internal static string UseTheNavigationBarToSwitchContext {
-            get {
-                return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+                return ResourceManager.GetString("Variable_declaration_can_be_inlined", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Variadic SignatureHelpItem must have at least one parameter..
         /// </summary>
-        internal static string VariadicSignaturehelpitemMustHaveOneParam {
+        internal static string Variadic_SignatureHelpItem_must_have_at_least_one_parameter {
             get {
-                return ResourceManager.GetString("VariadicSignaturehelpitemMustHaveOneParam", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
-        /// </summary>
-        internal static string WRN_AnalyzerCannotBeCreated {
-            get {
-                return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
-        /// </summary>
-        internal static string WRN_NoAnalyzerInAssembly {
-            get {
-                return ResourceManager.GetString("WRN_NoAnalyzerInAssembly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
-        /// </summary>
-        internal static string WRN_UnableToLoadAnalyzer {
-            get {
-                return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
+                return ResourceManager.GetString("Variadic_SignatureHelpItem_must_have_at_least_one_parameter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You can only change the signature of a constructor, indexer, method or delegate..
         /// </summary>
-        internal static string YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate {
+        internal static string You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate {
             get {
-                return ResourceManager.GetString("YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate", resourceCulture);
+                return ResourceManager.GetString("You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can use the navigation bar to switch context..
+        /// </summary>
+        internal static string You_can_use_the_navigation_bar_to_switch_context {
+            get {
+                return ResourceManager.GetString("You_can_use_the_navigation_bar_to_switch_context", resourceCulture);
             }
         }
     }

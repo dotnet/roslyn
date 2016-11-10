@@ -246,7 +246,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Try
                     Dim token As EntityHandle = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(Me._handle)
                     If Not token.IsNil Then
-                        Return DirectCast(New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token), NamedTypeSymbol)
+                        Dim decodedType = New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token)
+                        Return DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol), NamedTypeSymbol)
+
                     End If
                 Catch mrEx As BadImageFormatException
                     Return New UnsupportedMetadataTypeSymbol(mrEx)
@@ -269,8 +271,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
                     Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
-                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle)
+
+                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceHandle, moduleSymbol), NamedTypeSymbol)
+
                     'TODO: how to pass reason to unsupported
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"
                     i = i + 1
                 Next
@@ -1261,6 +1267,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
                 End If
 
+                Dim typeKind = Me.TypeKind
+                Dim specialtype = Me.SpecialType
+                If (typeKind = TypeKind.Class OrElse typeKind = TypeKind.Module) AndAlso
+                   specialtype <> SpecialType.System_Enum AndAlso specialtype <> SpecialType.System_MulticastDelegate Then
+                    Dim base As TypeSymbol = GetDeclaredBase(Nothing)
+
+                    If base?.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
+                        Dim missingType = TryCast(base, MissingMetadataTypeSymbol.TopLevel)
+
+                        If missingType IsNot Nothing AndAlso missingType.Arity = 0 Then
+                            Dim emittedName As String = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName)
+
+                            Select Case SpecialTypes.GetTypeFromMetadataName(emittedName)
+                                Case SpecialType.System_Enum,
+                                     SpecialType.System_Delegate,
+                                     SpecialType.System_MulticastDelegate,
+                                     SpecialType.System_ValueType
+                                    ' This might be a structure, an enum, or a delegate
+                                    Return missingType.GetUseSiteErrorInfo()
+                            End Select
+                        End If
+                    End If
+                End If
+
                 ' Verify type parameters for containing types
                 ' match those on the containing types.
                 If Not MatchesContainingTypeParameters() Then
@@ -1469,6 +1499,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
         End Function
 
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
     End Class
 
 End Namespace

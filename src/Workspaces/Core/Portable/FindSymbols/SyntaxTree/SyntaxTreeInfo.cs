@@ -109,9 +109,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetInfoAsync(document, s_identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
         }
 
-        public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(Document document, CancellationToken cancellationToken)
+        private static Func<Document, CancellationToken, Task<SyntaxTreeDeclarationInfo>> s_loadAsync 
+            = SyntaxTreeDeclarationInfo.LoadAsync;
+        private static Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, SyntaxTreeDeclarationInfo> s_getThirdItem 
+            = tuple => tuple.Item3;
+
+        public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(
+            Document document, CancellationToken cancellationToken)
         {
-            return GetInfoAsync(document, s_declaredSymbolsSnapshotCache, SyntaxTreeDeclarationInfo.LoadAsync, tuple => tuple.Item3, cancellationToken);
+            return GetInfoAsync(
+                document, s_declaredSymbolsSnapshotCache, s_loadAsync, 
+                s_getThirdItem, cancellationToken);
         }
 
         // The probability of getting a false positive when calling ContainsIdentifier.

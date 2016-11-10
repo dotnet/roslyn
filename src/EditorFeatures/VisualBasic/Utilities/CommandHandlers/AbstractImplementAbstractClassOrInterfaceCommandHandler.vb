@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            If Not document.Options.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
+            If Not args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
                 Return False
             End If
 
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim token = syntaxRoot.FindTokenOnLeftOfPosition(caretPosition)
 
             If text.Lines.IndexOf(token.SpanStart) <> text.Lines.IndexOf(caretPosition) Then
@@ -136,8 +136,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Dim caretOffsetFromToken = caretPosition - token.Span.End
 
             Dim tokenAnnotation As New SyntaxAnnotation()
-            document = Document.WithSyntaxRoot(syntaxRoot.ReplaceToken(token, token.WithAdditionalAnnotations(tokenAnnotation)))
-            token = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
+            document = document.WithSyntaxRoot(syntaxRoot.ReplaceToken(token, token.WithAdditionalAnnotations(tokenAnnotation)))
+            token = document.GetSyntaxRootSynchronously(cancellationToken).
+                             GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
 
             Dim typeSyntax = token.GetAncestor(Of TypeSyntax)()
             If typeSyntax Is Nothing Then
@@ -162,7 +163,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
             ' Place the cursor back to where it logically was after this
-            token = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
+            token = newDocument.GetSyntaxRootSynchronously(cancellationToken).
+                                GetAnnotatedNodesAndTokens(tokenAnnotation).First().AsToken()
             args.TextView.TryMoveCaretToAndEnsureVisible(
                 New SnapshotPoint(args.SubjectBuffer.CurrentSnapshot,
                                   Math.Min(token.Span.End + caretOffsetFromToken, args.SubjectBuffer.CurrentSnapshot.Length)))

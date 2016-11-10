@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            CSharpSyntaxNode old = _bound.Syntax;
+            SyntaxNode old = _bound.Syntax;
             _bound.Syntax = node.Syntax;
             var result = VisitInternal(node);
             _bound.Syntax = old;
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
         }
 
-        private string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
+        private static string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
         {
             isChecked = opKind.IsChecked();
             isLifted = opKind.IsLifted();
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ConvertIndex(BoundExpression expr, TypeSymbol oldType, TypeSymbol newType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var kind = _bound.Compilation.Conversions.ClassifyConversion(oldType, newType, ref useSiteDiagnostics).Kind;
+            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteDiagnostics).Kind;
             Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
             switch (kind)
             {
@@ -586,14 +586,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 e = conversion.Update(
                     conversion.Operand,
-                    conversion.ConversionKind,
-                    conversion.ResultKind,
+                    conversion.Conversion,
                     isBaseConversion: conversion.IsBaseConversion,
-                    symbolOpt: conversion.SymbolOpt,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
-                    isExtensionMethod: conversion.IsExtensionMethod,
-                    isArrayIndex: conversion.IsArrayIndex,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }
@@ -1074,15 +1070,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression ExprFactory(string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
         {
             return _bound.StaticCall(_ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None, ExpressionType, name, typeArgs, arguments);
-        }
-
-        private BoundExpression ExprFactory(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
-        {
-            var m0 = _bound.WellKnownMethod(method);
-            Debug.Assert((object)m0 != null);
-            Debug.Assert(m0.ParameterCount == arguments.Length);
-            var m1 = m0.Construct(typeArgs);
-            return _bound.Call(null, m1, arguments);
         }
 
         private BoundExpression Constant(BoundExpression node)

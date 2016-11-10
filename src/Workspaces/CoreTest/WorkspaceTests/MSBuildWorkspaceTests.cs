@@ -955,7 +955,6 @@ class C1
             });
         }
 
-#if !MSBUILD12
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithUnrecognizedProjectFileExtension_Fails()
         {
@@ -967,19 +966,6 @@ class C1
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             Assert.Equal(0, solution.ProjectIds.Count);
         }
-#else
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestOpenSolution_WithUnrecognizedProjectFileExtension_Succeeds()
-        {
-            // proves that for solution open, project type guid is all that is necessary
-            CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"TestSolution.sln", GetResourceText("TestSolution_CSharp_UnknownProjectExtension.sln"))
-                .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceText("CSharpProject_CSharpProject.csproj")));
-
-            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
-            Assert.Equal(1, solution.ProjectIds.Count);
-        }
-#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidButRecognizedExtension_Succeeds()
@@ -1399,6 +1385,20 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_CSharp_DebugType_Portable()
+        {
+            CreateCSharpFilesWith("DebugType", "portable");
+            AssertOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_CSharp_DebugType_Embedded()
+        {
+            CreateCSharpFilesWith("DebugType", "embedded");
+            AssertOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_CSharp_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateCSharpFilesWith("OutputType", "Library");
@@ -1570,6 +1570,20 @@ class C1
         public void TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
+            AssertVBOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_DebugType_Portable()
+        {
+            CreateVBFilesWith("DebugType", "portable");
+            AssertVBOptions(0, options => options.Errors.Length);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_DebugType_Embedded()
+        {
+            CreateVBFilesWith("DebugType", "embedded");
             AssertVBOptions(0, options => options.Errors.Length);
         }
 
@@ -2008,7 +2022,6 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestApplyChanges_NotSupportedChangesFail()
         {
-#if !MSBUILD12
             var csharpProjPath = @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj";
             var vbProjPath = @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj";
             CreateFiles(GetAnalyzerReferenceSolutionFiles());
@@ -2034,14 +2047,6 @@ class C1
             {
                 ws.TryApplyChanges(ws.CurrentSolution.RemoveAdditionalDocument(xaml.Id));
             });
-
-#if false // No current text changing API's for additional documents
-            // changing additional documents not supported
-            Assert.Throws<NotSupportedException>(delegate
-            {
-            });
-#endif
-#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2214,7 +2219,6 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAnalyzerReferenceLoadStandalone()
         {
-#if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
             var files = GetAnalyzerReferenceSolutionFiles();
 
@@ -2235,13 +2239,11 @@ class C1
                 // prove that project gets opened instead.
                 Assert.Equal(2, ws.CurrentSolution.Projects.Count());
             }
-#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAdditionalFilesStandalone()
         {
-#if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
             var files = GetAnalyzerReferenceSolutionFiles();
 
@@ -2259,7 +2261,6 @@ class C1
                     Assert.Contains("Window", (await doc.GetTextAsync()).ToString(), StringComparison.Ordinal);
                 }
             }
-#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
@@ -2705,9 +2706,11 @@ class C1
             Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
 
-            var cacheService = new WeakReference(sol.Workspace.CurrentSolution.Services.CacheService);
-            var weakSolution = new WeakReference(sol);
-            var weakCompilation = new WeakReference(compilation);
+            // MSBuildWorkspace doesn't have a cache service
+            Assert.Null(workspace.CurrentSolution.Services.CacheService);
+
+            var weakSolution = ObjectReference.Create(sol);
+            var weakCompilation = ObjectReference.Create(compilation);
 
             sol.Workspace.Dispose();
             project = null;
@@ -2717,13 +2720,8 @@ class C1
             sol = null;
             compilation = null;
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            Assert.False(cacheService.IsAlive);
-            Assert.False(weakSolution.IsAlive);
-            Assert.False(weakCompilation.IsAlive);
+            weakSolution.AssertReleased();
+            weakCompilation.AssertReleased();
         }
 
         [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]

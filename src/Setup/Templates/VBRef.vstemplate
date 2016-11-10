@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="2.0.0" Type="ProjectGroup"
+    xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Code Refactoring (VSIX)</Name>
+    <Description>Create a Visual Basic refactoring, deployed as a VSIX extension</Description>
+    <ProjectType>VisualBasic</ProjectType>
+    <ProjectSubType></ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>CodeRefactoring</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>CodeInformation.ico</Icon>
+    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+  </TemplateData>
+  <TemplateContent>
+    <!-- These projects are created in the order they are listed. 
+         Our wizard depends on this order.  
+         Modifying it requires changes to the wizard code.-->
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="$safeprojectname$">
+        VisualBasic\CodeRefactoring\Ref\VBCodeRefactoring.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Vsix">
+        VisualBasic\CodeRefactoring\Vsix\Deployment.vstemplate
+      </ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

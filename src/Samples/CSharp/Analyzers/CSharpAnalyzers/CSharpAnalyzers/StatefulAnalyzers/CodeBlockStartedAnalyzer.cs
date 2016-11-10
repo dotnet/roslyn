@@ -78,7 +78,7 @@ namespace CSharpAnalyzers
             public UnusedParametersAnalyzer(IMethodSymbol method)
             {
                 // Initialization: Assume all parameters are unused.
-                var parameters = method.Parameters.Where(p => !p.IsImplicitlyDeclared);
+                var parameters = method.Parameters.Where(p => !p.IsImplicitlyDeclared && p.Locations.Length > 0);
                 _unusedParameters = new HashSet<IParameterSymbol>(parameters);
                 _unusedParameterNames = new HashSet<string>(parameters.Select(p => p.Name));
             }

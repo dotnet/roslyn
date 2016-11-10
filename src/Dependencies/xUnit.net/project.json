@@ -1,10 +1,13 @@
 {
   "supports": {},
   "dependencies": {
+    "System.Runtime": "4.1.0",
     "xunit": "2.1.0",
-    "xunit.runner.console": "2.1.0"
+    "xunit.runner.console": "2.2.0-beta1-build3239"
   },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {
+      "imports": "portable-net45+win8"
+    }
   }
 }

@@ -187,7 +187,7 @@ class CL3
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(withoutModifiers.Equals(withModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overridden");
@@ -799,11 +799,11 @@ class Module1
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers);
             Assert.True(base2.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(base1.Equals(base2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(base1, base2);
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base3, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(base1.Equals(base3, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
         }
@@ -1687,8 +1687,8 @@ Implemented B");
             Assert.False(t1.Equals(t2));
             Assert.False(t2.Equals(t1));
 
-            Assert.True(t1.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
-            Assert.True(t2.Equals(t1, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Assert.True(t1.Equals(t2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t2.Equals(t1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
         }
 
         [Fact, WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
-                throw new ArgumentException(WorkspacesResources.UnrecognizedLanguageName);
+                throw new ArgumentException(WorkspacesResources.Unrecognized_language_name);
             }
 
             var commandLineParser = languageServices.GetRequiredService<ICommandLineParserService>();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             var unresolvedMetadataReferences = boundMetadataReferences.FirstOrDefault(r => r is UnresolvedMetadataReference);
             if (unresolvedMetadataReferences != null)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CantResolveMetadataReference, ((UnresolvedMetadataReference)unresolvedMetadataReferences).Reference));
+                throw new ArgumentException(string.Format(WorkspacesResources.Can_t_resolve_metadata_reference_colon_0, ((UnresolvedMetadataReference)unresolvedMetadataReferences).Reference));
             }
 
             // resolve all analyzer references.
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CantResolveAnalyzerReference, ((UnresolvedAnalyzerReference)unresolvedAnalyzerReferences).Display));
+                throw new ArgumentException(string.Format(WorkspacesResources.Can_t_resolve_analyzer_reference_colon_0, ((UnresolvedAnalyzerReference)unresolvedAnalyzerReferences).Display));
             }
 
             AssemblyIdentityComparer assemblyIdentityComparer;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    throw new ArgumentException(string.Format(WorkspacesResources.ErrorWhileReadingSpecifiedConfigFile, e.Message));
+                    throw new ArgumentException(string.Format(WorkspacesResources.An_error_occurred_while_reading_the_specified_configuration_file_colon_0, e.Message));
                 }
             }
             else

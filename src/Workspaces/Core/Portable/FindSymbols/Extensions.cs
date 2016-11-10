@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,14 +34,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindReferenceCache.GetConstructorInitializerTokens(syntaxFacts, model, root, cancellationToken);
         }
 
-        internal static async Task<IEnumerable<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+        internal static async Task<ImmutableArray<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
             this Document document, string identifier, CancellationToken cancellationToken)
         {
             // model should exist already
             SemanticModel model;
             if (!document.TryGetSemanticModel(out model))
             {
-                return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
+                return Contract.FailWithReturn<ImmutableArray<SyntaxToken>>("we should never reach here");
             }
 
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
@@ -48,13 +49,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var info = await SyntaxTreeInfo.GetIdentifierInfoAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ProbablyContainsIdentifier(identifier))
             {
-                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+                return ImmutableArray<SyntaxToken>.Empty;
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts == null)
             {
-                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+                return ImmutableArray<SyntaxToken>.Empty;
             }
 
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

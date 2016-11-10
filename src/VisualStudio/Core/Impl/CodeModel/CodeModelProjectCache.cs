@@ -55,11 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return null;
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
         {
             // First try
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -73,24 +73,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // This ultimately ends up calling GetOrCreateFileCodeModel(fileName, parent) with the correct "parent" object
             // through the project system.
             var provider = (IProjectCodeModelProvider)_project;
-            var newFileCodeModel = (EnvDTE80.FileCodeModel2)provider.ProjectCodeModel.CreateFileCodeModelThroughProject(fileName);
+            var newFileCodeModel = (EnvDTE80.FileCodeModel2)provider.ProjectCodeModel.CreateFileCodeModelThroughProject(filePath);
             return new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(newFileCodeModel);
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? GetComHandleForFileCodeModel(string fileName)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? GetComHandleForFileCodeModel(string filePath)
         {
-            var cacheEntry = GetCacheEntry(fileName);
+            var cacheEntry = GetCacheEntry(filePath);
 
             return cacheEntry != null
                 ? cacheEntry.Value.ComHandle
                 : null;
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName, object parent)
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
         {
             // First try
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var hostDocument = _project.GetCurrentDocumentFromPath(fileName);
+            var hostDocument = _project.GetCurrentDocumentFromPath(filePath);
             if (hostDocument == null)
             {
                 // Matches behavior of native (C#) implementation
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // Second try (object might have been added by another thread at this point!)
             lock (_cacheGate)
             {
-                var cacheEntry = GetCacheEntry(fileName);
+                var cacheEntry = GetCacheEntry(filePath);
                 if (cacheEntry != null)
                 {
                     var comHandle = cacheEntry.Value.ComHandle;
@@ -128,13 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Note: Using the indexer here (instead of "Add") is relevant since the old
                 //       WeakReference entry is likely still in the cache (with a Null target, of course)
-                _cache[fileName] = newCacheEntry;
+                _cache[filePath] = newCacheEntry;
 
                 return newFileCodeModel;
             }
         }
 
-        public EnvDTE.CodeModel GetOrCreateRootCodeModel(object parent)
+        public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
         {
             if (this.IsZombied)
             {
@@ -208,28 +208,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)
         {
-            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandle = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToRename = null;
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? comHandleToShutDown = null;
 
             lock (_cacheGate)
             {
                 CacheEntry cacheEntry;
                 if (_cache.TryGetValue(oldFileName, out cacheEntry))
                 {
-                    comHandle = cacheEntry.ComHandle;
+                    comHandleToRename = cacheEntry.ComHandle;
 
                     _cache.Remove(oldFileName);
 
-                    if (comHandle != null)
+                    if (comHandleToRename != null)
                     {
+                        // We might already have a code model for this new filename. This can happen if
+                        // we were to rename Foo.cs to Foocs, which will call this method, and then rename
+                        // it back, which does not call this method. This results in both Foo.cs and Foocs
+                        // being in the cache. We could fix that "correctly", but the zombied Foocs code model
+                        // is pretty broken, so there's no point in trying to reuse it.
+                        if (_cache.TryGetValue(newFileName, out cacheEntry))
+                        {
+                            comHandleToShutDown = cacheEntry.ComHandle;
+                        }
+
                         _cache.Add(newFileName, cacheEntry);
                     }
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.OnRename(newFileName);
-            }
+            comHandleToShutDown?.Object.Shutdown();
+            comHandleToRename?.Object.OnRename(newFileName);
         }
     }
 }

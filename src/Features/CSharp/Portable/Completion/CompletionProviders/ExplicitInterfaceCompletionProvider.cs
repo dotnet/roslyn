@@ -1,14 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ExplicitInterfaceCompletionProvider : CommonCompletionProvider
     {
+        private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
+
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var members = semanticModel.LookupSymbols(
                 position: name.SpanStart,
                 container: symbol)
-                    .Where(s => !s.IsStatic)
+                    .WhereAsArray(s => !s.IsStatic)
                     .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
             // We're going to create a entry for each one, including the signature
@@ -93,37 +92,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var member in members)
             {
-                var displayText = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                var displayText = member.ToMinimalDisplayString(
+                    semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                context.AddItem(SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.Create(
                     displayText,
                     insertionText: insertionText,
-                    span: context.DefaultItemSpan,
                     symbol: member,
                     contextPosition: position,
-                    descriptionPosition: position,
-                    rules: CompletionItemRules.Default));
+                    rules: CompletionItemRules.Default);
+                item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
+
+                context.AddItem(item);
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
-        public override async Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(
+            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            if (ch.HasValue && ch.Value == '(')
+            if (ch == '(')
             {
-                var symbols = await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(false);
-                if (symbols.Length > 0)
+                string insertionText;
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out insertionText))
                 {
-                    return new TextChange(selectedItem.Span, symbols[0].Name);
+                    return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
                 }
             }
 
-            return new TextChange(selectedItem.Span, selectedItem.DisplayText);
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
         }
     }
 }

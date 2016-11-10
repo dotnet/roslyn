@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 return false;
             }
 
-            var syntaxTree = document.GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);

@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Options
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim descendIntoChildren As Func(Of SyntaxNode, Boolean) =
                 Function(n)
-                    Dim diagnostic As diagnostic = Nothing
+                    Dim diagnostic As Diagnostic = Nothing
 
                     If Not IsCandidate(n) OrElse
                        Not TrySimplifyTypeNameExpression(context.SemanticModel, n, context.Options, diagnostic, context.CancellationToken) Then
@@ -75,7 +76,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return False
             End If
 
-            If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+            ' set proper diagnostic ids.
+            If replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)) Then
+                diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId
+            ElseIf replacementSyntax.HasAnnotations(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)) Then
+                diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
+            ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                 diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
                     IDEDiagnosticIds.RemoveQualificationDiagnosticId,

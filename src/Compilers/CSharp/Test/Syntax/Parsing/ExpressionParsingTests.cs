@@ -22,11 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text, options: options);
         }
 
-        private ExpressionSyntax ParseExpressionExperimental(string text)
-        {
-            return SyntaxFactory.ParseExpression(text, options: TestOptions.ExperimentalParseOptions);
-        }
-
         [Fact]
         public void TestEmptyString()
         {
@@ -1181,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambdaWithRefReturn()
         {
             var text = "a => ref b";
-            var expr = this.ParseExpressionExperimental(text);
+            var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1191,9 +1186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(lambda.Parameter.Identifier);
             Assert.False(lambda.Parameter.Identifier.IsMissing);
             Assert.Equal("a", lambda.Parameter.Identifier.ToString());
-            Assert.NotNull(lambda.RefKeyword);
-            Assert.NotNull(lambda.Body);
-            Assert.Equal("b", lambda.Body.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, lambda.Body.Kind());
+            Assert.Equal("ref b", lambda.Body.ToString());
         }
 
         [Fact]
@@ -1240,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParametersAndRefReturn()
         {
             var text = "() => ref b";
-            var expr = this.ParseExpressionExperimental(text);
+            var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1252,9 +1246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(lambda.ParameterList.OpenParenToken.IsMissing);
             Assert.False(lambda.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
-            Assert.NotNull(lambda.RefKeyword);
-            Assert.NotNull(lambda.Body);
-            Assert.Equal("b", lambda.Body.ToString());
+            Assert.Equal(SyntaxKind.RefExpression, lambda.Body.Kind());
+            Assert.Equal("ref b", lambda.Body.ToString());
         }
 
         [Fact]
@@ -1386,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoArguments()
         {
             var text = "(a, a2)";
-            var expr = this.ParseExpression(text, options: TestOptions.Regular.WithTuplesFeature());
+            var expr = this.ParseExpression(text, options: TestOptions.Regular);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
@@ -1406,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoNamedArguments()
         {
             var text = "(arg1: (a, a2), arg2: a2)";
-            var expr = this.ParseExpression(text, options: TestOptions.Regular.WithTuplesFeature());
+            var expr = this.ParseExpression(text, options: TestOptions.Regular);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -72,11 +71,14 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void AddClassification(TextSpan textSpan, string type)
             {
-                var tuple = new ClassifiedSpan(type, textSpan);
-                if (!_set.Contains(tuple))
+                if (textSpan.Length > 0 && textSpan.OverlapsWith(_textSpan))
                 {
-                    _list.Add(tuple);
-                    _set.Add(tuple);
+                    var tuple = new ClassifiedSpan(type, textSpan);
+                    if (!_set.Contains(tuple))
+                    {
+                        _list.Add(tuple);
+                        _set.Add(tuple);
+                    }
                 }
             }
 
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
                     var nodeOrToken = _pendingNodes.Pop();
 
-                    if (nodeOrToken.Span.IntersectsWith(_textSpan))
+                    if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
                     {
                         ClassifyNodeOrToken(nodeOrToken);
 

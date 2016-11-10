@@ -481,115 +481,448 @@ class Program
         public async Task TestAssignmentExpression()
         {
             await TestAsync(
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { int myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { int myInt = await MyIntMethodAsync ( ) ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        int myInt = [|MyIntMethodAsync()|];
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        int myInt = await MyIntMethodAsync();
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversion()
         {
             await TestAsync(
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = await MyIntMethodAsync ( ) ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        long myInt = [|MyIntMethodAsync()|];
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        long myInt = await MyIntMethodAsync();
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
             await TestMissingAsync(
-@"using System . Threading . Tasks ; class TestClass { private Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private Task MyTestMethod1Async()
+    {
+        long myInt = [|MyIntMethodAsync()|];
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
         {
             await TestAsync(
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < object > MyIntMethodAsync ( ) { return Task . FromResult ( new object ( ) ) ; } } ",
-@"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = await MyIntMethodAsync ( ) ; } private Task < object > MyIntMethodAsync ( ) { return Task . FromResult ( new object ( ) ) ; } } ");
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        long myInt = [|MyIntMethodAsync()|];
+    }
+
+    private Task<object> MyIntMethodAsync()
+    {
+        return Task.FromResult(new object());
+    }
+}",
+@"using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        long myInt = await MyIntMethodAsync();
+    }
+
+    private Task<object> MyIntMethodAsync()
+    {
+        return Task.FromResult(new object());
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression1()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = async ( ) => { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = async ( ) => { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = async () => {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = async () => {
+            int myInt = await MyIntMethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression2()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = async ( ) => { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = async ( ) => { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = async () => {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = async () => {
+            int myInt = await MyIntMethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression3()
         {
             await TestMissingAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = ( ) => { int myInt = MyInt [||] MethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = () => {
+            int myInt = MyInt [||] MethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression4()
         {
             await TestMissingAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = ( ) => { int myInt = MyIntM [||] ethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = () => {
+            int myInt = MyIntM [||] ethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression5()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = async delegate { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = async delegate { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = async delegate {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = async delegate {
+            int myInt = await MyIntMethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression6()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = async delegate { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = async delegate { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = async delegate {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = async delegate {
+            int myInt = await MyIntMethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression7()
         {
             await TestMissingAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = delegate { int myInt = MyInt [||] MethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = delegate {
+            int myInt = MyInt [||] MethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression8()
         {
             await TestMissingAsync(
-@"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = delegate { int myInt = MyIntM [||] ethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = delegate {
+            int myInt = MyIntM [||] ethodAsync();
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestTernaryOperator()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 )|] ; } } ",
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 ) ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return [|true ? Task.FromResult(0) : Task.FromResult(1)|];
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return await (true ? Task.FromResult(0) : Task.FromResult(1));
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestNullCoalescingOperator()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null ?? Task . FromResult ( 1 )|] } } ",
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null ?? Task . FromResult ( 1 ) ) } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return [|null ?? Task.FromResult(1)|] }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return await (null ?? Task.FromResult(1)) }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAsExpression()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null as Task < int >|] } } ",
-@"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null as Task < int > ) } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return [|null as Task<int>|] }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    async Task<int> A()
+    {
+        return await (null as Task<int>) }
+}");
         }
 
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

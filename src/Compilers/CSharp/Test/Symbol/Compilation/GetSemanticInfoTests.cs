@@ -2302,8 +2302,10 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
-                // (8,16): error CS0819: Implicitly-typed variables cannot have multiple declarators
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, @"var a = new StreamWriter(""""), b = new StreamReader("""")/*</bind>*/;"));
+                // (8,19): error CS0819: Implicitly-typed variables cannot have multiple declarators
+                //         /*<bind>*/var a = new StreamWriter(""), b = new StreamReader("")/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, @"var a = new StreamWriter(""""), b = new StreamReader("""")").WithLocation(8, 19)
+                );
 
             var model = comp.GetSemanticModel(tree);
 
@@ -5777,6 +5779,29 @@ class Test
 
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
             var diag = comp.GetDiagnostics();
+        }
+
+        [Fact]
+        public void QueryClauseInBadStatement_Catch()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F(object[] c)
+    {
+        catch (Exception) when (from o in c where true)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tokens = tree.GetCompilationUnitRoot().DescendantTokens();
+            var expr = tokens.Single(t => t.Kind() == SyntaxKind.TrueKeyword).Parent;
+            Assert.Null(model.GetSymbolInfo(expr).Symbol);
+            Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
         }
     }
 }

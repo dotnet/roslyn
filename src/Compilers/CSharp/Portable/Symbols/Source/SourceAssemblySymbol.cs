@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an assembly built by compiler.
     /// </summary>
-    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbol, IAttributeTargetSymbol
+    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbolInternal, IAttributeTargetSymbol
     {
         /// <summary>
         /// A Compilation the assembly is created for.
@@ -343,12 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal string SignatureKey
+        public string SignatureKey
         {
             get
             {
-                string key = GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting);
-                return key;
+                return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting);
             }
         }
 
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
          
-        internal AssemblyHashAlgorithm AssemblyHashAlgorithm
+        public AssemblyHashAlgorithm HashAlgorithm
         {
             get
             {
@@ -424,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyFlags Flags
+        public AssemblyFlags AssemblyFlags
         {
             get
             {
@@ -1439,13 +1438,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var attrList =
-                from rootNs in DeclaringCompilation.Declarations.AllRootNamespacesUnordered()
-                where rootNs.HasAssemblyAttributes
-                select rootNs.Location.SourceTree into tree
-                orderby _compilation.GetSyntaxTreeOrdinal(tree)
-                select ((CompilationUnitSyntax)tree.GetRoot()).AttributeLists;
-            return attrList.ToImmutableArray();
+            var builder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
+            var declarations = DeclaringCompilation.MergedRootDeclaration.Declarations;
+            foreach (RootSingleNamespaceDeclaration rootNs in declarations)
+            {
+                if (rootNs.HasAssemblyAttributes)
+                {
+                    var tree = rootNs.Location.SourceTree;
+                    var root = (CompilationUnitSyntax)tree.GetRoot();
+                    builder.Add(root.AttributeLists);
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private void EnsureAttributesAreBound()
@@ -2590,9 +2594,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override AssemblyMetadata GetMetadata() => null;
 
-        Compilation ISourceAssemblySymbol.Compilation
-        {
-            get { return _compilation; }
-        }
+        Compilation ISourceAssemblySymbol.Compilation => _compilation;
     }
 }

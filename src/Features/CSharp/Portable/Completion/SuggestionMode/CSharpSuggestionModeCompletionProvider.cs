@@ -1,13 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
-        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -39,25 +38,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
 
+                TypeDeclarationSyntax typeDeclaration;
+
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
-                else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
+                else if (IsAnonymousObjectCreation(token))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
-                    return CreateEmptySuggestionModeItem(itemSpan);
+                    return CreateEmptySuggestionModeItem();
                 }
                 else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.implicit_array_creation, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_implicit_array_creation);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
-                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.range_variable, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_range_variable_declaration);
+                }
+                else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
+                }
+                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
+                {
+                    switch (typeDeclaration.Keyword.Kind())
+                    {
+                        case SyntaxKind.ClassKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+
+                        case SyntaxKind.StructKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.struct_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+
+                        case SyntaxKind.InterfaceKeyword:
+                            return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                    }
                 }
             }
 
@@ -87,20 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return false;
         }
 
-        private bool IsPossibleTupleExpression(SyntaxToken token)
-        {
-            // first element in an autocompleted tuple will look like a parenthesized expression (foo )
-            // so we need to conservatively treat parenthesized expression as apotential tuple
-            if (token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.ParenthesizedExpression))
-            {
-                // We'll show the builder after an open paren or comma, because that's where the
-                // user can start declaring new named parts. 
-                return token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken;
-            }
-
-            return false;
-        }
-
         private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
@@ -118,6 +123,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return token.Parent.Parent != null && token.Parent.Parent is ParenthesizedLambdaExpressionSyntax;
                 }
+            }
+
+            // A lambda that is being typed may be parsed as a tuple without names
+            // For example, "(a, b" could be the start of either a tuple or lambda
+            // But "(a: b, c" cannot be a lambda
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
+               !((TupleExpressionSyntax)token.Parent).HasNames())
+            {
+                position = token.Parent.SpanStart;
             }
 
             // Walk up a single level to allow for typing the beginning of a lambda:
@@ -138,9 +152,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
             // If we're an argument to a function with multiple overloads, 
             // open the builder if any overload takes a delegate at our argument position
-            var inferredTypes = typeInferrer.InferTypes(semanticModel, position, cancellationToken: cancellationToken);
+            var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
 
-            return inferredTypes.Any(type => type.GetDelegateType(semanticModel.Compilation).IsDelegateType());
+            return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
+        }
+
+        private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
+        {
+            ITypeSymbol typeSymbol = typeInferenceInfo.InferredType;
+            if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
+            {
+                typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;
+            }
+
+            return typeSymbol.GetDelegateType(compilation);
         }
     }
 }

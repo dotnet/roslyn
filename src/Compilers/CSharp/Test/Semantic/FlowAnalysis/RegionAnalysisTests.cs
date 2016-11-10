@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ///     * FlowDiagnosticTests.cs - all tests on Diagnostics
     ///     * IterationJumpYieldStatementTests.cs - while, do, for, foreach, break, continue, goto, iterator (yield break, yield return)
     ///     * TryLockUsingStatementTests.cs - try-catch-finally, lock, &amp; using statement
+    ///     * PatternsVsRegions.cs - region analysis tests for pattern matching
     /// </summary>
     public partial class FlowAnalysisTests : FlowTestBase
     {

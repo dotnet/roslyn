@@ -61,227 +61,292 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} conflict(s) will be resolved.
+        /// </summary>
+        internal static string _0_conflict_s_will_be_resolved {
+            get {
+                return ResourceManager.GetString("_0_conflict_s_will_be_resolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not support the &apos;{1}&apos; operation. However, it may contain nested &apos;{2}&apos;s (see &apos;{2}.{3}&apos;) that support this operation..
+        /// </summary>
+        internal static string _0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation {
+            get {
+                return ResourceManager.GetString("_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_tha" +
+                        "t_support_this_operation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} - (Line {1}).
+        /// </summary>
+        internal static string _0_Line_1 {
+            get {
+                return ResourceManager.GetString("_0_Line_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} unresolvable conflict(s).
+        /// </summary>
+        internal static string _0_unresolvable_conflict_s {
+            get {
+                return ResourceManager.GetString("_0_unresolvable_conflict_s", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Active Statement.
         /// </summary>
-        internal static string ActiveStatement {
+        internal static string Active_Statement {
             get {
-                return ResourceManager.GetString("ActiveStatement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding analyzer reference &apos;{0}&apos; to &apos;{1}&apos;.
-        /// </summary>
-        internal static string AddingAnalyzerReferenceTo {
-            get {
-                return ResourceManager.GetString("AddingAnalyzerReferenceTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding project &apos;{0}&apos;.
-        /// </summary>
-        internal static string AddingProject {
-            get {
-                return ResourceManager.GetString("AddingProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding reference &apos;{0}&apos; to &apos;{1}&apos;.
-        /// </summary>
-        internal static string AddingReferenceTo {
-            get {
-                return ResourceManager.GetString("AddingReferenceTo", resourceCulture);
+                return ResourceManager.GetString("Active_Statement", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; to &apos;{1}&apos; with content:.
         /// </summary>
-        internal static string AddingToWithContent {
+        internal static string Adding_0_to_1_with_content_colon {
             get {
-                return ResourceManager.GetString("AddingToWithContent", resourceCulture);
+                return ResourceManager.GetString("Adding_0_to_1_with_content_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding analyzer reference &apos;{0}&apos; to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Adding_analyzer_reference_0_to_1 {
+            get {
+                return ResourceManager.GetString("Adding_analyzer_reference_0_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding project &apos;{0}&apos;.
+        /// </summary>
+        internal static string Adding_project_0 {
+            get {
+                return ResourceManager.GetString("Adding_project_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding reference &apos;{0}&apos; to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Adding_reference_0_to_1 {
+            get {
+                return ResourceManager.GetString("Adding_reference_0_to_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Already tracking document with identical key.
         /// </summary>
-        internal static string AlreadyTrackingDocumentWithIdenticalKey {
+        internal static string Already_tracking_document_with_identical_key {
             get {
-                return ResourceManager.GetString("AlreadyTrackingDocumentWithIdenticalKey", resourceCulture);
+                return ResourceManager.GetString("Already_tracking_document_with_identical_key", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to An active inline rename session is still active. Complete it before starting a new one..
         /// </summary>
-        internal static string AnActiveInlineRenameSessionIsActive {
+        internal static string An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one {
             get {
-                return ResourceManager.GetString("AnActiveInlineRenameSessionIsActive", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply.
-        /// </summary>
-        internal static string Apply {
-            get {
-                return ResourceManager.GetString("Apply", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Display conflict resolutions.
-        /// </summary>
-        internal static string ApplyConflictResolutionEdits {
-            get {
-                return ResourceManager.GetString("ApplyConflictResolutionEdits", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applying &quot;{0}&quot;....
-        /// </summary>
-        internal static string Applying {
-            get {
-                return ResourceManager.GetString("Applying", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applying &quot;Encapsulate Field&quot; refactoring....
-        /// </summary>
-        internal static string ApplyingEncapsulateField {
-            get {
-                return ResourceManager.GetString("ApplyingEncapsulateField", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applying &quot;Extract Method&quot; refactoring....
-        /// </summary>
-        internal static string ApplyingExtractMethodRefactoring {
-            get {
-                return ResourceManager.GetString("ApplyingExtractMethodRefactoring", resourceCulture);
+                return ResourceManager.GetString("An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new" +
+                        "_one", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to _Apply.
         /// </summary>
-        internal static string ApplyRename {
+        internal static string Apply1 {
             get {
-                return ResourceManager.GetString("ApplyRename", resourceCulture);
+                return ResourceManager.GetString("Apply1", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically completing....
+        ///   Looks up a localized string similar to Apply.
         /// </summary>
-        internal static string AutomaticallyCompleting {
+        internal static string Apply2 {
             get {
-                return ResourceManager.GetString("AutomaticallyCompleting", resourceCulture);
+                return ResourceManager.GetString("Apply2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        internal static string Apply3 {
+            get {
+                return ResourceManager.GetString("Apply3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying &quot;{0}&quot;....
+        /// </summary>
+        internal static string Applying_0 {
+            get {
+                return ResourceManager.GetString("Applying_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying &quot;Encapsulate Field&quot; refactoring....
+        /// </summary>
+        internal static string Applying_Encapsulate_Field_refactoring {
+            get {
+                return ResourceManager.GetString("Applying_Encapsulate_Field_refactoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying &quot;Extract Method&quot; refactoring....
+        /// </summary>
+        internal static string Applying_Extract_Method_refactoring {
+            get {
+                return ResourceManager.GetString("Applying_Extract_Method_refactoring", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatic Formatting.
         /// </summary>
-        internal static string AutomaticFormatting {
+        internal static string Automatic_Formatting {
             get {
-                return ResourceManager.GetString("AutomaticFormatting", resourceCulture);
+                return ResourceManager.GetString("Automatic_Formatting", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatic Line Ender.
         /// </summary>
-        internal static string AutomaticLineEnder {
+        internal static string Automatic_Line_Ender {
             get {
-                return ResourceManager.GetString("AutomaticLineEnder", resourceCulture);
+                return ResourceManager.GetString("Automatic_Line_Ender", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatic Pair Completion.
         /// </summary>
-        internal static string AutomaticPairCompletion {
+        internal static string Automatic_Pair_Completion {
             get {
-                return ResourceManager.GetString("AutomaticPairCompletion", resourceCulture);
+                return ResourceManager.GetString("Automatic_Pair_Completion", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Automatic Pair Completion End Point Marker Color.
         /// </summary>
-        internal static string AutomaticPairCompletionEndPointMarkerColor {
+        internal static string Automatic_Pair_Completion_End_Point_Marker_Color {
             get {
-                return ResourceManager.GetString("AutomaticPairCompletionEndPointMarkerColor", resourceCulture);
+                return ResourceManager.GetString("Automatic_Pair_Completion_End_Point_Marker_Color", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatically completing....
+        /// </summary>
+        internal static string Automatically_completing {
+            get {
+                return ResourceManager.GetString("Automatically_completing", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Brace Completion.
         /// </summary>
-        internal static string BraceCompletion {
+        internal static string Brace_Completion {
             get {
-                return ResourceManager.GetString("BraceCompletion", resourceCulture);
+                return ResourceManager.GetString("Brace_Completion", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Called In.
+        ///   Looks up a localized string similar to Brace Matching.
         /// </summary>
-        internal static string CalledIn {
+        internal static string Brace_Matching {
             get {
-                return ResourceManager.GetString("CalledIn", resourceCulture);
+                return ResourceManager.GetString("Brace_Matching", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Call Hierarchy.
         /// </summary>
-        internal static string CallHierarchy {
+        internal static string Call_Hierarchy {
             get {
-                return ResourceManager.GetString("CallHierarchy", resourceCulture);
+                return ResourceManager.GetString("Call_Hierarchy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Called In.
+        /// </summary>
+        internal static string Called_In {
+            get {
+                return ResourceManager.GetString("Called_In", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Calls To &apos;{0}&apos;.
         /// </summary>
-        internal static string CallsTo {
+        internal static string Calls_To_0 {
             get {
-                return ResourceManager.GetString("CallsTo", resourceCulture);
+                return ResourceManager.GetString("Calls_To_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Calls To Base Member &apos;{0}&apos;.
         /// </summary>
-        internal static string CallsToBaseMember {
+        internal static string Calls_To_Base_Member_0 {
             get {
-                return ResourceManager.GetString("CallsToBaseMember", resourceCulture);
+                return ResourceManager.GetString("Calls_To_Base_Member_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Calls To Interface Implementation &apos;{0}&apos;.
         /// </summary>
-        internal static string CallsToInterfaceImplementation {
+        internal static string Calls_To_Interface_Implementation_0 {
             get {
-                return ResourceManager.GetString("CallsToInterfaceImplementation", resourceCulture);
+                return ResourceManager.GetString("Calls_To_Interface_Implementation_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Calls To Overrides.
         /// </summary>
-        internal static string CallsToOverrides {
+        internal static string Calls_To_Overrides {
             get {
-                return ResourceManager.GetString("CallsToOverrides", resourceCulture);
+                return ResourceManager.GetString("Calls_To_Overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t compare positions from different text snapshots.
+        /// </summary>
+        internal static string Can_t_compare_positions_from_different_text_snapshots {
+            get {
+                return ResourceManager.GetString("Can_t_compare_positions_from_different_text_snapshots", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        internal static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
             }
         }
         
@@ -297,117 +362,117 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Cannot apply operation while a rename session is active..
         /// </summary>
-        internal static string CannotApplyOperationWhileRenameSessionIsActive {
+        internal static string Cannot_apply_operation_while_a_rename_session_is_active {
             get {
-                return ResourceManager.GetString("CannotApplyOperationWhileRenameSessionIsActive", resourceCulture);
+                return ResourceManager.GetString("Cannot_apply_operation_while_a_rename_session_is_active", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot navigate to the symbol under the caret..
         /// </summary>
-        internal static string CannotNavigateToTheSymbol {
+        internal static string Cannot_navigate_to_the_symbol_under_the_caret {
             get {
-                return ResourceManager.GetString("CannotNavigateToTheSymbol", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t compare positions from different text snapshots.
-        /// </summary>
-        internal static string CantComparePositionsFromDiffSnapshots {
-            get {
-                return ResourceManager.GetString("CantComparePositionsFromDiffSnapshots", resourceCulture);
+                return ResourceManager.GetString("Cannot_navigate_to_the_symbol_under_the_caret", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Change Signature.
         /// </summary>
-        internal static string ChangeSignature {
+        internal static string Change_Signature {
             get {
-                return ResourceManager.GetString("ChangeSignature", resourceCulture);
+                return ResourceManager.GetString("Change_Signature", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Change Signature:.
         /// </summary>
-        internal static string ChangeSignatureTitle {
+        internal static string Change_Signature_colon {
             get {
-                return ResourceManager.GetString("ChangeSignatureTitle", resourceCulture);
+                return ResourceManager.GetString("Change_Signature_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes.
+        /// </summary>
+        internal static string Changes {
+            get {
+                return ResourceManager.GetString("Changes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Changes the current prompt settings..
         /// </summary>
-        internal static string ChangesTheCurrentPromptSettings {
+        internal static string Changes_the_current_prompt_settings {
             get {
-                return ResourceManager.GetString("ChangesTheCurrentPromptSettings", resourceCulture);
+                return ResourceManager.GetString("Changes_the_current_prompt_settings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Changing project references for &apos;{0}&apos;.
         /// </summary>
-        internal static string ChangingProjectReferencesFor {
+        internal static string Changing_project_references_for_0 {
             get {
-                return ResourceManager.GetString("ChangingProjectReferencesFor", resourceCulture);
+                return ResourceManager.GetString("Changing_project_references_for_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Class Parts.
         /// </summary>
-        internal static string ClassParts {
+        internal static string Class_Parts {
             get {
-                return ResourceManager.GetString("ClassParts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Commenting currently selected text....
-        /// </summary>
-        internal static string CommentingCurrentlySelected {
-            get {
-                return ResourceManager.GetString("CommentingCurrentlySelected", resourceCulture);
+                return ResourceManager.GetString("Class_Parts", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Comment Selection.
         /// </summary>
-        internal static string CommentSelection {
+        internal static string Comment_Selection {
             get {
-                return ResourceManager.GetString("CommentSelection", resourceCulture);
+                return ResourceManager.GetString("Comment_Selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commenting currently selected text....
+        /// </summary>
+        internal static string Commenting_currently_selected_text {
+            get {
+                return ResourceManager.GetString("Commenting_currently_selected_text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Completing Tag.
         /// </summary>
-        internal static string CompletingTag {
+        internal static string Completing_Tag {
             get {
-                return ResourceManager.GetString("CompletingTag", resourceCulture);
+                return ResourceManager.GetString("Completing_Tag", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Computing Call Hierarchy Information.
         /// </summary>
-        internal static string ComputingCallHierarchyInformation {
+        internal static string Computing_Call_Hierarchy_Information {
             get {
-                return ResourceManager.GetString("ComputingCallHierarchyInformation", resourceCulture);
+                return ResourceManager.GetString("Computing_Call_Hierarchy_Information", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Computing Rename information....
         /// </summary>
-        internal static string ComputingRenameInformation {
+        internal static string Computing_Rename_information {
             get {
-                return ResourceManager.GetString("ComputingRenameInformation", resourceCulture);
+                return ResourceManager.GetString("Computing_Rename_information", resourceCulture);
             }
         }
         
@@ -421,543 +486,227 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} conflict(s) will be resolved.
-        /// </summary>
-        internal static string ConflictsWillBeResolved {
-            get {
-                return ResourceManager.GetString("ConflictsWillBeResolved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cursor must be on a member name..
         /// </summary>
-        internal static string CursorMustBeOnAMemberName {
+        internal static string Cursor_must_be_on_a_member_name {
             get {
-                return ResourceManager.GetString("CursorMustBeOnAMemberName", resourceCulture);
+                return ResourceManager.GetString("Cursor_must_be_on_a_member_name", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Directly Called In.
         /// </summary>
-        internal static string DirectlyCalledIn {
+        internal static string Directly_Called_In {
             get {
-                return ResourceManager.GetString("DirectlyCalledIn", resourceCulture);
+                return ResourceManager.GetString("Directly_Called_In", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Documentation Comment.
+        ///   Looks up a localized string similar to Display conflict resolutions.
         /// </summary>
-        internal static string DocumentationComment {
+        internal static string Display_conflict_resolutions {
             get {
-                return ResourceManager.GetString("DocumentationComment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to document is not currently being tracked.
-        /// </summary>
-        internal static string DocumentIsNotCurrentlyBeingTracked {
-            get {
-                return ResourceManager.GetString("DocumentIsNotCurrentlyBeingTracked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Document must be contained in the workspace that created this service.
-        /// </summary>
-        internal static string DocumentMustBeContainedInWorkspace {
-            get {
-                return ResourceManager.GetString("DocumentMustBeContainedInWorkspace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Encapsulate Field.
-        /// </summary>
-        internal static string Encapsulatefield {
-            get {
-                return ResourceManager.GetString("Encapsulatefield", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Encapsulate Field:.
-        /// </summary>
-        internal static string EncapsulateFieldTitle {
-            get {
-                return ResourceManager.GetString("EncapsulateFieldTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Engine must be attached to an Interactive Window..
-        /// </summary>
-        internal static string EngineMustBeAttachedToAnInteractiveWindow {
-            get {
-                return ResourceManager.GetString("EngineMustBeAttachedToAnInteractiveWindow", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Extract Method.
-        /// </summary>
-        internal static string ExtractMethod {
-            get {
-                return ResourceManager.GetString("ExtractMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
-        ///Do you want to proceed?.
-        /// </summary>
-        internal static string ExtractMethodAsyncErrorFix {
-            get {
-                return ResourceManager.GetString("ExtractMethodAsyncErrorFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Extract method failed with following reasons :.
-        /// </summary>
-        internal static string ExtractMethodFailedReasons {
-            get {
-                return ResourceManager.GetString("ExtractMethodFailedReasons", resourceCulture);
+                return ResourceManager.GetString("Display_conflict_resolutions", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Do you still want to proceed? it will generate broken code..
         /// </summary>
-        internal static string ExtractMethodStillGenerateCode {
+        internal static string Do_you_still_want_to_proceed_it_will_generate_broken_code {
             get {
-                return ResourceManager.GetString("ExtractMethodStillGenerateCode", resourceCulture);
+                return ResourceManager.GetString("Do_you_still_want_to_proceed_it_will_generate_broken_code", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding enclosing span....
+        ///   Looks up a localized string similar to document is not currently being tracked.
         /// </summary>
-        internal static string FindingEnclosingSpan {
+        internal static string document_is_not_currently_being_tracked {
             get {
-                return ResourceManager.GetString("FindingEnclosingSpan", resourceCulture);
+                return ResourceManager.GetString("document_is_not_currently_being_tracked", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding references....
+        ///   Looks up a localized string similar to Document must be contained in the workspace that created this service.
         /// </summary>
-        internal static string FindingReferences {
+        internal static string Document_must_be_contained_in_the_workspace_that_created_this_service {
             get {
-                return ResourceManager.GetString("FindingReferences", resourceCulture);
+                return ResourceManager.GetString("Document_must_be_contained_in_the_workspace_that_created_this_service", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding references of &quot;{0}&quot;....
+        ///   Looks up a localized string similar to Documentation Comment.
         /// </summary>
-        internal static string FindingReferencesOf {
+        internal static string Documentation_Comment {
             get {
-                return ResourceManager.GetString("FindingReferencesOf", resourceCulture);
+                return ResourceManager.GetString("Documentation_Comment", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding span of next sibling....
+        ///   Looks up a localized string similar to Encapsulate Field.
         /// </summary>
-        internal static string FindingSpanOfNextSibling {
+        internal static string Encapsulate_Field {
             get {
-                return ResourceManager.GetString("FindingSpanOfNextSibling", resourceCulture);
+                return ResourceManager.GetString("Encapsulate_Field", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding span of previous sibling....
+        ///   Looks up a localized string similar to Encapsulate Field:.
         /// </summary>
-        internal static string FindingSpanOfPreviousSibling {
+        internal static string Encapsulate_Field_colon {
             get {
-                return ResourceManager.GetString("FindingSpanOfPreviousSibling", resourceCulture);
+                return ResourceManager.GetString("Encapsulate_Field_colon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding token to rename....
+        ///   Looks up a localized string similar to Engine must be attached to an Interactive Window..
         /// </summary>
-        internal static string FindingTokenToRename {
+        internal static string Engine_must_be_attached_to_an_Interactive_Window {
             get {
-                return ResourceManager.GetString("FindingTokenToRename", resourceCulture);
+                return ResourceManager.GetString("Engine_must_be_attached_to_an_Interactive_Window", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finding word extent....
+        ///   Looks up a localized string similar to Extract Method.
         /// </summary>
-        internal static string FindingWordExtent {
+        internal static string Extract_Method {
             get {
-                return ResourceManager.GetString("FindingWordExtent", resourceCulture);
+                return ResourceManager.GetString("Extract_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract method failed with following reasons :.
+        /// </summary>
+        internal static string Extract_method_failed_with_following_reasons_colon {
+            get {
+                return ResourceManager.GetString("Extract_method_failed_with_following_reasons_colon", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Find References.
         /// </summary>
-        internal static string FindReferences {
+        internal static string Find_References {
             get {
-                return ResourceManager.GetString("FindReferences", resourceCulture);
+                return ResourceManager.GetString("Find_References", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding enclosing span....
+        /// </summary>
+        internal static string Finding_enclosing_span {
+            get {
+                return ResourceManager.GetString("Finding_enclosing_span", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding references....
+        /// </summary>
+        internal static string Finding_references {
+            get {
+                return ResourceManager.GetString("Finding_references", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding references of &quot;{0}&quot;....
+        /// </summary>
+        internal static string Finding_references_of_0 {
+            get {
+                return ResourceManager.GetString("Finding_references_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding span of next sibling....
+        /// </summary>
+        internal static string Finding_span_of_next_sibling {
+            get {
+                return ResourceManager.GetString("Finding_span_of_next_sibling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding span of previous sibling....
+        /// </summary>
+        internal static string Finding_span_of_previous_sibling {
+            get {
+                return ResourceManager.GetString("Finding_span_of_previous_sibling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding token to rename....
+        /// </summary>
+        internal static string Finding_token_to_rename {
+            get {
+                return ResourceManager.GetString("Finding_token_to_rename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding word extent....
+        /// </summary>
+        internal static string Finding_word_extent {
+            get {
+                return ResourceManager.GetString("Finding_word_extent", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Fix all occurrences in.
         /// </summary>
-        internal static string FixAllOccurrencesIn {
+        internal static string Fix_all_occurrences_in {
             get {
-                return ResourceManager.GetString("FixAllOccurrencesIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Brace Matching.
-        /// </summary>
-        internal static string FontAndColors_BraceMatching {
-            get {
-                return ResourceManager.GetString("FontAndColors_BraceMatching", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Inline Rename.
-        /// </summary>
-        internal static string FontAndColors_InlineRename {
-            get {
-                return ResourceManager.GetString("FontAndColors_InlineRename", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Preprocessor Text.
-        /// </summary>
-        internal static string FontAndColors_PreprocessorText {
-            get {
-                return ResourceManager.GetString("FontAndColors_PreprocessorText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Punctuation.
-        /// </summary>
-        internal static string FontAndColors_Punctuation {
-            get {
-                return ResourceManager.GetString("FontAndColors_Punctuation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename Tracking.
-        /// </summary>
-        internal static string FontAndColors_RenameTracking {
-            get {
-                return ResourceManager.GetString("FontAndColors_RenameTracking", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String - Verbatim.
-        /// </summary>
-        internal static string FontAndColors_StringVerbatim {
-            get {
-                return ResourceManager.GetString("FontAndColors_StringVerbatim", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unnecessary Code.
-        /// </summary>
-        internal static string FontAndColors_UnnecessaryCode {
-            get {
-                return ResourceManager.GetString("FontAndColors_UnnecessaryCode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Classes.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Classes {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Classes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Delegates.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Delegates {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Delegates", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Enums.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Enums {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Enums", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Interfaces.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Interfaces {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Interfaces", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Modules.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Modules {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Modules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Structures.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_Structures {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_Structures", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User Types - Type Parameters.
-        /// </summary>
-        internal static string FontAndColors_UserTypes_TypeParameters {
-            get {
-                return ResourceManager.GetString("FontAndColors_UserTypes_TypeParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Attribute Name.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_AttributeName {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_AttributeName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Attribute Quotes.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_AttributeQuotes {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_AttributeQuotes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Attribute Value.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_AttributeValue {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_AttributeValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - CData Section.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_CDataSection {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_CDataSection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Comment.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_Comment {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_Comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Delimiter.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_Delimiter {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_Delimiter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Embedded Expression.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_EmbeddedExpression {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_EmbeddedExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Entity Reference.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_EntityReference {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_EntityReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Name.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_Name {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Processing Instruction.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_ProcessingInstruction {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_ProcessingInstruction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VB XML Literals - Text.
-        /// </summary>
-        internal static string FontAndColors_VBXmlLiterals_Text {
-            get {
-                return ResourceManager.GetString("FontAndColors_VBXmlLiterals_Text", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Attribute Name.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_AttributeName {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_AttributeName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Attribute Quotes.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_AttributeQuotes {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_AttributeQuotes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Attribute Value.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_AttributeValue {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_AttributeValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - CData Section.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_CDataSection {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_CDataSection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Comment.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_Comment {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_Comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Delimiter.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_Delimiter {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_Delimiter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Entity Reference.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_EntityReference {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_EntityReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Name.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_Name {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Processing Instruction.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_ProcessingInstruction {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_ProcessingInstruction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to XML Doc Comments - Text.
-        /// </summary>
-        internal static string FontAndColors_XmlDocComments_Text {
-            get {
-                return ResourceManager.GetString("FontAndColors_XmlDocComments_Text", resourceCulture);
+                return ResourceManager.GetString("Fix_all_occurrences_in", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Format Document.
         /// </summary>
-        internal static string FormatDocument {
+        internal static string Format_Document {
             get {
-                return ResourceManager.GetString("FormatDocument", resourceCulture);
+                return ResourceManager.GetString("Format_Document", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Format Paste.
         /// </summary>
-        internal static string FormatPaste {
+        internal static string Format_Paste {
             get {
-                return ResourceManager.GetString("FormatPaste", resourceCulture);
+                return ResourceManager.GetString("Format_Paste", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Format Selection.
         /// </summary>
-        internal static string FormatSelection {
+        internal static string Format_Selection {
             get {
-                return ResourceManager.GetString("FormatSelection", resourceCulture);
+                return ResourceManager.GetString("Format_Selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format Token.
+        /// </summary>
+        internal static string Format_Token {
+            get {
+                return ResourceManager.GetString("Format_Token", resourceCulture);
             }
         }
         
@@ -973,153 +722,162 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Formatting currently selected text....
         /// </summary>
-        internal static string FormattingCurrentlySelected {
+        internal static string Formatting_currently_selected_text {
             get {
-                return ResourceManager.GetString("FormattingCurrentlySelected", resourceCulture);
+                return ResourceManager.GetString("Formatting_currently_selected_text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Formatting document....
         /// </summary>
-        internal static string FormattingDocument {
+        internal static string Formatting_document {
             get {
-                return ResourceManager.GetString("FormattingDocument", resourceCulture);
+                return ResourceManager.GetString("Formatting_document", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Formatting pasted text....
         /// </summary>
-        internal static string FormattingPastedText {
+        internal static string Formatting_pasted_text {
             get {
-                return ResourceManager.GetString("FormattingPastedText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Format Token.
-        /// </summary>
-        internal static string FormatToken {
-            get {
-                return ResourceManager.GetString("FormatToken", resourceCulture);
+                return ResourceManager.GetString("Formatting_pasted_text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to from metadata.
         /// </summary>
-        internal static string FromMetadata {
+        internal static string from_metadata {
             get {
-                return ResourceManager.GetString("FromMetadata", resourceCulture);
+                return ResourceManager.GetString("from_metadata", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Given Workspace doesn&apos;t support Undo.
         /// </summary>
-        internal static string GivenWorkspaceDoesntSupportUndo {
+        internal static string Given_Workspace_doesn_t_support_Undo {
             get {
-                return ResourceManager.GetString("GivenWorkspaceDoesntSupportUndo", resourceCulture);
+                return ResourceManager.GetString("Given_Workspace_doesn_t_support_Undo", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Go to Definition.
         /// </summary>
-        internal static string GoToDefinition {
+        internal static string Go_to_Definition {
             get {
-                return ResourceManager.GetString("GoToDefinition", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Locating implementations....
-        /// </summary>
-        internal static string GoToImplementationMessage {
-            get {
-                return ResourceManager.GetString("GoToImplementationMessage", resourceCulture);
+                return ResourceManager.GetString("Go_to_Definition", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Go To Implementation.
         /// </summary>
-        internal static string GoToImplementationTitle {
+        internal static string Go_To_Implementation {
             get {
-                return ResourceManager.GetString("GoToImplementationTitle", resourceCulture);
+                return ResourceManager.GetString("Go_To_Implementation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Highlighted Definition.
         /// </summary>
-        internal static string HighlightedDefinition {
+        internal static string Highlighted_Definition {
             get {
-                return ResourceManager.GetString("HighlightedDefinition", resourceCulture);
+                return ResourceManager.GetString("Highlighted_Definition", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Highlighted Written Reference.
         /// </summary>
-        internal static string HighlightedWrittenReference {
+        internal static string Highlighted_Written_Reference {
             get {
-                return ResourceManager.GetString("HighlightedWrittenReference", resourceCulture);
+                return ResourceManager.GetString("Highlighted_Written_Reference", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implemented By.
         /// </summary>
-        internal static string ImplementedBy {
+        internal static string Implemented_By {
             get {
-                return ResourceManager.GetString("ImplementedBy", resourceCulture);
+                return ResourceManager.GetString("Implemented_By", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implements.
         /// </summary>
-        internal static string Implements {
+        internal static string Implements_ {
             get {
-                return ResourceManager.GetString("Implements", resourceCulture);
+                return ResourceManager.GetString("Implements_", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implements &apos;{0}&apos;.
         /// </summary>
-        internal static string ImplementsArg {
+        internal static string Implements_0 {
             get {
-                return ResourceManager.GetString("ImplementsArg", resourceCulture);
+                return ResourceManager.GetString("Implements_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include _comments.
+        /// </summary>
+        internal static string Include_comments {
+            get {
+                return ResourceManager.GetString("Include_comments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include _overload(s).
+        /// </summary>
+        internal static string Include_overload_s {
+            get {
+                return ResourceManager.GetString("Include_overload_s", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Include _strings.
+        /// </summary>
+        internal static string Include_strings {
+            get {
+                return ResourceManager.GetString("Include_strings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Indirectly Called In.
         /// </summary>
-        internal static string IndirectlyCalledIn {
+        internal static string Indirectly_Called_In {
             get {
-                return ResourceManager.GetString("IndirectlyCalledIn", resourceCulture);
+                return ResourceManager.GetString("Indirectly_Called_In", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Inherited By.
         /// </summary>
-        internal static string InheritedBy {
+        internal static string Inherited_By {
             get {
-                return ResourceManager.GetString("InheritedBy", resourceCulture);
+                return ResourceManager.GetString("Inherited_By", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Inherits.
         /// </summary>
-        internal static string Inherits {
+        internal static string Inherits_ {
             get {
-                return ResourceManager.GetString("Inherits", resourceCulture);
+                return ResourceManager.GetString("Inherits_", resourceCulture);
             }
         }
         
@@ -1133,47 +891,47 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Inline Rename Fixup.
+        ///   Looks up a localized string similar to Inline Rename.
         /// </summary>
-        internal static string InlineRenameFixup {
+        internal static string Inline_Rename {
             get {
-                return ResourceManager.GetString("InlineRenameFixup", resourceCulture);
+                return ResourceManager.GetString("Inline_Rename", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modify any highlighted location to begin renaming..
+        ///   Looks up a localized string similar to Inline Rename Fixup.
         /// </summary>
-        internal static string InlineRenameInstructions {
+        internal static string Inline_Rename_Fixup {
             get {
-                return ResourceManager.GetString("InlineRenameInstructions", resourceCulture);
+                return ResourceManager.GetString("Inline_Rename_Fixup", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Inline Rename Resolved Conflict.
         /// </summary>
-        internal static string InlineRenameResolvedConflict {
+        internal static string Inline_Rename_Resolved_Conflict {
             get {
-                return ResourceManager.GetString("InlineRenameResolvedConflict", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Inserting documentation comment....
-        /// </summary>
-        internal static string InsertingDocumentationComment {
-            get {
-                return ResourceManager.GetString("InsertingDocumentationComment", resourceCulture);
+                return ResourceManager.GetString("Inline_Rename_Resolved_Conflict", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Insert new line.
         /// </summary>
-        internal static string InsertNewLine {
+        internal static string Insert_new_line {
             get {
-                return ResourceManager.GetString("InsertNewLine", resourceCulture);
+                return ResourceManager.GetString("Insert_new_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inserting documentation comment....
+        /// </summary>
+        internal static string Inserting_documentation_comment {
+            get {
+                return ResourceManager.GetString("Inserting_documentation_comment", resourceCulture);
             }
         }
         
@@ -1189,45 +947,54 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to IntelliSense Commit Formatting.
         /// </summary>
-        internal static string IntelliSenseCommitFormatting {
+        internal static string IntelliSense_Commit_Formatting {
             get {
-                return ResourceManager.GetString("IntelliSenseCommitFormatting", resourceCulture);
+                return ResourceManager.GetString("IntelliSense_Commit_Formatting", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Interface Parts.
         /// </summary>
-        internal static string InterfaceParts {
+        internal static string Interface_Parts {
             get {
-                return ResourceManager.GetString("InterfaceParts", resourceCulture);
+                return ResourceManager.GetString("Interface_Parts", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Light bulb session is already dismissed..
         /// </summary>
-        internal static string LightBulbSessionIsAlreadyDismissed {
+        internal static string Light_bulb_session_is_already_dismissed {
             get {
-                return ResourceManager.GetString("LightBulbSessionIsAlreadyDismissed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} - (Line {1}).
-        /// </summary>
-        internal static string Line {
-            get {
-                return ResourceManager.GetString("Line", resourceCulture);
+                return ResourceManager.GetString("Light_bulb_session_is_already_dismissed", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Loading Peek information....
         /// </summary>
-        internal static string LoadingPeekInformation {
+        internal static string Loading_Peek_information {
             get {
-                return ResourceManager.GetString("LoadingPeekInformation", resourceCulture);
+                return ResourceManager.GetString("Loading_Peek_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locating implementations....
+        /// </summary>
+        internal static string Locating_implementations {
+            get {
+                return ResourceManager.GetString("Locating_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modify any highlighted location to begin renaming..
+        /// </summary>
+        internal static string Modify_any_highlighted_location_to_begin_renaming {
+            get {
+                return ResourceManager.GetString("Modify_any_highlighted_location_to_begin_renaming", resourceCulture);
             }
         }
         
@@ -1243,126 +1010,117 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Navigating to definition....
         /// </summary>
-        internal static string NavigatingToDefinition {
+        internal static string Navigating_to_definition {
             get {
-                return ResourceManager.GetString("NavigatingToDefinition", resourceCulture);
+                return ResourceManager.GetString("Navigating_to_definition", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Navigation Bars.
         /// </summary>
-        internal static string NavigationBars {
+        internal static string Navigation_Bars {
             get {
-                return ResourceManager.GetString("NavigationBars", resourceCulture);
+                return ResourceManager.GetString("Navigation_Bars", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to New name: {0}.
         /// </summary>
-        internal static string NewName1 {
+        internal static string New_name_colon_0 {
             get {
-                return ResourceManager.GetString("NewName1", resourceCulture);
+                return ResourceManager.GetString("New_name_colon_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No derived types found..
         /// </summary>
-        internal static string NoDerivedTypesFound {
+        internal static string No_derived_types_found {
             get {
-                return ResourceManager.GetString("NoDerivedTypesFound", resourceCulture);
+                return ResourceManager.GetString("No_derived_types_found", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No implementations found..
         /// </summary>
-        internal static string NoImplementationsFound {
+        internal static string No_implementations_found {
             get {
-                return ResourceManager.GetString("NoImplementationsFound", resourceCulture);
+                return ResourceManager.GetString("No_implementations_found", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No information found..
         /// </summary>
-        internal static string NoInformationFound {
+        internal static string No_information_found {
             get {
-                return ResourceManager.GetString("NoInformationFound", resourceCulture);
+                return ResourceManager.GetString("No_information_found", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No references found..
         /// </summary>
-        internal static string NoReferencesFound {
+        internal static string No_references_found {
             get {
-                return ResourceManager.GetString("NoReferencesFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not a source error, line/column unavailable.
-        /// </summary>
-        internal static string NotASourceError {
-            get {
-                return ResourceManager.GetString("NotASourceError", resourceCulture);
+                return ResourceManager.GetString("No_references_found", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No usages found..
         /// </summary>
-        internal static string NoUsagesFound {
+        internal static string No_usages_found {
             get {
-                return ResourceManager.GetString("NoUsagesFound", resourceCulture);
+                return ResourceManager.GetString("No_usages_found", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not support the &apos;{1}&apos; operation. However, it may contain nested &apos;{2}&apos;s (see &apos;{2}.{3}&apos;) that support this operation..
+        ///   Looks up a localized string similar to Not a source error, line/column unavailable.
         /// </summary>
-        internal static string OperationNotSupported {
+        internal static string Not_a_source_error_line_column_unavailable {
             get {
-                return ResourceManager.GetString("OperationNotSupported", resourceCulture);
+                return ResourceManager.GetString("Not_a_source_error_line_column_unavailable", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Organize Document.
         /// </summary>
-        internal static string OrganizeDocument {
+        internal static string Organize_Document {
             get {
-                return ResourceManager.GetString("OrganizeDocument", resourceCulture);
+                return ResourceManager.GetString("Organize_Document", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Organizing document....
         /// </summary>
-        internal static string OrganizingDocument {
+        internal static string Organizing_document {
             get {
-                return ResourceManager.GetString("OrganizingDocument", resourceCulture);
+                return ResourceManager.GetString("Organizing_document", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Overridden By.
         /// </summary>
-        internal static string OverriddenBy {
+        internal static string Overridden_By {
             get {
-                return ResourceManager.GetString("OverriddenBy", resourceCulture);
+                return ResourceManager.GetString("Overridden_By", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Overrides.
         /// </summary>
-        internal static string Overrides {
+        internal static string Overrides_ {
             get {
-                return ResourceManager.GetString("Overrides", resourceCulture);
+                return ResourceManager.GetString("Overrides_", resourceCulture);
             }
         }
         
@@ -1387,135 +1145,153 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Please resolve errors in your code before renaming this element..
         /// </summary>
-        internal static string PleaseResolveErrorsInYourCodeBeforeRenaming {
+        internal static string Please_resolve_errors_in_your_code_before_renaming_this_element {
             get {
-                return ResourceManager.GetString("PleaseResolveErrorsInYourCodeBeforeRenaming", resourceCulture);
+                return ResourceManager.GetString("Please_resolve_errors_in_your_code_before_renaming_this_element", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Please select the definition of the field to encapsulate..
         /// </summary>
-        internal static string PleaseSelectTheDefinitionOf {
+        internal static string Please_select_the_definition_of_the_field_to_encapsulate {
             get {
-                return ResourceManager.GetString("PleaseSelectTheDefinitionOf", resourceCulture);
+                return ResourceManager.GetString("Please_select_the_definition_of_the_field_to_encapsulate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preprocessor Text.
+        /// </summary>
+        internal static string Preprocessor_Text {
+            get {
+                return ResourceManager.GetString("Preprocessor_Text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Preview Changes.
         /// </summary>
-        internal static string PreviewChanges {
+        internal static string Preview_Changes {
             get {
-                return ResourceManager.GetString("PreviewChanges", resourceCulture);
+                return ResourceManager.GetString("Preview_Changes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Preview Changes - {0}.
         /// </summary>
-        internal static string PreviewChangesOf {
+        internal static string Preview_Changes_0 {
             get {
-                return ResourceManager.GetString("PreviewChangesOf", resourceCulture);
+                return ResourceManager.GetString("Preview_Changes_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Changes.
+        ///   Looks up a localized string similar to _Preview changes.
         /// </summary>
-        internal static string PreviewChangesRootNodeText {
+        internal static string Preview_changes1 {
             get {
-                return ResourceManager.GetString("PreviewChangesRootNodeText", resourceCulture);
+                return ResourceManager.GetString("Preview_changes1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Preview changes.
         /// </summary>
-        internal static string PreviewChangesSummaryText {
+        internal static string Preview_changes2 {
             get {
-                return ResourceManager.GetString("PreviewChangesSummaryText", resourceCulture);
+                return ResourceManager.GetString("Preview_changes2", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Preview Code Changes:.
         /// </summary>
-        internal static string PreviewCodeChanges {
+        internal static string Preview_Code_Changes_colon {
             get {
-                return ResourceManager.GetString("PreviewCodeChanges", resourceCulture);
+                return ResourceManager.GetString("Preview_Code_Changes_colon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
+        ///   Looks up a localized string similar to Preview Warning.
         /// </summary>
-        internal static string Project {
+        internal static string Preview_Warning {
             get {
-                return ResourceManager.GetString("Project", resourceCulture);
+                return ResourceManager.GetString("Preview_Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Punctuation.
+        /// </summary>
+        internal static string Punctuation {
+            get {
+                return ResourceManager.GetString("Punctuation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Referenced In.
         /// </summary>
-        internal static string ReferencedIn {
+        internal static string Referenced_In {
             get {
-                return ResourceManager.GetString("ReferencedIn", resourceCulture);
+                return ResourceManager.GetString("Referenced_In", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to References To Field &apos;{0}&apos;.
         /// </summary>
-        internal static string ReferencesToField {
+        internal static string References_To_Field_0 {
             get {
-                return ResourceManager.GetString("ReferencesToField", resourceCulture);
+                return ResourceManager.GetString("References_To_Field_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Refreshing navigation bars....
         /// </summary>
-        internal static string RefreshingNavigationBars {
+        internal static string Refreshing_navigation_bars {
             get {
-                return ResourceManager.GetString("RefreshingNavigationBars", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Removing analyzer reference &apos;{0}&apos; from &apos;{1}&apos;.
-        /// </summary>
-        internal static string RemovingAnalyzerReferenceFrom {
-            get {
-                return ResourceManager.GetString("RemovingAnalyzerReferenceFrom", resourceCulture);
+                return ResourceManager.GetString("Refreshing_navigation_bars", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Removing &apos;{0}&apos; from &apos;{1}&apos; with content:.
         /// </summary>
-        internal static string RemovingFromWithContent {
+        internal static string Removing_0_from_1_with_content_colon {
             get {
-                return ResourceManager.GetString("RemovingFromWithContent", resourceCulture);
+                return ResourceManager.GetString("Removing_0_from_1_with_content_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing analyzer reference &apos;{0}&apos; from &apos;{1}&apos;.
+        /// </summary>
+        internal static string Removing_analyzer_reference_0_from_1 {
+            get {
+                return ResourceManager.GetString("Removing_analyzer_reference_0_from_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Removing project &apos;{0}&apos;.
         /// </summary>
-        internal static string RemovingProject {
+        internal static string Removing_project_0 {
             get {
-                return ResourceManager.GetString("RemovingProject", resourceCulture);
+                return ResourceManager.GetString("Removing_project_0", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Removing reference &apos;{0}&apos; from &apos;{1}&apos;.
         /// </summary>
-        internal static string RemovingReferenceFrom {
+        internal static string Removing_reference_0_from_1 {
             get {
-                return ResourceManager.GetString("RemovingReferenceFrom", resourceCulture);
+                return ResourceManager.GetString("Removing_reference_0_from_1", resourceCulture);
             }
         }
         
@@ -1529,146 +1305,111 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename: {0}.
-        /// </summary>
-        internal static string Rename1 {
-            get {
-                return ResourceManager.GetString("Rename1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply.
-        /// </summary>
-        internal static string RenameApplyToolTip {
-            get {
-                return ResourceManager.GetString("RenameApplyToolTip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cancel.
-        /// </summary>
-        internal static string RenameCancelToolTip {
-            get {
-                return ResourceManager.GetString("RenameCancelToolTip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename operation was cancelled or is not valid.
-        /// </summary>
-        internal static string RenameOperationWasCancelled {
-            get {
-                return ResourceManager.GetString("RenameOperationWasCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename operation was not properly completed. Some file might not have been updated..
-        /// </summary>
-        internal static string RenameOperationWasNotProperlyCompleted {
-            get {
-                return ResourceManager.GetString("RenameOperationWasNotProperlyCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Include _overload(s).
-        /// </summary>
-        internal static string RenameOverloads {
-            get {
-                return ResourceManager.GetString("RenameOverloads", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Preview changes.
-        /// </summary>
-        internal static string RenamePreviewChanges {
-            get {
-                return ResourceManager.GetString("RenamePreviewChanges", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename Symbol.
-        /// </summary>
-        internal static string RenameSymbol {
-            get {
-                return ResourceManager.GetString("RenameSymbol", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;{1}&apos;.
         /// </summary>
-        internal static string RenameTo {
+        internal static string Rename_0_to_1 {
             get {
-                return ResourceManager.GetString("RenameTo", resourceCulture);
+                return ResourceManager.GetString("Rename_0_to_1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;{1}&apos;:.
         /// </summary>
-        internal static string RenameToTitle {
+        internal static string Rename_0_to_1_colon {
             get {
-                return ResourceManager.GetString("RenameToTitle", resourceCulture);
+                return ResourceManager.GetString("Rename_0_to_1_colon", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename will update 1 reference in 1 file..
+        ///   Looks up a localized string similar to Rename: {0}.
         /// </summary>
-        internal static string RenameWillUpdateReferenceInFile {
+        internal static string Rename_colon_0 {
             get {
-                return ResourceManager.GetString("RenameWillUpdateReferenceInFile", resourceCulture);
+                return ResourceManager.GetString("Rename_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename operation was cancelled or is not valid.
+        /// </summary>
+        internal static string Rename_operation_was_cancelled_or_is_not_valid {
+            get {
+                return ResourceManager.GetString("Rename_operation_was_cancelled_or_is_not_valid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename operation was not properly completed. Some file might not have been updated..
+        /// </summary>
+        internal static string Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated {
+            get {
+                return ResourceManager.GetString("Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated" +
+                        "", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename Symbol.
+        /// </summary>
+        internal static string Rename_Symbol {
+            get {
+                return ResourceManager.GetString("Rename_Symbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename Tracking.
+        /// </summary>
+        internal static string Rename_Tracking {
+            get {
+                return ResourceManager.GetString("Rename_Tracking", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Rename will update {0} references in 1 file..
         /// </summary>
-        internal static string RenameWillUpdateReferencesInFile {
+        internal static string Rename_will_update_0_references_in_1_file {
             get {
-                return ResourceManager.GetString("RenameWillUpdateReferencesInFile", resourceCulture);
+                return ResourceManager.GetString("Rename_will_update_0_references_in_1_file", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Rename will update {0} references in {1} files..
         /// </summary>
-        internal static string RenameWillUpdateReferencesInMultipleFiles {
+        internal static string Rename_will_update_0_references_in_1_files {
             get {
-                return ResourceManager.GetString("RenameWillUpdateReferencesInMultipleFiles", resourceCulture);
+                return ResourceManager.GetString("Rename_will_update_0_references_in_1_files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update 1 reference in 1 file..
+        /// </summary>
+        internal static string Rename_will_update_1_reference_in_1_file {
+            get {
+                return ResourceManager.GetString("Rename_will_update_1_reference_in_1_file", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Renaming anonymous type members is not yet supported..
         /// </summary>
-        internal static string RenamingAnonymousTypeMemberNotSupported {
+        internal static string Renaming_anonymous_type_members_is_not_yet_supported {
             get {
-                return ResourceManager.GetString("RenamingAnonymousTypeMemberNotSupported", resourceCulture);
+                return ResourceManager.GetString("Renaming_anonymous_type_members_is_not_yet_supported", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Rude Edit.
         /// </summary>
-        internal static string RudeEdit {
+        internal static string Rude_Edit {
             get {
-                return ResourceManager.GetString("RudeEdit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Include _comments.
-        /// </summary>
-        internal static string SearchInComments {
-            get {
-                return ResourceManager.GetString("SearchInComments", resourceCulture);
+                return ResourceManager.GetString("Rude_Edit", resourceCulture);
             }
         }
         
@@ -1682,272 +1423,526 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Include _strings.
-        /// </summary>
-        internal static string SearchInStrings {
-            get {
-                return ResourceManager.GetString("SearchInStrings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Smart Indenting.
         /// </summary>
-        internal static string SmartIndenting {
+        internal static string Smart_Indenting {
             get {
-                return ResourceManager.GetString("SmartIndenting", resourceCulture);
+                return ResourceManager.GetString("Smart_Indenting", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Start Rename.
         /// </summary>
-        internal static string StartRename {
+        internal static string Start_Rename {
             get {
-                return ResourceManager.GetString("StartRename", resourceCulture);
+                return ResourceManager.GetString("Start_Rename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String - Verbatim.
+        /// </summary>
+        internal static string String_Verbatim {
+            get {
+                return ResourceManager.GetString("String_Verbatim", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Struct Parts.
         /// </summary>
-        internal static string StructParts {
+        internal static string Struct_Parts {
             get {
-                return ResourceManager.GetString("StructParts", resourceCulture);
+                return ResourceManager.GetString("Struct_Parts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suggestion ellipses (…).
+        /// </summary>
+        internal static string Suggestion_ellipses {
+            get {
+                return ResourceManager.GetString("Suggestion_ellipses", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to &apos;symbol&apos; cannot be a namespace..
         /// </summary>
-        internal static string SymbolCannotBeNamespace {
+        internal static string symbol_cannot_be_a_namespace {
             get {
-                return ResourceManager.GetString("SymbolCannotBeNamespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The symbol has no implementations..
-        /// </summary>
-        internal static string SymbolHasNoImplementations {
-            get {
-                return ResourceManager.GetString("SymbolHasNoImplementations", resourceCulture);
+                return ResourceManager.GetString("symbol_cannot_be_a_namespace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Text Buffer Change.
         /// </summary>
-        internal static string TextBufferChange {
+        internal static string Text_Buffer_Change {
             get {
-                return ResourceManager.GetString("TextBufferChange", resourceCulture);
+                return ResourceManager.GetString("Text_Buffer_Change", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Text Navigation.
         /// </summary>
-        internal static string TextNavigation {
+        internal static string Text_Navigation {
             get {
-                return ResourceManager.GetString("TextNavigation", resourceCulture);
+                return ResourceManager.GetString("Text_Navigation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The buffer is not part of a workspace..
         /// </summary>
-        internal static string TheBufferIsNotPartOfAWorkspace {
+        internal static string The_buffer_is_not_part_of_a_workspace {
             get {
-                return ResourceManager.GetString("TheBufferIsNotPartOfAWorkspace", resourceCulture);
+                return ResourceManager.GetString("The_buffer_is_not_part_of_a_workspace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The definition of the object is hidden..
         /// </summary>
-        internal static string TheDefinitionOfTheObjectIsHidden {
+        internal static string The_definition_of_the_object_is_hidden {
             get {
-                return ResourceManager.GetString("TheDefinitionOfTheObjectIsHidden", resourceCulture);
+                return ResourceManager.GetString("The_definition_of_the_object_is_hidden", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The new name is not a valid identifier..
         /// </summary>
-        internal static string TheNewNameIsNotAValidIdentifier {
+        internal static string The_new_name_is_not_a_valid_identifier {
             get {
-                return ResourceManager.GetString("TheNewNameIsNotAValidIdentifier", resourceCulture);
+                return ResourceManager.GetString("The_new_name_is_not_a_valid_identifier", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The rename tracking session was cancelled and is no longer available..
         /// </summary>
-        internal static string TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable {
+        internal static string The_rename_tracking_session_was_cancelled_and_is_no_longer_available {
             get {
-                return ResourceManager.GetString("TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable", resourceCulture);
+                return ResourceManager.GetString("The_rename_tracking_session_was_cancelled_and_is_no_longer_available", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol has no implementations..
+        /// </summary>
+        internal static string The_symbol_has_no_implementations {
+            get {
+                return ResourceManager.GetString("The_symbol_has_no_implementations", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The token is not contained in the workspace..
         /// </summary>
-        internal static string TheTokenIsNotContainedInWorkspace {
+        internal static string The_token_is_not_contained_in_the_workspace {
             get {
-                return ResourceManager.GetString("TheTokenIsNotContainedInWorkspace", resourceCulture);
+                return ResourceManager.GetString("The_token_is_not_contained_in_the_workspace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The transaction is already complete..
         /// </summary>
-        internal static string TheTransactionIsAlreadyComplete {
+        internal static string The_transaction_is_already_complete {
             get {
-                return ResourceManager.GetString("TheTransactionIsAlreadyComplete", resourceCulture);
+                return ResourceManager.GetString("The_transaction_is_already_complete", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The triggerSpan is not included in the given workspace..
         /// </summary>
-        internal static string TheTriggerspanIsNotIncludedInWorkspace {
+        internal static string The_triggerSpan_is_not_included_in_the_given_workspace {
             get {
-                return ResourceManager.GetString("TheTriggerspanIsNotIncludedInWorkspace", resourceCulture);
+                return ResourceManager.GetString("The_triggerSpan_is_not_included_in_the_given_workspace", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to This session has already been dismissed..
         /// </summary>
-        internal static string ThisSessionHasAlreadyBeenDismissed {
+        internal static string This_session_has_already_been_dismissed {
             get {
-                return ResourceManager.GetString("ThisSessionHasAlreadyBeenDismissed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string Type {
-            get {
-                return ResourceManager.GetString("Type", resourceCulture);
+                return ResourceManager.GetString("This_session_has_already_been_dismissed", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Type Parts.
         /// </summary>
-        internal static string TypeParts {
+        internal static string Type_Parts {
             get {
-                return ResourceManager.GetString("TypeParts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Uncommenting currently selected text....
-        /// </summary>
-        internal static string UncommentingCurrentlySelected {
-            get {
-                return ResourceManager.GetString("UncommentingCurrentlySelected", resourceCulture);
+                return ResourceManager.GetString("Type_Parts", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Uncomment Selection.
         /// </summary>
-        internal static string UncommentSelection {
+        internal static string Uncomment_Selection {
             get {
-                return ResourceManager.GetString("UncommentSelection", resourceCulture);
+                return ResourceManager.GetString("Uncomment_Selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uncommenting currently selected text....
+        /// </summary>
+        internal static string Uncommenting_currently_selected_text {
+            get {
+                return ResourceManager.GetString("Uncommenting_currently_selected_text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Unexpected text: &apos;{0}&apos;.
         /// </summary>
-        internal static string UnexpectedText {
+        internal static string Unexpected_text_colon_0 {
             get {
-                return ResourceManager.GetString("UnexpectedText", resourceCulture);
+                return ResourceManager.GetString("Unexpected_text_colon_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} unresolvable conflict(s).
+        ///   Looks up a localized string similar to Unnecessary Code.
         /// </summary>
-        internal static string UnresolvableConflicts {
+        internal static string Unnecessary_Code {
             get {
-                return ResourceManager.GetString("UnresolvableConflicts", resourceCulture);
+                return ResourceManager.GetString("Unnecessary_Code", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Updating files....
         /// </summary>
-        internal static string UpdatingFiles {
+        internal static string Updating_files {
             get {
-                return ResourceManager.GetString("UpdatingFiles", resourceCulture);
+                return ResourceManager.GetString("Updating_files", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preview Warning.
+        ///   Looks up a localized string similar to User Types - Classes.
         /// </summary>
-        internal static string Warning {
+        internal static string User_Types_Classes {
             get {
-                return ResourceManager.GetString("Warning", resourceCulture);
+                return ResourceManager.GetString("User_Types_Classes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Delegates.
+        /// </summary>
+        internal static string User_Types_Delegates {
+            get {
+                return ResourceManager.GetString("User_Types_Delegates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Enums.
+        /// </summary>
+        internal static string User_Types_Enums {
+            get {
+                return ResourceManager.GetString("User_Types_Enums", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Interfaces.
+        /// </summary>
+        internal static string User_Types_Interfaces {
+            get {
+                return ResourceManager.GetString("User_Types_Interfaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Modules.
+        /// </summary>
+        internal static string User_Types_Modules {
+            get {
+                return ResourceManager.GetString("User_Types_Modules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Structures.
+        /// </summary>
+        internal static string User_Types_Structures {
+            get {
+                return ResourceManager.GetString("User_Types_Structures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Type Parameters.
+        /// </summary>
+        internal static string User_Types_Type_Parameters {
+            get {
+                return ResourceManager.GetString("User_Types_Type_Parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Attribute Name.
+        /// </summary>
+        internal static string VB_XML_Literals_Attribute_Name {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Attribute_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Attribute Quotes.
+        /// </summary>
+        internal static string VB_XML_Literals_Attribute_Quotes {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Attribute_Quotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Attribute Value.
+        /// </summary>
+        internal static string VB_XML_Literals_Attribute_Value {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Attribute_Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - CData Section.
+        /// </summary>
+        internal static string VB_XML_Literals_CData_Section {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_CData_Section", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Comment.
+        /// </summary>
+        internal static string VB_XML_Literals_Comment {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Delimiter.
+        /// </summary>
+        internal static string VB_XML_Literals_Delimiter {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Delimiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Embedded Expression.
+        /// </summary>
+        internal static string VB_XML_Literals_Embedded_Expression {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Embedded_Expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Entity Reference.
+        /// </summary>
+        internal static string VB_XML_Literals_Entity_Reference {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Entity_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Name.
+        /// </summary>
+        internal static string VB_XML_Literals_Name {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Processing Instruction.
+        /// </summary>
+        internal static string VB_XML_Literals_Processing_Instruction {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Processing_Instruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VB XML Literals - Text.
+        /// </summary>
+        internal static string VB_XML_Literals_Text {
+            get {
+                return ResourceManager.GetString("VB_XML_Literals_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
+        ///Do you want to proceed?.
+        /// </summary>
+        internal static string We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed {
+            get {
+                return ResourceManager.GetString("We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proc" +
+                        "eed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Attribute Name.
+        /// </summary>
+        internal static string XML_Doc_Comments_Attribute_Name {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Attribute_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Attribute Quotes.
+        /// </summary>
+        internal static string XML_Doc_Comments_Attribute_Quotes {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Attribute_Quotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Attribute Value.
+        /// </summary>
+        internal static string XML_Doc_Comments_Attribute_Value {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Attribute_Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - CData Section.
+        /// </summary>
+        internal static string XML_Doc_Comments_CData_Section {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_CData_Section", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Comment.
+        /// </summary>
+        internal static string XML_Doc_Comments_Comment {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Delimiter.
+        /// </summary>
+        internal static string XML_Doc_Comments_Delimiter {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Delimiter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Entity Reference.
+        /// </summary>
+        internal static string XML_Doc_Comments_Entity_Reference {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Entity_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Name.
+        /// </summary>
+        internal static string XML_Doc_Comments_Name {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Processing Instruction.
+        /// </summary>
+        internal static string XML_Doc_Comments_Processing_Instruction {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Processing_Instruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XML Doc Comments - Text.
+        /// </summary>
+        internal static string XML_Doc_Comments_Text {
+            get {
+                return ResourceManager.GetString("XML_Doc_Comments_Text", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to XML End Tag Completion.
         /// </summary>
-        internal static string XMLEndTagCompletion {
+        internal static string XML_End_Tag_Completion {
             get {
-                return ResourceManager.GetString("XMLEndTagCompletion", resourceCulture);
+                return ResourceManager.GetString("XML_End_Tag_Completion", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You cannot rename elements from previous submissions..
         /// </summary>
-        internal static string YouCannotRenameElementsFromPrevSubmissions {
+        internal static string You_cannot_rename_elements_from_previous_submissions {
             get {
-                return ResourceManager.GetString("YouCannotRenameElementsFromPrevSubmissions", resourceCulture);
+                return ResourceManager.GetString("You_cannot_rename_elements_from_previous_submissions", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You cannot rename elements that are defined in metadata..
         /// </summary>
-        internal static string YouCannotRenameElementsInMetadata {
+        internal static string You_cannot_rename_elements_that_are_defined_in_metadata {
             get {
-                return ResourceManager.GetString("YouCannotRenameElementsInMetadata", resourceCulture);
+                return ResourceManager.GetString("You_cannot_rename_elements_that_are_defined_in_metadata", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You cannot rename operators..
         /// </summary>
-        internal static string YouCannotRenameOperators {
+        internal static string You_cannot_rename_operators {
             get {
-                return ResourceManager.GetString("YouCannotRenameOperators", resourceCulture);
+                return ResourceManager.GetString("You_cannot_rename_operators", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You cannot rename this element..
         /// </summary>
-        internal static string YouCannotRenameThisElement {
+        internal static string You_cannot_rename_this_element {
             get {
-                return ResourceManager.GetString("YouCannotRenameThisElement", resourceCulture);
+                return ResourceManager.GetString("You_cannot_rename_this_element", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to You must rename an identifier..
         /// </summary>
-        internal static string YouMustRenameAnIdentifier {
+        internal static string You_must_rename_an_identifier {
             get {
-                return ResourceManager.GetString("YouMustRenameAnIdentifier", resourceCulture);
+                return ResourceManager.GetString("You_must_rename_an_identifier", resourceCulture);
             }
         }
     }

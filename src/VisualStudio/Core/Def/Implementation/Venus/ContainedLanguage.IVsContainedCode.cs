@@ -14,7 +14,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService, TProject> : IVsContainedCode
+    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedCode
     {
         public int HostSpansUpdated()
         {

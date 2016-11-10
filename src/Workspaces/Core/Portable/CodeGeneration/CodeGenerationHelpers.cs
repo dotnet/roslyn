@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return;
             }
 
-            throw new ArgumentException(WorkspacesResources.NodeIsOfTheWrongType, argumentName);
+            throw new ArgumentException(WorkspacesResources.Node_is_of_the_wrong_type, argumentName);
         }
 
         public static void GetNameAndInnermostNamespace(

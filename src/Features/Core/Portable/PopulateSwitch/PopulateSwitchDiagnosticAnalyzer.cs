@@ -1,5 +1,10 @@
-﻿using System.Collections.Immutable;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -7,26 +12,30 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class PopulateSwitchDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class PopulateSwitchDiagnosticAnalyzer : 
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_switch_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.PopulateSwitch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
-            s_localizableTitle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true);
+        public PopulateSwitchDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+                  s_localizableTitle, s_localizableMessage)
+        {
+        }
 
         #region Interface methods
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+        public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterOperationAction(AnalyzeOperation, OperationKind.SwitchStatement);
-        }
+        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+
+        protected override void InitializeWorker(AnalysisContext context)
+            => s_registerMethod.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.SwitchStatement)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -45,7 +54,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    s_descriptor, switchBlock.GetLocation(), properties: properties);
+                    HiddenDescriptor, switchBlock.GetLocation(), properties: properties);
                 context.ReportDiagnostic(diagnostic);
             }
         }

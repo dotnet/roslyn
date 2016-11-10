@@ -9,16 +9,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports System.Collections.Immutable
 Imports System.Diagnostics
-Imports Roslyn.Utilities
-Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata
+Imports System.Runtime.InteropServices
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     Friend NotInheritable Class EEAssemblyBuilder
         Inherits PEAssemblyBuilderBase
 
-        Private ReadOnly _methods As ImmutableArray(Of MethodSymbol)
+        Friend ReadOnly Methods As ImmutableArray(Of MethodSymbol)
 
         Friend Sub New(
             sourceAssembly As SourceAssemblySymbol,
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)(),
                 additionalTypes:=additionalTypes)
 
-            _methods = methods
+            Me.Methods = methods
 
             If testData IsNot Nothing Then
                 SetMethodTestData(testData.Methods)
@@ -74,12 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
-            If method IsNot Nothing AndAlso _methods.Contains(method) Then
+            If method IsNot Nothing AndAlso Methods.Contains(method) Then
                 Dim defs = GetLocalDefinitions(method.Locals)
                 Return New SlotAllocator(defs)
             End If
 
-            Debug.Assert(Not _methods.Contains(symbol))
+            Debug.Assert(Not Methods.Contains(symbol))
             Return Nothing
         End Function
 
@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 id:=Nothing,
                 pdbAttributes:=LocalVariableAttributes.None,
                 constraints:=constraints,
-                isDynamic:=False,
-                dynamicTransformFlags:=ImmutableArray(Of TypedConstant).Empty)
+                dynamicTransformFlags:=ImmutableArray(Of TypedConstant).Empty,
+                tupleElementNames:=ImmutableArray(Of TypedConstant).Empty)
         End Function
 
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
@@ -141,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 id As LocalDebugId,
                 pdbAttributes As LocalVariableAttributes,
                 constraints As LocalSlotConstraints,
-                isDynamic As Boolean,
-                dynamicTransformFlags As ImmutableArray(Of TypedConstant)) As LocalDefinition
+                dynamicTransformFlags As ImmutableArray(Of TypedConstant),
+                tupleElementNames As ImmutableArray(Of TypedConstant)) As LocalDefinition
 
                 Dim local = TryCast(symbol, EELocalSymbol)
                 If local Is Nothing Then

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (block.Parent is BlockSyntax ||
                 block.Parent is DoStatementSyntax ||
                 block.Parent is ElseClauseSyntax ||
-                block.Parent is ForEachStatementSyntax ||
+                block.Parent is CommonForEachStatementSyntax ||
                 block.Parent is ForStatementSyntax ||
                 block.Parent is IfStatementSyntax ||
                 block.Parent is LockStatementSyntax ||
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statement is EmptyStatementSyntax ||
                 statement is ExpressionStatementSyntax ||
                 statement is FixedStatementSyntax ||
-                statement is ForEachStatementSyntax ||
+                statement is CommonForEachStatementSyntax ||
                 statement is ForStatementSyntax ||
                 statement is IfStatementSyntax ||
                 statement is LocalDeclarationStatementSyntax ||

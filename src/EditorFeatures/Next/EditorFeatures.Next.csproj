@@ -3,11 +3,8 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -15,16 +12,11 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Next</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <DefineConstants>DEV15</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
       <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
@@ -50,11 +42,6 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-      <Aliases>InteractiveWindow</Aliases>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -66,6 +53,8 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -73,13 +62,17 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Core\Implementation\IntelliSense\Completion\Presentation\RoslynCompletionSet.cs">
-      <Link>IntelliSense\Completion\Presentation\RoslynCompletionSet.cs</Link>
-    </Compile>
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.cs" />
+    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.Dev15ItemDisplayFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
+    <Compile Include="Structure\BlockContextProvider.cs" />
+    <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

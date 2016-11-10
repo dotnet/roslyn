@@ -9,7 +9,6 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
@@ -19,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Class EmitCancelledException
             Inherits Exception
         End Class
+
+        Private Enum UseKind
+            Unused
+            UsedAsValue
+            UsedAsAddress
+        End Enum
 
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
@@ -74,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitAssignmentExpression(DirectCast(expression, BoundAssignmentOperator), used)
 
                 Case BoundKind.Call
-                    EmitCallExpression(DirectCast(expression, BoundCall), used)
+                    EmitCallExpression(DirectCast(expression, BoundCall), If(used, UseKind.UsedAsValue, UseKind.Unused))
 
                 Case BoundKind.TernaryConditionalExpression
                     EmitTernaryConditionalExpression(DirectCast(expression, BoundTernaryConditionalExpression), used)
@@ -174,6 +179,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableValue(DirectCast(expression, BoundPseudoVariable), used)
+
+                Case BoundKind.ModuleVersionId
+                    Debug.Assert(used)
+                    EmitModuleVersionIdLoad(DirectCast(expression, BoundModuleVersionId))
+
+                Case BoundKind.ModuleVersionIdString
+                    Debug.Assert(used)
+                    EmitModuleVersionIdStringLoad(DirectCast(expression, BoundModuleVersionIdString))
+
+                Case BoundKind.InstrumentationPayloadRoot
+                    Debug.Assert(used)
+                    EmitInstrumentationPayloadRootLoad(DirectCast(expression, BoundInstrumentationPayloadRoot))
+
+                Case BoundKind.MethodDefIndex
+                    Debug.Assert(used)
+                    EmitMethodDefIndexExpression(DirectCast(expression, BoundMethodDefIndex))
+
+                Case BoundKind.MaximumMethodDefIndex
+                    Debug.Assert(used)
+                    EmitMaximumMethodDefIndexExpression(DirectCast(expression, BoundMaximumMethodDefIndex))
+
+                Case BoundKind.SourceDocumentIndex
+                    Debug.Assert(used)
+                    EmitSourceDocumentIndex(DirectCast(expression, BoundSourceDocumentIndex))
 
                 Case Else
                     ' Code gen should not be invoked if there are errors.
@@ -400,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitDelegateCreation(receiver As BoundExpression, method As MethodSymbol, delegateType As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitDelegateCreation(receiver As BoundExpression, method As MethodSymbol, delegateType As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
             Dim isStatic = receiver Is Nothing OrElse method.IsShared
             If Not used Then
                 If Not isStatic Then
@@ -627,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As SyntaxNode)
             'TODO: this may require ..ctor to run. Is this a side-effect?
             _builder.EmitOpCode(ILOpCode.Ldsfld)
             EmitSymbolToken(field, syntaxNode)
@@ -766,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitLoadIndirect(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadIndirect(type As TypeSymbol, syntaxNode As SyntaxNode)
             If type.IsEnumType() Then
                 'underlying primitives do not need type tokens.
                 type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
@@ -917,13 +946,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ConstrainedCallVirt
         End Enum
 
-        Private Sub EmitCallExpression([call] As BoundCall, used As Boolean)
+        Private Sub EmitCallExpression([call] As BoundCall, useKind As UseKind)
             Dim method = [call].Method
             Dim receiver = [call].ReceiverOpt
 
             Debug.Assert([call].MethodGroupOpt Is Nothing)
             Debug.Assert(Not Me._module.AllowOmissionOfConditionalCalls OrElse Not method.CallsAreOmitted([call].Syntax, [call].SyntaxTree))
-            Debug.Assert(Not method.ReturnsByRef)
 
             ' is this a call to a default struct constructor?
             ' this happens in struct non-parameterless constructors calling
@@ -1059,9 +1087,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
-                EmitPopIfUnused(used)
+                EmitPopIfUnused(useKind <> UseKind.Unused)
             ElseIf _ilEmitStyle = ILEmitStyle.Debug Then
-                Debug.Assert(Not used, "Using the return value of a void method.")
+                Debug.Assert(useKind = UseKind.Unused, "Using the return value of a void method.")
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
 
                 ' DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
@@ -1089,6 +1117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Not in a reliable state after lowering.
 
                 _builder.EmitOpCode(ILOpCode.Nop)
+            End If
+
+            If useKind = UseKind.UsedAsValue AndAlso method.ReturnsByRef Then
+                EmitLoadIndirect(method.ReturnType, [call].Syntax)
+            ElseIf useKind = UseKind.UsedAsAddress Then
+                Debug.Assert(method.ReturnsByRef)
             End If
 
             FreeOptTemp(tempOpt)
@@ -1410,7 +1444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         End Function
 
-        Private Sub EmitStaticCast(toType As TypeSymbol, syntax As VisualBasicSyntaxNode)
+        Private Sub EmitStaticCast(toType As TypeSymbol, syntax As SyntaxNode)
             Debug.Assert(toType.IsVerifierReference())
 
             ' From ILGENREC::GenQMark
@@ -1478,7 +1512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
             If (used) Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
@@ -1492,7 +1526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitNewObj(constructor As MethodSymbol,
                                 arguments As ImmutableArray(Of BoundExpression),
                                 used As Boolean,
-                                syntaxNode As VisualBasicSyntaxNode)
+                                syntaxNode As SyntaxNode)
 
             Debug.Assert(Not constructor.IsDefaultValueTypeConstructor(),
                          "do not call synthesized struct constructors, they do not exist")
@@ -1503,23 +1537,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Sub EmitLoadDefaultValueOfTypeParameter(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadDefaultValueOfTypeParameter(type As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
             Debug.Assert(type.IsTypeParameter)
             EmitLoadDefaultValueOfTypeFromNothingLiteral(type, used, syntaxNode)
         End Sub
 
-        Private Sub EmitLoadDefaultValueOfTypeFromConstructorCall(constructor As MethodSymbol,
-                                                                  used As Boolean,
-                                                                  syntaxNode As VisualBasicSyntaxNode)
-
-            If constructor.IsDefaultValueTypeConstructor() Then
-                EmitInitObj(constructor.ContainingType, used, syntaxNode)
-            Else
-                EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used, syntaxNode)
-            End If
-        End Sub
-
-        Private Sub EmitLoadDefaultValueOfTypeFromNothingLiteral(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitLoadDefaultValueOfTypeFromNothingLiteral(type As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
             EmitInitObj(type, used, syntaxNode)
         End Sub
 
@@ -1586,7 +1609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(target.Type, target.Syntax)
         End Sub
 
-        Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As SyntaxNode)
             ' unused constant has no side-effects
             If used Then
                 ' Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
@@ -1840,6 +1863,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Me.EmitSideEffects(sequence.SideEffects)
                     lhsUsesStack = EmitAssignmentPreamble(sequence.ValueOpt)
 
+                Case BoundKind.Call
+                    Dim left = DirectCast(assignmentTarget, BoundCall)
+                    Debug.Assert(left.Method.ReturnsByRef)
+                    EmitCallExpression(left, UseKind.UsedAsAddress)
+                    lhsUsesStack = True
+
+                Case BoundKind.ModuleVersionId, BoundKind.InstrumentationPayloadRoot
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind)
 
@@ -1937,6 +1968,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Next
                     End If
 
+                Case BoundKind.Call
+                    Debug.Assert(DirectCast(expression, BoundCall).Method.ReturnsByRef)
+                    EmitStoreIndirect(expression.Type, expression.Syntax)
+
+                Case BoundKind.ModuleVersionId
+                    EmitModuleVersionIdStore(DirectCast(expression, BoundModuleVersionId))
+
+                Case BoundKind.InstrumentationPayloadRoot
+                    EmitInstrumentationPayloadRootStore(DirectCast(expression, BoundInstrumentationPayloadRoot))
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)
             End Select
@@ -1949,7 +1990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(thisRef.Type, thisRef.Syntax)
         End Sub
 
-        Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As SyntaxNode)
             If arrayType.IsSZArray Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
@@ -1960,7 +2001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary>
         ''' Emit an element store instruction for a single dimensional array.
         ''' </summary>
-        Private Sub EmitVectorElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitVectorElementStore(arrayType As ArrayTypeSymbol, syntaxNode As SyntaxNode)
             Dim elementType = arrayType.ElementType
 
             If elementType.IsEnumType() Then
@@ -2033,7 +2074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-        Private Sub EmitStoreIndirect(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStoreIndirect(type As TypeSymbol, syntaxNode As SyntaxNode)
             If type.IsEnumType() Then
                 type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
             End If
@@ -2150,15 +2191,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Sub EmitBox(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitBox(type As TypeSymbol, syntaxNode As SyntaxNode)
             _builder.EmitOpCode(ILOpCode.Box)
             EmitSymbolToken(type, syntaxNode)
         End Sub
 
-        Private Sub EmitUnboxAny(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitUnboxAny(type As TypeSymbol, syntaxNode As SyntaxNode)
             _builder.EmitOpCode(ILOpCode.Unbox_any)
             EmitSymbolToken(type, syntaxNode)
         End Sub
+
+        Private Sub EmitMethodDefIndexExpression(node As BoundMethodDefIndex)
+            Debug.Assert(node.Method.IsDefinition)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            EmitSymbolToken(node.Method, node.Syntax, encodeAsRawDefinitionToken:=True)
+        End Sub
+
+        Private Sub EmitMaximumMethodDefIndexExpression(node As BoundMaximumMethodDefIndex)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            _builder.EmitGreatestMethodToken()
+        End Sub
+
+        Private Sub EmitModuleVersionIdLoad(node As BoundModuleVersionId)
+            _builder.EmitOpCode(ILOpCode.Ldsfld)
+            EmitModuleVersionIdToken(node)
+        End Sub
+
+        Private Sub EmitModuleVersionIdStore(node As BoundModuleVersionId)
+            _builder.EmitOpCode(ILOpCode.Stsfld)
+            EmitModuleVersionIdToken(node)
+        End Sub
+
+        Private Sub EmitModuleVersionIdToken(node As BoundModuleVersionId)
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+        End Sub
+
+        Private Sub EmitModuleVersionIdStringLoad(node As BoundModuleVersionIdString)
+            _builder.EmitOpCode(ILOpCode.Ldstr)
+            _builder.EmitModuleVersionIdStringToken()
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootLoad(node As BoundInstrumentationPayloadRoot)
+            _builder.EmitOpCode(ILOpCode.Ldsfld)
+            EmitInstrumentationPayloadRootToken(node)
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootStore(node As BoundInstrumentationPayloadRoot)
+            _builder.EmitOpCode(ILOpCode.Stsfld)
+            EmitInstrumentationPayloadRootToken(node)
+        End Sub
+
+        Private Sub EmitInstrumentationPayloadRootToken(node As BoundInstrumentationPayloadRoot)
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics)
+        End Sub
+
+        Private Sub EmitSourceDocumentIndex(node As BoundSourceDocumentIndex)
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
+            _builder.EmitOpCode(ILOpCode.Ldtoken)
+            _builder.EmitSourceDocumentIndexToken(node.Document)
+        End Sub
+
     End Class
 
 End Namespace

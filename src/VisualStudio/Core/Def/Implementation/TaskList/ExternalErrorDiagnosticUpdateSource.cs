@@ -28,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
 
-        private InprogressState _state = null;
+        private readonly object _gate;
+        private InprogressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
@@ -63,13 +64,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
 
+            _gate = new object();
+
             registrationService.Register(this);
         }
 
         public event EventHandler<bool> BuildStarted;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public bool IsInProgress => _state != null;
+        public bool IsInProgress => BuildInprogressState != null;
 
         public ImmutableArray<DiagnosticData> GetBuildErrors()
         {
@@ -78,13 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public bool SupportedDiagnosticId(ProjectId projectId, string id)
         {
-            return _state?.SupportedDiagnosticId(projectId, id) ?? false;
+            return BuildInprogressState?.SupportedDiagnosticId(projectId, id) ?? false;
         }
 
         public void ClearErrors(ProjectId projectId)
         {
             // capture state if it exists
-            var state = _state;
+            var state = BuildInprogressState;
 
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
@@ -152,11 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            // get local copy of inprogress state
-            var inprogressState = _state;
-
-            // building is done. reset the state.
-            Interlocked.CompareExchange(ref _state, null, inprogressState);
+            // building is done. reset the state
+            // and get local copy of inprogress state
+            var inprogressState = ClearInprogressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
@@ -342,17 +343,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
+        private InprogressState BuildInprogressState
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _stateDoNotAccessDirectly;
+                }
+            }
+        }
+
+        private InprogressState ClearInprogressState()
+        {
+            lock (_gate)
+            {
+                var state = _stateDoNotAccessDirectly;
+
+                _stateDoNotAccessDirectly = null;
+                return state;
+            }
+        }
+
         private InprogressState GetOrCreateInprogressState()
         {
-            if (_state == null)
+            lock (_gate)
             {
-                // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                Interlocked.CompareExchange(ref _state, new InprogressState(this, _workspace.CurrentSolution), null);
-            }
+                if (_stateDoNotAccessDirectly == null)
+                {
+                    // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+                    // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+                    // between build and diagnostic service, but this at least make us to consistent inside of our code.
+                    _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
+                }
 
-            return _state;
+                return _stateDoNotAccessDirectly;
+            }
         }
 
         private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
@@ -400,8 +426,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _solution = solution;
 
                 // let people know build has started
-                // TODO: to be more accurate, it probably needs to be counted. but for now,
-                //       I think the way it is doing probably enough.
                 _owner.RaiseBuildStarted(started: true);
             }
 
@@ -561,11 +585,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
+                var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
+                var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
+
                 if (item1.DocumentId != null && item2.DocumentId != null)
                 {
-                    var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
-                    var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
-
                     return item1.Id == item2.Id &&
                            item1.Message == item2.Message &&
                            item1.ProjectId == item2.ProjectId &&
@@ -578,15 +602,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return item1.Id == item2.Id &&
                        item1.Message == item2.Message &&
                        item1.ProjectId == item2.ProjectId &&
+                       item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath &&
+                       lineColumn1.Item1 == lineColumn2.Item1 &&
+                       lineColumn1.Item2 == lineColumn2.Item2 &&
                        item1.Severity == item2.Severity;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
+                var lineColumn = GetOriginalOrMappedLineColumn(obj);
+
                 if (obj.DocumentId != null)
                 {
-                    var lineColumn = GetOriginalOrMappedLineColumn(obj);
-
                     return Hash.Combine(obj.Id,
                            Hash.Combine(obj.Message,
                            Hash.Combine(obj.ProjectId,
@@ -597,13 +624,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 return Hash.Combine(obj.Id,
                        Hash.Combine(obj.Message,
-                       Hash.Combine(obj.ProjectId, (int)obj.Severity)));
+                       Hash.Combine(obj.ProjectId,
+                       Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0,
+                       Hash.Combine(lineColumn.Item1,
+                       Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
             }
 
             private static ValueTuple<int, int> GetOriginalOrMappedLineColumn(DiagnosticData data)
             {
                 var workspace = data.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace == null)
+                {
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
+                }
+
+                if (data.DocumentId == null)
                 {
                     return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }

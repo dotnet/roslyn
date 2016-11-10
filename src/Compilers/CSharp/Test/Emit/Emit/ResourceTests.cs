@@ -885,6 +885,8 @@ public class Maine
         {
             var backingStream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
             var stream = new TestStream(
+                canRead: true,
+                canSeek: true,
                 readFunc: backingStream.Read,
                 length: 6, // Lie about the length (> backingStream.Length)
                 getPosition: () => backingStream.Position);
@@ -896,12 +898,12 @@ public class Maine
                 var result = c1.Emit(new MemoryStream(), manifestResources:
                     new[]
                     {
-                    new ResourceDescription("res", () => stream, false)
+                        new ResourceDescription("res", () => stream, false)
                     });
 
                 result.Diagnostics.Verify(
-    // error CS1566: Error reading resource 'res' -- 'Resource stream ended at 4 bytes, expected 6 bytes.'
-    Diagnostic(ErrorCode.ERR_CantReadResource).WithArguments("res", "Resource stream ended at 4 bytes, expected 6 bytes.").WithLocation(1, 1));
+                    // error CS1566: Error reading resource 'res' -- 'Resource stream ended at 4 bytes, expected 6 bytes.'
+                    Diagnostic(ErrorCode.ERR_CantReadResource).WithArguments("res", "Resource stream ended at 4 bytes, expected 6 bytes.").WithLocation(1, 1));
             }
         }
     }

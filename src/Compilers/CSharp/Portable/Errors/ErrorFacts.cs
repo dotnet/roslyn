@@ -316,6 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
+                case ErrorCode.WRN_TupleLiteralNameMismatch:
                     return 1;
                 default:
                     return 0;

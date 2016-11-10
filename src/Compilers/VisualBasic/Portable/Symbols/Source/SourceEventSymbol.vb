@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
@@ -8,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceEventSymbol
@@ -199,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' all other implemented events must be of the same type as the first
                     For i As Integer = 1 To implementedEvents.Length - 1
                         Dim implemented = implementedEvents(i)
-                        If Not implemented.Type = implementedEventType Then
+                        If Not implemented.Type.IsSameType(implementedEventType, TypeCompareKind.IgnoreTupleNames) Then
                             Dim errLocation = GetImplementingLocation(implemented)
                             Binder.ReportDiagnostic(diagnostics,
                                                     errLocation,
@@ -218,9 +216,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim types = _containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
                     Debug.Assert(Not types.IsDefault)
 
-                    If Not types.IsEmpty Then
-                        type = types(0)
-                    Else
+                    type = Nothing
+
+                    For Each candidate In types
+                        If candidate.AssociatedSymbol Is Me Then
+                            type = candidate
+                            Exit For
+                        End If
+                    Next
+
+                    If type Is Nothing Then
                         ' if we still do not know the type, get a temporary one (it is not a member of the containing class)
                         type = New SynthesizedEventDelegateSymbol(Me._syntaxRef, _containingType)
                     End If
@@ -278,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagnostics As DiagnosticBag = Nothing
             Dim type = Me.Type
             For Each implemented In ExplicitInterfaceImplementations
-                If Not implemented.Type = type Then
+                If Not implemented.Type.IsSameType(type, TypeCompareKind.IgnoreTupleNames) Then
                     If diagnostics Is Nothing Then
                         diagnostics = DiagnosticBag.GetInstance()
                     End If
@@ -642,8 +647,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
-
             Dim attrData = arguments.Attribute
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
                 ' Although NonSerialized attribute is only applicable on fields we relax that restriction and allow application on events as well
                 ' to allow making the backing field non-serializable.
@@ -745,5 +754,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
+        End Sub
     End Class
 End Namespace

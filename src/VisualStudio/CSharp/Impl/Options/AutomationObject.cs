@@ -9,11 +9,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -25,6 +27,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         internal AutomationObject(Workspace workspace)
         {
             _workspace = workspace;
+        }
+
+        /// <summary>
+        /// Unused.  But kept around for back compat.  Note this option is not about
+        /// turning warning into errors.  It's about an aspect of 'remove unused using'
+        /// functionality we don't support anymore.  Namely whether or not 'remove unused
+        /// using' should warn if you have any build errors as that might mean we 
+        /// remove some usings inappropriately.
+        /// </summary>
+        public int WarnOnBuildErrors
+        {
+            get { return 0; }
+            set { }
         }
 
         public int AutoComment
@@ -43,6 +58,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters); }
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
+        }
+
+        public int HighlightMatchingPortionsOfCompletionListItems
+        {
+            get { return GetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems); }
+            set { SetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, value); }
+        }
+
+        public int ShowCompletionItemFilters
+        {
+            get { return GetBooleanOption(CompletionOptions.ShowCompletionItemFilters); }
+            set { SetBooleanOption(CompletionOptions.ShowCompletionItemFilters, value); }
         }
 
         [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
@@ -173,8 +200,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return GetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord); }
-            set { SetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, value); }
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+        }
+
+        public int EnterKeyBehavior
+        {
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+        }
+
+        public int SnippetsBehavior
+        {
+            get { return (int)GetOption(CompletionOptions.SnippetsBehavior); }
+            set { SetOption(CompletionOptions.SnippetsBehavior, (SnippetsRule)value); }
         }
 
         public int NewLines_AnonymousTypeInitializer_EachMember
@@ -287,32 +326,48 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int ShowKeywords
         {
-            get { return GetBooleanOption(CompletionOptions.IncludeKeywords); }
-            set { SetBooleanOption(CompletionOptions.IncludeKeywords, value); }
+            get { return 0; }
+            set { }
         }
 
+        [Obsolete("Use SnippetsBehavior instead")]
         public int ShowSnippets
         {
-            get { return GetBooleanOption(CSharpCompletionOptions.IncludeSnippets); }
-            set { SetBooleanOption(CSharpCompletionOptions.IncludeSnippets, value); }
+            get
+            {
+                return GetOption(CompletionOptions.SnippetsBehavior) == SnippetsRule.AlwaysInclude
+                    ? 1 : 0;
+            }
+
+            set
+            {
+                if (value == 0)
+                {
+                    SetOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude);
+                }
+                else
+                {
+                    SetOption(CompletionOptions.SnippetsBehavior, SnippetsRule.AlwaysInclude);
+                }
+            }
         }
 
         public int SortUsings_PlaceSystemFirst
         {
-            get { return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst); }
-            set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
+            get { return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst); }
+            set { SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value); }
         }
 
         public int AddImport_SuggestForTypesInReferenceAssemblies
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, value); }
         }
 
         public int AddImport_SuggestForTypesInNuGetPackages
         {
-            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
-            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
+            get { return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, value); }
         }
 
         public int Space_AfterBasesColon
@@ -462,16 +517,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.SpaceWithinSquareBrackets, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
         }
 
-        public int Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
         {
-            get { return GetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
-            set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
+            get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
+            set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
         public string Style_NamingPreferences
@@ -576,6 +631,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
         }
 
+        private T GetOption<T>(PerLanguageOption<T> key)
+        {
+            return _workspace.Options.GetOption(key, LanguageNames.CSharp);
+        }
+
         private void SetBooleanOption(Option<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, value != 0);
@@ -584,6 +644,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void SetBooleanOption(PerLanguageOption<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+        }
+
+        private void SetOption<T>(PerLanguageOption<T> key, T value)
+        {
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value);
         }
 
         private int GetBooleanOption(PerLanguageOption<bool?> key)

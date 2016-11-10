@@ -60,10 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                var property = symbol as PropertySymbol;
-                if (property != null)
+                if (symbol.ReturnsByRef)
                 {
-                    AddRefKindIfRequired(property.RefKind);
+                    AddRefIfRequired();
                 }
 
                 symbol.Type.Accept(this.NotFirstVisitor);
@@ -232,10 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // to visualize a symbol *during its construction*, the parameters and return type might 
                             // still be null. 
 
-                            var method = symbol as MethodSymbol;
-                            if (method != null)
+                            if (symbol.ReturnsByRef)
                             {
-                                AddRefKindIfRequired(method.RefKind);
+                                AddRefIfRequired();
                             }
 
                             if (symbol.ReturnsVoid)
@@ -669,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 if (method.DeclaredAccessibility != property.DeclaredAccessibility)
                 {
-                    AddAccessibilityIfRequired(method);
+                    AddAccessibility(method);
                 }
 
                 AddKeyword(keyword);
@@ -715,6 +713,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddSpace();
                 }
+            }
+        }
+
+        private void AddRefIfRequired()
+        {
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+            {
+                AddKeyword(SyntaxKind.RefKeyword);
+                AddSpace();
             }
         }
 

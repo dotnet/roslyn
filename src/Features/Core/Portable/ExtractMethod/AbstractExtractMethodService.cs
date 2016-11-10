@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            options = options ?? document.Options;
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 

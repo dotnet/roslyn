@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                throw new ArgumentException(EditorFeaturesResources.SymbolCannotBeNamespace, nameof(symbol));
+                throw new ArgumentException(EditorFeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
             }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentName = string.Format(
                 "{0} [{1}]",
                 topLevelNamedType.Name,
-                EditorFeaturesResources.FromMetadata);
+                EditorFeaturesResources.from_metadata);
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 

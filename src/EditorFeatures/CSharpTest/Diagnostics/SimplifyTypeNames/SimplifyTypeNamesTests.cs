@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -30,9 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
         {
             await TestAsync(
 @"using System;
+
 class C
 {
-    static T Foo<T>(T x, T y) { return default(T); }
+    static T Foo<T>(T x, T y)
+    {
+        return default(T);
+    }
 
     static void M()
     {
@@ -40,9 +46,13 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
-    static T Foo<T>(T x, T y) { return default(T); }
+    static T Foo<T>(T x, T y)
+    {
+        return default(T);
+    }
 
     static void M()
     {
@@ -54,29 +64,31 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias0()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"using Foo = System;
-namespace Root 
+
+namespace Root
 {
-    class A 
+    class A
     {
     }
 
     class B
     {
-    public [|Foo::Int32|] a;
+        public [|Foo::Int32|] a;
     }
 }",
 @"using Foo = System;
-namespace Root 
+
+namespace Root
 {
-    class A 
+    class A
     {
     }
 
     class B
     {
-    public int a;
+        public int a;
     }
 }", index: 0);
         }
@@ -85,20 +97,20 @@ namespace Root
         public async Task UseAlias00()
         {
             await TestAsync(
-@"namespace Root 
+@"namespace Root
 {
     using MyType = System.IO.File;
 
-    class A 
+    class A
     {
         [|System.IO.File|] c;
     }
 }",
-@"namespace Root 
+@"namespace Root
 {
     using MyType = System.IO.File;
 
-    class A 
+    class A
     {
         MyType c;
     }
@@ -111,7 +123,7 @@ namespace Root
             var source =
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     [|System.Exception|] c;
 }";
@@ -119,7 +131,7 @@ class A
             await TestAsync(source,
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     MyType c;
 }", index: 0);
@@ -128,7 +140,7 @@ class A
             await TestSpansAsync(source,
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     [|System.Exception|] c;
 }");
@@ -138,20 +150,20 @@ class A
         public async Task UseAlias1()
         {
             await TestAsync(
-@"namespace Root 
+@"namespace Root
 {
     using MyType = System.Exception;
 
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
 }",
-@"namespace Root 
+@"namespace Root
 {
     using MyType = System.Exception;
 
-    class A 
+    class A
     {
         MyType c;
     }
@@ -164,18 +176,18 @@ class A
             await TestAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
-}", @"
-using MyType = System.Exception;
+}", 
+@"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         MyType c;
     }
@@ -188,23 +200,23 @@ namespace Root
             await TestAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             [|System.Exception|] c;
         }
     }
-}", @"
-using MyType = System.Exception;
+}", 
+@"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             MyType c;
         }
@@ -218,13 +230,13 @@ namespace Root
             await TestAsync(
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     [|System.Exception|] c;
 }",
 @"using MyType = System.Exception;
 
-class A 
+class A
 {
     MyType c;
 }", index: 0);
@@ -234,20 +246,20 @@ class A
         public async Task UseAlias5()
         {
             await TestAsync(
-@"namespace Root 
+@"namespace Root
 {
     using MyType = System.Exception;
 
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
-}", @"
-namespace Root 
+}", 
+@"namespace Root
 {
     using MyType = System.Exception;
 
-    class A 
+    class A
     {
         MyType c;
     }
@@ -260,18 +272,18 @@ namespace Root
             await TestAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
-}", @"
-using MyType = System.Exception;
+}", 
+@"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         MyType c;
     }
@@ -284,23 +296,23 @@ namespace Root
             await TestAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             [|System.Exception|] c;
         }
     }
-}", @"
-using MyType = System.Exception;
+}", 
+@"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             MyType c;
         }
@@ -312,26 +324,25 @@ namespace Root
         public async Task UseAlias8()
         {
             await TestAsync(
-@"
-using Foo = System.Int32;
+@"using Foo = System.Int32;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             var c = [|System.Int32|].MaxValue;
         }
     }
-}", @"
-using Foo = System.Int32;
+}", 
+@"using Foo = System.Int32;
 
-namespace Root 
+namespace Root
 {
     namespace Nested
     {
-        class A 
+        class A
         {
             var c = Foo.MaxValue;
         }
@@ -345,22 +356,22 @@ namespace Root
             await TestAsync(
 @"using MyType1 = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType2 = Exception;
 
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
-}", @"
-using MyType1 = System.Exception;
+}", 
+@"using MyType1 = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType2 = Exception;
 
-    class A 
+    class A
     {
         MyType1 c;
     }
@@ -373,22 +384,22 @@ namespace Root
             await TestAsync(
 @"using MyType1 = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType2 = [|System.Exception|];
 
-    class A 
+    class A
     {
         System.Exception c;
     }
-}", @"
-using MyType1 = System.Exception;
+}", 
+@"using MyType1 = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType2 = MyType1;
 
-    class A 
+    class A
     {
         System.Exception c;
     }
@@ -401,11 +412,11 @@ namespace Root
             await TestMissingAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType = Exception;
 
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
@@ -418,22 +429,22 @@ namespace Root
             await TestAsync(
 @"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType = [|System.Exception|];
 
-    class A 
+    class A
     {
         System.Exception c;
     }
-}", @"
-using MyType = System.Exception;
+}", 
+@"using MyType = System.Exception;
 
-namespace Root 
+namespace Root
 {
     using MyType = MyType;
 
-    class A 
+    class A
     {
         System.Exception c;
     }
@@ -467,18 +478,18 @@ namespace Root
 {
     [|System.Int32|] i;
 }";
+            var featureOptions = PreferIntrinsicTypeEverywhere;
             await TestAsync(source,
-@"
-class A
+@"class A
 {
     int i;
-}", index: 0);
-            await TestActionCountAsync(source, 1);
+}", index: 0, options: featureOptions);
+            await TestActionCountAsync(source, 1, featureOptions: featureOptions);
             await TestSpansAsync(source,
 @"class A
 {
     [|System.Int32|] i;
-}");
+}", featureOptions: featureOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -514,7 +525,7 @@ class A
                 int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
-                await TestAsync(newContent, expected, index: 0);
+                await TestWithPredefinedTypeOptionsAsync(newContent, expected, index: 0);
             }
         }
 
@@ -538,20 +549,20 @@ class A
             var source =
 @"using System;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
 }";
 
-            await TestAsync(source, @"
-using System;
+            await TestAsync(source, 
+@"using System;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         Exception c;
     }
@@ -560,9 +571,9 @@ namespace Root
             await TestSpansAsync(source,
 @"using System;
 
-namespace Root 
+namespace Root
 {
-    class A 
+    class A
     {
         [|System|].Exception c;
     }
@@ -575,14 +586,14 @@ namespace Root
             await TestAsync(
 @"namespace System
 {
-    class A 
+    class A
     {
         [|System.Exception|] c;
     }
-}", @"
-namespace System
+}", 
+@"namespace System
 {
-    class A 
+    class A
     {
         Exception c;
     }
@@ -595,7 +606,9 @@ namespace System
             await TestAsync(
 @"namespace N1
 {
-    public class A1 { }
+    public class A1
+    {
+    }
 
     namespace N2
     {
@@ -604,10 +617,12 @@ namespace System
             [|N1.A1|] a;
         }
     }
-}", @"
-namespace N1
+}", 
+@"namespace N1
 {
-    public class A1 { }
+    public class A1
+    {
+    }
 
     namespace N2
     {
@@ -628,19 +643,23 @@ namespace N1
 {
     namespace N2
     {
-        public class A1 { }
+        public class A1
+        {
+        }
     }
 
     public class A2
     {
         [|N1.N2.A1|] a;
     }
-}", @"
-namespace N1
+}", 
+@"namespace N1
 {
     namespace N2
     {
-        public class A1 { }
+        public class A1
+        {
+        }
     }
 
     public class A2
@@ -658,19 +677,23 @@ namespace N1
 {
     class NC1
     {
-        public class A1 { }
+        public class A1
+        {
+        }
     }
 
     public class A2
     {
         [|N1.NC1.A1|] a;
     }
-}", @"
-namespace N1
+}", 
+@"namespace N1
 {
     class NC1
     {
-        public class A1 { }
+        public class A1
+        {
+        }
     }
 
     public class A2
@@ -719,14 +742,16 @@ namespace N1
     }
 }";
 
-            await TestAsync(source, @"
-namespace N1
+            await TestAsync(source, 
+@"namespace N1
 {
     namespace N2
     {
         public class A2
         {
-            public class A1 { }
+            public class A1
+            {
+            }
 
             A1 a;
         }
@@ -765,8 +790,8 @@ namespace N1
     }
 }";
 
-            await TestAsync(source, @"
-using System;
+            await TestAsync(source, 
+@"using System;
 
 namespace N1
 {
@@ -793,8 +818,8 @@ namespace N1
     {
         {|FixAllInDocument:System.Action|}<System.Action<System.Action<System.EventArgs>, System.Action<System.Action<System.EventArgs, System.Action<System.EventArgs>, System.Action<System.Action<System.Action<System.Action<System.EventArgs>, System.Action<System.EventArgs>>>>>>>> a;
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 namespace N1
 {
@@ -836,8 +861,8 @@ namespace N1
     }
 }";
 
-            await TestAsync(source, @"
-using MyHandler = System.EventHandler<System.EventArgs>;
+            await TestAsync(source, 
+@"using MyHandler = System.EventHandler<System.EventArgs>;
 
 namespace N1
 {
@@ -880,8 +905,8 @@ namespace N1
     {
         [|N1.N2.A1<System.Exception>|] a;
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 namespace N1
 {
@@ -923,8 +948,8 @@ namespace N1
     {
         N1.N2.A1<[|System.Exception|]> a;
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 namespace N1
 {
@@ -947,7 +972,7 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Array1()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"using System.Collections.Generic;
 
 namespace N1
@@ -956,8 +981,8 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[]>|] a;
     }
-}", @"
-using System.Collections.Generic;
+}", 
+@"using System.Collections.Generic;
 
 namespace N1
 {
@@ -993,7 +1018,7 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Array2()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"using System.Collections.Generic;
 
 namespace N1
@@ -1002,8 +1027,8 @@ namespace N1
     {
         [|System.Collections.Generic.List<System.String[][,][,,,]>|] a;
     }
-}", @"
-using System.Collections.Generic;
+}", 
+@"using System.Collections.Generic;
 
 namespace N1
 {
@@ -1020,6 +1045,7 @@ namespace N1
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     static void Main(string[] args)
@@ -1034,8 +1060,7 @@ class Program
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
         {
             await TestMissingAsync(
-@"
-class Program
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -1050,6 +1075,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     static void Main(string[] args)
@@ -1063,7 +1089,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf4()
         {
-            await TestAsync(
+            await TestMissingAsync(
 @"using System;
 
 class Program
@@ -1071,20 +1097,6 @@ class Program
     static void Main(string[] args)
     {
         var x = nameof(typeof([|Int32|]));
-    }
-
-    static string nameof(Type t)
-    {
-        return string.Empty;
-    }
-}",
-@"using System;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        var x = nameof(typeof(int));
     }
 
     static string nameof(Type t)
@@ -1130,20 +1142,19 @@ class Program
         /// <see cref=""[|System.Int32|]""/>
         public C1()
         {
-
         }
     }
-}", @"namespace N1
+}", 
+@"namespace N1
 {
     public class C1
     {
         /// <see cref=""int""/>
         public C1()
         {
-
         }
     }
-}", index: 0);
+}", index: 0, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -1167,7 +1178,7 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias2()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"using I64 = System.Int64;
 using Foo = System.Collections.Generic.IList<[|System.Int64|]>;
 
@@ -1176,8 +1187,8 @@ namespace N1
     class Test
     {
     }
-}", @"
-using I64 = System.Int64;
+}", 
+@"using I64 = System.Int64;
 using Foo = System.Collections.Generic.IList<long>;
 
 namespace N1
@@ -1192,7 +1203,7 @@ namespace N1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias3()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"namespace Outer
 {
     using I64 = System.Int64;
@@ -1204,8 +1215,8 @@ namespace N1
         {
         }
     }
-}", @"
-namespace Outer
+}", 
+@"namespace Outer
 {
     using I64 = System.Int64;
     using Foo = System.Collections.Generic.IList<long>;
@@ -1223,7 +1234,7 @@ namespace Outer
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias4()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"using I64 = System.Int64;
 
 namespace Outer
@@ -1236,8 +1247,8 @@ namespace Outer
         {
         }
     }
-}", @"
-using I64 = System.Int64;
+}", 
+@"using I64 = System.Int64;
 
 namespace Outer
 {
@@ -1280,13 +1291,16 @@ namespace N
         {
             await TestAsync(
 @"using alias1 = A;
+
 class A
 {
     public [|A|] M()
     {
         return null;
     }
-}", @"using alias1 = A;
+}", 
+@"using alias1 = A;
+
 class A
 {
     public alias1 M()
@@ -1303,12 +1317,18 @@ class A
             await TestMissingAsync(
 @"class A<T>
 {
-    class B : A<B> { }
- 
-    class C : I<B>, I<[|B.B|]> { }
+    class B : A<B>
+    {
+    }
+
+    class C : I<B>, I<[|B.B|]>
+    {
+    }
 }
- 
-interface I<T> { }");
+
+interface I<T>
+{
+}");
         }
 
         [WorkItem(538949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
@@ -1318,12 +1338,18 @@ interface I<T> { }");
             await TestMissingAsync(
 @"class A<T>
 {
-    class B : A<B> { }
- 
-    class C : I<B>, [|B.B|] { }
+    class B : A<B>
+    {
+    }
+
+    class C : I<B>, [|B.B|]
+    {
+    }
 }
- 
-interface I<T> { }");
+
+interface I<T>
+{
+}");
         }
 
         [WorkItem(538991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
@@ -1364,6 +1390,7 @@ interface I<T> { }");
             await TestMissingAsync(
 @"using System.Collections.Generic;
 using M = System.Collections.Generic.IList<[|System.Collections.Generic.IList<>|]>;
+
 class C
 {
 }");
@@ -1377,9 +1404,14 @@ class C
             await TestMissingAsync(
 @"class A<T>
 {
-    class D : A<T[]> { }
-    class B { }
- 
+    class D : A<T[]>
+    {
+    }
+
+    class B
+    {
+    }
+
     class C<Y>
     {
         D.B x = new [|D.B|]();
@@ -1394,9 +1426,14 @@ class C
             await TestMissingAsync(
 @"class A<T>
 {
-    class D : A<T[]> { }
-    class B { }
- 
+    class D : A<T[]>
+    {
+    }
+
+    class B
+    {
+    }
+
     class C<T>
     {
         D.B x = new [|D.B|]();
@@ -1407,9 +1444,29 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestGlobalAlias()
         {
-            await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { [|global :: System |]. String s ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { string s ; } } ",
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|global::System|].String s;
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s;
+    }
+}",
 index: 0);
         }
 
@@ -1586,11 +1643,68 @@ compareTokens: false);
         public async Task TestPreventSimplificationThatWouldCauseConflict()
         {
             await TestAsync(
-@"namespace N { class Program { class Foo { public static void Bar ( ) { } } static void Main ( ) { [|N . Program . Foo . Bar |]( ) ; { int Foo ; } } } } ",
-@"namespace N { class Program { class Foo { public static void Bar ( ) { } } static void Main ( ) { Program . Foo . Bar ( ) ; { int Foo ; } } } } ");
+@"namespace N
+{
+    class Program
+    {
+        class Foo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N.Program.Foo.Bar|]();
+            {
+                int Foo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Foo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Program.Foo.Bar();
+            {
+                int Foo;
+            }
+        }
+    }
+}");
 
             await TestMissingAsync(
-@"namespace N { class Program { class Foo { public static void Bar ( ) { } } static void Main ( ) { [|Program . Foo . Bar |]( ) ; { int Foo ; } } } } ");
+@"namespace N
+{
+    class Program
+    {
+        class Foo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|Program.Foo.Bar|]();
+            {
+                int Foo;
+            }
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1598,7 +1712,16 @@ compareTokens: false);
         public async Task TestOnOpenType1()
         {
             await TestMissingAsync(
-@"class Program < T > { public class Inner { [ Bar ( typeof ( [|Program < > . Inner|] ) ) ] void Foo ( ) { } } } ");
+@"class Program<T>
+{
+    public class Inner
+    {
+        [Bar(typeof([|Program<>.Inner|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1606,8 +1729,26 @@ compareTokens: false);
         public async Task TestOnOpenType2()
         {
             await TestAsync(
-@"class Program { public class Inner < T > { [ Bar ( typeof ( [|Program . Inner < >|] ) ) ] void Foo ( ) { } } } ",
-@"class Program { public class Inner < T > { [ Bar ( typeof ( Inner < > ) ) ] void Foo ( ) { } } } ");
+@"class Program
+{
+    public class Inner<T>
+    {
+        [Bar(typeof([|Program.Inner<>|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program
+{
+    public class Inner<T>
+    {
+        [Bar(typeof(Inner<>))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1615,14 +1756,33 @@ compareTokens: false);
         public async Task TestOnOpenType3()
         {
             await TestMissingAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < > . Inner < >|] ) ) ] void Foo ( ) { } } } ");
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<>.Inner<>|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType4()
         {
-            await TestMissingAsync(@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program <X > . Inner < >|] ) ) ] void Foo ( ) { } } } ");
+            await TestMissingAsync(
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<X>.Inner<>|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1630,7 +1790,16 @@ compareTokens: false);
         public async Task TestOnOpenType5()
         {
             await TestMissingAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < > . Inner < Y >|] ) ) ] void Foo ( ) { } } } ");
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<>.Inner<Y>|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1638,7 +1807,16 @@ compareTokens: false);
         public async Task TestOnOpenType6()
         {
             await TestMissingAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < Y > . Inner < X >|] ) ) ] void Foo ( ) { } } } ");
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<Y>.Inner<X>|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
@@ -1646,8 +1824,26 @@ compareTokens: false);
         public async Task TestOnNonOpenType1()
         {
             await TestAsync(
-@"class Program { public class Inner { [ Bar ( typeof ( [|Program . Inner|] ) ) ] void Foo ( ) { } } } ",
-@"class Program { public class Inner { [ Bar ( typeof ( Inner ) ) ] void Foo ( ) { } } } ",
+@"class Program
+{
+    public class Inner
+    {
+        [Bar(typeof([|Program.Inner|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program
+{
+    public class Inner
+    {
+        [Bar(typeof(Inner))]
+        void Foo()
+        {
+        }
+    }
+}",
 index: 0);
         }
 
@@ -1656,8 +1852,26 @@ index: 0);
         public async Task TestOnNonOpenType2()
         {
             await TestAsync(
-@"class Program < T > { public class Inner { [ Bar ( typeof ( [|Program < T > . Inner |]) ) ] void Foo ( ) { } } } ",
-@"class Program < T > { public class Inner { [ Bar ( typeof ( Inner ) ) ] void Foo ( ) { } } } ",
+@"class Program<T>
+{
+    public class Inner
+    {
+        [Bar(typeof([|Program<T>.Inner|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program<T>
+{
+    public class Inner
+    {
+        [Bar(typeof(Inner))]
+        void Foo()
+        {
+        }
+    }
+}",
 index: 0);
         }
 
@@ -1666,8 +1880,26 @@ index: 0);
         public async Task TestOnNonOpenType3()
         {
             await TestAsync(
-@"class Program { public class Inner < T > { [ Bar ( typeof ( [|Program . Inner < >|] ) ) ] void Foo ( ) { } } }",
-@"class Program { public class Inner < T > { [ Bar ( typeof ( Inner < > ) ) ] void Foo ( ) { } } } ",
+@"class Program
+{
+    public class Inner<T>
+    {
+        [Bar(typeof([|Program.Inner<>|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program
+{
+    public class Inner<T>
+    {
+        [Bar(typeof(Inner<>))]
+        void Foo()
+        {
+        }
+    }
+}",
 index: 0);
         }
 
@@ -1676,8 +1908,26 @@ index: 0);
         public async Task TestOnNonOpenType4()
         {
             await TestAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < X > . Inner < Y > |]) ) ] void Foo ( ) { } } } ",
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( Inner < Y > ) ) ] void Foo ( ) { } } } ",
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<X>.Inner<Y>|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof(Inner<Y>))]
+        void Foo()
+        {
+        }
+    }
+}",
 index: 0);
         }
 
@@ -1686,8 +1936,26 @@ index: 0);
         public async Task TestOnNonOpenType5()
         {
             await TestAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < X > . Inner < X > |]) ) ] void Foo ( ) { } } } ",
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( Inner < X > ) ) ] void Foo ( ) { } } } ",
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<X>.Inner<X>|]))]
+        void Foo()
+        {
+        }
+    }
+}",
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof(Inner<X>))]
+        void Foo()
+        {
+        }
+    }
+}",
 index: 0);
         }
 
@@ -1696,7 +1964,16 @@ index: 0);
         public async Task TestOnNonOpenType6()
         {
             await TestMissingAsync(
-@"class Program < X > { public class Inner < Y > { [ Bar ( typeof ( [|Program < Y > . Inner < Y >|] ) ) ] void Foo ( ) { } } } ");
+@"class Program<X>
+{
+    public class Inner<Y>
+    {
+        [Bar(typeof([|Program<Y>.Inner<Y>|]))]
+        void Foo()
+        {
+        }
+    }
+}");
         }
 
         [WorkItem(542650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
@@ -1710,8 +1987,10 @@ class A
 class B
 #endif
 {
-    class C { }
- 
+    class C
+    {
+    }
+
     static void Main()
     {
 #if true
@@ -1729,7 +2008,20 @@ class B
         public async Task TestGlobalMissing1()
         {
             await TestMissingAsync(
-@"class Program { class System { } int Console = 7; void Main() { string v = null; [|global::System.Console.WriteLine(v)|]; } } ");
+@"class Program
+{
+    class System
+    {
+    }
+
+    int Console = 7;
+
+    void Main()
+    {
+        string v = null;
+        [|global::System.Console.WriteLine(v)|];
+    }
+}");
         }
 
         [WorkItem(544615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
@@ -1737,7 +2029,17 @@ class B
         public async Task TestMissingOnAmbiguousCast()
         {
             await TestMissingAsync(
-@"enum E { } class C { void Main() { var x = ([|global::E|])-1; } } ");
+@"enum E
+{
+}
+
+class C
+{
+    void Main()
+    {
+        var x = ([|global::E|])-1;
+    }
+}");
         }
 
         [WorkItem(544616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
@@ -1770,8 +2072,20 @@ class C
         public async Task TestNullableSimplification1()
         {
             await TestAsync(
-@"class C { static void Main ( ) { [|System . Nullable < int > . Equals |]( 1 , 1 ) ; } }",
-@"class C { static void Main ( ) { Equals ( 1 , 1 ) ; } }",
+@"class C
+{
+    static void Main()
+    {
+        [|System.Nullable<int>.Equals|](1, 1);
+    }
+}",
+@"class C
+{
+    static void Main()
+    {
+        Equals(1, 1);
+    }
+}",
 index: 0);
         }
 
@@ -1780,17 +2094,37 @@ index: 0);
         public async Task TestNullableSimplification3()
         {
             await TestAsync(
-@"class C { static void Main ([|System . Nullable < int >|] i) { } }",
-@"class C { static void Main (int? i) { } }");
+@"class C
+{
+    static void Main([|System.Nullable<int>|] i)
+    {
+    }
+}",
+@"class C
+{
+    static void Main(int? i)
+    {
+    }
+}");
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableSimplification4()
         {
-            await TestAsync(
-@"class C { static void Main ([|System . Nullable < System.Int32 >|] i) { } }",
-@"class C { static void Main (int? i) { } }");
+            await TestWithPredefinedTypeOptionsAsync(
+@"class C
+{
+    static void Main([|System.Nullable<System.Int32>|] i)
+    {
+    }
+}",
+@"class C
+{
+    static void Main(int? i)
+    {
+    }
+}");
         }
 
         [WorkItem(544977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
@@ -1828,7 +2162,9 @@ class Program
 /// <summary>
 /// <see cref=""[|Nullable{T}|]""/>
 /// </summary>
-class A { }");
+class A
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1839,7 +2175,9 @@ class A { }");
 @"/// <summary>
 /// <see cref=""[|System.Nullable{T}|]""/>
 /// </summary>
-class A { }");
+class A
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1850,7 +2188,9 @@ class A { }");
 @"/// <summary>
 /// <see cref=""[|System.Nullable{T}|].Value""/>
 /// </summary>
-class A { }");
+class A
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1862,12 +2202,16 @@ class A { }");
 /// <summary>
 /// <see cref=""C{[|Nullable{T}|]}""/>
 /// </summary>
-class C<T> {  }",
+class C<T>
+{
+}",
 @"using System;
 /// <summary>
 /// <see cref=""C{T?}""/>
 /// </summary>
-class C<T> {  }");
+class C<T>
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1878,9 +2222,11 @@ class C<T> {  }");
 @"/// <summary>
 /// <see cref=""A.M{[|Nullable{T}|]}()""/>
 /// </summary>
-class A 
+class A
 {
-    public void M<U>() where U : struct { }
+    public void M<U>() where U : struct
+    {
+    }
 }");
         }
 
@@ -1893,12 +2239,16 @@ class A
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
 /// </summary>
-class A { }",
+class A
+{
+}",
 @"using System;
 /// <summary>
 /// <see cref=""int?""/>
 /// </summary>
-class A { }");
+class A
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1910,12 +2260,16 @@ class A { }");
 /// <summary>
 /// <see cref=""C{[|Nullable{int}|]}""/>
 /// </summary>
-class C<T> { }",
+class C<T>
+{
+}",
 @"using System;
 /// <summary>
 /// <see cref=""C{int?}""/>
 /// </summary>
-class C<T> { }");
+class C<T>
+{
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -1926,9 +2280,11 @@ class C<T> { }");
 @"/// <summary>
 /// <see cref=""A.M{[|Nullable{int}|]}()""/>
 /// </summary>
-class A 
+class A
 {
-    public void M<U>() where U : struct { }
+    public void M<U>() where U : struct
+    {
+    }
 }");
         }
 
@@ -1941,15 +2297,19 @@ class A
 /// <see cref=""A.M([|System.Nullable{A}|])""/>
 /// </summary>
 struct A
-{ 
-    public void M(A? x) { }
+{
+    public void M(A? x)
+    {
+    }
 }",
 @"/// <summary>
 /// <see cref=""A.M(A?)""/>
 /// </summary>
 struct A
-{ 
-    public void M(A? x) { }
+{
+    public void M(A? x)
+    {
+    }
 }");
         }
 
@@ -1964,8 +2324,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M(List{[|Nullable{int}|]})""/>
 /// </summary>
 class A
-{ 
-    public void M(List<int?> x) { }
+{
+    public void M(List<int?> x)
+    {
+    }
 }",
 @"using System;
 using System.Collections.Generic;
@@ -1973,8 +2335,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M(List{int?})""/>
 /// </summary>
 class A
-{ 
-    public void M(List<int?> x) { }
+{
+    public void M(List<int?> x)
+    {
+    }
 }");
         }
 
@@ -1989,8 +2353,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M{U}(List{[|Nullable{U}|]})""/>
 /// </summary>
 class A
-{ 
-    public void M<U>(List<U?> x) where U : struct { }
+{
+    public void M<U>(List<U?> x) where U : struct
+    {
+    }
 }",
 @"using System;
 using System.Collections.Generic;
@@ -1998,8 +2364,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M{U}(List{U?})""/>
 /// </summary>
 class A
-{ 
-    public void M<U>(List<U?> x) where U : struct { }
+{
+    public void M<U>(List<U?> x) where U : struct
+    {
+    }
 }");
         }
 
@@ -2014,8 +2382,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M{T}(List{Nullable{T}}, [|Nullable{T}|])""/>
 /// </summary>
 class A
-{ 
-    public void M<U>(List<U?> x, U? y) where U : struct { }
+{
+    public void M<U>(List<U?> x, U? y) where U : struct
+    {
+    }
 }",
 @"using System;
 using System.Collections.Generic;
@@ -2023,8 +2393,10 @@ using System.Collections.Generic;
 /// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
 /// </summary>
 class A
-{ 
-    public void M<U>(List<U?> x, U? y) where U : struct { }
+{
+    public void M<U>(List<U?> x, U? y) where U : struct
+    {
+    }
 }");
         }
 
@@ -2032,15 +2404,87 @@ class A
         public async Task TestColorColorCase1()
         {
             await TestAsync(
-@"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { [|N . Color |]. Foo ( ) ; } } ",
-@"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { Color . Foo ( ) ; } } ", index: 0);
+@"using N;
+
+namespace N
+{
+    class Color
+    {
+        public static void Foo()
+        {
+        }
+
+        public void Bar()
+        {
+        }
+    }
+}
+
+class Program
+{
+    Color Color;
+
+    void Main()
+    {
+        [|N.Color|].Foo();
+    }
+}",
+@"using N;
+
+namespace N
+{
+    class Color
+    {
+        public static void Foo()
+        {
+        }
+
+        public void Bar()
+        {
+        }
+    }
+}
+
+class Program
+{
+    Color Color;
+
+    void Main()
+    {
+        Color.Foo();
+    }
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase2()
         {
             await TestMissingAsync(
-@"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { [|Color . Foo |]( ) ; } } ");
+@"using N;
+
+namespace N
+{
+    class Color
+    {
+        public static void Foo()
+        {
+        }
+
+        public void Bar()
+        {
+        }
+    }
+}
+
+class Program
+{
+    Color Color;
+
+    void Main()
+    {
+        [|Color.Foo|]();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -2055,14 +2499,13 @@ class A
     }
 }";
             await TestAsync(source,
-@"
-class Program
+@"class Program
 {
     static void Main()
     {
-        Program a = null; 
+        Program a = null;
     }
-}", null, 0);
+}", parseOptions: null, index: 0);
 
             await TestMissingAsync(source, GetScriptOptions());
         }
@@ -2088,7 +2531,7 @@ class Program
     {
         int x = Console.Read() + System.Console.Read();
     }
-}", 0);
+}", index: 0);
         }
 
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
@@ -2115,7 +2558,7 @@ static class M
             await TestAsync(source,
 @"class Preserve
 {
-	public static int Y;
+    public static int Y;
 }
 
 class Z<T> : Preserve
@@ -2124,10 +2567,10 @@ class Z<T> : Preserve
 
 static class M
 {
-	public static void Main()
-	{
-		int k = Preserve.Y;
-	}
+    public static void Main()
+    {
+        int k = Preserve.Y;
+    }
 }", 0);
         }
 
@@ -2158,10 +2601,10 @@ class M
             await TestAsync(source,
 @"class Preserve
 {
-	public class X
-	{
-		public static int Y;
-	}
+    public class X
+    {
+        public static int Y;
+    }
 }
 
 class Z<T> : Preserve
@@ -2170,11 +2613,11 @@ class Z<T> : Preserve
 
 class M
 {
-	public static void Main()
-	{
-		int k = Preserve.X.Y;
-	}
-}", null, 0);
+    public static void Main()
+    {
+        int k = Preserve.X.Y;
+    }
+}", index: 0);
         }
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
@@ -2203,8 +2646,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups1()
         {
-            await TestMissingAsync(@"
-using System;
+            await TestMissingAsync(
+@"using System;
 
 class Program
 {
@@ -2219,8 +2662,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups2()
         {
-            await TestMissingAsync(@"
-using System;
+            await TestMissingAsync(
+@"using System;
 
 class Program
 {
@@ -2235,8 +2678,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestMethodGroups3()
         {
-            await TestAsync(@"
-using System;
+            await TestAsync(
+@"using System;
 
 class Program
 {
@@ -2244,8 +2687,8 @@ class Program
     {
         Action a = [|System.Console.WriteLine|];
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 class Program
 {
@@ -2261,8 +2704,7 @@ class Program
         public async Task FixAllOccurrences1()
         {
             await TestAsync(
-@"
-using foo = A.B;
+@"using foo = A.B;
 using bar = C.D;
 
 class Program
@@ -2287,8 +2729,7 @@ namespace C
         public A.B prop { get; set; }
     }
 }",
-@"
-using foo = A.B;
+@"using foo = A.B;
 using bar = C.D;
 
 class Program
@@ -2320,34 +2761,43 @@ namespace C
         public async Task DontUseAlias1()
         {
             await TestMissingAsync(
-@"
-using System.Collections.Generic;
-using System.Linq; 
+@"using System.Collections.Generic;
+using System.Linq;
 
-namespace NSA{
-    class DuplicateClassName { }
-} 
+namespace NSA
+{
+    class DuplicateClassName
+    {
+    }
+}
 
-namespace NSB{
-    class DuplicateClassName { }
-} 
+namespace NSB
+{
+    class DuplicateClassName
+    {
+    }
+}
 
-namespace Test{
+namespace Test
+{
     using AliasA = NSA.DuplicateClassName;
     using AliasB = NSB.DuplicateClassName;
-     class TestClass
+
+    class TestClass
     {
         static void Main(string[] args)
         {
             var localA = new NSA.DuplicateClassName();
-            var localB = new NSB.DuplicateClassName(); 
+            var localB = new NSB.DuplicateClassName();
             new List<NoAlias.Foo>().Where(m => [|m.InnocentProperty|] == null);
         }
     }
 }
 
-namespace NoAlias{
-    class Foo    {
+namespace NoAlias
+{
+    class Foo
+    {
         public NSB.DuplicateClassName InnocentProperty { get; set; }
     }
 }");
@@ -2358,8 +2808,7 @@ namespace NoAlias{
         public async Task SuitablyReplaceNullables1()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class Program
 {
@@ -2375,8 +2824,7 @@ class Program
         public async Task SuitablyReplaceNullables2()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class Program
 {
@@ -2392,8 +2840,7 @@ class Program
         public async Task Bugfix_608190()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class Program
 {
@@ -2405,13 +2852,13 @@ class Program
 struct S
 {
     int x;
+
     S(dynamic y)
     {
         [|object.Equals|](y, 0);
         x = y;
     }
-}
-");
+}");
         }
 
         [WorkItem(608190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
@@ -2419,8 +2866,7 @@ struct S
         public async Task Bugfix_608190_1()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 
 class Program
 {
@@ -2432,13 +2878,13 @@ class Program
 struct S
 {
     int x;
+
     S(dynamic y)
     {
         x = y;
         [|this.Equals|](y, 0);
     }
-}
-");
+}");
         }
 
         [WorkItem(608932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
@@ -2446,8 +2892,7 @@ struct S
         public async Task Bugfix_608932()
         {
             await TestMissingAsync(
-@"
-using S = X;
+@"using S = X;
 
 class Program
 {
@@ -2459,35 +2904,37 @@ class Program
 namespace X
 {
     using S = System;
- 
-    enum E { }
- 
+
+    enum E
+    {
+    }
+
     class C<E>
     {
         [|X|].E e; // Simplify type name as suggested
     }
-}
-
-");
+}");
         }
 
         [WorkItem(635933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task Bugfix_635933()
         {
-            await TestMissingAsync(@"
-using System;
- 
+            await TestMissingAsync(
+@"using System;
+
 class B
 {
-    public static void Foo(int x, object y) { }
- 
+    public static void Foo(int x, object y)
+    {
+    }
+
     static void Main()
     {
         C<string>.D.Foo(0);
     }
 }
- 
+
 class C<T> : B
 {
     public class D : C<T> // Start rename session and try to rename D to T
@@ -2497,10 +2944,10 @@ class C<T> : B
             Console.WriteLine([|D.Foo(x, "")|]);
         }
     }
- 
+
     public static string Foo(int x, T y)
     {
-       string s = null;
+        string s = null;
         return s;
     }
 }");
@@ -2535,12 +2982,12 @@ class Program
         public async Task Bugfix_579172()
         {
             await TestMissingAsync(
-@"
-class C<T, S>
+@"class C<T, S>
 {
-    class D : C<[|D.D|], D.D.D> { }
-}
-");
+    class D : C<[|D.D|], D.D.D>
+    {
+    }
+}");
         }
 
         [WorkItem(633182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
@@ -2548,15 +2995,13 @@ class C<T, S>
         public async Task Bugfix_633182()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     void Foo()
     {
         ([|this.Foo|])();
     }
-}
-");
+}");
         }
 
         [WorkItem(627102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
@@ -2564,33 +3009,32 @@ class C
         public async Task Bugfix_627102()
         {
             await TestMissingAsync(
-@"
-using System;
- 
+@"using System;
+
 class B
 {
-    static void Foo(int x, object y) { }
- 
+    static void Foo(int x, object y)
+    {
+    }
+
     static void Foo<T>(dynamic x)
     {
-       Console.WriteLine([|C<T>.Foo|](x, ""));
+        Console.WriteLine([|C<T>.Foo|](x, ""));
     }
- 
+
     static void Main()
     {
         Foo<string>(0);
     }
 }
- 
+
 class C<T> : B
 {
     public static string Foo(int x, T y)
     {
         return ""Hello world"";
     }
-    }
-
-");
+}");
         }
 
         [WorkItem(629572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
@@ -2670,8 +3114,7 @@ class Program
         public async Task DontSimplifyTypeNameBrokenCode()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
 using System.Collections.Generic;
 
 class Program
@@ -2683,8 +3126,7 @@ class Program
     {
         return null;
     }
-}
-");
+}");
         }
 
         [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
@@ -2692,9 +3134,8 @@ class Program
         public async Task DontSimplifyAliases()
         {
             await TestMissingAsync(
-@"
-using Foo = System.Int32;
- 
+@"using Foo = System.Int32;
+
 class C
 {
     [|Foo|] f;
@@ -2737,47 +3178,44 @@ namespace A
         public async Task DontSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingAsync(
-@"
-[[|Attribute|]]
+@"[[|Attribute|]]
 class Attribute : System.Attribute
 {
-
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task ThisQualificationOnFieldOption()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     int x;
+
     public void z()
     {
         [|this|].x = 4;
     }
-}
-", Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+}", Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
         {
-            await TestAsync(
-@"
-class C
+            await TestWithPredefinedTypeOptionsAsync(
+@"class C
 {
     [|System.Int32|] x;
+
     public void z()
     {
     }
-}", @"
-class C
+}", 
+@"class C
 {
     int x;
+
     public void z()
     {
     }
@@ -2803,7 +3241,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false);
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2827,7 +3265,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false);
+}", compareTokens: false, options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2849,7 +3287,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false);
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2873,7 +3311,7 @@ class C
     public void z()
     {
     }
-}", compareTokens: false);
+}", compareTokens: false, options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2882,15 +3320,15 @@ class C
         public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""[|Int32|]""/>
     public void z()
     {
     }
-}", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2899,8 +3337,8 @@ class C
         public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""[|Int32|]""/>
@@ -2908,15 +3346,15 @@ class C
     {
     }
 }",
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""int""/>
     public void z()
     {
     }
-}", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -2925,15 +3363,15 @@ class C
         public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""[|Int32|].MaxValue""/>
     public void z()
     {
     }
-}", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -2941,8 +3379,8 @@ class C
         public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""[|Int32|].MaxValue""/>
@@ -2950,8 +3388,8 @@ class C
     {
     }
 }",
-@"
-using System;
+@"using System;
+
 class C
 {
     /// <see cref=""int.MaxValue""/>
@@ -2959,7 +3397,7 @@ class C
     {
     }
 }",
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -2967,14 +3405,13 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
         public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
     public void z()
     {
     }
-}", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -2982,23 +3419,21 @@ class C
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
     public void z()
     {
     }
 }",
-@"
-class C
+@"class C
 {
     /// <see cref=""System.Collections.Generic.List{T}.CopyTo(int, T[], int, int)""/>
     public void z()
     {
     }
 }",
-options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3006,16 +3441,15 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     [|System.Int32|] x;
+
     public void z(System.Int32 y)
     {
         System.Int32 z = 9;
     }
-}
-", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3023,16 +3457,15 @@ class C
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     System.Int32 x;
+
     public void z([|System.Int32|] y)
     {
         System.Int32 z = 9;
     }
-}
-", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3040,16 +3473,15 @@ class C
         public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     System.Int32 x;
+
     public void z(System.Int32 y)
     {
         [|System.Int32|] z = 9;
     }
-}
-", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3057,21 +3489,20 @@ class C
         public async Task TestIntrinsicTypesInMemberAccess_Default_1()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     public void z()
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", @"
-class C
+}", 
+@"class C
 {
     public void z()
     {
         var sss = int.MaxValue;
     }
-}");
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3079,23 +3510,24 @@ class C
         public async Task TestIntrinsicTypesInMemberAccess_Default_2()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     public void z()
     {
         var sss = [|Int32|].MaxValue;
     }
-}", @"
-using System;
+}", 
+@"using System;
+
 class C
 {
     public void z()
     {
         var sss = int.MaxValue;
     }
-}");
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
@@ -3103,8 +3535,8 @@ class C
         public async Task TestIntrinsicTypesInMemberAccess_Default_3()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C1
 {
     public static void z()
@@ -3124,16 +3556,15 @@ class C2
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
         {
             await TestMissingAsync(
-@"
-using System;
+@"using System;
+
 class C
 {
     public void z()
     {
         var sss = [|Int32|].MaxValue;
     }
-}
-", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3141,15 +3572,13 @@ class C
         public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     public void z()
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}
-", options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, "C#"), false } });
+}", options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error));
         }
 
         [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
@@ -3186,7 +3615,8 @@ class C
 }";
             using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                workspace.ApplyOptions(PreferIntrinsicTypeEverywhere);
+                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
 
@@ -3213,9 +3643,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
         {
-            await TestAsync(
-@"
-using System;
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
 
 class Program
 {
@@ -3226,8 +3655,8 @@ class Program
         {
         }
     }
-}", @"
-using System;
+}", 
+@"using System;
 
 class Program
 {
@@ -3245,14 +3674,15 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInPropertyLambda()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"namespace ClassLibrary2
 {
     public class Class1
     {
         public object X => ([|System.Int32|])0;
     }
-}", @"namespace ClassLibrary2
+}", 
+@"namespace ClassLibrary2
 {
     public class Class1
     {
@@ -3265,11 +3695,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInMethodLambda()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"class C
 {
     public string Foo() => ([|System.String|])"";
-}", @"class C
+}", 
+@"class C
 {
     public string Foo() => (string)"";
 }");
@@ -3279,11 +3710,12 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTypeNameInIndexerLambda()
         {
-            await TestAsync(
+            await TestWithPredefinedTypeOptionsAsync(
 @"class C
 {
     public int this[int index] => ([|System.Int32|])0;
-}", @"class C
+}", 
+@"class C
 {
     public int this[int index] => (int)0;
 }");
@@ -3294,19 +3726,69 @@ class Program
         public async Task TestThisWithNoType()
         {
             await TestAsync(
-@"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { [|this|] . x = default(dynamic) ; } } ",
-@"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { x = default(dynamic) ; } } ");
+@"class Program
+{
+    dynamic x = 7;
+
+    static void Main(string[] args)
+    {
+        [|this|].x = default(dynamic);
+    }
+}",
+@"class Program
+{
+    dynamic x = 7;
+
+    static void Main(string[] args)
+    {
+        x = default(dynamic);
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAppropriateDiagnosticOnMissingQualifier()
         {
             await TestDiagnosticSeverityAndCountAsync(
-                @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
-                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+@"class C
+{
+    int SomeProperty { get; set; }
+
+    void M()
+    {
+        [|this|].SomeProperty = 1;
+    }
+}",
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
+
+        private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
+        {
+            await TestAsync(code, expected, index, options: PreferIntrinsicTypeEverywhere);
+        }
+
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage());
+
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, GetLanguage());
+
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess =>
+            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error)
+            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage());
+
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
     }
 }

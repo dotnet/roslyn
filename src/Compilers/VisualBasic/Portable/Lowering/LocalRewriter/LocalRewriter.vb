@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _emitModule As PEModuleBuilder
         Private ReadOnly _compilationState As TypeCompilationState
         Private ReadOnly _previousSubmissionFields As SynthesizedSubmissionFields
-        Private ReadOnly _globalGenerateDebugInfo As Boolean
         Private ReadOnly _diagnostics As DiagnosticBag
+        Private ReadOnly _instrumenter As Instrumenter
         Private _symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
         Private _currentMethodOrLambda As MethodSymbol
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _unstructuredExceptionHandling As UnstructuredExceptionHandlingState
         Private _currentLineTemporary As LocalSymbol
 
-        Private _createSequencePointsForTopLevelNonCompilerGeneratedExpressions As Boolean
+        Private _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery As Boolean
         Private _conditionalAccessReceiverPlaceholderId As Integer
 
 #If DEBUG Then
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A map from SyntaxNode to corresponding visited BoundStatement.
         ''' Used to ensure correct generation of resumable code for Unstructured Exception Handling.
         ''' </summary>
-        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of VisualBasicSyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
+        Private ReadOnly _unstructuredExceptionHandlingResumableStatements As New Dictionary(Of SyntaxNode, BoundStatement)(ReferenceEqualityComparer.Instance)
 
         Private ReadOnly _leaveRestoreUnstructuredExceptionHandlingContextTracker As New Stack(Of BoundNode)()
 #End If
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Conditional("DEBUG")>
         Private Shared Sub AssertPlaceholderReplacement(placeholder As BoundValuePlaceholderBase, value As BoundExpression)
-            Debug.Assert(value.Type.IsSameTypeIgnoringCustomModifiers(placeholder.Type))
+            Debug.Assert(value.Type.IsSameTypeIgnoringAll(placeholder.Type))
 
             If placeholder.IsLValue AndAlso value.Kind <> BoundKind.MeReference Then
                 Debug.Assert(value.IsLValue)
@@ -116,21 +116,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             currentMethod As MethodSymbol,
             compilationState As TypeCompilationState,
             previousSubmissionFields As SynthesizedSubmissionFields,
-            generateDebugInfo As Boolean,
             diagnostics As DiagnosticBag,
             flags As RewritingFlags,
+            instrumenter As Instrumenter,
             recursionDepth As Integer
         )
             MyBase.New(recursionDepth)
 
             Me._topMethod = topMethod
             Me._currentMethodOrLambda = currentMethod
-            Me._globalGenerateDebugInfo = generateDebugInfo
             Me._emitModule = compilationState.ModuleBuilderOpt
             Me._compilationState = compilationState
             Me._previousSubmissionFields = previousSubmissionFields
             Me._diagnostics = diagnostics
             Me._flags = flags
+
+            Debug.Assert(instrumenter IsNot Nothing)
+            Me._instrumenter = instrumenter
         End Sub
 
         Public ReadOnly Property OptimizationLevelIsDebug As Boolean
@@ -139,22 +141,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared Function RewriteNode(node As BoundNode,
-                                            topMethod As MethodSymbol,
-                                            currentMethod As MethodSymbol,
-                                            compilationState As TypeCompilationState,
-                                            previousSubmissionFields As SynthesizedSubmissionFields,
-                                            generateDebugInfo As Boolean,
-                                            diagnostics As DiagnosticBag,
-                                            <[In], Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
-                                            <Out> ByRef hasLambdas As Boolean,
-                                            <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
-                                            flags As RewritingFlags,
-                                            recursionDepth As Integer) As BoundNode
+        Private Shared Function RewriteNode(
+            node As BoundNode,
+            topMethod As MethodSymbol,
+            currentMethod As MethodSymbol,
+            compilationState As TypeCompilationState,
+            previousSubmissionFields As SynthesizedSubmissionFields,
+            diagnostics As DiagnosticBag,
+            <[In], Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
+            <Out> ByRef hasLambdas As Boolean,
+            <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
+            flags As RewritingFlags,
+            instrumenter As Instrumenter,
+            recursionDepth As Integer
+        ) As BoundNode
 
             Debug.Assert(node Is Nothing OrElse Not node.HasErrors, "node has errors")
 
-            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, flags, recursionDepth)
+            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, diagnostics, flags, instrumenter, recursionDepth)
 
 #If DEBUG Then
             If rewrittenNodes IsNot Nothing Then
@@ -195,33 +199,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBlock(node.Syntax, Nothing, locals.AsImmutable, sideEffects.AsImmutableOrNull)
         End Function
 
-        Public Shared Function Rewrite(node As BoundBlock,
-                                       topMethod As MethodSymbol,
-                                       compilationState As TypeCompilationState,
-                                       previousSubmissionFields As SynthesizedSubmissionFields,
-                                       diagnostics As DiagnosticBag,
-                                       <Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
-                                       <Out> ByRef hasLambdas As Boolean,
-                                       <Out> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
-                                       flags As RewritingFlags,
-                                       currentMethod As MethodSymbol) As BoundBlock
+        Public Shared Function Rewrite(
+            node As BoundBlock,
+            topMethod As MethodSymbol,
+            compilationState As TypeCompilationState,
+            previousSubmissionFields As SynthesizedSubmissionFields,
+            diagnostics As DiagnosticBag,
+            <Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
+            <Out> ByRef hasLambdas As Boolean,
+            <Out> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
+            flags As RewritingFlags,
+            instrumenter As Instrumenter,
+            currentMethod As MethodSymbol
+        ) As BoundBlock
 
             Debug.Assert(rewrittenNodes Is Nothing)
-
-            ' if the node already contains debug info, don't generate more debug info
-            Dim generateDebugInfo = (flags And RewritingFlags.AllowSequencePoints) = 0
 
             Return DirectCast(RewriteNode(node,
                                           topMethod,
                                           If(currentMethod, topMethod),
                                           compilationState,
                                           previousSubmissionFields,
-                                          generateDebugInfo,
                                           diagnostics,
                                           rewrittenNodes,
                                           hasLambdas,
                                           symbolsCapturedWithoutCopyCtor,
                                           flags,
+                                          instrumenter,
                                           recursionDepth:=0), BoundBlock)
         End Function
 
@@ -235,18 +239,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(rewrittenNodes IsNot Nothing)
             Dim hasLambdas As Boolean = False
-            Const generateDebugInfo = False ' don't generate debug information in expression tree lambdas
             Dim result = DirectCast(RewriteNode(node,
                                                 method,
                                                 method,
                                                 compilationState,
                                                 previousSubmissionFields,
-                                                generateDebugInfo,
                                                 diagnostics,
                                                 rewrittenNodes,
                                                 hasLambdas,
                                                 SpecializedCollections.EmptySet(Of Symbol),
                                                 RewritingFlags.Default,
+                                                Instrumenter.NoOp, ' don't do any instrumentation in expression tree lambdas
                                                 recursionDepth), BoundExpression)
             Debug.Assert(Not hasLambdas)
             Return result
@@ -286,16 +289,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constantValue = node.ConstantValueOpt
             Dim result As BoundExpression
 
-            Dim createSequencePoint As Boolean =
-                    _createSequencePointsForTopLevelNonCompilerGeneratedExpressions AndAlso
-                    GenerateDebugInfo AndAlso
+            Dim instrumentExpressionInQuery As Boolean =
+                    _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery AndAlso
+                    Instrument AndAlso
                     Not node.WasCompilerGenerated AndAlso
                     node.Syntax.Kind <> SyntaxKind.GroupAggregation AndAlso
                     ((node.Syntax.Kind = SyntaxKind.SimpleAsClause AndAlso node.Syntax.Parent.Kind = SyntaxKind.CollectionRangeVariable) OrElse
                      TypeOf node.Syntax Is ExpressionSyntax)
 
-            If createSequencePoint Then
-                _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = False
+            If instrumentExpressionInQuery Then
+                _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = False
             End If
 
             If constantValue IsNot Nothing Then
@@ -304,9 +307,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = VisitExpressionWithStackGuard(node)
             End If
 
-            If createSequencePoint Then
-                _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = True
-                result = New BoundSequencePointExpression(node.Syntax, result, result.Type)
+            If instrumentExpressionInQuery Then
+                _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = True
+                result = _instrumenter.InstrumentTopLevelExpressionInQuery(node, result)
             End If
 
 #If DEBUG Then
@@ -324,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not DirectCast(DirectCast(node, BoundObjectCreationExpressionBase).InitializerOpt, BoundObjectInitializerExpression).CreateTemporaryLocalForInitialization Then
                     Debug.Assert(result.Type.IsVoidType())
                 Else
-                    Debug.Assert(result.Type.IsSameTypeIgnoringCustomModifiers(node.Type))
+                    Debug.Assert(result.Type.IsSameTypeIgnoringAll(node.Type))
                 End If
             End If
 #End If
@@ -362,26 +365,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property GenerateDebugInfo As Boolean
+        Private ReadOnly Property Instrument As Boolean
             Get
-                Return _globalGenerateDebugInfo AndAlso Not _inExpressionLambda
+                Return _instrumenter IsNot Instrumenter.NoOp AndAlso Not _inExpressionLambda
             End Get
         End Property
 
-        ' adds EndXXX sequence point to a statement
-        ' NOTE: if target statement happens to be a block, then 
-        ' sequence point goes inside the block
-        ' This ensures that when we stopped on EndXXX, we are still in the block's scope
-        ' and can examine locals declared in the block.
-        Private Function InsertEndBlockSequencePoint(statement As BoundStatement, spSyntax As VisualBasicSyntaxNode) As BoundStatement
-            If Not GenerateDebugInfo Then
-                Return statement
-            End If
+        Private ReadOnly Property Instrument(original As BoundNode, rewritten As BoundNode) As Boolean
+            Get
+                Return Me.Instrument AndAlso rewritten IsNot Nothing AndAlso (Not original.WasCompilerGenerated) AndAlso original.Syntax IsNot Nothing
+            End Get
+        End Property
 
-            Return Concat(statement, New BoundSequencePoint(spSyntax, Nothing))
-        End Function
+        Private ReadOnly Property Instrument(original As BoundNode) As Boolean
+            Get
+                Return Me.Instrument AndAlso (Not original.WasCompilerGenerated) AndAlso original.Syntax IsNot Nothing
+            End Get
+        End Property
 
-        Private Function Concat(statement As BoundStatement, additionOpt As BoundStatement) As BoundStatement
+        Private Shared Function Concat(statement As BoundStatement, additionOpt As BoundStatement) As BoundStatement
             If additionOpt Is Nothing Then
                 Return statement
             End If
@@ -404,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function AppendToBlock(block As BoundBlock, additionOpt As BoundStatement) As BoundBlock
+        Private Shared Function AppendToBlock(block As BoundBlock, additionOpt As BoundStatement) As BoundBlock
             If additionOpt Is Nothing Then
                 Return block
             End If
@@ -418,51 +420,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return block.Update(block.StatementListSyntax, block.Locals, consequenceWithEnd.AsImmutableOrNull)
         End Function
 
-        Private Function InsertBlockEpilogue(statement As BoundStatement, endBlockResumeTargetOpt As BoundStatement, sequencePointSyntax As VisualBasicSyntaxNode) As BoundStatement
-            Return Concat(statement, If(GenerateDebugInfo, New BoundSequencePoint(sequencePointSyntax, endBlockResumeTargetOpt), endBlockResumeTargetOpt))
-        End Function
-
-        ' adds a sequence point before stepping on the statement
-        ' NOTE: if the statement is a block the sequence point will be outside of the scope
-        Private Function PrependWithSequencePoint(statement As BoundStatement, spSyntax As VisualBasicSyntaxNode) As BoundStatement
-            If Not GenerateDebugInfo Then
-                Return statement
-            End If
-
-            Dim consequenceWithEnd(1) As BoundStatement
-            consequenceWithEnd(0) = New BoundSequencePoint(spSyntax, Nothing)
-            consequenceWithEnd(1) = statement
-            statement = New BoundStatementList(statement.Syntax, consequenceWithEnd.AsImmutableOrNull)
-            Return statement
-        End Function
-
         ''' <summary>
-        ''' Adds a sequence point with the specified span before stepping on the statement.
+        ''' Adds a prologue before stepping on the statement
+        ''' NOTE: if the statement is a block the prologue will be outside of the scope
         ''' </summary>
-        ''' <remarks>
-        ''' If the statement is a block the sequence point will be outside of the scope.
-        ''' </remarks>
-        Private Function PrependWithSequencePoint(statement As BoundStatement, syntax As VisualBasicSyntaxNode, span As Text.TextSpan) As BoundStatement
-            If Not GenerateDebugInfo Then
+        Private Shared Function PrependWithPrologue(statement As BoundStatement, prologueOpt As BoundStatement) As BoundStatement
+            If prologueOpt Is Nothing Then
                 Return statement
             End If
 
-            Return New BoundStatementList(
-                statement.Syntax,
-                ImmutableArray.Create(New BoundSequencePointWithSpan(syntax, Nothing, span),
-                                      statement))
+            Return New BoundStatementList(statement.Syntax, ImmutableArray.Create(prologueOpt, statement))
         End Function
 
-        Private Function PrependWithSequencePoint(statement As BoundBlock, syntax As VisualBasicSyntaxNode) As BoundBlock
-            If Not GenerateDebugInfo Then
-                Return statement
+        Private Shared Function PrependWithPrologue(block As BoundBlock, prologueOpt As BoundStatement) As BoundBlock
+            If prologueOpt Is Nothing Then
+                Return block
             End If
 
             Return New BoundBlock(
-                statement.Syntax,
+                block.Syntax,
                 Nothing,
                 ImmutableArray(Of LocalSymbol).Empty,
-                ImmutableArray.Create(Of BoundStatement)(New BoundSequencePoint(syntax, Nothing), statement))
+                ImmutableArray.Create(Of BoundStatement)(prologueOpt, block))
         End Function
 
         Public Overrides Function VisitSequencePointWithSpan(node As BoundSequencePointWithSpan) As BoundNode
@@ -472,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenter Is Instrumenter.NoOp, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement), node.Span)
         End Function
 
@@ -483,24 +462,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso Not GenerateDebugInfo, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenter Is Instrumenter.NoOp, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement))
-        End Function
-
-        Private Function MarkStatementWithSequencePoint(node As BoundStatement) As BoundStatement
-            If Not GenerateDebugInfo Then
-                Return node
-            End If
-
-            If node IsNot Nothing Then
-                Dim syntax = node.Syntax
-                If syntax IsNot Nothing AndAlso Not node.WasCompilerGenerated Then
-                    Debug.Assert(node.SyntaxTree IsNot Nothing)
-                    node = New BoundSequencePoint(syntax, node)
-                End If
-            End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitBadExpression(node As BoundBadExpression) As BoundNode
@@ -510,11 +473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteReceiverArgumentsAndGenerateAccessorCall(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             methodSymbol As MethodSymbol,
             receiverOpt As BoundExpression,
             arguments As ImmutableArray(Of BoundExpression),
             constantValueOpt As ConstantValue,
+            isLValue As Boolean,
             suppressObjectClone As Boolean,
             type As TypeSymbol
         ) As BoundExpression
@@ -534,8 +498,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      receiverOpt,
                                      arguments,
                                      constantValueOpt,
-                                     suppressObjectClone,
-                                     type)
+                                     isLValue:=isLValue,
+                                     suppressObjectClone:=suppressObjectClone,
+                                     type:=type)
 
 
             If Not temporaries.IsDefault Then
@@ -558,7 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Generate a unique label with the given base name
-        Private Function GenerateLabel(baseName As String) As LabelSymbol
+        Private Shared Function GenerateLabel(baseName As String) As LabelSymbol
             Return New GeneratedLabelSymbol(baseName)
         End Function
 
@@ -881,7 +846,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If break IsNot Nothing Then
                 ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop after the call to System.Diagnostics.Debugger.Break(),
                 ' so the debugger can determine the current instruction pointer properly. In oder to do so, we do not mark this node as compiler generated.
-                Dim boundNode = New BoundCall(nodeFactory.Syntax, break, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, True, break.ReturnType)
+                Dim boundNode = New BoundCall(
+                    nodeFactory.Syntax,
+                    break,
+                    Nothing,
+                    Nothing,
+                    ImmutableArray(Of BoundExpression).Empty,
+                    Nothing,
+                    isLValue:=False,
+                    suppressObjectClone:=True,
+                    type:=break.ReturnType)
                 rewritten = boundNode.ToStatement()
             End If
 
@@ -889,7 +863,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, rewritten, canThrow:=True)
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentStopStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Public Overrides Function VisitEndStatement(node As BoundEndStatement) As BoundNode
@@ -902,7 +880,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = nodeFactory.Call(Nothing, endApp, ImmutableArray(Of BoundExpression).Empty).ToStatement()
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentEndStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Public Overrides Function VisitGetType(node As BoundGetType) As BoundNode

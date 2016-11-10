@@ -3,20 +3,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetNormalTypeConstructors(
+        private IList<SignatureHelpItem> GetNormalTypeConstructors(
             Document document,
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
@@ -28,16 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken)
         {
             var accessibleConstructors = normalType.InstanceConstructors
-                                                   .Where(c => c.IsAccessibleWithin(within))
-                                                   .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            if (!accessibleConstructors.Any())
-            {
-                return null;
-            }
-
-            return accessibleConstructors.Select(c =>
+            return accessibleConstructors.SelectAsArray(c =>
                 ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
         }
 
@@ -59,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetNormalTypePreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
                 GetNormalTypePostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
 
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetNormalTypePreambleParts(
+        private IList<SymbolDisplayPart> GetNormalTypePreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -77,9 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetNormalTypePostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetNormalTypePostambleParts(IMethodSymbol method)
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

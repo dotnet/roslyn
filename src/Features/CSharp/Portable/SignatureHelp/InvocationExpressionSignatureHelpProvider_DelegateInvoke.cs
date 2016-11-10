@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IEnumerable<SignatureHelpItem> GetDelegateInvokeItems(
+        private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
@@ -43,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateInvokePostambleParts(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
 
-            return SpecializedCollections.SingletonEnumerable(item);
+            return SpecializedCollections.SingletonList(item);
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var displayParts = new List<SymbolDisplayPart>();
             displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
@@ -57,23 +58,28 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return displayParts;
         }
 
-        private IEnumerable<SignatureHelpParameter> GetDelegateInvokeParameters(
+        private IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
             IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
         {
+            var result = new List<SignatureHelpSymbolParameter>();
+
             foreach (var parameter in invokeMethod.Parameters)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                yield return new SignatureHelpParameter(
+                result.Add(new SignatureHelpSymbolParameter(
                     parameter.Name,
                     parameter.IsOptional,
                     parameter.GetDocumentationPartsFactory(semanticModel, position, formattingService),
-                    parameter.ToMinimalDisplayParts(semanticModel, position));
+                    parameter.ToMinimalDisplayParts(semanticModel, position)));
             }
+
+            return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetDelegateInvokePostambleParts()
+        private IList<SymbolDisplayPart> GetDelegateInvokePostambleParts()
         {
-            yield return Punctuation(SyntaxKind.CloseParenToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseParenToken));
         }
     }
 }

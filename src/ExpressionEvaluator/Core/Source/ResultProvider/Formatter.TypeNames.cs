@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
@@ -8,7 +9,7 @@ using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    // Implementation for "displaying type name as string" aspect of default (C#) Formatter component
+    // Implementation for "displaying type name as string" aspect of the Formatter component
     internal abstract partial class Formatter
     {
         /// <returns>The qualified name (i.e. including containing types and namespaces) of a named,
@@ -21,10 +22,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var dynamicFlags = DynamicFlagsCustomTypeInfo.Create(typeAndInfo.Info);
-            var index = 0;
+            ReadOnlyCollection<byte> dynamicFlags = null;
+            ReadOnlyCollection<string> tupleElementNames = null;
+            var typeInfo = typeAndInfo.Info;
+            if (typeInfo != null)
+            {
+                CustomTypeInfo.Decode(typeInfo.PayloadTypeId, typeInfo.Payload, out dynamicFlags, out tupleElementNames);
+            }
+
+            var dynamicFlagIndex = 0;
+            var tupleElementIndex = 0;
             var pooled = PooledStringBuilder.GetInstance();
-            AppendQualifiedTypeName(pooled.Builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, out sawInvalidIdentifier);
+            AppendQualifiedTypeName(
+                pooled.Builder,
+                type,
+                dynamicFlags,
+                ref dynamicFlagIndex,
+                tupleElementNames,
+                ref tupleElementIndex,
+                escapeKeywordIdentifiers,
+                out sawInvalidIdentifier);
             return pooled.ToStringAndFree();
         }
 
@@ -38,13 +55,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// No special handling is required for anonymous types - they are expected to be
         /// emitted with <see cref="DebuggerDisplayAttribute.Type"/> set to "&lt;Anonymous Type&gt;.
         /// This is fortunate, since we don't have a good way to recognize them in metadata.
-        /// Does not call itself (directly).
         /// </remarks>
         protected void AppendQualifiedTypeName(
             StringBuilder builder,
             Type type,
-            DynamicFlagsCustomTypeInfo dynamicFlags,
-            ref int index,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
             bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier)
         {
@@ -54,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // We'll reconstruct this information later from originalType.
             while (type.IsArray)
             {
-                index++;
+                dynamicFlagIndex++;
                 type = type.GetElementType();
             }
 
@@ -67,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // Null for function pointers.
                     break;
                 }
-                index++;
+                dynamicFlagIndex++;
                 pointerCount++;
                 type = elementType;
             }
@@ -76,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Type typeArg;
             while ((typeArg = type.GetNullableTypeArgument()) != null)
             {
-                index++;
+                dynamicFlagIndex++;
                 nullableCount++;
                 type = typeArg;
             }
@@ -84,9 +102,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             Debug.Assert(pointerCount == 0 || nullableCount == 0, "Benign: pointer to nullable?");
 
-            int oldLength = builder.Length;
-            AppendQualifiedTypeNameInternal(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, out sawInvalidIdentifier);
-            string name = builder.ToString(oldLength, builder.Length - oldLength);
+            AppendQualifiedTypeNameInternal(
+                builder,
+                type,
+                dynamicFlags,
+                ref dynamicFlagIndex,
+                tupleElementNames,
+                ref tupleElementIndex,
+                escapeKeywordIdentifiers,
+                out sawInvalidIdentifier);
 
             builder.Append('?', nullableCount);
             builder.Append('*', pointerCount);
@@ -113,12 +137,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private void AppendQualifiedTypeNameInternal(
             StringBuilder builder,
             Type type,
-            DynamicFlagsCustomTypeInfo dynamicFlags,
-            ref int index,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
             bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier)
         {
-            var isDynamic = dynamicFlags[index++] && type.IsObject();
+            var isDynamic = DynamicFlagsCustomTypeInfo.GetFlag(dynamicFlags, dynamicFlagIndex++) && type.IsObject();
             if (AppendSpecialTypeName(builder, type, isDynamic))
             {
                 sawInvalidIdentifier = false;
@@ -134,9 +160,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return;
             }
 
+            int cardinality;
+            if (type.IsTupleCompatible(out cardinality))
+            {
+                if (cardinality == 1)
+                {
+                    // Not displayed as a tuple but is included in tuple element names.
+                    tupleElementIndex++;
+                }
+                else
+                {
+                    AppendTupleElements(
+                        builder,
+                        type,
+                        cardinality,
+                        dynamicFlags,
+                        ref dynamicFlagIndex,
+                        tupleElementNames,
+                        ref tupleElementIndex,
+                        escapeKeywordIdentifiers,
+                        out sawInvalidIdentifier);
+                    return;
+                }
+            }
+
             // Note: in the Reflection/LMR object model, all type arguments are on the most nested type.
             var hasTypeArguments = type.IsGenericType;
-            var typeArguments = type.IsGenericType
+            var typeArguments = hasTypeArguments
                 ? type.GetGenericArguments()
                 : null;
             Debug.Assert(hasTypeArguments == (typeArguments != null));
@@ -145,6 +195,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             sawInvalidIdentifier = false;
             bool sawSingleInvalidIdentifier;
+            var typeArgumentOffset = 0;
+
             if (type.IsNested)
             {
                 // Push from inside, out.
@@ -163,8 +215,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 AppendNamespacePrefix(builder, stack[lastContainingTypeIndex], escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
                 sawInvalidIdentifier |= sawSingleInvalidIdentifier;
 
-                var typeArgumentOffset = 0;
-
                 // Pop from outside, in.
                 for (int i = lastContainingTypeIndex; i >= 0; i--)
                 {
@@ -173,7 +223,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // ACASEY: I explored the type in the debugger and couldn't find the arity stored/exposed separately.
                     int arity = hasTypeArguments ? containingType.GetGenericArguments().Length - typeArgumentOffset : 0;
 
-                    AppendUnqualifiedTypeName(builder, containingType, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, typeArgumentOffset, arity, out sawSingleInvalidIdentifier);
+                    AppendUnqualifiedTypeName(
+                        builder,
+                        containingType,
+                        dynamicFlags,
+                        ref dynamicFlagIndex,
+                        tupleElementNames,
+                        ref tupleElementIndex,
+                        escapeKeywordIdentifiers,
+                        typeArguments,
+                        typeArgumentOffset,
+                        arity,
+                        out sawSingleInvalidIdentifier);
                     sawInvalidIdentifier |= sawSingleInvalidIdentifier;
                     builder.Append('.');
 
@@ -181,17 +242,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
 
                 stack.Free();
-
-                AppendUnqualifiedTypeName(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, typeArgumentOffset, numTypeArguments - typeArgumentOffset, out sawSingleInvalidIdentifier);
-                sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
             else
             {
                 AppendNamespacePrefix(builder, type, escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
                 sawInvalidIdentifier |= sawSingleInvalidIdentifier;
-                AppendUnqualifiedTypeName(builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers, typeArguments, 0, numTypeArguments, out sawSingleInvalidIdentifier);
-                sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
+
+            AppendUnqualifiedTypeName(
+                builder,
+                type,
+                dynamicFlags,
+                ref dynamicFlagIndex,
+                tupleElementNames,
+                ref tupleElementIndex,
+                escapeKeywordIdentifiers,
+                typeArguments,
+                typeArgumentOffset,
+                numTypeArguments - typeArgumentOffset,
+                out sawSingleInvalidIdentifier);
+            sawInvalidIdentifier |= sawSingleInvalidIdentifier;
         }
 
         /// <summary>
@@ -242,7 +312,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <param name="builder">Builder to which the name will be appended.</param>
         /// <param name="type">Type, the name of which will be appended.</param>
         /// <param name="dynamicFlags">Flags indicating which occurrences of &quot;object&quot; need to be replaced by &quot;dynamic&quot;.</param>
-        /// <param name="index">Current index into <paramref name="dynamicFlags"/>.</param>
+        /// <param name="dynamicFlagIndex">Current index into <paramref name="dynamicFlags"/>.</param>
+        /// <param name="tupleElementNames">Non-default tuple names.</param>
+        /// <param name="tupleElementIndex">Current index into <paramref name="tupleElementNames"/>.</param>
         /// <param name="escapeKeywordIdentifiers">True if identifiers that are also keywords should be prefixed with '@'.</param>
         /// <param name="typeArguments">
         /// The type arguments of the type passed to <see cref="AppendQualifiedTypeNameInternal"/>, which might be nested
@@ -264,8 +336,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private void AppendUnqualifiedTypeName(
             StringBuilder builder,
             Type type,
-            DynamicFlagsCustomTypeInfo dynamicFlags,
-            ref int index,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
             bool escapeKeywordIdentifiers,
             Type[] typeArguments,
             int typeArgumentOffset,
@@ -284,8 +358,81 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendIdentifier(builder, escapeKeywordIdentifiers, unmangledName, out sawInvalidIdentifier);
 
             bool argumentsSawInvalidIdentifier;
-            AppendGenericTypeArgumentList(builder, typeArguments, typeArgumentOffset, dynamicFlags, ref index, arity, escapeKeywordIdentifiers, out argumentsSawInvalidIdentifier);
+            AppendGenericTypeArguments(
+                builder,
+                typeArguments,
+                typeArgumentOffset,
+                dynamicFlags,
+                ref dynamicFlagIndex,
+                tupleElementNames,
+                ref tupleElementIndex,
+                arity,
+                escapeKeywordIdentifiers,
+                out argumentsSawInvalidIdentifier);
             sawInvalidIdentifier |= argumentsSawInvalidIdentifier;
+        }
+
+        private void AppendTupleElements(
+            StringBuilder builder,
+            Type type,
+            int cardinality,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
+            bool escapeKeywordIdentifiers,
+            out bool sawInvalidIdentifier)
+        {
+            sawInvalidIdentifier = false;
+#if DEBUG
+            int lastNameIndex = tupleElementIndex + cardinality;
+#endif
+            int nameIndex = tupleElementIndex;
+            builder.Append('(');
+            bool any = false;
+            while (true)
+            {
+                tupleElementIndex += cardinality;
+                var typeArguments = type.GetGenericArguments();
+                int nTypeArgs = typeArguments.Length;
+                Debug.Assert(nTypeArgs > 0);
+                Debug.Assert(nTypeArgs <= TypeHelpers.TupleFieldRestPosition);
+                int nFields = Math.Min(nTypeArgs, TypeHelpers.TupleFieldRestPosition - 1);
+                for (int i = 0; i < nFields; i++)
+                {
+                    if (any)
+                    {
+                        builder.Append(", ");
+                    }
+                    bool sawSingleInvalidIdentifier;
+                    var name = CustomTypeInfo.GetTupleElementNameIfAny(tupleElementNames, nameIndex);
+                    nameIndex++;
+                    AppendTupleElement(
+                        builder,
+                        typeArguments[i],
+                        name,
+                        dynamicFlags,
+                        ref dynamicFlagIndex,
+                        tupleElementNames,
+                        ref tupleElementIndex,
+                        escapeKeywordIdentifiers,
+                        sawInvalidIdentifier: out sawSingleInvalidIdentifier);
+                    sawInvalidIdentifier |= sawSingleInvalidIdentifier;
+                    any = true;
+                }
+                if (nTypeArgs < TypeHelpers.TupleFieldRestPosition)
+                {
+                    break;
+                }
+                Debug.Assert(!DynamicFlagsCustomTypeInfo.GetFlag(dynamicFlags, dynamicFlagIndex));
+                dynamicFlagIndex++;
+                type = typeArguments[nTypeArgs - 1];
+                cardinality = type.GetTupleCardinalityIfAny();
+            }
+#if DEBUG
+            Debug.Assert(nameIndex == lastNameIndex);
+#endif
+            builder.Append(')');
         }
 
         protected void AppendIdentifier(StringBuilder builder, bool escapeKeywordIdentifiers, string identifier, out bool sawInvalidIdentifier)
@@ -305,13 +452,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected abstract void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier);
 
-        protected abstract void AppendGenericTypeArgumentList(
+        protected abstract void AppendGenericTypeArguments(
             StringBuilder builder,
             Type[] typeArguments,
             int typeArgumentOffset,
-            DynamicFlagsCustomTypeInfo dynamicFlags,
-            ref int index,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
             int arity,
+            bool escapeKeywordIdentifiers,
+            out bool sawInvalidIdentifier);
+
+        protected abstract void AppendTupleElement(
+            StringBuilder builder,
+            Type type,
+            string nameOpt,
+            ReadOnlyCollection<byte> dynamicFlags,
+            ref int dynamicFlagIndex,
+            ReadOnlyCollection<string> tupleElementNames,
+            ref int tupleElementIndex,
             bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier);
 

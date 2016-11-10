@@ -49,7 +49,6 @@ namespace APISampleUnitTestsCS
             var newMethod = method.Update(
                 method.AttributeLists,
                 method.Modifiers,
-                method.RefKeyword,
                 method.ReturnType,
                 method.ExplicitInterfaceSpecifier,
                 SyntaxFactory.Identifier("NewMethodName"),
@@ -57,6 +56,7 @@ namespace APISampleUnitTestsCS
                 method.ParameterList,
                 method.ConstraintClauses,
                 method.Body,
+                method.ExpressionBody,
                 method.SemicolonToken);
 
             root = root.ReplaceNode(method, newMethod);

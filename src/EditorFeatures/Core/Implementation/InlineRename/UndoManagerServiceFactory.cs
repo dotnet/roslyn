@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var undoHistory = this.UndoManagers[subjectBuffer].TextUndoHistory;
 
                 // Create an undo transaction to mark the starting point of the rename session in this buffer
-                using (var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.StartRename))
+                using (var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename))
                 {
                     undoTransaction.Complete();
                     this.UndoManagers[subjectBuffer].StartRenameSessionUndoTransaction = undoTransaction;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     undoHistory.Undo(1);
                 }
 
-                using (var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.StartRename))
+                using (var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename))
                 {
                     applyEdit();
                     undoTransaction.Complete();

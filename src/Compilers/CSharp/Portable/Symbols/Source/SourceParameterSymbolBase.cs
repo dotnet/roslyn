@@ -81,6 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
             }
+
+            if (Type.ContainsTupleNames())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttribute(Type));
+            }
         }
 
         internal override ushort CountOfCustomModifiersPrecedingByRef

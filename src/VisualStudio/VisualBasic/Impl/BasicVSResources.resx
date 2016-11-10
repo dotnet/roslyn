@@ -117,124 +117,157 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MicrosoftVisualBasic" xml:space="preserve">
+  <data name="Microsoft_Visual_Basic" xml:space="preserve">
     <value>Microsoft Visual Basic</value>
   </data>
-  <data name="InsertSnippet" xml:space="preserve">
+  <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Intellisense" xml:space="preserve">
+  <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
-  </data>
-  <data name="PreferIntrinsicPredefinedTypeKeywordInMemberAccess" xml:space="preserve">
-    <value>Prefer intrinsic predefined type keyword in member access expressions</value>
-  </data>
-  <data name="Option_AllowMovingDeclaration" xml:space="preserve">
+  <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
-  <data name="Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers" xml:space="preserve">
+  <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic _insertion of Interface and MustOverride members</value>
   </data>
-  <data name="Option_ClosedFileDiagnostics" xml:space="preserve">
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
     <value>Enable full solution _analysis</value>
   </data>
-  <data name="Option_DisplayLineSeparators" xml:space="preserve">
+  <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
-  <data name="Option_DontPutOutOrRefOnStruct" xml:space="preserve">
+  <data name="Don_t_put_ByRef_on_custom_structure" xml:space="preserve">
     <value>_Don't put ByRef on custom structure</value>
   </data>
-  <data name="Option_EditorHelp" xml:space="preserve">
+  <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
-  <data name="Option_EnableEndConstruct" xml:space="preserve">
+  <data name="A_utomatic_insertion_of_end_constructs" xml:space="preserve">
     <value>A_utomatic insertion of end constructs</value>
   </data>
-  <data name="Option_EnableHighlightKeywords" xml:space="preserve">
+  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
     <value>Highlight related _keywords under cursor</value>
   </data>
-  <data name="Option_EnableHighlightReferences" xml:space="preserve">
+  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
     <value>_Highlight references to symbol under cursor</value>
   </data>
-  <data name="Option_EnableLineCommit" xml:space="preserve">
+  <data name="Pretty_listing_reformatting_of_code" xml:space="preserve">
     <value>_Pretty listing (reformatting) of code</value>
   </data>
-  <data name="Option_EnableOutlining" xml:space="preserve">
+  <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>_Enter outlining mode when files open</value>
   </data>
-  <data name="Option_ExtractMethod" xml:space="preserve">
+  <data name="Extract_Method" xml:space="preserve">
     <value>Extract Method</value>
   </data>
-  <data name="Option_GenerateXmlDocCommentsForTripleApostrophes" xml:space="preserve">
+  <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for '''</value>
   </data>
-  <data name="Option_Highlighting" xml:space="preserve">
+  <data name="Highlighting" xml:space="preserve">
     <value>Highlighting</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize" xml:space="preserve">
+  <data name="Optimize_for_solution_size" xml:space="preserve">
     <value>Optimize for solution size</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Large" xml:space="preserve">
+  <data name="Large" xml:space="preserve">
     <value>Large</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Regular" xml:space="preserve">
+  <data name="Regular" xml:space="preserve">
     <value>Regular</value>
   </data>
-  <data name="Option_OptimizeForSolutionSize_Small" xml:space="preserve">
+  <data name="Small" xml:space="preserve">
     <value>Small</value>
   </data>
-  <data name="Option_Outlining" xml:space="preserve">
-    <value>Outlining</value>
-  </data>
-  <data name="Option_Performance" xml:space="preserve">
+  <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
-  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
   </data>
-  <data name="Option_NavigateToObjectBrowser" xml:space="preserve">
+  <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata" xml:space="preserve">
     <value>_Navigate to Object Browser for symbols defined in metadata</value>
   </data>
-  <data name="Option_GoToDefinition" xml:space="preserve">
+  <data name="Go_to_Definition" xml:space="preserve">
     <value>Go to Definition</value>
   </data>
-  <data name="Option_Import_Directives" xml:space="preserve">
+  <data name="Import_Directives" xml:space="preserve">
     <value>Import Directives</value>
   </data>
-  <data name="Option_Suggest_imports_for_types_in_NuGet_packages" xml:space="preserve">
+  <data name="Suggest_imports_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest imports for types in _NuGet packages</value>
   </data>
-  <data name="Option_Suggest_imports_for_types_in_reference_assemblies" xml:space="preserve">
+  <data name="Suggest_imports_for_types_in_reference_assemblies" xml:space="preserve">
     <value>Suggest imports for types in _reference assemblies</value>
   </data>
-  <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
+  <data name="Place_System_directives_first_when_sorting_imports" xml:space="preserve">
     <value>_Place 'System' directives first when sorting imports</value>
   </data>
-  <data name="QualifyEventAccessWithMe" xml:space="preserve">
+  <data name="Qualify_event_access_with_Me" xml:space="preserve">
     <value>Qualify event access with 'Me'</value>
   </data>
-  <data name="QualifyFieldAccessWithMe" xml:space="preserve">
+  <data name="Qualify_field_access_with_Me" xml:space="preserve">
     <value>Qualify field access with 'Me'</value>
   </data>
-  <data name="QualifyMethodAccessWithMe" xml:space="preserve">
+  <data name="Qualify_method_access_with_Me" xml:space="preserve">
     <value>Qualify method access with 'Me'</value>
   </data>
-  <data name="QualifyPropertyAccessWithMe" xml:space="preserve">
+  <data name="Qualify_property_access_with_Me" xml:space="preserve">
     <value>Qualify property access with 'Me'</value>
   </data>
-  <data name="DoNotPreferMe" xml:space="preserve">
+  <data name="Do_not_prefer_Me" xml:space="preserve">
     <value>Do not prefer 'Me.'</value>
   </data>
-  <data name="PreferMe" xml:space="preserve">
+  <data name="Prefer_Me" xml:space="preserve">
     <value>Prefer 'Me.'</value>
   </data>
-  <data name="QualifyGroupTitle" xml:space="preserve">
-    <value>'Me.' preferences</value>
+  <data name="Me_preferences_colon" xml:space="preserve">
+    <value>'Me.' preferences:</value>
   </data>
-  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
-    <value>predefined type preferences:</value>
+  <data name="Predefined_type_preferences_colon" xml:space="preserve">
+    <value>Predefined type preferences:</value>
+  </data>
+  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Completion_Lists" xml:space="preserve">
+    <value>Completion Lists</value>
+  </data>
+  <data name="Enter_key_behavior_colon" xml:space="preserve">
+    <value>Enter key behavior:</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Always_add_new_line_on_enter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+  <data name="Never_add_new_line_on_enter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
+  </data>
+  <data name="Always_include_snippets" xml:space="preserve">
+    <value>Always include snippets</value>
+  </data>
+  <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
+    <value>Include snippets when ?-Tab is typed after an identifier</value>
+  </data>
+  <data name="Never_include_snippets" xml:space="preserve">
+    <value>Never include snippets</value>
+  </data>
+  <data name="Snippets_behavior" xml:space="preserve">
+    <value>Snippets behavior</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is _deleted</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="nothing_checking_colon" xml:space="preserve">
+    <value>'nothing' checking:</value>
   </data>
 </root>

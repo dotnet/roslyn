@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         #region Namespaces, Types
 
         [Fact]
-        public void CompilationChain_NestedTypesClass()
+        public async Task CompilationChain_NestedTypesClass()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
@@ -60,13 +60,13 @@ System.Console.WriteLine(iC.innerStr);
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                script.RunAsync().Wait();
+                await script.RunAsync();
                 Assert.Equal("test", redirect.Output.Trim());
             }
         }
 
         [Fact]
-        public void CompilationChain_NestedTypesStruct()
+        public async Task CompilationChain_NestedTypesStruct()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
@@ -85,13 +85,13 @@ System.Console.WriteLine(iS.innerStr);
 
             using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
             {
-                script.RunAsync().Wait();
+                await script.RunAsync();
                 Assert.Equal("test", redirect.Output.Trim());
             }
         }
 
         [Fact]
-        public void CompilationChain_InterfaceTypes()
+        public async Task CompilationChain_InterfaceTypes()
         {
             var script = CSharpScript.Create(@"
 interface I1 { int Goo();}
@@ -104,7 +104,7 @@ I1 iC = new InnerClass();
 iC.Goo()
 ");
 
-            Assert.Equal(1, script.EvaluateAsync().Result);
+            Assert.Equal(1, await script.EvaluateAsync());
         }
 
         [Fact]

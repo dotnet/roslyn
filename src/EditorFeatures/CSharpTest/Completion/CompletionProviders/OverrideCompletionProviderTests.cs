@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override CompletionProvider CreateCompletionProvider()
         {
             return new OverrideCompletionProvider();
+        }
+
+        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        {
+            workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement)
+                                                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement);
         }
 
         #region "CompletionItem tests"
@@ -700,8 +707,8 @@ public class SomeClass : Base
             int position;
             MarkupTestFile.GetPosition(markup, out code, out position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null);
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -721,8 +728,8 @@ public class SomeClass : Base
             int position;
             MarkupTestFile.GetPosition(markup, out code, out position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null);
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2556,11 +2563,11 @@ namespace ConsoleApplication46
                 var oldTree = await document.GetSyntaxTreeAsync();
 
                 var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
-                var changes = commit.TextChanges;
+                var change = commit.TextChange;
 
                 // If we left the trailing trivia of the close curly of Main alone,
                 // there should only be one change: the replacement of "override " with a method.
-                Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+                Assert.Equal(change.Span, TextSpan.FromBounds(136, 145));
             }
         }
     }

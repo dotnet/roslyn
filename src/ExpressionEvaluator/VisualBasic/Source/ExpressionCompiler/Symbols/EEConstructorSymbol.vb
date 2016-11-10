@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             MyBase.New(container)
         End Sub
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
             Return New BoundBlock(
                 Me.Syntax,
                 Nothing,

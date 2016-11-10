@@ -21,7 +21,7 @@
 // *********************************************************
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -36,7 +36,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Roslyn.Samples.CodeAction.CopyPasteWithUsing
 {
-    [Export(typeof(IVsTextViewCreationListener)), Shared]
+    [Export(typeof(IVsTextViewCreationListener))]
     [ContentType("Roslyn C#")]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal class ViewCreationListener : IVsTextViewCreationListener

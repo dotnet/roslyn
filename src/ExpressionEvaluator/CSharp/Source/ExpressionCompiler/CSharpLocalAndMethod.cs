@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -22,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// The custom type info payload depends on the return type, which is not available when
         /// <see cref="CSharpLocalAndMethod"/> is created.
         /// </remarks>
-        public override CustomTypeInfo GetCustomTypeInfo() =>
-            new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, _method.GetCustomTypeInfoPayload());
+        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload)
+        {
+            payload = _method.GetCustomTypeInfoPayload();
+            return (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId;
+        }
     }
 }

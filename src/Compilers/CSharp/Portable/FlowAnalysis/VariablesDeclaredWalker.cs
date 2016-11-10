@@ -53,14 +53,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
-        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
-            if (IsInside)
+            base.VisitPattern(expression, pattern);
+            NoteDeclaredPatternVariables(pattern);
+        }
+
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        {
+            foreach (var label in node.SwitchLabels)
             {
-                _variablesDeclared.Add(node.LocalSymbol);
+                NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            return base.VisitDeclarationPattern(node);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        /// <summary>
+        /// Record declared variables in the pattern.
+        /// </summary>
+        private void NoteDeclaredPatternVariables(BoundPattern pattern)
+        {
+            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            {
+                var decl = (BoundDeclarationPattern)pattern;
+                if (decl.Variable.Kind == SymbolKind.Local)
+                {
+                    // Because this API only returns local symbols and parameters,
+                    // we exclude pattern variables that have become fields in scripts.
+                    _variablesDeclared.Add(decl.Variable);
+                }
+            }
         }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
@@ -103,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariable);
+                _variablesDeclared.Add(node.IterationVariableOpt);
             }
 
             return base.VisitForEachStatement(node);
@@ -136,6 +159,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitQueryClause(node);
+        }
+
+        protected override void VisitLvalue(BoundLocal node)
+        {
+            CheckOutVarDeclaration(node);
+            base.VisitLvalue(node);
+        }
+
+        private void CheckOutVarDeclaration(BoundLocal node)
+        {
+            if (IsInside &&
+                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                var declaration = (DeclarationExpressionSyntax)node.Syntax;
+                if (declaration.Designation.Kind() == SyntaxKind.SingleVariableDesignation &&
+                    ((SingleVariableDesignationSyntax)declaration.Designation).Identifier == node.LocalSymbol.IdentifierToken &&
+                    declaration.Parent != null &&
+                    declaration.Parent.Kind() == SyntaxKind.Argument &&
+                    ((ArgumentSyntax)declaration.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
+                {
+                    _variablesDeclared.Add(node.LocalSymbol);
+                }
+            }
+        }
+
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            CheckOutVarDeclaration(node);
+            return base.VisitLocal(node);
         }
     }
 }

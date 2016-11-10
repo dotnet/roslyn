@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return this.WithSemicolonToken(semicolon);
         }
-
-        public IndexerDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-            return Update(attributeLists, modifiers, this.RefKeyword, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
-        }
     }
 }
 
@@ -52,30 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList: parameterList,
                 accessorList: accessorList,
                 expressionBody: default(ArrowExpressionClauseSyntax));
-        }
-
-        public static IndexerDeclarationSyntax IndexerDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists, 
-            SyntaxTokenList modifiers, 
-            TypeSyntax type, 
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken thisKeyword, 
-            BracketedParameterListSyntax parameterList, 
-            AccessorListSyntax accessorList, 
-            ArrowExpressionClauseSyntax expressionBody, 
-            SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.IndexerDeclaration(
-                attributeLists: attributeLists,
-                modifiers: modifiers,
-                refKeyword: default(SyntaxToken),
-                type: type,
-                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                thisKeyword: thisKeyword,
-                parameterList: parameterList,
-                accessorList: accessorList,
-                expressionBody: expressionBody,
-                semicolonToken: semicolonToken);
         }
     }
 }

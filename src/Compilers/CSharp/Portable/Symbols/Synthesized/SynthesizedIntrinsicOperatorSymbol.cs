@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
         {
-            if (leftType.Equals(rightType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true))
+            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
             {
                 _containingType = leftType;
             }
-            else if (rightType.Equals(returnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true))
+            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
             {
                 _containingType = rightType;
             }
             else
             {
-                Debug.Assert(leftType.Equals(returnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
                 _containingType = leftType;
             }
 

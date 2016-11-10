@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            IEnumerable<IPropertySymbol> indexers;
+            ImmutableArray<IPropertySymbol> indexers;
             ITypeSymbol expressionType;
 
             if (!TryGetIndexers(position, semanticModel, expression, cancellationToken, out indexers, out expressionType) &&
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var accessibleIndexers = indexers.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
+            var accessibleIndexers = indexers.WhereAsArray(
+                m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
             if (!accessibleIndexers.Any())
             {
                 return null;
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
+                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
@@ -182,9 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpState(argumentList, position);
         }
 
-        private bool TryGetComIndexers(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, out IEnumerable<IPropertySymbol> indexers, out ITypeSymbol expressionType)
+        private bool TryGetComIndexers(
+            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, 
+            out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
-            indexers = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IPropertySymbol>();
+            indexers = semanticModel.GetMemberGroup(expression, cancellationToken)
+                .OfType<IPropertySymbol>()
+                .ToImmutableArray();
 
             if (indexers.Any() && expression is MemberAccessExpressionSyntax)
             {
@@ -196,13 +202,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool TryGetIndexers(int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, out IEnumerable<IPropertySymbol> indexers, out ITypeSymbol expressionType)
+        private bool TryGetIndexers(
+            int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, 
+            out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
             expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
 
             if (expressionType == null)
             {
-                indexers = null;
+                indexers = ImmutableArray<IPropertySymbol>.Empty;
                 return false;
             }
 
@@ -214,7 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
-            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
+            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer)
+                .OfType<IPropertySymbol>()
+                .ToImmutableArray();
             return true;
         }
 
@@ -235,11 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
                 GetPostambleParts(indexer),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private IList<SymbolDisplayPart> GetPreambleParts(
             IPropertySymbol indexer,
             int position,
             SemanticModel semanticModel)
@@ -261,9 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
+        private IList<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
         {
-            yield return Punctuation(SyntaxKind.CloseBracketToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseBracketToken));
         }
 
         private static class CompleteElementAccessExpression

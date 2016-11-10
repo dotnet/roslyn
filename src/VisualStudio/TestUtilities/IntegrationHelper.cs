@@ -14,18 +14,22 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
+using Roslyn.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
 
 using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    /// <summary>Provides some helper functions used by the other classes in the project.</summary>
+    /// <summary>
+    /// Provides some helper functions used by the other classes in the project.
+    /// </summary>
     internal static class IntegrationHelper
     {
         public static bool AttachThreadInput(uint idAttach, uint idAttachTo)
         {
-            var success = User32.AttachThreadInput(idAttach, idAttachTo, true);
+            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, true);
 
             if (!success)
             {
@@ -38,7 +42,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static bool BlockInput()
         {
-            var success = User32.BlockInput(true);
+            var success = NativeMethods.BlockInput(true);
 
             if (!success)
             {
@@ -77,7 +81,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
         {
-            var success = User32.AttachThreadInput(idAttach, idAttachTo, false);
+            var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, false);
 
             if (!success)
             {
@@ -98,14 +102,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static IntPtr GetForegroundWindow()
         {
-            // Attempt to get the foreground window in a loop, as the User32 function can return IntPtr.Zero
+            // Attempt to get the foreground window in a loop, as the NativeMethods function can return IntPtr.Zero
             // in certain circumstances, such as when a window is losing activation.
 
             var foregroundWindow = IntPtr.Zero;
 
             do
             {
-                foregroundWindow = User32.GetForegroundWindow();
+                foregroundWindow = NativeMethods.GetForegroundWindow();
             }
             while (foregroundWindow == IntPtr.Zero);
 
@@ -123,9 +127,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 //  * The owner window has the WS_POPUP style
                 // GetWindow with GW_OWNER specified will return the owner window, but not the parent window
                 // GetAncestor with GA_PARENT specified will return the parent window, but not the owner window
-                if ((User32.GetParent(topLevelWindow) == parentWindow) ||
-                    (User32.GetWindow(topLevelWindow, User32.GW_OWNER) == parentWindow) ||
-                    (User32.GetAncestor(topLevelWindow, User32.GA_PARENT) == parentWindow))
+                if ((NativeMethods.GetParent(topLevelWindow) == parentWindow) ||
+                    (NativeMethods.GetWindow(topLevelWindow, NativeMethods.GW_OWNER) == parentWindow) ||
+                    (NativeMethods.GetAncestor(topLevelWindow, NativeMethods.GA_PARENT) == parentWindow))
                 {
                     return topLevelWindow;
                 }
@@ -147,11 +151,15 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        /// <summary>Gets the title text for the specified window.</summary>
-        /// <remarks>GetWindowText() does not work across the process boundary.</remarks>
+        /// <summary>
+        /// Gets the title text for the specified window.
+        /// </summary>
+        /// <remarks>
+        /// GetWindowText() does not work across the process boundary.
+        /// </remarks>
         public static string GetTitleForWindow(IntPtr window)
         {
-            var titleLength = User32.SendMessage(window, User32.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
+            var titleLength = NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
 
             if (titleLength == IntPtr.Zero)
             {
@@ -160,7 +168,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             var title = new StringBuilder(titleLength.ToInt32() + 1);
 
-            User32.SendMessage(window, User32.WM_GETTEXT, (IntPtr)(title.Capacity), title);
+            NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXT, (IntPtr)(title.Capacity), title);
             return title.ToString();
         }
 
@@ -168,12 +176,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var topLevelWindows = new List<IntPtr>();
 
-            var enumFunc = new User32.WNDENUMPROC((hWnd, lParam) => {
+            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) =>
+            {
                 topLevelWindows.Add(hWnd);
                 return true;
             });
 
-            var success = User32.EnumWindows(enumFunc, IntPtr.Zero);
+            var success = NativeMethods.EnumWindows(enumFunc, IntPtr.Zero);
 
             if (!success)
             {
@@ -184,49 +193,26 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return topLevelWindows;
         }
 
-        /// <summary>Kills the specified process if it is not <c>null</c> and has not already exited.</summary>
+        /// <summary>
+        /// Kills the specified process if it is not <c>null</c> and has not already exited.
+        /// </summary>
         public static void KillProcess(Process process)
         {
-            if ((process != null) && (!process.HasExited))
+            if (process != null && !process.HasExited)
             {
                 process.Kill();
             }
         }
 
-        /// <summary>Kills all processes matching the specified name.</summary>
+        /// <summary>
+        /// Kills all processes matching the specified name.
+        /// </summary>
         public static void KillProcess(string processName)
         {
             foreach (var process in Process.GetProcessesByName(processName))
             {
                 KillProcess(processName);
             }
-        }
-
-        public static void RetryRpcCall(Action action)
-        {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
-        }
-
-        public static T RetryRpcCall<T>(Func<T> action)
-        {
-            T returnValue = default(T);
-            RetryRpcCall(() => {
-                returnValue = action();
-            });
-            return returnValue;
         }
 
         public static void SetForegroundWindow(IntPtr window)
@@ -238,8 +224,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 return;
             }
 
-            var activeThreadId = User32.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
-            var currentThreadId = Kernel32.GetCurrentThreadId();
+            var activeThreadId = NativeMethods.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
+            var currentThreadId = NativeMethods.GetCurrentThreadId();
 
             bool threadInputsAttached = false;
 
@@ -249,10 +235,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
 
                 // Make the window a top-most window so it will appear above any existing top-most windows
-                User32.SetWindowPos(window, (IntPtr)(User32.HWND_TOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
 
                 // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
-                var success = User32.SetForegroundWindow(window);
+                var success = NativeMethods.SetForegroundWindow(window);
 
                 if (!success)
                 {
@@ -260,13 +246,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
 
                 // Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
-                User32.SetActiveWindow(window);
+                NativeMethods.SetActiveWindow(window);
 
                 // Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
-                User32.SetFocus(window);
+                NativeMethods.SetFocus(window);
 
                 // Remove the 'Top-Most' qualification from the window
-                User32.SetWindowPos(window, (IntPtr)(User32.HWND_NOTOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
             }
             finally
             {
@@ -278,15 +264,172 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public static void SendInput(User32.INPUT[] input)
+        public static void SendInput(NativeMethods.INPUT[] inputs)
         {
-            var eventsInserted = User32.SendInput((uint)(input.Length), input, User32.SizeOf_INPUT);
+            // NOTE: This assumes that Visual Studio is the active foreground window.
+
+            LogKeyboardInputs(inputs);
+
+            var eventsInserted = NativeMethods.SendInput((uint)inputs.Length, inputs, NativeMethods.SizeOf_INPUT);
 
             if (eventsInserted == 0)
             {
                 var hresult = Marshal.GetHRForLastWin32Error();
                 throw new ExternalException("Sending input failed because input was blocked by another thread.", hresult);
             }
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogKeyboardInputs(NativeMethods.INPUT[] inputs)
+        {
+            foreach (var input in inputs)
+            {
+                switch (input.Type)
+                {
+                    case NativeMethods.INPUT_KEYBOARD:
+                        LogKeyboardInput(input.ki);
+                        break;
+                    case NativeMethods.INPUT_MOUSE:
+                        Debug.WriteLine("UNEXPECTED: Encountered mouse input");
+                        break;
+                    case NativeMethods.INPUT_HARDWARE:
+                        Debug.WriteLine("UNEXPECTED: Encountered hardware input");
+                        break;
+                    default:
+                        Debug.WriteLine($"ERROR: Encountered illegal input type: {input.Type}");
+                        break;
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogKeyboardInput(NativeMethods.KEYBDINPUT input)
+        {
+            var isExtendedKey = (input.dwFlags & NativeMethods.KEYEVENTF_EXTENDEDKEY) != 0;
+            var isKeyUp = (input.dwFlags & NativeMethods.KEYEVENTF_KEYUP) != 0;
+            var isUnicode = (input.dwFlags & NativeMethods.KEYEVENTF_UNICODE) != 0;
+            var isScanCode = (input.dwFlags & NativeMethods.KEYEVENTF_SCANCODE) != 0;
+
+            if (isUnicode && input.wVk != 0)
+            {
+                Debug.WriteLine("UNEXPECTED: if KEYEVENTF_UNICODE flag is specified then wVk must be 0.");
+                return;
+            }
+
+            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+
+            builder.Append("Send Key: ");
+
+            char ch;
+            if (isUnicode || isScanCode)
+            {
+                builder.Append(input.wScan.ToString("x4"));
+                ch = (char)input.wScan;
+            }
+            else
+            {
+                builder.Append(input.wVk.ToString("x4"));
+                ch = (char)(NativeMethods.MapVirtualKey(input.wVk, NativeMethods.MAPVK_VK_TO_CHAR) & 0x0000ffff);
+            }
+
+            // Append code and printable character
+            builder.Append(' ');
+            AppendPrintableChar(ch, builder);
+
+            if (!isUnicode && !isScanCode && input.wVk <= byte.MaxValue)
+            {
+                AppendVirtualKey((byte)input.wVk, builder);
+            }
+
+            // Append flags
+            if (input.dwFlags == 0)
+            {
+                builder.Append("[none]");
+            }
+            else
+            {
+                builder.Append('[');
+
+                if (isExtendedKey)
+                {
+                    AppendFlag("extended", builder);
+                }
+
+                if (isKeyUp)
+                {
+                    AppendFlag("key up", builder);
+                }
+
+                if (isUnicode)
+                {
+                    AppendFlag("unicode", builder);
+                }
+
+                if (isScanCode)
+                {
+                    AppendFlag("scan code", builder);
+                }
+
+                builder.Append(']');
+            }
+
+            Debug.WriteLine(builder.ToString());
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+        }
+
+        private static void AppendPrintableChar(char ch, StringBuilder builder)
+        {
+            string text = GetPrintableCharText(ch);
+
+            if (text != null)
+            {
+                builder.Append("'");
+                builder.Append(text);
+                builder.Append("' ");
+            }
+        }
+
+        private static string GetPrintableCharText(char ch)
+        {
+            switch (ch)
+            {
+                case '\r':
+                    return @"\r";
+                case '\n':
+                    return @"\n";
+                case '\t':
+                    return @"\t";
+                case '\f':
+                    return @"\f";
+                case '\v':
+                    return @"\v";
+                default:
+                    return !char.IsControl(ch)
+                        ? new string(ch, 1)
+                        : null;
+            }
+        }
+
+        private static void AppendVirtualKey(byte virtualKey, StringBuilder builder)
+        {
+            if (Enum.IsDefined(typeof(VirtualKey), virtualKey))
+            {
+                builder.Append('(');
+                builder.Append(Enum.GetName(typeof(VirtualKey), virtualKey));
+                builder.Append(") ");
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AppendFlag(string flagText, StringBuilder builder)
+        {
+            if (builder.Length > 0 && builder[builder.Length - 1] != '[')
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(flagText);
         }
 
         public static bool TryDeleteDirectoryRecursively(string path)
@@ -314,9 +457,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             var monikers = new IMoniker[1];
             var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
-            Ole32.GetRunningObjectTable(0, out runningObjectTable);
+            NativeMethods.GetRunningObjectTable(0, out runningObjectTable);
             runningObjectTable.EnumRunning(out enumMoniker);
-            Ole32.CreateBindCtx(0, out bindContext);
+            NativeMethods.CreateBindCtx(0, out bindContext);
 
             do
             {
@@ -359,12 +502,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
             while (dte == null);
 
-            return (DTE)(dte);
+            return (DTE)dte;
         }
 
         public static void UnblockInput()
         {
-            var success = User32.BlockInput(false);
+            var success = NativeMethods.BlockInput(false);
 
             if (!success)
             {

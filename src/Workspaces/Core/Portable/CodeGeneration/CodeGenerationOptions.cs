@@ -1,9 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -125,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public bool ReuseSyntax { get; }
 
+        public ParseOptions ParseOptions { get; }
+
         public CodeGenerationOptions(
             Location contextLocation = null,
             Location afterThisLocation = null,
@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool generateMethodBodies = true,
             bool generateDocumentationComments = false,
             bool autoInsertionLocation = true,
-            bool reuseSyntax = false)
+            bool reuseSyntax = false,
+            ParseOptions parseOptions = null)
         {
             CheckLocation(contextLocation, nameof(contextLocation));
             CheckLocation(afterThisLocation, nameof(afterThisLocation));
@@ -159,13 +160,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.GenerateDocumentationComments = generateDocumentationComments;
             this.AutoInsertionLocation = autoInsertionLocation;
             this.ReuseSyntax = reuseSyntax;
+
+            this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
         }
 
         private void CheckLocation(Location location, string name)
         {
             if (location != null && !location.IsInSource)
             {
-                throw new ArgumentException(WorkspacesResources.LocationMustBeNullOrFromSource, name);
+                throw new ArgumentException(WorkspacesResources.Location_must_be_null_or_from_source, name);
             }
         }
 

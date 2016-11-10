@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
-        public CompilationUnitSyntax ParseFileExperimental(string text) =>
-            ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+        internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
+            ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
 
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
@@ -44,23 +45,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
         {
             var root = ParseNode(text, options);
+            UsingNode(root);
+            return root;
+        }
+
+        /// <summary>
+        /// Initializes a depth-first preorder enumerator for the given node.
+        /// </summary>
+        protected void UsingNode(CSharpSyntaxNode root)
+        {
             var nodes = EnumerateNodes(root);
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
             _treeEnumerator = nodes.GetEnumerator();
-
-            return root;
         }
 
         /// <summary>
         /// Moves the enumerator and asserts that the current node is of the given kind.
         /// </summary>
         [DebuggerHidden]
-        protected SyntaxNodeOrToken N(SyntaxKind kind)
+        protected SyntaxNodeOrToken N(SyntaxKind kind, string value = null)
         {
             Assert.True(_treeEnumerator.MoveNext());
             Assert.Equal(kind, _treeEnumerator.Current.Kind());
+
+            if (value != null)
+            {
+                Assert.Equal(_treeEnumerator.Current.ToString(), value);
+            }
+
             return _treeEnumerator.Current;
         }
 
@@ -128,7 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Conditional("PARSING_TESTS_DUMP")]
         private static void Print(SyntaxNodeOrToken node)
         {
-            Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+            if (node.Kind() == SyntaxKind.IdentifierToken && !node.IsMissing)
+            {
+                Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+            }
+            else
+            {
+                Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+            }
         }
 
         [Conditional("PARSING_TESTS_DUMP")]

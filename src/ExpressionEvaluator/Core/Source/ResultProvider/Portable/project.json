@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
+        "Microsoft.VisualStudio.Debugger.Metadata": "14.3.25421"
+    },
+    "frameworks": {
+        ".NETPortable,Version=v4.5,Profile=Profile7": { }
+    }
+}

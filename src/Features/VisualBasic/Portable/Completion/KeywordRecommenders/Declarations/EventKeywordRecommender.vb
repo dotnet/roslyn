@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If context.IsTypeMemberDeclarationKeywordContext OrElse context.IsInterfaceMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Event) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Event", VBFeaturesResources.EventKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Event", VBFeaturesResources.Declares_a_user_defined_event))
                 End If
             End If
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     Dim variableDeclarator = targetToken.GetAncestor(Of VariableDeclaratorSyntax)()
                     If variableDeclarator IsNot Nothing Then
                         If variableDeclarator.Names.Count = 1 AndAlso variableDeclarator.Names.First().Identifier = targetToken Then
-                            Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Event", VBFeaturesResources.EventKeywordToolTip))
+                            Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Event", VBFeaturesResources.Declares_a_user_defined_event))
                         End If
                     End If
                 End If

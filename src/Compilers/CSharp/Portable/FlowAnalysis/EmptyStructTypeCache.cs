@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)field != null)
                 {
-                    var actualFiledType = field.Type;
-                    if (!IsEmptyStructType(actualFiledType, typesWithMembersOfThisType))
+                    var actualFieldType = field.Type;
+                    if (!IsEmptyStructType(actualFieldType, typesWithMembersOfThisType))
                     {
                         return false;
                     }
@@ -167,6 +167,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                         var field = (FieldSymbol)member;
+
+                        // Do not report virtual tuple fields.
+                        // They are additional aliases to the fields of the underlying struct or nested extensions.
+                        // and as such are already accounted for via the nonvirtual fields.
+                        if (field.IsVirtualTupleField)
+                        {
+                            return null;
+                        }
+
                         return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
                     case SymbolKind.Event:

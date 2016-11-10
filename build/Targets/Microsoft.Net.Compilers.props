@@ -1,0 +1,28 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <ToolsetCompilerPath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\tools</ToolsetCompilerPath>
+  </PropertyGroup>
+
+  <!-- Always use the local build task, even if we just shell out to an exe in case there are
+       new properties in the local build task. -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             />
+  <PropertyGroup>
+    <CSharpCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+  </PropertyGroup>
+
+  <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
+       the exes in this package -->
+  <PropertyGroup Condition="'$(UseSharedCompilation)' != 'true'">
+    <CscToolPath>$(ToolsetCompilerPath)</CscToolPath>
+    <CscToolExe>csc.exe</CscToolExe>
+    <VbcToolPath>$(ToolsetCompilerPath)</VbcToolPath>
+    <VbcToolExe>vbc.exe</VbcToolExe>
+  </PropertyGroup>
+</Project>

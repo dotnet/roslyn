@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Var,
         Tuples,
         RefLocalsReturns,
-        SourceGenerators,
+        OutVar,
+        Patterns,
     }
 }

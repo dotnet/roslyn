@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -30,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
-                var pragmaActionsBuilder = ImmutableArray.CreateBuilder<IPragmaBasedCodeAction>();
-                var pragmaDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
+                var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
+                var pragmaDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 
                 foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && !d.IsSuppressed))
                 {
@@ -56,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutable(), pragmaDiagnosticsBuilder.ToImmutable(), 
+                        pragmaActionsBuilder.ToImmutableAndFree(), 
+                        pragmaDiagnosticsBuilder.ToImmutableAndFree(), 
                         fixAllState, cancellationToken);
 
                     addFix(pragmaBatchFix);
