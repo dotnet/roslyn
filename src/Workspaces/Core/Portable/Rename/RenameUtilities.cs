@@ -136,6 +136,15 @@ namespace Microsoft.CodeAnalysis.Rename
                 return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
             }
 
+            if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
+                symbolInfo.CandidateSymbols.Length == 1)
+            {
+                // TODO(cyrusn): We're allowing rename here, but we likely should let the user
+                // know that there is an error in the code and that rename results might be
+                // inaccurate.
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.CandidateSymbols[0]);
+            }
+
             return TokenRenameInfo.NoSymbolsTokenInfo;
         }
     }

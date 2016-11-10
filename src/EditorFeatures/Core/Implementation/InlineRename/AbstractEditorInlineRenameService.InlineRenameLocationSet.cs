@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,13 +17,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly RenameLocations _renameLocationSet;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
-            public IList<InlineRenameLocation> Locations { get; }
+            public ImmutableArray<InlineRenameLocation> Locations { get; }
 
             public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocations renameLocationSet)
             {
                 _renameInfo = renameInfo;
                 _renameLocationSet = renameLocationSet;
-                this.Locations = renameLocationSet.Locations.Where(l => !l.IsCandidateLocation || l.IsMethodGroupReference).Select(ConvertLocation).ToList();
+                this.Locations = renameLocationSet.Locations.Where(RenameLocation.ShouldRename)
+                                                            .Select(ConvertLocation)
+                                                            .ToImmutableArray();
             }
 
             private InlineRenameLocation ConvertLocation(RenameLocation location)

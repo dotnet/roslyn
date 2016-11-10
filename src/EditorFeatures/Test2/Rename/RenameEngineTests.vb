@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         <WorkItem(543661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543661")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameNamespaceAlias()
             Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
@@ -38,6 +37,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             </Document>
                        </Project>
                    </Workspace>, renameTo:="Sys2")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|$$field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="_field")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|$$field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="_field")
             End Using
         End Sub
 
