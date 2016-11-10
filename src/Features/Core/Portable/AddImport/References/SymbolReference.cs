@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                string description = TryGetDescription(document.Project, node, semanticModel, cancellationToken);
+                string description = TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected virtual string TryGetDescription(
-                Project project, SyntaxNode node, 
+                Document document, SyntaxNode node, 
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return provider.TryGetDescription(
-                    SymbolResult.Symbol, semanticModel, node, 
-                    this.CheckForExistingImport(project), cancellationToken);
+                    document, SymbolResult.Symbol, semanticModel, node, 
+                    this.CheckForExistingImport(document.Project), cancellationToken);
             }
         }
     }

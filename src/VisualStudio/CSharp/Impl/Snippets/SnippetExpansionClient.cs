@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -93,7 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(document, snippetNode, importsNode, cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var contextLocation = root.FindToken(position).Parent;
+
+            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
             if (!newUsingDirectives.Any())
             {
                 return document;
@@ -106,15 +110,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var node = root.FindToken(position).Parent;
-            var container = node.GetInnermostNamespaceDeclarationWithUsings() ?? (SyntaxNode)node.GetAncestorOrThis<CompilationUnitSyntax>();
+            var addImportService = document.GetLanguageService<IAddImportService>();
+            var newRoot = addImportService.AddImports(root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
 
-            var newContainer = container is NamespaceDeclarationSyntax n
-                ? (SyntaxNode)n.AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst, Formatter.Annotation)
-                : ((CompilationUnitSyntax)container).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
-
-            var newRoot = root.ReplaceNode(container, newContainer);
             var newDocument = document.WithSyntaxRoot(newRoot);
 
             var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -123,11 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return formattedDocument;
         }
 
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(Document document, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
+            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var existingUsings = ((CompilationUnitSyntax)root).Usings;
+            var existingUsings = contextLocation.GetEnclosingUsingDirectives();
             var newUsings = new List<UsingDirectiveSyntax>();
 
             foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
@@ -150,18 +148,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     continue;
                 }
 
-                if (!existingUsings.Any(u => UsingsMatch(u, candidateUsing)))
+                if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))
                 {
                     newUsings.Add(candidateUsing.WithAdditionalAnnotations(Formatter.Annotation).WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
                 }
             }
 
             return newUsings;
-        }
-
-        private static bool UsingsMatch(UsingDirectiveSyntax usingDirective1, UsingDirectiveSyntax usingDirective2)
-        {
-            return usingDirective1.Name.ToString() == usingDirective2.Name.ToString() && GetAliasName(usingDirective1) == GetAliasName(usingDirective2);
         }
 
         private static string GetAliasName(UsingDirectiveSyntax usingDirective)
