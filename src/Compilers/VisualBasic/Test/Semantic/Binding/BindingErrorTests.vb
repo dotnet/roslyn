@@ -22051,7 +22051,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     Dim _myclass As MyClass1 = Nothing
                     ~~~~~~~~
 </errors>)
@@ -22074,10 +22074,10 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -22100,7 +22100,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = directcast(nothing, MyClass1)
                                            ~~~~~~~~
 </errors>)

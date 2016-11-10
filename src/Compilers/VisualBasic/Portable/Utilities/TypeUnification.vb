@@ -243,8 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
                     Dim namedType As NamedTypeSymbol = DirectCast(type, NamedTypeSymbol)
                     While namedType IsNot Nothing
-                        For Each typeArg In namedType.TypeArgumentsNoUseSiteDiagnostics
-                            If Contains(typeArg, typeParam) Then
+                        Dim typeParts = If(namedType.IsTupleType, namedType.TupleElementTypes, namedType.TypeArgumentsNoUseSiteDiagnostics)
+                        For Each typePart In typeParts
+                            If Contains(typePart, typeParam) Then
                                 Return True
                             End If
                         Next

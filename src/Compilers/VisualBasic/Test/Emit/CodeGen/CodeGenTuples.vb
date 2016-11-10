@@ -15320,6 +15320,12 @@ End Interface
 Public Class C1
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
 End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C3
+    Implements I0(Of Integer), I0(Of Integer)
+End Class
     </file>
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
@@ -15329,8 +15335,84 @@ additionalRefs:=s_valueTupleRefs)
 BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
+    Implements I0(Of Integer), I0(Of Integer)
+                               ~~~~~~~~~~~~~~
 </errors>)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
 
+            Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(1).First())
+            Assert.Equal("C1", c1.Name)
+            Assert.Equal(2, c1.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c1.Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.Interfaces(1).ToTestDisplayString())
+
+            Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(2).First())
+            Assert.Equal("C2", c2.Name)
+            Assert.Equal(1, c2.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c2.Interfaces(0).ToTestDisplayString())
+
+            Dim c3 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(3).First())
+            Assert.Equal("C3", c3.Name)
+            Assert.Equal(1, c3.AllInterfaces.Count)
+            Assert.Equal("I0(Of System.Int32)", c3.Interfaces(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2.C3, Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+Public Class C2
+    Private Class C3
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30389: 'C2.C3' is not accessible in this context because it is 'Private'.
+    Public Function M() As (C2.C3, Integer)
+                            ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2, Integer)
+        Throw New System.Exception()
+    End Function
+    Private Class C2
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            Dim expectedErrors = <errors><![CDATA[
+BC30508: 'M' cannot expose type 'C.C2' in namespace '<Default>' through class 'C'.
+    Public Function M() As (C2, Integer)
+                           ~~~~~~~~~~~~~
+                 ]]></errors>
+            comp.AssertTheseDiagnostics(expectedErrors)
         End Sub
 
         <Fact>
@@ -15662,6 +15744,26 @@ BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its impl
         End Sub
 
         <Fact>
+        Public Sub InterfaceUnification2()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Interface I0(Of T1)
+End Interface
+Public Class Derived(Of T)
+    Implements I0(Of Derived(Of (T, T))), I0(Of T)
+End Class
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+            ' Didn't run out of memory in trying to substitute T with Derived(Of (T, T)) in a loop
+        End Sub
+
+        <Fact>
         Public Sub AmbiguousExtensionMethodWithDifferentTupleNames()
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
@@ -15950,6 +16052,28 @@ BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Intege
                               ~~
 </errors>)
 
+        End Sub
+
+        <Fact>
+        Public Sub StructInStruct()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Structure S
+    Public Field As (S, S)
+End Structure
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30294: Structure 'S' cannot contain an instance of itself: 
+    'S' contains '(S, S)' (variable 'Field').
+    '(S, S)' contains 'S' (variable 'Item1').
+    Public Field As (S, S)
+           ~~~~~
+</errors>)
         End Sub
 
         <Fact>
