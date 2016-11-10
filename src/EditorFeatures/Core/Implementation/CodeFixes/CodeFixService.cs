@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllProviderInfo = extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
 
             FixAllState fixAllState = null;
-            IEnumerable<FixAllScope> supportedScopes = null;
+            var supportedScopes = ImmutableArray<FixAllScope>.Empty;
             if (fixAllProviderInfo != null)
             {
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
