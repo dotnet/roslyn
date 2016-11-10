@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         private static readonly Func<UsingDirectiveSyntax, bool> s_isUsing = u => u.Alias == null;
         private static readonly Func<UsingDirectiveSyntax, bool> s_isAlias = u => u.Alias != null;
 
-        private static readonly Func<SyntaxNode, bool> s_hasAliases = n => GetUsings(n).Any(s_isAlias);
-        private static readonly Func<SyntaxNode, bool> s_hasUsings = n => GetUsings(n).Any(s_isUsing);
+        private static readonly Func<SyntaxNode, bool> s_hasAliases = n => GetUsingsAndAliases(n).Any(s_isAlias);
+        private static readonly Func<SyntaxNode, bool> s_hasUsings = n => GetUsingsAndAliases(n).Any(s_isUsing);
         private static readonly Func<SyntaxNode, bool> s_hasExterns = n => GetExterns(n).Any();
 
-        private static readonly Func<SyntaxNode, bool> s_hasAnyImports = n => GetUsings(n).Any() || GetExterns(n).Any();
+        private static readonly Func<SyntaxNode, bool> s_hasAnyImports = n => GetUsingsAndAliases(n).Any() || GetExterns(n).Any();
 
         public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             aliasContainer = contextSpine.FirstOrDefault(s_hasAliases) ?? fallbackNode;
         }
 
-        private static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode node)
+        private static SyntaxList<UsingDirectiveSyntax> GetUsingsAndAliases(SyntaxNode node)
         {
             switch (node)
             {
