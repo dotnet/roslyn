@@ -551,6 +551,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConstantPattern = 9002,
         CasePatternSwitchLabel = 9009,
         WhenClause = 9013,
+        UnderscoreToken = 9014,
+        DiscardedDesignation = 9015,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.
 

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
+            syntaxKindsMissing.Add(SyntaxKind.DiscardedDesignation);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

@@ -2174,11 +2174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LookupDeclaredField(variableDesignator, variableDesignator.Identifier.ValueText);
         }
 
-        internal GlobalExpressionVariable LookupDeclaredField(DeclarationPatternSyntax variable)
-        {
-            return LookupDeclaredField(variable, variable.Identifier.ValueText);
-        }
-
         internal GlobalExpressionVariable LookupDeclaredField(SyntaxNode node, string identifier)
         {
             foreach (Symbol member in ContainingType?.GetMembers(identifier) ?? ImmutableArray<Symbol>.Empty)
