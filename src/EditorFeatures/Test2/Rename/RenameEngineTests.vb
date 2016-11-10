@@ -517,8 +517,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossFiles()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -550,8 +549,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossProjectsAndLanguages()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -588,8 +586,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorDefinition()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -614,8 +611,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -640,8 +636,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromDestructor()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -660,8 +655,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromSynthesizedConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -682,8 +676,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables1()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -706,8 +699,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -730,8 +722,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables3()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -754,8 +745,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables1()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -774,8 +764,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -794,8 +783,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables3()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -853,8 +841,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -877,8 +864,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromSynthesizedConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -897,8 +883,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespace()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -917,8 +902,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <Fact, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnum()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -937,8 +921,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <Fact, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnumMember()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -957,8 +940,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
+        <Fact, WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNothingRename()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -979,8 +961,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <Fact, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpBugfix553631()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1007,8 +988,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <Fact, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicBugfix553631()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1039,8 +1019,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
+        <Fact, WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExtensionMethod()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1068,8 +1047,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
+        <Fact, WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument1()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1094,8 +1072,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <Fact, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument2()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1119,8 +1096,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
+        <Fact, WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameRangeVariable()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1146,8 +1122,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <Fact, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicParameterizedPropertyNamedArgument()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1176,8 +1151,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromDeclaration()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1201,8 +1175,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideGetAccessor()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1226,8 +1199,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideSetAccessor()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1251,8 +1223,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <Fact, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethodParameter()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1597,8 +1568,7 @@ End Module
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1620,8 +1590,7 @@ End Module
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516_2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1644,8 +1613,7 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_CS()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1671,8 +1639,7 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_CS()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1698,8 +1665,7 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_VB()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1722,8 +1688,7 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_VB()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1746,8 +1711,7 @@ End Module
         End Sub
 
         <WorkItem(530740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530740")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug530740()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1785,8 +1749,7 @@ End Module
         End Sub
 
         <WorkItem(530082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530082")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodThatImplementsInterfaceMethod()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1818,8 +1781,7 @@ End Module
         End Sub
 
         <WorkItem(529874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529874")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotRemoveAttributeSuffixOn__Attribute()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1841,8 +1803,7 @@ End Module
         End Sub
 
         <WorkItem(553315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553315")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEventParameterOnUsage()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1865,8 +1826,7 @@ End Module
         End Sub
 
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedBackingFieldForNonCustomEvent()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
