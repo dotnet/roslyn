@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             bool placeSystemNamespaceFirst)
         {
             contextLocation = contextLocation ?? root;
+            var contextSpine = contextLocation.AncestorsAndSelf().ToSet();
 
             // var compilationUnit = (CompilationUnitSyntax)root;
 
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var usingDirectives = newImports.OfType<UsingDirectiveSyntax>().Where(u => u.Alias == null).ToArray();
             var aliasDirectives = newImports.OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).ToArray();
 
-            var rewriter = new Rewriter(externAliases, usingDirectives, aliasDirectives, placeSystemNamespaceFirst);
+            var rewriter = new Rewriter(contextSpine, externAliases, usingDirectives, aliasDirectives, placeSystemNamespaceFirst);
             var newRoot = rewriter.Visit(root);
 
             return newRoot;
@@ -40,13 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             private ExternAliasDirectiveSyntax[] _externAliases;
             private UsingDirectiveSyntax[] _usingDirectives;
             private readonly bool _placeSystemNamespaceFirst;
+            private readonly ISet<SyntaxNode> _contextSpine;
 
             public Rewriter(
+                ISet<SyntaxNode> contextSpine,
                 ExternAliasDirectiveSyntax[] externAliases, 
                 UsingDirectiveSyntax[] usingDirectives, 
                 UsingDirectiveSyntax[] aliasDirectives,
                 bool placeSystemNamespaceFirst)
             {
+                _contextSpine = contextSpine;
                 _externAliases = externAliases;
                 _usingDirectives = usingDirectives;
                 _aliasDirectives = aliasDirectives;
@@ -61,25 +66,28 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
 
-                if (_aliasDirectives != null &&
-                    rewritten.Usings.Any(s_isAlias))
+                if (_contextSpine.Contains(node))
                 {
-                    rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _placeSystemNamespaceFirst);
-                    _aliasDirectives = null;
-                }
+                    if (_aliasDirectives != null &&
+                        rewritten.Usings.Any(s_isAlias))
+                    {
+                        rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _placeSystemNamespaceFirst);
+                        _aliasDirectives = null;
+                    }
 
-                if (_usingDirectives != null &&
-                    rewritten.Usings.All(s_isUsing))
-                {
-                    rewritten = rewritten.AddUsingDirectives(_usingDirectives, _placeSystemNamespaceFirst);
-                    _usingDirectives = null;
-                }
+                    if (_usingDirectives != null &&
+                        rewritten.Usings.Any(s_isUsing))
+                    {
+                        rewritten = rewritten.AddUsingDirectives(_usingDirectives, _placeSystemNamespaceFirst);
+                        _usingDirectives = null;
+                    }
 
-                if (_externAliases != null &&
-                    rewritten.Externs.Any())
-                {
-                    rewritten = rewritten.AddExterns(_externAliases);
-                    _externAliases = null;
+                    if (_externAliases != null &&
+                        rewritten.Externs.Any())
+                    {
+                        rewritten = rewritten.AddExterns(_externAliases);
+                        _externAliases = null;
+                    }
                 }
 
                 return rewritten;
@@ -90,25 +98,19 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 // recurse downwards so we visit inner namespaces first.
                 var rewritten = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
 
-                if (_aliasDirectives != null &&
-                    rewritten.Usings.Any(s_isAlias))
+                if (_aliasDirectives != null)
                 {
                     rewritten = rewritten.AddUsingDirectives(_aliasDirectives, _placeSystemNamespaceFirst);
-                    _aliasDirectives = null;
                 }
 
-                if (_usingDirectives != null &&
-                    rewritten.Usings.All(s_isUsing))
+                if (_usingDirectives != null)
                 {
                     rewritten = rewritten.AddUsingDirectives(_usingDirectives, _placeSystemNamespaceFirst);
-                    _usingDirectives = null;
                 }
 
-                if (_externAliases != null &&
-                    rewritten.Externs.Any())
+                if (_externAliases != null)
                 {
                     rewritten = rewritten.AddExterns(_externAliases);
-                    _externAliases = null;
                 }
 
                 return rewritten;
