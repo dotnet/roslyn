@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc);
         protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
@@ -107,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
+            
             SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
 
             if (isFullSnippetFormat)
@@ -117,7 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // specified in the snippet xml. In OnBeforeInsertion we have no guarantee that the
                 // snippet xml will be available, and changing the buffer during OnAfterInsertion can
                 // cause the underlying tracking spans to get out of sync.
-                AddReferencesAndImports(ExpansionSession, cancellationToken);
+                var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
+                AddReferencesAndImports(
+                    ExpansionSession, currentStartPosition, cancellationToken);
 
                 SetNewEndPosition(endPositionTrackingSpan);
             }
@@ -512,7 +515,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void AddReferencesAndImports(IVsExpansionSession pSession, CancellationToken cancellationToken)
+        private void AddReferencesAndImports(
+            IVsExpansionSession pSession,
+            int position,
+            CancellationToken cancellationToken)
         {
             XElement snippetNode;
             if (!TryGetSnippetNode(pSession, out snippetNode))
@@ -528,7 +534,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            documentWithImports = AddImports(documentWithImports, snippetNode, placeSystemNamespaceFirst, cancellationToken);
+
+            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
