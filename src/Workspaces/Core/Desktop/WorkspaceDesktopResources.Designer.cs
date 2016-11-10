@@ -95,14 +95,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0_with_message_1", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string String1 {
-            get {
-                return ResourceManager.GetString("String1", resourceCulture);
-            }
-        }
     }
 }

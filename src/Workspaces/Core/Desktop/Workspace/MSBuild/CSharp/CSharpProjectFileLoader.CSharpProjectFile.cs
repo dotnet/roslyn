@@ -73,34 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assemblyName = this.GetAssemblyName();
 
                 var project = buildInfo.Project;
-                if (project != null)
-                {
-                    string projectDirectory = project.Directory;
-                    string directorySeparator = Path.DirectorySeparatorChar.ToString();
-                    if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
-                    {
-                        projectDirectory += directorySeparator;
-                    }
-
-                    var docs = compilerInputs.Sources
-                           .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
-                           .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                           .ToImmutableArray();
-
-                    var additionalDocs = compilerInputs.AdditionalSources
-                            .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                            .ToImmutableArray();
-
-                    return new ProjectFileInfo(
-                        outputPath,
-                        assemblyName,
-                        compilerInputs.CommandLineArgs,
-                        docs,
-                        additionalDocs,
-                        this.GetProjectReferences(buildInfo.Project),
-                        buildInfo.ErrorMessage);
-                }
-                else
+                if (project == null)
                 {
                     return new ProjectFileInfo(
                         outputPath,
@@ -111,6 +84,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
                         errorMessage: buildInfo.ErrorMessage);
                 }
+
+                string projectDirectory = project.Directory;
+                string directorySeparator = Path.DirectorySeparatorChar.ToString();
+                if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
+                {
+                    projectDirectory += directorySeparator;
+                }
+
+                var docs = compilerInputs.Sources
+                        .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
+                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                        .ToImmutableArray();
+
+                var additionalDocs = compilerInputs.AdditionalSources
+                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                        .ToImmutableArray();
+
+                return new ProjectFileInfo(
+                    outputPath,
+                    assemblyName,
+                    compilerInputs.CommandLineArgs,
+                    docs,
+                    additionalDocs,
+                    this.GetProjectReferences(buildInfo.Project),
+                    buildInfo.ErrorMessage);
             }
 
             private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, ITaskItem item)

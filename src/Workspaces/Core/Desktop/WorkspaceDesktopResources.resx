@@ -129,7 +129,4 @@
   <data name="Msbuild_failed_when_processing_the_file_0_with_message_1" xml:space="preserve">
     <value>Msbuild failed when processing the file '{0}' with message: {1}</value>
   </data>
-  <data name="String1" xml:space="preserve">
-    <value />
-  </data>
 </root>
