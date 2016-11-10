@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using System;
 using System.Globalization;
 using System.IO;
-using System.Security;
-using Microsoft.Build.Framework;
-using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Security;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
+        private const string MSBuildRoslynFolderName = "Roslyn";
+
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
@@ -148,6 +150,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return (string)method.Invoke(assembly, parameters: null);
+        }
+
+        internal static string GenerateFullPathToMSBuildRoslynTool(string toolName)
+        {
+            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion);
+
+            if (null != pathToBuildTools)
+            {
+                var pathToTool = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
+
+                if (File.Exists(pathToTool))
+                {
+                    return pathToTool;
+                }
+            }
+
+            return null;
         }
     }
 }
