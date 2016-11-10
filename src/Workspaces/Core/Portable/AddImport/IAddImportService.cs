@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         /// <summary>
         /// Given a context location in a provided syntax tree, returns the appropriate container
-        /// that <paramref name="import"/> should should be added to.
+        /// that <paramref name="import"/> should be added to.
         /// </summary>
         SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
     }
