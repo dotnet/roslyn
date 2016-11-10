@@ -6,16 +6,83 @@ namespace GitMergeBot
 {
     internal sealed class Options
     {
-        public string AuthToken { get; set; }
-        public string RepoName { get; set; }
-        public string SourceBranch { get; set; }
-        public string DestinationBranch { get; set; }
-        public string SourceUser { get; set; }
-        public string DestinationUser { get; set; }
         public bool Force { get; set; }
         public bool Debug { get; set; }
-        public bool ShowHelp { get; set; }
+        public string RepositoryPath { get; set; }
+        public RepositoryType SourceRepoType { get; set; }
+        public string SourceRepoName { get; set; }
+        public string SourceUserName { get; set; }
+        public string SourcePassword { get; set; }
+        public string SourceRemoteName { get; set; }
+        public string SourceBranchName { get; set; }
 
-        public bool AreValid => new[] { AuthToken, RepoName, SourceBranch, DestinationBranch, SourceUser, DestinationUser }.All(s => s != null);
+        public bool PushBranchToDestination { get; set; }
+
+        private string _prBranchSourceRemote;
+        private RepositoryType? _destinationRepoType;
+        private string _destinationRepoOwner;
+        private string _destinationRepoName;
+        private string _destinationUserName;
+        private string _destinationPassword;
+        private string _destinationRemoteName;
+        private string _destinationBranchName;
+
+        public string PullRequestBranchSourceRemote
+        {
+            get { return _prBranchSourceRemote ?? SourceRemoteName; }
+            set { _prBranchSourceRemote = value; }
+        }
+
+        public RepositoryType DestinationRepoType
+        {
+            get { return _destinationRepoType ?? SourceRepoType; }
+            set { _destinationRepoType = value; }
+        }
+
+        public string DestinationRepoOwner
+        {
+            get { return _destinationRepoOwner ?? DestinationUserName; }
+            set { _destinationRepoOwner = value; }
+        }
+
+        public string DestinationRepoName
+        {
+            get { return _destinationRepoName ?? SourceRepoName; }
+            set { _destinationRepoName = value; }
+        }
+
+        public string DestinationUserName
+        {
+            get { return _destinationUserName ?? SourceUserName; }
+            set { _destinationUserName = value; }
+        }
+
+        public string DestinationPassword
+        {
+            get { return _destinationPassword ?? SourcePassword; }
+            set { _destinationPassword = value; }
+        }
+
+        public string DestinationRemoteName
+        {
+            get { return _destinationRemoteName ?? SourceRemoteName; }
+            set { _destinationRemoteName = value; }
+        }
+
+        public string DestinationBranchName
+        {
+            get { return _destinationBranchName ?? SourceBranchName; }
+            set { _destinationBranchName = value; }
+        }
+
+        public bool IsValid => new[]
+        {
+            RepositoryPath,
+            SourceRepoName,
+            SourceUserName,
+            SourcePassword,
+            SourceRemoteName,
+            SourceBranchName
+        }.All(s => s != null);
     }
 }
