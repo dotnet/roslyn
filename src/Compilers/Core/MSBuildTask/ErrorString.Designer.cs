@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found, or the .NET Framework {1} is not installed.  Please install the .NET Framework {1}..
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
         /// </summary>
-        internal static string General_FrameworksFileNotFound {
+        internal static string General_ToolFileNotFound {
             get {
-                return ResourceManager.GetString("General_FrameworksFileNotFound", resourceCulture);
+                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
             }
         }
         
