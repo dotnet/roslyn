@@ -2161,13 +2161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (simpleName.IsParentKind(SyntaxKind.TypedVariableComponent))
-            {
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
-            }
-
             return false;
         }
 

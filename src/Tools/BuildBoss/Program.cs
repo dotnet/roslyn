@@ -13,30 +13,23 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            string configFile;
-            string basePath;
-            List<string> solutionFilePaths;
-            if (!ParseCommandLine(args, out configFile, out basePath, out solutionFilePaths))
+            if (args.Length == 0)
             { 
                 Usage();
                 return 1;
             }
 
-            if (configFile != null)
-            {
-                var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configFile));
-                foreach (var target in config.Targets)
-                {
-                    solutionFilePaths.Add(Path.IsPathRooted(target)
-                        ? target
-                        : Path.Combine(basePath, target));
-                }
-            }
-
             var allGood = true;
-            foreach (var solutionFilePath in solutionFilePaths)
+            foreach (var arg in args)
             {
-                allGood &= ProcessSolution(solutionFilePath);
+                if (SharedUtil.IsSolutionFile(arg))
+                {
+                    allGood &= ProcessSolution(arg);
+                }
+                else
+                {
+                    allGood &= ProcessTargets(arg);
+                }
             }
 
             return allGood ? 0 : 1;
@@ -50,6 +43,12 @@ namespace BuildBoss
             foreach (var projectEntry in projectDataList)
             {
                 if (projectEntry.IsFolder)
+                {
+                    continue;
+                }
+
+                // TODO: temporary work around util a cross cutting change can be sync'd up.  
+                if (Path.GetFileName(projectEntry.RelativeFilePath) == "CompilerPerfTest.vbproj")
                 {
                     continue;
                 }
@@ -86,51 +85,26 @@ namespace BuildBoss
             return true;
         }
 
-        private static bool ParseCommandLine(string[] args, out string configFile, out string basePath, out List<string> solutionFilePaths)
+        private static bool ProcessTargets(string targets)
         {
-            configFile = null;
-            basePath = AppContext.BaseDirectory;
-            solutionFilePaths = new List<string>();
-
-            var i = 0;
-            while (i < args.Length)
+            var checker = new TargetsCheckerUtil(targets);
+            var textWriter = new StringWriter();
+            if (checker.CheckAll(textWriter))
             {
-                var current = args[i];
-                switch (current.ToLower())
-                {
-                    case "-config":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("config requires an argument");
-                            return false;
-                        }
-
-                        configFile = args[i + 1];
-                        i += 2;
-                        break;
-                    case "-basepath":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("basePath requise and argument");
-                            return false;
-                        }
-
-                        basePath = args[i + 1];
-                        i += 2;
-                        break;
-                    default:
-                        solutionFilePaths.Add(current);
-                        i++;
-                        break;
-                }
+                Console.WriteLine($"Processing {Path.GetFileName(targets)} passed");
+                return true;
             }
-
-            return true;
+            else
+            {
+                Console.WriteLine($"Processing {Path.GetFileName(targets)} FAILED");
+                Console.WriteLine(textWriter.ToString());
+                return false;
+            }
         }
 
         private static void Usage()
         {
-            Console.WriteLine($"BuildBoss [-config <config file path] [-basePath <base path>] <solution paths>");
+            Console.WriteLine($"BuildBoss <solution paths>");
         }
     }
 }

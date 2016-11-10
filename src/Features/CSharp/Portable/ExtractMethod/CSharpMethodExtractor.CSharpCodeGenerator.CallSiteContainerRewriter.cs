@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                .WithStatement(ReplaceStatementIfNeeded(node.Statement));
                 }
 
-                public override SyntaxNode VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+                public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
                 {
                     if (node != this.ContainerOfStatementsOrFieldToReplace)
                     {
-                        return base.VisitForEachComponentStatement(node);
+                        return base.VisitForEachVariableStatement(node);
                     }
 
                     return node.WithExpression(VisitNode(node.Expression))

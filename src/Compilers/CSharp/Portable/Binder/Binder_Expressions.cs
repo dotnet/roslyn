@@ -2095,11 +2095,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
-            var typeSyntax = declarationExpression.Type();
+            TypeSyntax typeSyntax = declarationExpression.Type;
+            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             bool isVar;
 
             // Is this a local?
-            SourceLocalSymbol localSymbol = this.LookupLocal(declarationExpression.Identifier());
+            SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
 
             if ((object)localSymbol != null)
             {
@@ -2130,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is this a field?
-            GlobalExpressionVariable expressionVariableField = LookupDeclaredField(declarationExpression.VariableDesignation());
+            GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
 
             if ((object)expressionVariableField == null)
             {
@@ -2138,7 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            BoundExpression receiver = SynthesizeReceiver(declarationExpression.VariableDesignation(), expressionVariableField, diagnostics);
+            BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
 
             if (typeSyntax.IsVar)
             {

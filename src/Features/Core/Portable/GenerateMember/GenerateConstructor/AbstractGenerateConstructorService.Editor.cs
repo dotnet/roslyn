@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         var property = (IPropertySymbol)symbol;
                         return
                             property.Parameters.Length == 0 &&
-                            property.SetMethod != null &&
+                            property.IsWritableInConstructor() &&
                             _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
                     }
                 }

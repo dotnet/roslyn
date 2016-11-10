@@ -429,15 +429,27 @@ class C
         public async Task TestTestObjectConstruction()
         {
             await TestAsync(
-"class AwesomeClass { void M() { var foo = new [|AwesomeClas()|]; } }",
-"class AwesomeClass { void M() { var foo = new AwesomeClass(); } }");
+@"class AwesomeClass
+{
+    void M()
+    {
+        var foo = new [|AwesomeClas()|];
+    }
+}",
+@"class AwesomeClass
+{
+    void M()
+    {
+        var foo = new AwesomeClass();
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestTestMissingName()
         {
             await TestMissingAsync(
-"[assembly: Microsoft.CodeAnalysis.[||]]");
+@"[assembly: Microsoft.CodeAnalysis.[||]]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -472,26 +484,22 @@ class C
         public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
         {
             await TestAsync(
-@"
-class C
+@"class C
 {
     void M()
     {
         // here 'for' is a keyword and snippet, so we should offer to spell check to it.
         [|foo|];
     }
-}
-",
-@"
-class C
+}",
+@"class C
 {
     void M()
     {
         // here 'for' is a keyword and snippet, so we should offer to spell check to it.
         for;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -499,16 +507,14 @@ class C
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
             await TestMissingAsync(
-@"
-class C
+@"class C
 {
     void M()
     {
         // here 'for' is *only* a snippet, and we should not offer to spell check to it.
         var v = [|foo|];
     }
-}
-");
+}");
         }
     }
 }

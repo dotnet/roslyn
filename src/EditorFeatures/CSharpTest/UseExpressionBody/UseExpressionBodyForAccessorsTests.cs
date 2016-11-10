@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -50,18 +50,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|return|] Bar();
         }
     }
 }",
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         get => Bar();
-    }
-}", options: UseExpressionBody);
+        }
+    }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -70,8 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|return|] Bar();
         }
     }
@@ -84,18 +89,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int this[int i] {
-        get {
+    int this[int i]
+    {
+        get
+        {
             [|return|] Bar();
         }
     }
 }",
 @"class C
 {
-    int this[int i] {
+    int this[int i]
+    {
         get => Bar();
-    }
-}", options: UseExpressionBody);
+        }
+    }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -104,8 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int this[int i] {
-        get {
+    int this[int i]
+    {
+        get
+        {
             [|return|] Bar();
         }
     }
@@ -118,18 +128,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
-        set {
+    int Foo
+    {
+        set
+        {
             [|Bar|]();
         }
     }
 }",
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         set => [|Bar|]();
-    }
-}", options: UseExpressionBody);
+        }
+    }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -138,10 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         set => [|Bar|]();
-    }
-}", options: UseExpressionBody);
+        }
+    }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -150,18 +164,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             [|throw|] new NotImplementedException();
         }
     }
 }",
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         get => throw new NotImplementedException();
-    }
-}", options: UseExpressionBody);
+        }
+    }", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -193,14 +210,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         get [|=>|] Bar();
-    }
-}",
+        }
+    }",
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             return Bar();
         }
     }
@@ -213,14 +233,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         set [|=>|] Bar();
-    }
-}",
+        }
+    }",
 @"class C
 {
-    int Foo {
-        set {
+    int Foo
+    {
+        set
+        {
             Bar();
         }
     }
@@ -233,14 +256,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo {
+    int Foo
+    {
         get [|=>|] throw new NotImplementedException();
-    }
-}",
+        }
+    }",
 @"class C
 {
-    int Foo {
-        get {
+    int Foo
+    {
+        get
+        {
             throw new NotImplementedException();
         }
     }

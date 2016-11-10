@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)x;
-        } 
+        }
     }
 }",
 @"class C
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v)
         {
-        } 
+        }
     }
 }");
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)x;
-        } 
+        }
     }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)y;
-        } 
+        }
     }
 }");
         }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (bool)x;
-        } 
+        }
     }
 }");
         }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             var [|v|] = (string)x, v1 = "";
-        } 
+        }
     }
 }");
         }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|v|] = (string)x;
-        } 
+        }
     }
 }");
         }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x as string)
         {
             [|var|] v = (string)x;
-        } 
+        }
     }
 }");
         }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if ((x ? y : z) is string)
         {
             [|var|] v = (string)(x ? y : z);
-        } 
+        }
     }
 }",
 @"class C
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if ((x ? y : z) is string v)
         {
-        } 
+        }
     }
 }");
         }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)x;
-        } 
+        }
         else
         {
         }
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v)
         {
-        } 
+        }
         else
         {
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if ((x) is string)
         {
             [|var|] v = (string)x;
-        } 
+        }
     }
 }",
 @"class C
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if ((x) is string v)
         {
-        } 
+        }
     }
 }");
         }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)(x);
-        } 
+        }
     }
 }",
 @"class C
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v)
         {
-        } 
+        }
     }
 }");
         }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = ((string)x);
-        } 
+        }
     }
 }",
 @"class C
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v)
         {
-        } 
+        }
     }
 }");
         }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             [|var|] v = (string)x;
-        } 
+        }
         else
         {
             var v = 1;
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             [|var|] v = (string)x;
         }
- 
+
         if (true)
         {
             var v = 1;
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             var v = (string)x;
         }
- 
+
         if (x is bool)
         {
             [|var|] v = (bool)x;
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             {
                 [|var|] v = ((string)x);
             }
-        } 
+        }
 
         {
             var v = 1;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             if (x is string v)
             {
             }
-        } 
+        }
 
         {
             var v = 1;

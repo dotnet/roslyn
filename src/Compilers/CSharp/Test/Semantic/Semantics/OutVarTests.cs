@@ -273,7 +273,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                             options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
@@ -629,7 +629,7 @@ public class Cls
 
             compilation.VerifyDiagnostics();
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"124
 123");
 
@@ -721,7 +721,7 @@ public class Cls
         {
             return GetReferences(tree, name).Single();
         }
-        
+
         private static IdentifierNameSyntax[] GetReferences(SyntaxTree tree, string name, int count)
         {
             var nameRef = GetReferences(tree, name).ToArray();
@@ -741,12 +741,21 @@ public class Cls
 
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Where(p => p.Identifier().ValueText == name);
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => IsOutVarDeclaration(p) && p.Identifier().ValueText == name);
+        }
+
+        private static bool IsOutVarDeclaration(DeclarationExpressionSyntax p)
+        {
+            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
+                && p.Parent.Kind() == SyntaxKind.Argument
+                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
         }
 
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => IsOutVarDeclaration(p));
         }
 
         [Fact]
@@ -838,7 +847,7 @@ public class Cls
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
 
             var local = (SourceLocalSymbol)symbol;
-            var typeSyntax = decl.Type();
+            var typeSyntax = decl.Type;
 
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
@@ -952,13 +961,13 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            if (decl.Type().IsVar && local.IsVar && local.Type.IsErrorType())
+            if (decl.Type.IsVar && local.IsVar && local.Type.IsErrorType())
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
             }
             else
             {
-                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type()).Symbol);
+                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
             }
         }
 
@@ -978,7 +987,7 @@ public class Cls
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
 
-                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>());
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => IsOutVarDeclaration(e)));
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -1002,8 +1011,7 @@ public class Cls
 
         private static SingleVariableDesignationSyntax GetVariableDesignation(DeclarationExpressionSyntax decl)
         {
-            var component = (TypedVariableComponentSyntax)decl.VariableComponent;
-            return (SingleVariableDesignationSyntax)component.Designation;
+            return (SingleVariableDesignationSyntax)decl.Designation;
         }
 
         private static bool FlowsIn(ExpressionSyntax dataFlowParent, DeclarationExpressionSyntax decl, IdentifierNameSyntax[] references)
@@ -1089,7 +1097,7 @@ public class Cls
 
             MethodDeclarationSyntax methodDeclParent;
 
-            if (containingReturnOrThrow != null && decl.Identifier().ValueText == "x1" && 
+            if (containingReturnOrThrow != null && decl.Identifier().ValueText == "x1" &&
                 ((methodDeclParent = containingReturnOrThrow.Parent.Parent as MethodDeclarationSyntax) == null ||
                   methodDeclParent.Body.Statements.First() != containingReturnOrThrow))
             {
@@ -1098,9 +1106,9 @@ public class Cls
 
             foreach (var reference in references)
             {
-                if (!dataFlowParent.Span.Contains(reference.Span) && 
+                if (!dataFlowParent.Span.Contains(reference.Span) &&
                     (containingReturnOrThrow == null || containingReturnOrThrow.Span.Contains(reference.SpanStart)) &&
-                    (reference.SpanStart > decl.SpanStart || 
+                    (reference.SpanStart > decl.SpanStart ||
                      (containingReturnOrThrow == null &&
                      reference.Ancestors().OfType<DoStatementSyntax>().Join(
                          decl.Ancestors().OfType<DoStatementSyntax>(), d => d, d => d, (d1, d2) => true).Any())))
@@ -1502,8 +1510,8 @@ public class Cls
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef }, 
-                                                            options: TestOptions.ReleaseExe, 
+                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
@@ -4583,7 +4591,7 @@ Dummy(TakeOutParam(true, out var x1), x1);
             Assert.True(success);
             Assert.NotNull(model);
             tree = statement.SyntaxTree;
-            
+
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Ref.Length);
@@ -8591,7 +8599,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (19,51): error CS0128: A local variable named 'x4' is already defined in this scope
@@ -8919,13 +8927,13 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var statement = (DeconstructionDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+            var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
 var (y1, dd) = (TakeOutParam(true, out var x1), x1);
 ");
 
@@ -8942,7 +8950,7 @@ var (y1, dd) = (TakeOutParam(true, out var x1), x1);
 
             Assert.Equal("System.Boolean y1", model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single().ToTestDisplayString());
         }
-        
+
         [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
         public void Scope_DeconstructionDeclarationStmt_06()
@@ -8970,7 +8978,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
@@ -12496,7 +12504,7 @@ public class X
             }
             VerifyModelForOutVarDuplicateInSameScope(model, x15Decl[1]);
         }
-        
+
         [Fact]
         public void Scope_SwitchLabelGuard_02()
         {
@@ -12829,7 +12837,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"123
 1").VerifyDiagnostics();
 
@@ -13035,7 +13043,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
@@ -14859,7 +14867,7 @@ public class X
 1
 2
 2");
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -15808,7 +15816,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
-        
+
         [Fact]
         public void DataFlow_03()
         {
@@ -16016,7 +16024,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
 
@@ -16049,7 +16057,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
         [Fact]
@@ -16166,7 +16174,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
         [Fact]
@@ -16201,7 +16209,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
         [Fact]
@@ -16240,7 +16248,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16281,7 +16289,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16324,7 +16332,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16367,10 +16375,10 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
-        
+
         [Fact]
         public void SimpleVar_07()
         {
@@ -16406,7 +16414,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16482,7 +16490,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16714,7 +16722,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("dynamic x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
         }
 
@@ -16755,7 +16763,7 @@ public class Cls
             var varRef = GetReferences(tree, "var").Skip(1).Single();
             VerifyModelForOutVar(model, varDecl, varRef);
         }
-        
+
         [Fact]
         public void SimpleVar_16()
         {
@@ -16792,7 +16800,7 @@ public class Cls
 
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
         [Fact]
@@ -17019,7 +17027,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
-        
+
         [Fact]
         public void RestrictedTypes_04()
         {
@@ -18026,7 +18034,7 @@ public class X
             Assert.True(decl.Ancestors().OfType<VariableDeclaratorSyntax>().First().ArgumentList.Contains(decl));
         }
 
-        private static void AssertContainedInDeclaratorArguments(params DeclarationExpressionSyntax [] decls)
+        private static void AssertContainedInDeclaratorArguments(params DeclarationExpressionSyntax[] decls)
         {
             foreach (var decl in decls)
             {
@@ -18991,7 +18999,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
-                                        (int)ErrorCode.WRN_UnreferencedVar, 
+                                        (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableWithNoInitializer,
@@ -19724,7 +19732,7 @@ public class X
             Assert.False(model.LookupSymbols(decl.SpanStart, name: identifierText).Any());
 
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
-            Assert.Null(model.GetSymbolInfo(decl.Type()).Symbol);
+            Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
             AssertInfoForDeclarationExpressionSyntax(model, decl);
 
@@ -23097,7 +23105,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -23983,7 +23991,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -24150,7 +24158,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+                var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                                   options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -24307,7 +24315,7 @@ class H
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, 
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
@@ -26417,7 +26425,7 @@ class H
 }
 ";
             {
-                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), 
+                var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
                                                                   parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
@@ -26858,7 +26866,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
         [Fact]
@@ -26887,7 +26895,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
         [Fact]
@@ -26916,7 +26924,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type()).ToTestDisplayString());
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
         }
 
         [Fact]
@@ -26943,7 +26951,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
-            Assert.Null(model.GetAliasInfo(x1Decl.Type()));
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
         }
 
         [Fact, WorkItem(14717, "https://github.com/dotnet/roslyn/issues/14717")]
@@ -27071,7 +27079,7 @@ class Program
             Assert.Contains(decl.Identifier().ValueText, names);
 
             var local = (FieldSymbol)symbol;
-            var typeSyntax = decl.Type();
+            var typeSyntax = decl.Type;
 
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
@@ -27250,6 +27258,45 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"System.Int32
 System.Int32");
+        }
+
+        [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
+        public void OutVarDeclaredInReceiverUsedInArgument()
+        {
+            var source =
+@"using System.Linq;
+
+public class C
+{
+    public string[] Foo2(out string x) { x = """"; return null; }
+    public string[] Foo3(bool b) { return null; }
+
+    public string[] Foo5(string u) { return null; }
+    
+    public void Test()
+    {
+        var t1 = Foo2(out var x1).Concat(Foo5(x1));
+        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+            Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+        }
+    }
+
+    internal static class OutVarTestsExtensions
+    { 
+        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
+        {
+            return (SingleVariableDesignationSyntax)self.Designation;
         }
     }
 }

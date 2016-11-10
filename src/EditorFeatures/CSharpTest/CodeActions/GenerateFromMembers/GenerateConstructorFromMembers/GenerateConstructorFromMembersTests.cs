@@ -22,8 +22,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
         public async Task TestSingleField()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ;|] } ",
-@"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) { this . a = a ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
 index: 0);
         }
 
@@ -31,8 +46,19 @@ index: 0);
         public async Task TestSingleFieldWithCodeStyle()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ;|] } ",
-@"using System . Collections . Generic ; class Z { int a ; public Z ( int a ) => this . a = a ; } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a) => this . a = a ; }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
         }
 
@@ -40,8 +66,26 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeS
         public async Task TestMultipleFields()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ; string b ;|] } ",
-@"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
 index: 0);
         }
 
@@ -49,8 +93,35 @@ index: 0);
         public async Task TestSecondField()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { int a ; [|string b ;|] public Z ( int a ) { this . a = a ; } } ",
-@"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( string b ) { this . b = b ; } public Z ( int a ) { this . a = a ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    [|string b;|]
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(string b)
+    {
+        this.b = b;
+    }
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
 index: 0);
         }
 
@@ -58,8 +129,36 @@ index: 0);
         public async Task TestFieldAssigningConstructor()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
-@"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    string b;|]
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+
+    public Z(int a, string b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
 index: 0);
         }
 
@@ -67,8 +166,36 @@ index: 0);
         public async Task TestFieldAssigningConstructor2()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
-@"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    string b;|]
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+
+    public Z(int a, string b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
 index: 0);
         }
 
@@ -76,8 +203,35 @@ index: 0);
         public async Task TestDelegatingConstructor()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } } ",
-@"using System . Collections . Generic ; class Z { int a ; string b ; public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) : this ( a ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    string b;|]
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+
+    public Z(int a, string b) : this(a)
+    {
+        this.b = b;
+    }
+}",
 index: 1);
         }
 
@@ -85,15 +239,46 @@ index: 1);
         public async Task TestMissingWithExistingConstructor()
         {
             await TestMissingAsync(
-@"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ");
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    string b;|]
+
+    public Z(int a)
+    {
+        this.a = a;
+    }
+
+    public Z(int a, string b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultipleProperties()
         {
             await TestAsync(
-@"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
-@"class Z { public Z ( int a , string b ) {  A = a ;  B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
+@"class Z
+{
+    [|public int A { get; private set; }
+    public string B { get; private set; }|]
+}",
+@"class Z
+{
+    public Z(int a, string b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public int A { get; private set; }
+    public string B { get; private set; }
+}",
 index: 0);
         }
 
@@ -101,8 +286,22 @@ index: 0);
         public async Task TestMultiplePropertiesWithQualification()
         {
             await TestAsync(
-@"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
-@"class Z { public Z ( int a , string b ) { this . A = a ; this . B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
+@"class Z
+{
+    [|public int A { get; private set; }
+    public string B { get; private set; }|]
+}",
+@"class Z
+{
+    public Z(int a, string b)
+    {
+        this.A = a;
+        this.B = b;
+    }
+
+    public int A { get; private set; }
+    public string B { get; private set; }
+}",
 index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
@@ -110,8 +309,23 @@ index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, Notifica
         public async Task TestStruct()
         {
             await TestAsync(
-@"using System . Collections . Generic ; struct S { [|int i ;|] } ",
-@"using System . Collections . Generic ; struct S { int i ; public S ( int i ) { this . i = i ; } } ",
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i;|]
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    int i;
+
+    public S(int i)
+    {
+        this.i = i;
+    }
+}",
 index: 0);
         }
 
@@ -119,8 +333,23 @@ index: 0);
         public async Task TestStruct1()
         {
             await TestAsync(
-@"using System . Collections . Generic ; struct S { [|int i { get; set; }|] } ",
-@"using System . Collections . Generic ; struct S { public S ( int i ) : this() { this . i = i ; } int i { get; set; } } ",
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i { get; set; }|]
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    public S(int i) : this()
+    {
+        this.i = i;
+    }
+
+    int i { get; set; }
+}",
 index: 0);
         }
 
@@ -128,8 +357,27 @@ index: 0);
         public async Task TestStruct2()
         {
             await TestAsync(
-@"using System . Collections . Generic ; struct S { int i { get; set; } [|int y;|] } ",
-@"using System . Collections . Generic ; struct S { int i { get; set; } int y; public S ( int y ) : this() { this . y = y ; } } ",
+@"using System.Collections.Generic;
+
+struct S
+{
+    int i { get; set; }
+
+    [|int y;|]
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    int i { get; set; }
+
+    int y;
+
+    public S(int y) : this()
+    {
+        this.y = y;
+    }
+}",
 index: 0);
         }
 
@@ -137,8 +385,27 @@ index: 0);
         public async Task TestStruct3()
         {
             await TestAsync(
-@"using System . Collections . Generic ; struct S { [|int i { get; set; }|] int y; } ",
-@"using System . Collections . Generic ; struct S { int i { get; set; } int y; public S ( int i ) : this() { this . i = i ; } } ",
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i { get; set; }|]
+
+    int y;
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    int i { get; set; }
+
+    int y;
+
+    public S(int i) : this()
+    {
+        this.i = i;
+    }
+}",
 index: 0);
         }
 
@@ -146,8 +413,23 @@ index: 0);
         public async Task TestGenericType()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Program < T > { [|int i ;|] } ",
-@"using System . Collections . Generic ; class Program < T > { int i ; public Program ( int i ) { this . i = i ; } } ",
+@"using System.Collections.Generic;
+
+class Program<T>
+{
+    [|int i;|]
+}",
+@"using System.Collections.Generic;
+
+class Program<T>
+{
+    int i;
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+}",
 index: 0);
         }
 
@@ -155,7 +437,13 @@ index: 0);
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
-@"using System.Collections.Generic; class Program { [|bool b; HashSet<string> s;|] }",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+}",
 string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
@@ -163,7 +451,18 @@ string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool, Hash
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1, "Program", "bool, HashSet<string>"));
         }
 
@@ -171,7 +470,18 @@ string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1, "Progr
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
-@"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|bool b;
+    HashSet<string> s;|]
+
+    public Program(bool b)
+    {
+        this.b = b;
+    }
+}",
 string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool, HashSet<string>"),
 index: 1);
         }
@@ -180,15 +490,38 @@ index: 1);
         public async Task TestContextualKeywordName()
         {
             await TestAsync(
-@"class Program { [|int yield ;|] } ",
-@"class Program { int yield ; public Program ( int yield ) { this . yield = yield ; } } ");
+@"class Program
+{
+    [|int yield;|]
+}",
+@"class Program
+{
+    int yield;
+
+    public Program(int yield)
+    {
+        this.yield = yield;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGenerateConstructorNotOfferedForDuplicate()
         {
             await TestMissingAsync(
-"using System ; class X { public X ( string v ) { } static void Test ( ) { new X ( new [|string|] ( ) ) ; } } ");
+@"using System;
+
+class X
+{
+    public X(string v)
+    {
+    }
+
+    static void Test()
+    {
+        new X(new [|string|]());
+    }
+}");
         }
 
 
@@ -196,8 +529,23 @@ index: 1);
         public async Task Tuple()
         {
             await TestAsync(
-@"using System . Collections . Generic ; class Z { [|(int, string) a ;|] } ",
-@"using System . Collections . Generic ; class Z { (int, string) a ; public Z ( (int, string) a ) { this . a = a ; } } ",
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|(int, string) a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    (int, string) a;
+
+    public Z((int, string) a)
+    {
+        this.a = a;
+    }
+}",
 index: 0,
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
@@ -208,8 +556,19 @@ withScriptOption: true);
         public async Task TestUnderscoreInName1()
         {
             await TestAsync(
-@"class Program { [|int _field ;|] } ",
-@"class Program { int _field ; public Program ( int field ) { _field = field ; } } ");
+@"class Program
+{
+    [|int _field;|]
+}",
+@"class Program
+{
+    int _field;
+
+    public Program(int field)
+    {
+        _field = field;
+    }
+}");
         }
 
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
@@ -217,8 +576,56 @@ withScriptOption: true);
         public async Task TestUnderscoreInName_PreferThis()
         {
             await TestAsync(
-@"class Program { [|int _field ;|] } ",
-@"class Program { int _field ; public Program ( int field ) { this._field = field ; } } ",
+@"class Program
+{
+    [|int _field;|]
+}",
+@"class Program
+{
+    int _field;
+
+    public Program(int field)
+    {
+        this._field = field;
+    }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestGetter_Only_Auto_Props()
+        {
+            await TestAsync(
+@"abstract class Contribution
+{
+  [|public string Title { get; }
+    public int Number { get; }|]
+}",
+@"abstract class Contribution
+{
+    public Contribution(string title, int number)
+    {
+        Title = title;
+        Number = number;
+    }
+
+    public string Title { get; }
+    public int Number { get; }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(13944, "https://github.com/dotnet/roslyn/issues/13944")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAbstract_Getter_Only_Auto_Props()
+        {
+            await TestMissingAsync(
+@"abstract class Contribution
+{
+  [|public abstract string Title { get; }
+    public int Number { get; }|]
+}",
 options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
     }

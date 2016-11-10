@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
-                nodeToBind.Kind() == SyntaxKind.VariableDeclarator && 
+                nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
@@ -406,7 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                    case LocalDeclarationKind.ForInitializerVariable:
                         Debug.Assert(node is VariableDeclaratorSyntax || node is SingleVariableDesignationSyntax);
                         break;
 
@@ -646,6 +645,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode deconstruction)
             : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
+                Debug.Assert(deconstruction.Kind() == SyntaxKind.SimpleAssignmentExpression || deconstruction.Kind() == SyntaxKind.ForEachVariableStatement);
+
                 _deconstruction = deconstruction;
                 _nodeBinder = nodeBinder;
             }
@@ -655,19 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Try binding enclosing deconstruction-declaration (the top-level VariableDeclaration), this should force the inference.
                 switch (_deconstruction.Kind())
                 {
-                    case SyntaxKind.DeconstructionDeclarationStatement:
-                        var localDecl = (DeconstructionDeclarationStatementSyntax)_deconstruction;
-                        _nodeBinder.BindDeconstructionDeclaration(localDecl, localDecl.Assignment.VariableComponent, localDecl.Assignment.Value, diagnostics);
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        var assignment = (AssignmentExpressionSyntax)_deconstruction;
+                        Debug.Assert(assignment.IsDeconstructionDeclaration());
+                        _nodeBinder.BindDeconstructionDeclaration(assignment, assignment.Left, assignment.Right, diagnostics);
                         break;
 
-                    case SyntaxKind.ForStatement:
-                        var forStatement = (ForStatementSyntax)_deconstruction;
-                        Debug.Assert(this.ScopeBinder.GetBinder(forStatement) == _nodeBinder);
-                        _nodeBinder.BindDeconstructionDeclaration(forStatement, forStatement.Deconstruction.VariableComponent, forStatement.Deconstruction.Value, diagnostics);
-                        break;
-
-                    case SyntaxKind.ForEachComponentStatement:
-                        Debug.Assert(this.ScopeBinder.GetBinder((ForEachComponentStatementSyntax)_deconstruction) == _nodeBinder);
+                    case SyntaxKind.ForEachVariableStatement:
+                        Debug.Assert(this.ScopeBinder.GetBinder((ForEachVariableStatementSyntax)_deconstruction) == _nodeBinder);
                         _nodeBinder.BindForEachDeconstruction(diagnostics, _nodeBinder);
                         break;
 
@@ -686,15 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     switch (_deconstruction.Kind())
                     {
-                        case SyntaxKind.DeconstructionDeclarationStatement:
-                            var localDecl = (DeconstructionDeclarationStatementSyntax)_deconstruction;
-                            return localDecl.Assignment.Value;
+                        case SyntaxKind.SimpleAssignmentExpression:
+                            return ((AssignmentExpressionSyntax)_deconstruction).Right;
 
-                        case SyntaxKind.ForStatement:
-                            var forStatement = (ForStatementSyntax)_deconstruction;
-                            return forStatement.Deconstruction;
-
-                        case SyntaxKind.ForEachComponentStatement:
+                        case SyntaxKind.ForEachVariableStatement:
                             // There is no forbidden zone for a foreach statement, because the
                             // variables are not in scope in the expression.
                             return null;

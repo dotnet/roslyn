@@ -359,12 +359,6 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim t as (Integer, Integer)
-                 ~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim t1 as (A As Integer, B As Integer)
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
@@ -4377,9 +4371,6 @@ BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
-        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4387,9 +4378,6 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
-        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
@@ -5067,9 +5055,6 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
                  ~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim x As (Integer, String) = (1, "hello")
-                 ~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, String) = (1, "hello")
                                      ~~~~~~~~~~~~
 </errors>)
 
@@ -5479,9 +5464,6 @@ End Class
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-    Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
-                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5563,9 +5545,6 @@ End Namespace
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
-    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
-                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
     Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15320,6 +15299,12 @@ End Interface
 Public Class C1
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
 End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C3
+    Implements I0(Of Integer), I0(Of Integer)
+End Class
     </file>
 </compilation>,
 additionalRefs:=s_valueTupleRefs)
@@ -15329,8 +15314,84 @@ additionalRefs:=s_valueTupleRefs)
 BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
     Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
+    Implements I0(Of Integer), I0(Of Integer)
+                               ~~~~~~~~~~~~~~
 </errors>)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
 
+            Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(1).First())
+            Assert.Equal("C1", c1.Name)
+            Assert.Equal(2, c1.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c1.Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.Interfaces(1).ToTestDisplayString())
+
+            Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(2).First())
+            Assert.Equal("C2", c2.Name)
+            Assert.Equal(1, c2.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c2.Interfaces(0).ToTestDisplayString())
+
+            Dim c3 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(3).First())
+            Assert.Equal("C3", c3.Name)
+            Assert.Equal(1, c3.AllInterfaces.Count)
+            Assert.Equal("I0(Of System.Int32)", c3.Interfaces(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2.C3, Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+Public Class C2
+    Private Class C3
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30389: 'C2.C3' is not accessible in this context because it is 'Private'.
+    Public Function M() As (C2.C3, Integer)
+                            ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2, Integer)
+        Throw New System.Exception()
+    End Function
+    Private Class C2
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            Dim expectedErrors = <errors><![CDATA[
+BC30508: 'M' cannot expose type 'C.C2' in namespace '<Default>' through class 'C'.
+    Public Function M() As (C2, Integer)
+                           ~~~~~~~~~~~~~
+                 ]]></errors>
+            comp.AssertTheseDiagnostics(expectedErrors)
         End Sub
 
         <Fact>
@@ -15662,6 +15723,26 @@ BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its impl
         End Sub
 
         <Fact>
+        Public Sub InterfaceUnification2()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Interface I0(Of T1)
+End Interface
+Public Class Derived(Of T)
+    Implements I0(Of Derived(Of (T, T))), I0(Of T)
+End Class
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+            ' Didn't run out of memory in trying to substitute T with Derived(Of (T, T)) in a loop
+        End Sub
+
+        <Fact>
         Public Sub AmbiguousExtensionMethodWithDifferentTupleNames()
 
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
@@ -15953,6 +16034,28 @@ BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Intege
         End Sub
 
         <Fact>
+        Public Sub StructInStruct()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Structure S
+    Public Field As (S, S)
+End Structure
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30294: Structure 'S' cannot contain an instance of itself: 
+    'S' contains '(S, S)' (variable 'Field').
+    '(S, S)' contains 'S' (variable 'Item1').
+    Public Field As (S, S)
+           ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub AssignNullWithMissingValueTuple()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -15966,9 +16069,6 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-    Dim t As (Integer, Integer) = Nothing
-             ~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Dim t As (Integer, Integer) = Nothing
              ~~~~~~~~~~~~~~~~~~
@@ -17198,6 +17298,90 @@ BC41009: The tuple element name 'd' is ignored because a different name is speci
 
         End Sub
 
+        <Fact()>
+        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
+        Public Sub NoSystemRuntimeFacade()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim o = (1, 2)
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef})
+
+            Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        Dim o = (1, 2)
+                ~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        Public Sub Iterator_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        For Each x in Test()
+            Console.WriteLine(x)
+        Next
+    End Sub
+
+    Shared Iterator Function Test() As IEnumerable(Of (integer, integer))
+        yield (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact()>
+        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        Public Sub Iterator_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Iterator Function Test() As IEnumerable(Of (integer, integer))
+        yield (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef})
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Iterator Function Test() As IEnumerable(Of (integer, integer))
+                                               ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        yield (1, 2)
+              ~~~~~~
+</errors>)
+        End Sub
+
         <Fact>
         <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
         Public Sub UserDefinedConversionsAndNameMismatch_01()
@@ -17423,6 +17607,222 @@ implicit operator AA
 ")
         End Sub
 
+
+        <Fact>
+        Public Sub GenericConstraintAttributes()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports ClassLibrary4
+
+Public Interface ITest(Of T)
+    ReadOnly Property [Get] As T
+End Interface
+
+Public Class Test
+    Implements ITest(Of (key As Integer, val As Integer))
+
+    Public ReadOnly Property [Get] As (key As Integer, val As Integer) Implements ITest(Of (key As Integer, val As Integer)).Get
+        Get
+            Return (0, 0)
+        End Get
+    End Property
+End Class
+
+Public Class Base(Of T) : Implements ITest(Of T)
+    Public ReadOnly Property [Get] As T Implements ITest(Of T).Get
+
+    Protected Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C(Of T As ITest(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C2(Of T As Base(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public NotInheritable Class Test2
+    Inherits Base(Of (key As Integer, val As Integer))
+
+    Sub New()
+        MyBase.New((-1, -2))
+    End Sub
+End Class
+
+Public Class C3(Of T As IEnumerable(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Structure TestEnumerable
+    Implements IEnumerable(Of (key As Integer, val As Integer))
+    Private ReadOnly _backing As (Integer, Integer)()
+
+    Public Sub New(backing As (Integer, Integer)())
+        _backing = backing
+    End Sub
+
+    Private Class Inner
+        Implements IEnumerator(Of (key As Integer, val As Integer)), IEnumerator
+
+        Private index As Integer = -1
+        Private ReadOnly _backing As (Integer, Integer)()
+
+        Public Sub New(backing As (Integer, Integer)())
+            _backing = backing
+        End Sub
+
+        Public ReadOnly Property Current As (key As Integer, val As Integer) Implements IEnumerator(Of (key As Integer, val As Integer)).Current
+            Get
+                Return _backing(index)
+            End Get
+        End Property
+
+        Public ReadOnly Property Current1 As Object Implements IEnumerator.Current
+            Get
+                Return Current
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Function MoveNext() As Boolean
+            index += 1
+            Return index &lt; _backing.Length
+        End Function
+
+        Public Sub Reset()
+            Throw New NotSupportedException()
+        End Sub
+
+        Private Function IEnumerator_MoveNext() As Boolean Implements IEnumerator.MoveNext
+            Return MoveNext()
+        End Function
+
+        Private Sub IEnumerator_Reset() Implements IEnumerator.Reset
+            Throw New NotImplementedException()
+        End Sub
+    End Class
+
+    Public Function GetEnumerator() As IEnumerator(Of (key As Integer, val As Integer)) Implements IEnumerable(Of (key As Integer, val As Integer)).GetEnumerator
+        Return New Inner(_backing)
+    End Function
+
+    Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return New Inner(_backing)
+    End Function
+    End Structure
+
+
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m)
+                                                        Dim c = m.GlobalNamespace.GetTypeMember("C")
+                                                        Assert.Equal(1, c.TypeParameters.Length)
+                                                        Dim param = c.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        Dim constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        Dim typeArg As TypeSymbol = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                        Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                        Dim c2 = m.GlobalNamespace.GetTypeMember("C2")
+                                                        Assert.Equal(1, c2.TypeParameters.Length)
+                                                        param = c2.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        typeArg = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                         Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                    End Sub
+            )
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim c = New C(Of Test)(New Test())
+        Dim temp = c.Get.Get
+        Console.WriteLine(temp)
+        Console.WriteLine("key:  " &amp; temp.key)
+        Console.WriteLine("val:  " &amp; temp.val)
+
+        Dim c2 = New C2(Of Test2)(New Test2())
+        Dim temp2 = c2.Get.Get
+        Console.WriteLine(temp2)
+        Console.WriteLine("key:  " &amp; temp2.key)
+        Console.WriteLine("val:  " &amp; temp2.val)
+
+        Dim backing = {(1, 2), (3, 4), (5, 6)}
+        Dim c3 = New C3(Of TestEnumerable)(New TestEnumerable(backing))
+        For Each kvp In c3.Get
+            Console.WriteLine($"key:    {kvp.key}, val: {kvp.val}")
+        Next
+
+        Dim c4 = New C(Of Test2)(New Test2())
+        Dim temp4 = c4.Get.Get
+        Console.WriteLine(temp4)
+        Console.WriteLine("key:  " &amp; temp4.key)
+        Console.WriteLine("val:   " &amp; temp4.val)
+    End Sub
+End Module
+
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs.Concat({comp.EmitToImageReference()}).ToArray(), expectedOutput:=<![CDATA[
+(0, 0)
+key:  0
+val:  0
+(-1, -2)
+key:  -1
+val:  -2
+key:    1, val: 2
+key:    3, val: 4
+key:    5, val: 6
+(-1, -2)
+key:  -1
+val:   -2
+]]>)
+
+        End Sub
     End Class
 
 End Namespace

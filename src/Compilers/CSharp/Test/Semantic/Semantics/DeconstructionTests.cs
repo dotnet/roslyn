@@ -1660,7 +1660,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (string x1, var x2, int x3) = (null, "hello");
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"");").WithArguments("2", "3").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var x2, int x3) = (null, ""hello"")").WithArguments("2", "3").WithLocation(6, 9)
                 );
         }
 
@@ -1681,7 +1681,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (string x1, var y1) = (null, "hello", 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3);").WithArguments("3", "2").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, @"(string x1, var y1) = (null, ""hello"", 3)").WithArguments("3", "2").WithLocation(6, 9),
                 // (7,47): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (string x2, var y2) = (null, "hello", null);
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "null").WithLocation(7, 47),
@@ -1774,7 +1774,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3);").WithArguments("3", "2").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 9),
                 // (6,15): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
                 //         (var (x1, x2), var x3) = (1, 2, 3);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 15),
@@ -2455,6 +2455,24 @@ class C1
         }
 
         [Fact]
+        public void AssignmentExpressionCanBeUsedInEmbeddedStatement()
+        {
+            var source = @"
+class C1
+{
+    void M()
+    {
+        int x, y;
+        if (true)
+            (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DeconstructObsoleteWarning()
         {
             var source = @"
@@ -2552,9 +2570,12 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                // (6,30): error CS1001: Identifier expected
                 //         const (int x, int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "(int x, int y)").WithArguments("const").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(6, 30),
+                // (6,15): error CS0283: The type '(int x, int y)' cannot be declared const
+                //         const (int x, int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_BadConstType, "(int x, int y)").WithArguments("(int x, int y)").WithLocation(6, 15)
                 );
         }
 
@@ -2573,10 +2594,37 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,15): error CS0106: The modifier 'const' is not valid for this item
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "var (x, y)").WithArguments("const").WithLocation(6, 15)
-                );
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (6,19): error CS1001: Identifier expected
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(6, 19),
+                // (6,21): error CS1001: Identifier expected
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(6, 21),
+                // (6,24): error CS1001: Identifier expected
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 24),
+                // (6,26): error CS1002: ; expected
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 26),
+                // (6,26): error CS1525: Invalid expression term '='
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 26),
+                // (6,19): error CS0501: '(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("(x, y)").WithLocation(6, 19),
+                // (6,20): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(6, 20),
+                // (6,23): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(6, 23),
+                // (6,15): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         const var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 15)
+            );
         }
     }
 }

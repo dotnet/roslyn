@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -25,8 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsDeferredSolutionLoadEnabled())
             {
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-                LoadSolutionFromMSBuildAsync(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+                LoadSolutionFromMSBuildAsync(_solutionParsingCancellationTokenSource.Token).FireAndForget();
             }
 
             return VSConstants.S_OK;

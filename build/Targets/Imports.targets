@@ -1,40 +1,29 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
-  <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
   <Choose>
-    <When Condition="'$(RoslynProjectType)' == 'Dll'">
+    <When Condition="'$(RoslynProjectType)' == 'ExeNonDeployment'">
+      <!-- Some Exes are not designed to be directly runnable.  Typically for size savings in 
+           our build output.  They are made runnable by deployment projects that reference
+           them.  --> 
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <_CopyProjectReferences>false</_CopyProjectReferences>
-        <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'ExeDesktop'">
-      <PropertyGroup>
         <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'ExeCoreClr'">
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <OutDir>$(OutDir)Exes\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'ToolDesktop'">
-      <PropertyGroup>
-        <OutDir>$(OutDir)Tools\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
-        <OutDir>$(OutDir)UnitTests\Current\</OutDir>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
+        <OutDir>$(OutDir)UnitTests\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'UnitTestNext'">
+    <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' or '$(RoslynProjectType)' == 'UnitTestDesktop'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
-        <OutDir>$(OutDir)UnitTests\Next\</OutDir>
+        <_CopyProjectReferences>false</_CopyProjectReferences>
+        <_IsAnyUnitTest>true</_IsAnyUnitTest>
+        <OutDir>$(OutDir)Dlls\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
@@ -43,37 +32,20 @@
         <OutDir>$(OutDir)Exes\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'DeploymentCompilerGeneratorTools'">
-      <PropertyGroup>
-        <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'Deployment'">
-      <PropertyGroup>
-        <OutDir>$(OutDir)Deployment\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <OutDir>$(OutDir)Vsix\$(MSBuildProjectName)\</OutDir>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'Ignore'">
-      <!-- Thinking through these -->
+    <When Condition="'$(RoslynProjectType)' == 'DeploymentTest'">
+      <!-- Need to include PDB in deployment directory for debugging, and in some cases correctness when
+           stack traces are involved -->
       <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
+        <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
       </PropertyGroup>
     </When>
-    <When Condition="'$(RoslynProjectType)' == 'Dependency'">
-      <!-- Thinking through these -->
-      <PropertyGroup>
-        <OutDir>$(OutDir)Ignore\$(MSBuildProjectName)\</OutDir>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'Custom'">
+    <When Condition="'$(RoslynProjectType)' == 'Custom' or $(RoslynProjectType) == 'DeploymentTest'">
       <!-- Do nothing -->
     </When>
     <When Condition="'$(RoslynProjectType)' == '' and '$(OutputType)' == 'Library'">
@@ -95,20 +67,19 @@
     </When>
   </Choose>
 
-  <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
-    <Reference>
-      <Private>False</Private>
-    </Reference>
-  </ItemDefinitionGroup>
+  <Choose>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
-  <ItemDefinitionGroup Condition="'$(_CopyProjectReferences)' == 'false'">
-    <ProjectReference>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-
-  <!-- This file is imported by all projects at the end of the project files -->
-  <!-- Update common properties -->
   <PropertyGroup>
     <OutputPath>$(OutDir)</OutputPath>
     <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'VB' AND '$(AssemblyName)' != ''">$(AssemblyName).xml</DocumentationFile>
@@ -119,8 +90,18 @@
     <!-- While UseCommonOutputDirectory will prevent NuGet implementations from being copied, 
          we still need to turn off CopyNuGetImplementations to prevent the build task from complaining about a 
          lack of a runtime section in our project.json. -->
-
     <CopyNuGetImplementations Condition="'$(UseCommonOutputDirectory)' == 'true'">false</CopyNuGetImplementations>
+
+    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
+
+    <FileAlignment>512</FileAlignment>
+    <HighEntropyVA>true</HighEntropyVA>
+    <Deterministic>True</Deterministic>
+
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -146,20 +127,6 @@
         <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(MSBuildThisFileDirectory)..\Rulesets\Roslyn$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
       </PropertyGroup>
     </When>
-  </Choose>
-
-  <!-- Enable IOperation feature for IOperation based analyzers. -->
-  <Choose>
-    <When Condition="$(Features) == ''">
-      <PropertyGroup>
-        <Features>IOperation</Features>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <Features>IOperation,$(Features)</Features>
-  </PropertyGroup>
-    </Otherwise>
   </Choose>
 
   <!-- Settings for strong name signing -->
@@ -190,79 +157,54 @@
     </When>
   </Choose>
 
+  <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
+    <Reference>
+      <Private>False</Private>
+    </Reference>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup Condition="'$(_CopyProjectReferences)' == 'false'">
+    <ProjectReference>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
   <!-- ====================================================================================
 
          Generation of binding redirects.
 
        ==================================================================================== -->
   <ItemGroup Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">
-      <SuggestedBindingRedirects Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="Microsoft.Build.Engine, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="Microsoft.Build.Utilities.Core, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
-      </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.Build.Engine, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+    <SuggestedBindingRedirects Include="Microsoft.Build.Utilities.Core, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
   </ItemGroup>
-  <PropertyGroup>
-    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
-    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-
-  <Target Name="ForceGenerationOfBindingRedirects"
-          AfterTargets="ResolveAssemblyReferences"
-          BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
-
-    <PropertyGroup>
-      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
-      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    </PropertyGroup>
-  </Target>
-
-  <Choose>
-    <When Condition="'$(ProjectLanguage)' == 'VB'">
-      <PropertyGroup>
-        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
-      <PropertyGroup>
-        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
-  <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
 
   <Import Project="$(MSBuildTargetsFilePath)" />
 
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
-          Condition="'$(OS)' != 'Windows_NT'" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
 
   <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
-                     '$(TargetFrameworkVersion)' == 'v5.0'">
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'">
       <!-- Treat portable exes as CoreClr-targeting-exes -->
       <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
         <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
@@ -287,38 +229,10 @@
     <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
   </PropertyGroup>
 
-  <!-- Verify some build flags are correct -->
-  <PropertyGroup>
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);VerifyBuildFlags</PrepareForBuildDependsOn>
-  </PropertyGroup>
-
-  <Target Name="VerifyBuildFlags">
-    <Error 
-        Condition="'$(CheckForOverflowUnderflow)' != '' OR '$(RemoveIntegerChecks)' != ''"
-        Text="The following properties cannot be set by individual projects: CheckForOverflowUnderflow and RemoveIntegerChecks" />
-    
-    <PropertyGroup Condition="'$(ProjectLanguage)' == 'CSharp'">
-        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(ProjectLanguage)' == 'VB'">
-        <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    </PropertyGroup>
-  </Target>
-
   <!-- For our projects that specify multiple targets in the project.json to work around https://github.com/dotnet/roslyn/issues/12458,
        we need to also silence a NuGet generated warning -->
-  <Target Name="EmitMSBuildWarning"></Target>
-
-  <!-- ====================================================================================
-
-         Support for a IncludeInVSIXLocalOnly Content metadata
-
-       ==================================================================================== -->
-
-  <PropertyGroup>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
-  </PropertyGroup>
+  <Target Name="EmitMSBuildWarning">
+  </Target>
 
   <Target Name="IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
@@ -334,24 +248,16 @@
     </ItemGroup>
   </Target>
 
-  <!-- ====================================================================================
+  <!-- Include some of our NuGet-consumed assets into VSIX projects
 
-         Include some of our NuGet-consumed assets into VSIX projects
+       This exists for two reasons:
 
-         This exists for two reasons:
-
-         1) In some cases, we need to include the contents of a NuGet package that is otherwise
-            contained within the SuppressFromVsix list, because we're actually the component
-            inside Visual Studio that ships that component
-         
-         2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
-            by the NuGet build task.
-
-       ==================================================================================== -->
-
-  <PropertyGroup>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
-  </PropertyGroup>
+       1) In some cases, we need to include the contents of a NuGet package that is otherwise
+          contained within the SuppressFromVsix list, because we're actually the component
+          inside Visual Studio that ships that component
+       
+       2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+          by the NuGet build task. -->
 
   <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
     <ItemGroup>
@@ -373,6 +279,30 @@
       <Visible>false</Visible>
     </NuGetPackageToIncludeInVsix>
   </ItemDefinitionGroup>
+
+  <!-- Currently, the Willow installer can't install vsixes that have a <Prerequisites> element
+       but the Dev15 RC SDK packages can NOT install vsixes without them as part of the build.
+       To work around this conflict, we include them in our manifest files, but if we're building
+       with something older than Dev15 RC (as we do for official builds that we insert into setup)
+       we'll run a transform to strip out the <Prerequisites> element. -->
+  <Target Name="RewriteVsixManifestOnOfficialBuild"
+          BeforeTargets="FindSourceVsixManifest"
+          Condition="'$(IsDev15RC)' != 'true'">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <XslTransformation XslInputPath="$(MSBuildThisFileDirectory)TransformVsixManifest.xslt"
+                       XmlInputPaths="source.extension.vsixmanifest"
+                       OutputPaths="$(IntermediateOutputPath)\source.extension.vsixmanifest" />
+    <ItemGroup>
+      <!-- Note that `FindSourceVsixManifest` finds the first item in @None that matches the name.
+           Our template projects include other manifests as content that are in @None, so make
+           sure we put our tranformed item back at the beginning of the list. -->
+      <None Remove="source.extension.vsixmanifest" />
+      <_TempNoneForReordering Include="@(None)" />
+      <None Remove="@(None)" />
+      <None Include="$(IntermediateOutputPath)\source.extension.vsixmanifest;@(_TempNoneForReordering)" />
+
+    </ItemGroup>
+  </Target>
 
   <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
        assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
@@ -397,38 +327,16 @@
     </ItemGroup>
   </Target>
 
-  <!-- ====================================================================================
-
-         Generation of AssemblyVersion attributes from the BuildVersion property
-
-       ==================================================================================== -->
-
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
-
-  <!-- ====================================================================================
-
-         Generation of InternalsVisibleTo attributes from the project
-
-       ==================================================================================== -->
-
   <Import Project="GenerateInternalsVisibleTo.targets" />
-
-  <!-- ====================================================================================
-
-         Generation of syntax models, syntax model tests, and bound trees from xml files
-
-       ==================================================================================== -->
-
   <Import Project="GenerateCompilerInternals.targets" />
 
-  <!-- ====================================================================================
+  <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
+    <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />
+    <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" />
+  </ImportGroup>
 
-         VSSDK
-
-       ==================================================================================== -->
-
-  <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="Roslyn.Toolsets.Xunit.targets" Condition="'$(_IsAnyUnitTest)' == 'true'" />
 
   <!-- ====================================================================================
 
@@ -443,7 +351,31 @@
 
   <PropertyGroup>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
+
+  <Target Name="RestoreToolsetCheck"
+      Condition="'$(BuildingProject)' == 'true'">
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
+             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+  </Target>
+
+  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
+    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
+  </Target>
+
+  <!-- 
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
+    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
+    by our test scripts
+  -->
+  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
+    <Copy
+        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
+        DestinationFolder="$(OutDir)" />
+  </Target>
 
   <Target Name="PostCompileBinaryModification"
           AfterTargets="CoreCompile"
@@ -459,18 +391,20 @@
     </ItemGroup>
   </Target>
 
-  <!-- ====================================================================================
+  <!-- Support for rolling optimization data into assemblies. -->
+  <Target Name="ForceGenerationOfBindingRedirects"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="GenerateBindingRedirects"
+          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
 
-         Support for rolling optimization data into assemblies.
+    <PropertyGroup>
+      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    </PropertyGroup>
+  </Target>
 
-       ==================================================================================== -->
-
-  <PropertyGroup>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-beta5-60913-03\content\OptimizationData</OptimizationDataFolderPath>
-    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
-  </PropertyGroup>
-
-  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a build definition variable -->
+  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a 
+       build definition variable -->
   <Target Name="ApplyOptimizations"
           Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
           Inputs="@(IntermediateAssembly)"
@@ -485,15 +419,6 @@
 
   </Target>
 
-  <!-- ====================================================================================
-
-         Support for signing VSIXes
-
-       ==================================================================================== -->
-
-    
-
-  <PropertyGroup>
-	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
-  </PropertyGroup>
+  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
+  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
 </Project>

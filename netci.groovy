@@ -10,19 +10,6 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Email the results of aborted / failed jobs to our infrastructure alias
-static void addEmailPublisher(def myJob) {
-  myJob.with {
-    publishers {
-      extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        // trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-      }
-    }
-  }
-}
-
 // Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
 // vs. polling
 static void addBuildEventWebHook(def myJob) {
@@ -68,7 +55,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
-    addEmailPublisher(myJob)
+    // TODO: Add once external email sending is available again
+    // addEmailPublisher(myJob)
   }
 
   addBuildEventWebHook(myJob)
@@ -126,11 +114,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
-                  label('mac-roslyn')
-                  steps {
-                    shell("./cibuild.sh --nocache --debug")
-                  }
-            }
+    label('mac-roslyn')
+    steps {
+      shell("./cibuild.sh --nocache --debug")
+    }
+  }
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "mac"
@@ -143,7 +131,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
   def myJob = job(jobName) {
     description('Determinism tests')
-    label('windows-roslyn')
     steps {
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -163,7 +150,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
   def myJob = job(jobName) {
     description('perf test correctness')
-    label('windows-roslyn')
     steps {
       batchFile(""".\\cibuild.cmd /testPerfCorrectness""")
     }
@@ -180,7 +166,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
   def myJob = job(jobName) {
     description('MicroBuild test')
-    label('windows-roslyn')
     steps {
       batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
     }
@@ -197,7 +182,6 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "open-vsi", isPr)
   def myJob = job(jobName) {
     description('open integration tests')
-    label('auto-win2012-20160912')
     steps {
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -208,7 +192,7 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "open-vsi"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-preview5')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 

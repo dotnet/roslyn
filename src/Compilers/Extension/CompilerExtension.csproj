@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -55,6 +55,7 @@
     <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
@@ -98,6 +99,10 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\MSBuildTask\MSBuildTask.csproj">
       <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
       <Name>MSBuildTask</Name>

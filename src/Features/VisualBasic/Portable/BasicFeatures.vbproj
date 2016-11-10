@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -53,11 +54,12 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
@@ -76,7 +78,6 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
-    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
@@ -86,7 +87,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\InsertMissingCast\InsertMissingCastCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\AddMissingReference\VisualBasicAddMissingReferenceCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicAddAwaitCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Async\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
@@ -109,22 +110,22 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
+    <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
+    <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
+    <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\RemoveUnnecessaryImports\RemoveUnnecessaryImportsCodeFixProvider.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsCodeFixProvider.vb" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.vb" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
+    <Compile Include="ConvertToInterpolatedString\VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider.vb" />
+    <Compile Include="ConvertToInterpolatedString\VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.vb" />
@@ -294,7 +295,7 @@
     <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
-    <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\VisualBasicAnalyzerDriverService.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentUtilities.vb" />
@@ -398,9 +399,8 @@
     <Compile Include="Structure\Providers\XmlExpressionStructureProvider.vb" />
     <Compile Include="Structure\VisualBasicStructureHelpers.vb" />
     <Compile Include="Structure\VisualBasicBlockStructureProvider.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
-    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
@@ -429,6 +429,12 @@
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
     <Compile Include="Structure\Providers\SyncLockBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\TryBlockStructureProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
+    <Compile Include="UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
+    <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
+    <Compile Include="UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
+    <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
+    <Compile Include="UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
     <Compile Include="UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\UsingBlockStructureProvider.vb" />
@@ -438,6 +444,8 @@
       <DependentUpon>VBFeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Structure\Providers\WithBlockStructureProvider.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsService.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBFeaturesResources.resx">

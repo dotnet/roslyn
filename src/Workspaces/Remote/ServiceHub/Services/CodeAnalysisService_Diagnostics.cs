@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, CancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
             {
-                using (var writer = new StreamObjectWriter(stream))
+                using (var writer = new ObjectWriter(stream))
                 {
                     DiagnosticResultSerializer.Serialize(writer, result, CancellationToken);
                 }

@@ -2833,7 +2833,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
@@ -2904,7 +2904,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
@@ -2940,7 +2940,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef });
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
@@ -13936,7 +13936,7 @@ class C3
 
             var comp = CreateCompilationWithMscorlib(source3,
                 references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")),
-                    ValueTupleRef },
+                    SystemRuntimeFacadeRef, ValueTupleRef },
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.DebugExe);
 
@@ -18676,16 +18676,16 @@ public class C
             comp.VerifyEmitDiagnostics(
                 // (25,9): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int x1, int y1) = GetCoordinates();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates();").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates()").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
                 // (25,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int x1, int y1) = GetCoordinates();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates();").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x1, int y1) = GetCoordinates()").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(25, 9),
                 // (26,9): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int x2, int y2) = GetCoordinates2();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2();").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2()").WithArguments("Item1", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9),
                 // (26,9): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int x2, int y2) = GetCoordinates2();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2();").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(int x2, int y2) = GetCoordinates2()").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(26, 9)
             );
         }
 
@@ -19738,6 +19738,7 @@ implicit operator AA
 --
 --");
         }
+
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
         [Fact]
@@ -19900,6 +19901,114 @@ namespace ConsoleApplication5
             var b = m.OverriddenProperty;
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo { get; }", b.ToTestDisplayString());
             Assert.Equal("ref (System.Int32, dynamic) ClassLibrary1.C1.Foo.get", b.GetMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")]
+        public void NoSystemRuntimeFacade()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        var o = (1, 2);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source,
+                references: new[] { ValueTupleRef });
+
+            Assert.Equal(TypeKind.Class, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
+
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //         var o = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        public void Iterator_01()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+public class C 
+{
+    static void Main(string[] args)
+    {
+        foreach (var x in entries())
+        {
+            Console.WriteLine(x);
+        }
+    }
+
+    static public IEnumerable<(int, int)> entries() 
+    {
+        yield return (1, 2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
+        }
+
+        [Fact]
+        [WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")]
+        public void Iterator_02()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+public class C 
+{
+    public IEnumerable<(int, int)> entries() 
+    {
+        yield return (1, 2);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source,
+                references: new[] { ValueTupleRef });
+
+            compilation.VerifyEmitDiagnostics(
+                // (7,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     public IEnumerable<(int, int)> entries() 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(7, 24),
+                // (9,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //         yield return (1, 2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(9, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14649, "https://github.com/dotnet/roslyn/issues/14649")]
+        public void ParseLongLambda()
+        {
+            string filler = string.Join("\r\n", Enumerable.Range(1, 1000).Select(i => $"int y{i};"));
+            string parameters = string.Join(", ", Enumerable.Range(1, 2000).Select(i => $"int x{i}"));
+            string text = @"
+class C
+{
+    " + filler + @"
+    public void M()
+    {
+        N((" + parameters + @") => 1);
+    }
+}
+";
+            // This is designed to trigger a shift of the array of lexed tokens (see AddLexedTokenSlot) while
+            // parsing lambda parameters
+            var tree = SyntaxFactory.ParseSyntaxTree(text, CSharpParseOptions.Default);
+            // no assertion
         }
 
     }

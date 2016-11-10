@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     // Note: if the user was in the body of the foreach, then we would have hit its
                     // nested statement on the way up.  If they were in the expression then we would
                     // have hit that on the way up as well. In "foreach(var f in expr)" we allow a
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
                         else
                         {
-                            return ((ForEachComponentStatementSyntax)statement).VariableComponent.Span;
+                            return ((ForEachVariableStatementSyntax)statement).Variable.Span;
                         }
                     }
                     else if (position < forEachStatement.Expression.FullSpan.Start)
@@ -554,7 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.EmptyStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 default:
                     // Fallback case.  If it was none of the above types of statements, then we make a span
                     // over the entire statement.  Note: this is not a very desirable thing to do (as
@@ -733,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         forStatement.Incrementors.Contains(expression);
 
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     var forEachStatement = (CommonForEachStatementSyntax)parent;
                     return forEachStatement.Expression == expression;
 

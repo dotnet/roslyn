@@ -197,10 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
-
-                string errorMessage;
-                int errorCode;
-                compilerInputs.EndInitialization(out errorMessage, out errorCode);
+                compilerInputs.EndInitialization(out var errorMessage, out var errorCode);
             }
 
             private class CSharpCompilerInputs :

@@ -3,8 +3,8 @@
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
-    <MicrosoftBuildVersion>14.3.0-prerelease01</MicrosoftBuildVersion>
-    <MicrosoftBuildTasksCoreVersion>14.3.0-prerelease01</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildVersion>14.3.0</MicrosoftBuildVersion>
+    <MicrosoftBuildTasksCoreVersion>14.3.0</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -12,6 +12,7 @@
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60831-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
+    <RoslynToolsMicrosoftLocateVSVersion>0.2.0-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>

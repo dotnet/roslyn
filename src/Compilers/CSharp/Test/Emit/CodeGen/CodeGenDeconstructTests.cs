@@ -82,7 +82,19 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x, y)", lhs.ToString());
+                Assert.Equal("(System.Int64, System.String)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1119,6 +1131,127 @@ class C
         }
 
         [Fact]
+        public void DeconstructionDeclarationCanOnlyBeParsedAsStatement()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        var z = ((var x, int y) = new C());
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS1003: Syntax error, '=>' expected
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(6, 33),
+                // (6,33): error CS1525: Invalid expression term '='
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 33),
+                // (6,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void MixedDeconstructionCannotBeParsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x;
+        (x, int y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,10): error CS1031: Type expected
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(7, 10),
+                // (7,10): error CS0128: A local variable or function named 'x' is already defined in this scope
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(7, 10),
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWithTupleNamesCannotBeParsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        (Alice: var x, Bob: int y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8124: Tuple must contain at least two elements.
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(Alice: var ").WithLocation(6, 9),
+                // (6,21): error CS1026: ) expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(6, 21),
+                // (6,21): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 21),
+                // (6,22): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 22),
+                // (6,22): error CS1513: } expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 22),
+                // (6,34): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 34),
+                // (6,34): error CS1513: } expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 34),
+                // (6,36): error CS1525: Invalid expression term '='
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 36),
+                // (6,17): error CS0103: The name 'var' does not exist in the current context
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 17),
+                // (6,21): error CS0103: The name 'x' does not exist in the current context
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 21),
+                // (6,24): warning CS0164: This label has not been referenced
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Bob").WithLocation(6, 24),
+                // (6,33): warning CS0168: The variable 'y' is declared but never used
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
         public void ValueTupleReturnIsEmittedIfUsedInLambda()
         {
             string source = @"
@@ -1278,7 +1411,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1304,7 +1437,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1326,7 +1459,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1348,7 +1481,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1372,7 +1505,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "override", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "override", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1400,7 +1533,7 @@ class C
                 var expected = String.Join(" ", Enumerable.Range(1, i).Select(n => n));
 
                 var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple).Replace("OUTPUT", output);
-                var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+                var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
                 comp.VerifyDiagnostics();
             }
         }
@@ -1616,7 +1749,19 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x, (y, z))", lhs.ToString());
+                Assert.Equal("(System.Int32, (System.String, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1917,7 +2062,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1968,6 +2113,10 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
+                var lhs = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().First();
+                Assert.Equal(@"var (x1, (x2, x3))", lhs.ToString());
+                Assert.Null(model.GetTypeInfo(lhs).Type);
+
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
@@ -1981,7 +2130,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2019,7 +2168,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2081,14 +2230,18 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(string x1, byte x2, var x3)", lhs.ToString());
+                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
                 Assert.Equal(@"(null, 2, 3)", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2113,7 +2266,11 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(string x1, var x2)", lhs.ToString());
+                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
                 Assert.Equal(@"(null, (1, 2))", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
@@ -2125,7 +2282,7 @@ class C
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2195,11 +2352,6 @@ Deconstructing (1, hello)
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
         }
 
-        private static void VerifyModelForDeconstructionFor(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
-        {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForInitializerVariable, references);
-        }
-
         private static void VerifyModelForDeconstructionForeach(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForEachIterationVariable, references);
@@ -2258,7 +2410,7 @@ Deconstructing (1, hello)
 
         private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
         {
-            return (decl.Parent as TypedVariableComponentSyntax)?.Type;
+            return (decl.Parent as DeclarationExpressionSyntax)?.Type;
         }
 
         private static SingleVariableDesignationSyntax GetDeconstructionVariable(SyntaxTree tree, string name)
@@ -2327,7 +2479,7 @@ class var
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2375,12 +2527,12 @@ class C
                 Assert.Equal("int", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
                 Assert.Null(model.GetAliasInfo(x1Type));
 
-                var x34Var = (TypedVariableComponentSyntax)x3.Parent.Parent;
+                var x34Var = (DeclarationExpressionSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2433,7 +2585,7 @@ class D
                 Assert.Null(model.GetAliasInfo(x2Type));
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2462,20 +2614,58 @@ class C
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 4);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReferences(tree, "x2", 3);
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForWithBadInitializersCannotParse()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for (var (x1, x2) = (1, 2), x1 = 0; ; )
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1002: ; expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
+                // (6,35): error CS1525: Invalid expression term ','
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
+                // (6,35): error CS1002: ; expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
+                // (6,35): error CS1525: Invalid expression term ','
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
+                // (6,43): error CS1026: ) expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 43),
+                // (6,47): error CS1513: } expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 47)
+                );
         }
 
         [Fact]
@@ -2507,11 +2697,11 @@ class var
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
                 var x1Type = GetTypeSyntax(x1);
@@ -2524,7 +2714,7 @@ class var
                 Assert.Equal("var", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2553,11 +2743,11 @@ class C
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
                 var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
                 var x1Type = GetTypeSyntax(x1);
@@ -2570,7 +2760,7 @@ class C
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2609,12 +2799,12 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
@@ -2698,12 +2888,12 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -2798,12 +2988,12 @@ class C
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -2912,7 +3102,7 @@ static class Extension
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -3007,12 +3197,12 @@ class C
                 VerifyModelForDeconstructionForeach(model, x5, x5Ref);
 
                 // extra check on var
-                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3126,7 +3316,7 @@ class C
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
                 // extra check on var
-                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
@@ -3139,7 +3329,7 @@ Deconstructing (4, (5, 6))
 Deconstructing (5, 6)
 4 5 6";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
@@ -3528,7 +3718,7 @@ class C
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
-            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
         }
 
         [Fact]
@@ -3671,7 +3861,7 @@ System.Console.Write($""{x} {y}"");
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
-            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.DeconstructionDeclarationStatement));
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
         }
 
         [Fact]
@@ -3737,7 +3927,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 Assert.Null(model.GetAliasInfo(x1Type));
 
                 // extra check on x2 and x3's var
-                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
@@ -4261,7 +4451,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             VerifyModelForDeconstructionField(model, x3, x3Ref);
 
             // extra check on var
-            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
@@ -4308,7 +4498,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             VerifyModelForDeconstructionField(model, x3, x3Ref);
 
             // extra check on var
-            var x123Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+            var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             {|FixAllInDocument:var|} v1 = (string)x;
-        } 
+        }
 
         if (x is bool)
         {
             var v2 = (bool)x;
-        } 
+        }
     }
 }",
 @"class C
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v1)
         {
-        } 
+        }
 
         if (x is bool v2)
         {
-        } 
+        }
     }
 }");
         }
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         if (x is string)
         {
             var v1 = (string)x;
-        } 
+        }
 
         if (x is bool)
         {
             {|FixAllInDocument:var|} v2 = (bool)x;
-        } 
+        }
     }
 }",
 @"class C
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     {
         if (x is string v1)
         {
-        } 
+        }
 
         if (x is bool v2)
         {
-        } 
+        }
     }
 }");
         }

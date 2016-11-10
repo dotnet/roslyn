@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TupleElement:
                         return ((TupleElementSyntax)parent).Type == node;
 
-                    case TypedVariableComponent:
-                        return ((TypedVariableComponentSyntax)parent).Type == node;
+                    case DeclarationExpression:
+                        return ((DeclarationExpressionSyntax)parent).Type == node;
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
@@ -399,11 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.IsVar() || IsPredefinedType(node.Kind);
         }
 
-        internal static bool IsVariableComponentType(SyntaxNode node, out SyntaxNode parent)
+        internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
         {
-            var component = node.Parent as TypedVariableComponentSyntax;
-            parent = component;
-            return node == component?.Type;
+            parent = node.Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type;
         }
     }
 }

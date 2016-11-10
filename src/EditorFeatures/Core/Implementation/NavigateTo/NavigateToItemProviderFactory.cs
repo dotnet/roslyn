@@ -23,17 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             [ImportMany] IEnumerable<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>> hostServices,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            if (glyphService == null)
-            {
-                throw new ArgumentNullException(nameof(glyphService));
-            }
-
             if (asyncListeners == null)
             {
                 throw new ArgumentNullException(nameof(asyncListeners));
             }
 
-            _glyphService = glyphService;
+            _glyphService = glyphService ?? throw new ArgumentNullException(nameof(glyphService));
             _hostServices = hostServices;
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigateTo);
         }

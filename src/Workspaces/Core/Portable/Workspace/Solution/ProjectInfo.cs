@@ -377,30 +377,10 @@ namespace Microsoft.CodeAnalysis
                 bool isSubmission,
                 bool hasAllInformation)
             {
-                if (id == null)
-                {
-                    throw new ArgumentNullException(nameof(id));
-                }
-
-                if (name == null)
-                {
-                    throw new ArgumentNullException(nameof(name));
-                }
-
-                if (language == null)
-                {
-                    throw new ArgumentNullException(nameof(language));
-                }
-
-                if (assemblyName == null)
-                {
-                    throw new ArgumentNullException(nameof(assemblyName));
-                }
-
-                Id = id;
-                Name = name;
-                Language = language;
-                AssemblyName = assemblyName;
+                Id = id ?? throw new ArgumentNullException(nameof(id));
+                Name = name ?? throw new ArgumentNullException(nameof(name));
+                Language = language ?? throw new ArgumentNullException(nameof(language));
+                AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
 
                 Version = version;
                 FilePath = filePath;

@@ -19,7 +19,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             comp.VerifyPdb("C.F",
 <symbols>
     <methods>

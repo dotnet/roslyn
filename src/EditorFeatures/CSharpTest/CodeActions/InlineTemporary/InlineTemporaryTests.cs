@@ -61,14 +61,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
         {
-            await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+            await TestMissingAsync(
+@"class C
+{
+    int [||]x = 42;
+
+    void M()
+    {
+        System.Console.WriteLine(x);
+    }
+}");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12838"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task WithRefInitializer1()
         {
-            await TestMissingAsync(@"
-class C
+            await TestMissingAsync(
+@"class C
 {
     ref int M()
     {
@@ -106,28 +115,40 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping2()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping3()
         {
-            await TestFixOneAsync(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]@x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping4()
         {
-            await TestFixOneAsync(@"{ int [||]x = 0; Console.WriteLine(@x); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 0;
+
+Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -215,7 +236,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Conversion_NoConversion()
         {
-            await TestFixOneAsync(@"{ int [||]x = 3; x.ToString(); }",
+            await TestFixOneAsync(
+@"{ int [||]x = 3;
+
+x.ToString(); }",
                        @"{ 3.ToString(); }");
         }
 
@@ -338,7 +362,10 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NoCastOnVar()
         {
-            await TestFixOneAsync(@"{ var [||]x = 0; Console.WriteLine(x); }",
+            await TestFixOneAsync(
+@"{ var [||]x = 0;
+
+Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
@@ -370,14 +397,18 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAnonymousType1()
         {
-            await TestFixOneAsync(@"{ int [||]x = 42; var a = new { x }; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 42;
+var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestParenthesizedAtReference_Case3()
         {
-            await TestFixOneAsync(@"{ int [||]x = 1 + 1; int y = x * 2; }",
+            await TestFixOneAsync(
+@"{ int [||]x = 1 + 1;
+int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
 
@@ -613,7 +644,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestArrayInitializer()
         {
-            await TestFixOneAsync(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
+            await TestFixOneAsync(
+@"{ int[] [||]x = {
+    3,
+    4,
+    5
+};
+int a = Array.IndexOf(x, 3); }",
                        @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
         }
 
@@ -2206,8 +2243,8 @@ unsafe class C
         public async Task DontInlineStackAlloc()
         {
             await TestMissingAsync(
-            @"
-using System;
+@"using System;
+
 unsafe class C
 {
     static void M()
@@ -3057,7 +3094,10 @@ class C
 {
     static void M()
     {
-        int [||]a[10] = { 0, 0 };
+        int [||]a[10] = {
+            0,
+            0
+        };
         System.Console.WriteLine(a);
     }
 }");
@@ -3073,9 +3113,9 @@ class C
     {
         int [|x|] = 0;
 
-        #line hidden
+#line hidden
         Foo(x);
-        #line default
+#line default
     }
 }");
         }
@@ -3089,11 +3129,10 @@ class C
     void Main()
     {
         int [|x|] = 0;
-
         Foo(x);
-        #line hidden
+#line hidden
         Foo(x);
-        #line default
+#line default
     }
 }");
         }
@@ -3173,7 +3212,6 @@ compareTokens: false);
     void Main()
     {
         int [||]x = 0;
-
         Foo(x);
 #line hidden
         Foo(x);
@@ -3504,17 +3542,15 @@ class A
         public async Task TestConditionalAccessWithConversion()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(string[] args)
     {
         var [|x|] = args[0];
         return x?.Length == 0;
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(string[] args)
     {
@@ -3527,17 +3563,15 @@ class A
         public async Task TestSimpleConditionalAccess()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M(string[] args)
     {
         var [|x|] = args.Length.ToString();
         var y = x?.ToString();
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M(string[] args)
     {
@@ -3550,17 +3584,15 @@ class A
         public async Task TestConditionalAccessWithConditionalExpression()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M(string[] args)
     {
         var [|x|] = args[0]?.Length ?? 10;
         var y = x == 10 ? 10 : 4;
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M(string[] args)
     {
@@ -3574,8 +3606,7 @@ class A
         public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
             await TestAsync(
-            @"
-using System;
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3596,11 +3627,11 @@ class C
             var [|assembly|] = t?.Something().First();
             var identity = assembly?.ToArray();
         }
+
         return null;
     }
-}
-", @"
-using System;
+}", 
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3620,10 +3651,10 @@ class C
         {
             var identity = t?.Something().First()?.ToArray();
         }
+
         return null;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3631,8 +3662,7 @@ class C
         public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {
             await TestAsync(
-            @"
-using System;
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3658,11 +3688,11 @@ class C
             var [|assembly|] = (t?.Something2())()?.Something().First();
             var identity = assembly?.ToArray();
         }
+
         return null;
     }
-}
-", @"
-using System;
+}", 
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -3687,27 +3717,25 @@ class C
         {
             var identity = (t?.Something2())()?.Something().First()?.ToArray();
         }
+
         return null;
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task TestAliasQualifiedNameIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     void M()
     {
         var [|g|] = global::System.Guid.Empty;
         var s = $""{g}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     void M()
     {
@@ -3720,17 +3748,15 @@ class A
         public async Task TestConditionalExpressionIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(bool b)
     {
         var [|x|] = b ? 19 : 23;
         var s = $""{x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(bool b)
     {
@@ -3743,17 +3769,15 @@ class A
         public async Task TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     bool M(bool b)
     {
         var [|x|] = b ? 19 : 23;
         var s = $""{x:x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     bool M(bool b)
     {
@@ -3766,17 +3790,15 @@ class A
         public async Task TestInvocationExpressionIntoInterpolation()
         {
             await TestAsync(
-            @"
-class A
+@"class A
 {
     public static void M(string s)
     {
         var [|x|] = s.ToUpper();
         var y = $""{x}"";
     }
-}
-", @"
-class A
+}", 
+@"class A
 {
     public static void M(string s)
     {
@@ -3790,17 +3812,15 @@ class A
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             await TestAsync(
-            @"
-class C
+@"class C
 {
     public void M()
     {
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     public void M()
     {
@@ -3814,17 +3834,15 @@ class C
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestAsync(
-            @"
-class C
+@"class C
 {
     public void M(int x)
     {
         var [|s1|] = $""hello {x}"";
         var s2 = string.Replace(s1, ""world"");
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     public void M(int x)
     {

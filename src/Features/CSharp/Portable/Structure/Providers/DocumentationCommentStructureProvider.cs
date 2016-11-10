@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -108,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             DocumentationCommentTriviaSyntax documentationComment,
             ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             var startPos = documentationComment.FullSpan.Start;

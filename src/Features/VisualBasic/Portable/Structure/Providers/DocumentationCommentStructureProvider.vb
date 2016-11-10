@@ -2,6 +2,7 @@
 
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -71,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  options As OptionSet,
                                                   cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()
             Dim lastCommentToken = documentationComment.ChildNodesAndTokens().LastOrNullable()
@@ -86,9 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
-            spans.AddIfNotNull(CreateRegion(
-                fullSpan, GetBannerText(documentationComment, cancellationToken),
-                autoCollapse:=True, type:=BlockTypes.Comment, isCollapsible:=True))
+            spans.AddIfNotNull(CreateBlockSpan(
+                fullSpan, fullSpan, GetBannerText(documentationComment, cancellationToken),
+                autoCollapse:=True, type:=BlockTypes.Comment,
+                isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub
     End Class
 End Namespace

@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return VersionStamp.Default;
             }
 
-            int identifierId;
-            if (!TryGetIdentifierSetVersionId(out identifierId))
+            if (!TryGetIdentifierSetVersionId(out var identifierId))
             {
                 return VersionStamp.Default;
             }
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Esent
                     return VersionStamp.Default;
                 }
 
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = new ObjectReader(stream))
                 {
                     return VersionStamp.ReadFrom(reader);
                 }
@@ -99,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return VersionStamp.Default;
             }
 
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return VersionStamp.Default;
             }
@@ -117,9 +115,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            int identifierId;
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return false;
             }
@@ -130,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            if (!TryGetUniqueIdentifierId(identifier, out identifierId))
+            if (!TryGetUniqueIdentifierId(identifier, out var identifierId))
             {
                 return false;
             }
@@ -149,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Esent
                     return true;
                 }
 
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = new ObjectReader(stream))
                 {
                     var formatVersion = reader.ReadString();
                     if (formatVersion != IdentifierSetSerializationVersion)
@@ -180,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return false;
             }
 
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key))
+            if (!TryGetProjectAndDocumentKey(document, out var key))
             {
                 return false;
             }
@@ -240,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Esent
                         identifierId = identifierMap[identifier];
 
                         using (var stream = accessor.GetWriteStream(key, identifierId))
-                        using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                        using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                         {
                             writer.WriteString(IdentifierSetSerializationVersion);
                             WriteList(writer, positions);
@@ -290,15 +285,14 @@ namespace Microsoft.CodeAnalysis.Esent
         private bool TrySaveIdentifierSetVersion(
             EsentStorage.IdentifierLocationTableAccessor accessor, EsentStorage.Key key, VersionStamp version)
         {
-            int identifierId;
-            if (!TryGetIdentifierSetVersionId(out identifierId))
+            if (!TryGetIdentifierSetVersionId(out var identifierId))
             {
                 return false;
             }
 
             accessor.PrepareBatchOneInsert();
             using (var stream = accessor.GetWriteStream(key, identifierId))
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 version.WriteTo(writer);
             }

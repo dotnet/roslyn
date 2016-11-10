@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         int {|FixAllInDocument:i|}, j;
         if (int.TryParse(v, out i, out j))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i, out int j))
         {
-        } 
+        }
     }
 }");
         }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {|FixAllInDocument:int|} i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 
     void M1()
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         int i;
         if (int.TryParse(v, out i))
         {
-        } 
+        }
     }
 }",
 @"class C
@@ -62,14 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         if (int.TryParse(v, out int i))
         {
-        } 
+        }
     }
 
     void M1()
     {
         if (int.TryParse(v, out int i))
         {
-        } 
+        }
     }
 }");
         }

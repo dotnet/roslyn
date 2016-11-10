@@ -45,8 +45,6 @@ if not "%BuildTimeLimit%" == "" (
     set RunProcessWatchdog=false
 )
 
-call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
-
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
 
 REM Output the commit that we're building, for reference in Jenkins logs
@@ -55,6 +53,7 @@ git show --no-patch --pretty=raw HEAD
 
 REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries
@@ -65,7 +64,7 @@ msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
-move "Binaries\%BuildConfiguration%\Deployment\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\Exes\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
 copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
@@ -99,9 +98,10 @@ if defined TestPerfRun (
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
-
+            mkdir ".\Binaries\%BuildConfiguration%\tools\"
             REM Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
-            call "%RoslynRoot%\build\scripts\install_benchview_tools.cmd" ".\Binaries\%BuildConfiguration%\" || goto :BuildFailed
+            call "%RoslynRoot%\build\scripts\install_benchview_tools.cmd" ".\Binaries\%BuildConfiguration%\tools\" || goto :BuildFailed
+            dir ".\Binaries\%BuildConfiguration%\"
         )
     )
 
@@ -109,10 +109,7 @@ if defined TestPerfRun (
     exit /b 0
 )
 
-REM Temporarily forcing MSBuild 14.0 here to work around a bug in 15.0
-REM MSBuild bug: https://github.com/Microsoft/msbuild/issues/1183
-REM Roslyn tracking bug: https://github.com/dotnet/roslyn/issues/14451
-"c:\Program Files (x86)\MSBuild\14.0\bin\MSBuild.exe" %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses
@@ -123,7 +120,7 @@ echo Running RepoUtil
 
 REM Verify the state of our project.jsons
 echo Running BuildBoss
-.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln src\Samples\Samples.sln || goto :BuildFailed
+.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0

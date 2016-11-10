@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</ProjectGuid>
@@ -43,18 +43,26 @@
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="Structure\Providers\ArrowExpressionClauseStructureProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\CSharpConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpUnnecessaryImportsService.cs" />
+    <Compile Include="Structure\Providers\InitializerExpressionStructureProvider.cs" />
+    <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Accessors\UseExpressionBodyForAccessorsDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Indexers\UseExpressionBodyForIndexersCodeFixProvider.cs" />
@@ -70,6 +78,10 @@
     <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
+    <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
+    <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
@@ -78,12 +90,11 @@
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
     <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\AddMissingReference\CSharpAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
@@ -99,20 +110,17 @@
     <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\NamingStyles\CSharpNamingStyleCodeFixProvider.cs" />
+    <Compile Include="QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsCodeFixProvider.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.InitializerRewriter.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.cs" />
@@ -281,11 +289,11 @@
     <Compile Include="Diagnostics\Analyzers\CSharpPreferFrameworkTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpTypeStyleDiagnosticAnalyzerBase.State.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
+    <Compile Include="QualifyMemberAccess\CSharpQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
@@ -426,8 +434,8 @@
     <Compile Include="Structure\Providers\RegionDirectiveStructureProvider.cs" />
     <Compile Include="Structure\Providers\SimpleLambdaExpressionStructureProvider.cs" />
     <Compile Include="Structure\Providers\TypeDeclarationStructureProvider.cs" />
-    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractCSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
     <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
@@ -463,6 +471,7 @@
   <ItemGroup>
     <Compile Include="CodeFixes\SpellCheck\CSharpSpellCheckCodeFixProvider.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

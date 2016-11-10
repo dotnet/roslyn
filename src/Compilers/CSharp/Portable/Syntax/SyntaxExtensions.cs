@@ -68,31 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the type syntax of an out declaration argument expression.
-        /// </summary>
-        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return component.Type;
-        }
-
-        /// <summary>
-        /// Return the variable designation of an out declaration argument expression.
-        /// </summary>
-        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return (SingleVariableDesignationSyntax)component.Designation;
-        }
-
-        /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            var designation = (SingleVariableDesignationSyntax)component.Designation;
-            return designation.Identifier;
+            return ((SingleVariableDesignationSyntax)self.Designation).Identifier;
         }
 
         /// <summary>
@@ -224,6 +204,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expression;
+        }
+
+        /// <summary>
+        /// Is this expression composed only of declaration expressions nested in tuple expressions?
+        /// </summary>
+        private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
+        {
+            switch (self.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                case SyntaxKind.TupleExpression:
+                    var tuple = (TupleExpressionSyntax)self;
+                    return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
+        /// </summary>
+        internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.TupleExpression:
+                    var arguments = ((Syntax.InternalSyntax.TupleExpressionSyntax)node).Arguments;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
+                    }
+
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
+        {
+            return self.Left.IsDeconstructionDeclarationLeft();
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)

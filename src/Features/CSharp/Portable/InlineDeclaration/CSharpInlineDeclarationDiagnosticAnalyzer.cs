@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     {
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_inlined), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -35,10 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
 
         private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
         {
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : localDeclarator;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(this.DescriptorId, option.Notification.Value),
+                CreateDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
         }

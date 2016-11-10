@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new EncapsulateFieldRefactoringProvider();
-        }
+            => new EncapsulateFieldRefactoringProvider();
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
@@ -1104,17 +1101,17 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task DoNotEncapsulateOutsideTypeDeclaration()
         {
-            await TestMissingAsync(@"
-var [|x|] = 1;");
+            await TestMissingAsync(
+@"var [|x|] = 1;");
 
-            await TestMissingAsync(@"
-namespace N
+            await TestMissingAsync(
+@"namespace N
 {
     var [|x|] = 1;
 }");
 
-            await TestMissingAsync(@"
-enum E
+            await TestMissingAsync(
+@"enum E
 {
     [|x|] = 1;
 }");
@@ -1126,13 +1123,12 @@ enum E
         {
             using (new CultureContext("tr-TR"))
             {
-                await TestAllOptionsOffAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|iyi|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int iyi;
 
@@ -1142,13 +1138,13 @@ class C
         {
             return iyi;
         }
+
         set
         {
             iyi = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1158,13 +1154,12 @@ class C
         {
             using (new CultureContext("tr-TR"))
             {
-                await TestAllOptionsOffAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|ırak|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int ırak;
 
@@ -1174,13 +1169,13 @@ class C
         {
             return ırak;
         }
+
         set
         {
             ırak = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1190,13 +1185,12 @@ class C
         {
             using (new CultureContext("ar-EG"))
             {
-                await TestAllOptionsOffAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|بيت|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int بيت;
 
@@ -1206,13 +1200,13 @@ class C
         {
             return بيت;
         }
+
         set
         {
             بيت = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1222,13 +1216,12 @@ class C
         {
             using (new CultureContext("es-ES"))
             {
-                await TestAllOptionsOffAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|árbol|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int árbol;
 
@@ -1238,13 +1231,13 @@ class C
         {
             return árbol;
         }
+
         set
         {
             árbol = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1254,13 +1247,12 @@ class C
         {
             using (new CultureContext("el-GR"))
             {
-                await TestAllOptionsOffAsync(@"
-class C
+                await TestAllOptionsOffAsync(
+@"class C
 {
     int [|σκύλος|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int σκύλος;
 
@@ -1270,13 +1262,13 @@ class C
         {
             return σκύλος;
         }
+
         set
         {
             σκύλος = value;
         }
     }
-}
-");
+}");
             }
         }
 
@@ -1342,13 +1334,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task ApplyCurrentThisPrefixStyle()
         {
-            await TestAllOptionsOffAsync(@"
-class C
+            await TestAllOptionsOffAsync(
+@"class C
 {
     int [|i|];
-}
-", @"
-class C
+}", 
+@"class C
 {
     int i;
 
@@ -1358,14 +1349,13 @@ class C
         {
             return this.i;
         }
+
         set
         {
             this.i = value;
         }
     }
-
-}
-", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+}", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]

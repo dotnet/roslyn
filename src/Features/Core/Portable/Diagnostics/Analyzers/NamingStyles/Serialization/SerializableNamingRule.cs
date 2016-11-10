@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -34,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static SerializableNamingRule FromXElement(XElement namingRuleElement)
         {
-            var result = new SerializableNamingRule();
-            result.EnforcementLevel = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value);
-            result.NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID)).Value);
-            result.SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value);
-            return result;
+            return new SerializableNamingRule()
+            {
+                EnforcementLevel = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value),
+                NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID)).Value),
+                SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value)
+            };
         }
     }
 }

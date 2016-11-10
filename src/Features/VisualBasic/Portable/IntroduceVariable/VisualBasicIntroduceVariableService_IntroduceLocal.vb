@@ -17,7 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 isConstant As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim newLocalNameToken = CType(GenerateUniqueLocalName(document, expression, isConstant, cancellationToken), SyntaxToken)
+            Dim container = GetContainerToGenerateInfo(document, expression, cancellationToken)
+            Dim newLocalNameToken = GenerateUniqueLocalName(
+                document, expression, isConstant, container, cancellationToken)
             Dim newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken)
 
             Dim modifier = If(isConstant, SyntaxFactory.Token(SyntaxKind.ConstKeyword), SyntaxFactory.Token(SyntaxKind.DimKeyword))
@@ -37,6 +39,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
             End If
 
+            If TypeOf container Is SingleLineLambdaExpressionSyntax Then
+                Return IntroduceLocalDeclarationIntoLambda(
+                    document, DirectCast(container, SingleLineLambdaExpressionSyntax),
+                    expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
+            Else
+                Return Await IntroduceLocalDeclarationIntoBlockAsync(
+                    document, container, expression, newLocalName,
+                    declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(False)
+            End If
+        End Function
+
+        Private Function GetContainerToGenerateInfo(
+                document As SemanticDocument,
+                expression As ExpressionSyntax,
+                cancellationToken As CancellationToken) As SyntaxNode
+
             Dim anonymousMethodParameters = GetAnonymousMethodParameters(document, expression, cancellationToken)
             Dim lambdas = anonymousMethodParameters.SelectMany(Function(p) p.ContainingSymbol.DeclaringSyntaxReferences).
                                                     Select(Function(r) r.GetSyntax()).
@@ -45,23 +63,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                                                     ToSet()
 
             Dim parentLambda = GetParentLambda(expression, lambdas)
-
             If parentLambda IsNot Nothing Then
-                Return IntroduceLocalDeclarationIntoLambda(
-                    document, expression, newLocalName, declarationStatement, parentLambda, allOccurrences, cancellationToken)
-            Else
-                Return Await IntroduceLocalDeclarationIntoBlockAsync(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(False)
+                Return parentLambda
             End If
+
+            Return expression.GetContainingExecutableBlocks().LastOrDefault()
         End Function
 
-        Private Function IntroduceLocalDeclarationIntoLambda(document As SemanticDocument,
-                                                             expression As ExpressionSyntax,
-                                                             newLocalName As IdentifierNameSyntax,
-                                                             declarationStatement As StatementSyntax,
-                                                             oldLambda As SingleLineLambdaExpressionSyntax,
-                                                             allOccurrences As Boolean,
-                                                             cancellationToken As CancellationToken) As Document
+        Private Function IntroduceLocalDeclarationIntoLambda(
+                document As SemanticDocument,
+                oldLambda As SingleLineLambdaExpressionSyntax,
+                expression As ExpressionSyntax,
+                newLocalName As IdentifierNameSyntax,
+                declarationStatement As StatementSyntax,
+                allOccurrences As Boolean,
+                cancellationToken As CancellationToken) As Document
+
             Dim oldBody = DirectCast(oldLambda.Body, ExpressionSyntax)
 
             Dim rewrittenBody = Rewrite(
@@ -118,6 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Private Async Function IntroduceLocalDeclarationIntoBlockAsync(
                 document As SemanticDocument,
+                container As SyntaxNode,
                 expression As ExpressionSyntax,
                 newLocalName As NameSyntax,
                 localDeclaration As LocalDeclarationStatementSyntax,
@@ -127,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim localAnnotation = New SyntaxAnnotation()
             localDeclaration = localDeclaration.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
 
-            Dim oldOutermostBlock = expression.GetContainingExecutableBlocks().LastOrDefault()
+            Dim oldOutermostBlock = container
             If oldOutermostBlock.IsSingleLineExecutableBlock() Then
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If

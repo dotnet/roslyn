@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     [|var|] _myfield = 5;
@@ -83,6 +84,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     public event [|var|] _myevent;
@@ -94,11 +96,12 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-        [|var|] comparer = delegate(string value) {
+        [|var|] comparer = delegate (string value) {
             return value != ""0"";
         };
     }
@@ -110,6 +113,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -124,6 +128,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -138,6 +143,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -152,16 +158,16 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-         [|var|] p = new var();
+        [|var|] p = new var();
     }
 
     class var
     {
-
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -171,11 +177,12 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-         [|Program|] p = new Program();
+        [|Program|] p = new Program();
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -185,6 +192,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     void M()
@@ -195,9 +203,7 @@ class C
 
 class var
 {
-
-}
-");
+}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -205,6 +211,7 @@ class var
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -221,6 +228,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -231,10 +239,68 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnForEachVarWithAnonymousType()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5).Select(i => new { Value = i });
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task OnForEachVarWithExplicitType()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach (int value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         public async Task NotOnAnonymousType()
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -249,11 +315,12 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-        [|var|] x = new[] { new { name = ""apple"", diam = 4 }, new { name = ""grape"", diam = 1 }};
+        [|var|] x = new[] { new { name = ""apple"", diam = 4 }, new { name = ""grape"", diam = 1 } };
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -265,22 +332,22 @@ class Program
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
+
 class Program
 {
     void Method()
     {
         var products = new List<Product>();
-        [|var|] productQuery =
-            from prod in products
-            select new { prod.Color, prod.Price };
+        [|var|] productQuery = from prod in products
+                           select new { prod.Color, prod.Price };
     }
 }
+
 class Product
 {
     public ConsoleColor Color { get; set; }
     public int Price { get; set; }
-}
-");
+}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -288,6 +355,7 @@ class Product
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -296,6 +364,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -310,6 +379,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -318,6 +388,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -332,6 +403,7 @@ class C
         {
             await TestAsync(
 @"using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -340,6 +412,7 @@ class C
     }
 }",
 @"using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -354,6 +427,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     void M()
@@ -362,6 +436,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void M()
@@ -376,6 +451,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C<T>
 {
     static void M()
@@ -384,6 +460,7 @@ class C<T>
     }
 }",
 @"using System;
+
 class C<T>
 {
     static void M()
@@ -398,19 +475,21 @@ class C<T>
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|var|] n1 = new int[4] {2, 4, 6, 8};
+        [|var|] n1 = new int[4] { 2, 4, 6, 8 };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        int[] n1 = new int[4] {2, 4, 6, 8};
+        int[] n1 = new int[4] { 2, 4, 6, 8 };
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -420,19 +499,21 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|var|] n1 = new[] {2, 4, 6, 8};
+        [|var|] n1 = new[] { 2, 4, 6, 8 };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        int[] n1 = new[] {2, 4, 6, 8};
+        int[] n1 = new[] { 2, 4, 6, 8 };
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -442,26 +523,26 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|var|] cs = new[]
-        {
-            new[]{1,2,3,4},
-            new[]{5,6,7,8}
+        [|var|] cs = new[] {
+            new[] { 1, 2, 3, 4 },
+            new[] { 5, 6, 7, 8 }
         };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        int[][] cs = new[]
-        {
-            new[]{1,2,3,4},
-            new[]{5,6,7,8}
+        int[][] cs = new[] {
+            new[] { 1, 2, 3, 4 },
+            new[] { 5, 6, 7, 8 }
         };
     }
 }", options: ExplicitTypeEverywhere());
@@ -472,24 +553,28 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         [|var|] cc = new Customer { City = ""Madras"" };
     }
+
     private class Customer
     {
         public string City { get; set; }
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         Customer cc = new Customer { City = ""Madras"" };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -503,6 +588,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -512,6 +598,7 @@ class C
 }",
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -527,6 +614,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -536,6 +624,7 @@ class C
             new Customer { City = ""Madras"" }
         };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -543,6 +632,7 @@ class C
 }",
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -552,6 +642,7 @@ class C
             new Customer { City = ""Madras"" }
         };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -564,24 +655,24 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         for ([|var|] i = 0; i < 5; i++)
         {
-
         }
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         for (int i = 0; i < 5; i++)
         {
-
         }
     }
 }", options: ExplicitTypeEverywhere());
@@ -593,6 +684,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -600,12 +692,12 @@ class C
         var l = new List<int> { 1, 3, 5 };
         foreach ([|var|] item in l)
         {
-
         }
     }
 }",
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -613,7 +705,6 @@ class C
         var l = new List<int> { 1, 3, 5 };
         foreach (int item in l)
         {
-
         }
     }
 }", options: ExplicitTypeEverywhere());
@@ -626,42 +717,42 @@ class C
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     static void M()
     {
         var customers = new List<Customer>();
-        [|var|] expr =
-            from c in customers
-            where c.City == ""London""
-            select c;
-        }
-
-        private class Customer
-        {
-            public string City { get; set; }
-        }
+        [|var|] expr = from c in customers
+                   where c.City == ""London""
+                   select c;
     }
+
+    private class Customer
+    {
+        public string City { get; set; }
+    }
+}
 }",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     static void M()
     {
         var customers = new List<Customer>();
-        IEnumerable<Customer> expr =
-            from c in customers
-            where c.City == ""London""
-            select c;
-        }
-
-        private class Customer
-        {
-            public string City { get; set; }
-        }
+        IEnumerable<Customer> expr = from c in customers
+                                     where c.City == ""London""
+                                     select c;
     }
+
+    private class Customer
+    {
+        public string City { get; set; }
+    }
+}
 }", options: ExplicitTypeEverywhere());
         }
 
@@ -670,15 +761,16 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         using ([|var|] r = new Res())
         {
-
         }
     }
+
     private class Res : IDisposable
     {
         public void Dispose()
@@ -688,15 +780,16 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         using (Res r = new Res())
         {
-
         }
     }
+
     private class Res : IDisposable
     {
         public void Dispose()
@@ -712,6 +805,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -720,6 +814,7 @@ class Program
     }
 }",
 @"using System;
+
 class Program
 {
     void Method()
@@ -734,6 +829,7 @@ class Program
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -743,6 +839,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -758,26 +855,30 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-       C obj = new C();
-       [|var|] anotherObj = obj?.Test();
+        C obj = new C();
+        [|var|] anotherObj = obj?.Test();
     }
+
     C Test()
     {
         return this;
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-       C obj = new C();
-       C anotherObj = obj?.Test();
+        C obj = new C();
+        C anotherObj = obj?.Test();
     }
+
     C Test()
     {
         return this;
@@ -790,21 +891,23 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       [|var|] intNumber = checked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        [|var|] intNumber = checked((int)number1);
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       int intNumber = checked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        int intNumber = checked((int)number1);
     }
 }", options: ExplicitTypeEverywhere());
         }
@@ -815,6 +918,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Threading.Tasks;
+
 class C
 {
     public async void ProcessRead()
@@ -829,6 +933,7 @@ class C
 }",
 @"using System;
 using System.Threading.Tasks;
+
 class C
 {
     public async void ProcessRead()
@@ -848,6 +953,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -856,6 +962,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -870,6 +977,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -880,6 +988,7 @@ class C
     public char GetChar() => 'c';
 }",
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -898,6 +1007,7 @@ class C
             // we in the IDE treat it as an intrinsic type for this feature.
             await TestAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -906,6 +1016,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -922,6 +1033,7 @@ class C
             // we in the IDE treat it as an intrinsic type for this feature.
             await TestAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -931,6 +1043,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -1017,8 +1130,20 @@ class C
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
         {
             await TestAsync(
-@"class C { static void M() { [|var|] s = (1, ""hello""); } }",
-@"class C { static void M() { (int, string) s = (1, ""hello""); }}",
+@"class C
+{
+    static void M()
+    {
+        [|var|] s = (1, ""hello"");
+    }
+}",
+@"class C
+{
+    static void M()
+    {
+        (int, string) s = (1, ""hello"");
+    }
+}",
 options: ExplicitTypeEverywhere(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
@@ -1028,8 +1153,20 @@ withScriptOption: true);
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
         {
             await TestAsync(
-@"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
-@"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
+@"class C
+{
+    static void M()
+    {
+        [|var|] s = (a: 1, b: ""hello"");
+    }
+}",
+@"class C
+{
+    static void M()
+    {
+        (int a, string b) s = (a: 1, b: ""hello"");
+    }
+}",
 options: ExplicitTypeEverywhere(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
@@ -1039,8 +1176,20 @@ withScriptOption: true);
         public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
         {
             await TestAsync(
-@"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
-@"class C { static void M() { (int a, string) s = (a: 1, ""hello""); }}",
+@"class C
+{
+    static void M()
+    {
+        [|var|] s = (a: 1, ""hello"");
+    }
+}",
+@"class C
+{
+    static void M()
+    {
+        (int a, string) s = (a: 1, ""hello"");
+    }
+}",
 options: ExplicitTypeEverywhere(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);

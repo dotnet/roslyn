@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argument.Expression.Kind() == SyntaxKind.DeclarationExpression)
             {
                 var decl = (DeclarationExpressionSyntax)argument.Expression;
-                var component = decl.VariableComponent as TypedVariableComponentSyntax;
-                if (component == null) return semanticModel.Compilation.ObjectType;
-                typeInfo = semanticModel.GetTypeInfo(component.Type);
+                typeInfo = semanticModel.GetTypeInfo(decl.Type);
                 return typeInfo.Type?.IsErrorType() == false ? typeInfo.Type : semanticModel.Compilation.ObjectType;
             }
 
