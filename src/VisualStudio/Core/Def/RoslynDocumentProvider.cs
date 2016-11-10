@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -40,11 +41,15 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return;
             }
 
-            var view = GetTextViewFromFrame(frame);
-            if (view != null)
+            // Schedule hookup of the non-Roslyn document view on foreground task scheduler.
+            Task.Factory.SafeStartNew(() =>
             {
-                _documentTrackingService?.OnNonRoslynViewOpened(view);
-            }
+                var view = GetTextViewFromFrame(frame);
+                if (view != null)
+                {
+                    _documentTrackingService?.OnNonRoslynViewOpened(view);
+                }
+            }, CancellationToken.None, ForegroundTaskScheduler);
         }
 
         private ITextView GetTextViewFromFrame(IVsWindowFrame frame)
