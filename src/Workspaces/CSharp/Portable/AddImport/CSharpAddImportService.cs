@@ -2,13 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
 {
+    [ExportLanguageService(typeof(IAddImportService), LanguageNames.CSharp), Shared]
     internal class CSharpAddImportService : IAddImportService
     {
         public SyntaxNode AddImports(

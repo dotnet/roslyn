@@ -4373,6 +4373,43 @@ class C
 compareTokens: false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public async Task TestPlaceUsingWithUsings_NotWithAliases()
+        {
+            await TestAsync(
+@"
+using System;
+
+namespace N
+{
+    using C = System.Collections;
+
+    class Class
+    {
+        [|List<int>|] Method()
+        {
+            Foo();
+        }
+    }
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    using C = System.Collections;
+
+    class Class
+    {
+        List<int> Method()
+        {
+            Foo();
+        }
+    }
+}");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
