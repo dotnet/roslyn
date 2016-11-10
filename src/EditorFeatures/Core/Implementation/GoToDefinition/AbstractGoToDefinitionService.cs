@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var workspace = document.Project.Solution.Workspace;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
+            var symbol = semanticInfo.GetAnySymbol(includeType: true);
 
             return FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation);
         }

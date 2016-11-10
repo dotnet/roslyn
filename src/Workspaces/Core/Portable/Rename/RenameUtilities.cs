@@ -30,10 +30,13 @@ namespace Microsoft.CodeAnalysis.Rename
             return token;
         }
 
-        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(
+            int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var symbols = semanticModel.GetSymbols(bindableToken, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken).ToArray();
+            var symbols = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken)
+                                       .GetSymbols(includeType: false)
+                                       .ToArray();
 
             // if there are more than one symbol, then remove the alias symbols.
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
