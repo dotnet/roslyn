@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport
@@ -22,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             bool placeSystemNamespaceFirst)
         {
             contextLocation = contextLocation ?? root;
-            var contextSpine = contextLocation.AncestorsAndSelf().ToSet();
+
+            var applicableContainer = GetFirstApplicableContainer(contextLocation);
+            var contextSpine = applicableContainer.AncestorsAndSelf().ToSet();
 
             // var compilationUnit = (CompilationUnitSyntax)root;
 
@@ -34,6 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var newRoot = rewriter.Visit(root);
 
             return newRoot;
+        }
+
+        private static SyntaxNode GetFirstApplicableContainer(SyntaxNode contextNode)
+        {
+            var usingDirective = contextNode.GetAncestor<UsingDirectiveSyntax>();
+            if (usingDirective != null)
+            {
+                contextNode = usingDirective.Parent;
+            }
+
+            return contextNode.GetAncestor<NamespaceDeclarationSyntax>() ??
+                   (SyntaxNode)contextNode.GetAncestor<CompilationUnitSyntax>();
         }
 
         private class Rewriter : CSharpSyntaxRewriter
