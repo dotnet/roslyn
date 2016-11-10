@@ -399,7 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
             var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null) return null;
+            if (designation == null)
+            {
+                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardedDesignation);
+                return null;
+            }
 
             NamedTypeSymbol container = _scopeBinder.ContainingType;
             if ((object)container != null && container.IsScriptClass &&
