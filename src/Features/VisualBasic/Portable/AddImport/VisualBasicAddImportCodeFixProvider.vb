@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider(Of SimpleNameSyntax)
