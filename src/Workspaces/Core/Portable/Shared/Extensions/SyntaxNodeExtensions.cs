@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
         {
             var list = new SyntaxTriviaList();
-            list.AddRange(trivia);
+            list = list.AddRange(trivia);
 
             return node.WithPrependedLeadingTrivia(list);
         }
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
         {
             var list = new SyntaxTriviaList();
-            list.AddRange(trivia);
+            list = list.AddRange(trivia);
 
             return node.WithAppendedTrailingTrivia(list);
         }
