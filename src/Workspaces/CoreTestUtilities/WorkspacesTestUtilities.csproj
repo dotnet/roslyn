@@ -328,5 +328,10 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadElement.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

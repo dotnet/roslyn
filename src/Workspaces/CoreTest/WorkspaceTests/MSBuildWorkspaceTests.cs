@@ -2911,6 +2911,21 @@ class C { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadElement()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadElement.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
