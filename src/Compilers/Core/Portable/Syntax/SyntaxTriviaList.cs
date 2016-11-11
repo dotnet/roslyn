@@ -247,7 +247,8 @@ namespace Microsoft.CodeAnalysis
         {
             // It's possible someone might create a list with a huge amount of trivia
             // in it.  We don't want to hold onto such items forever.  So only cache
-            // reasonably sized lists.
+            // reasonably sized lists.  In IDE testing, around 99% of all trivia lists
+            // were 16 or less elements.
             const int MaxBuilderCount = 16;
             if (builder.Count <= MaxBuilderCount)
             {
