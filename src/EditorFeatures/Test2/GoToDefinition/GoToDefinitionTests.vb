@@ -98,6 +98,30 @@ class Program
             Await TestAsync(workspace)
         End Function
 
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="VisualBasic" CommonReferences="true">
+        <Document>
+public class MyClass
+    public property [|Prop1|] as integer
+end class
+class Program
+    sub Main()
+        dim instance = new MyClass()
+
+        dim x as new With { instance.$$Prop1 }
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGoToDefinitionSameClass() As Task
             Dim workspace =
