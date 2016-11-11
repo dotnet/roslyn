@@ -49,6 +49,7 @@ try
     $buildBossPath = join-path $binariesPath "Exes\BuildBoss\BuildBoss.exe"
     & $buildBossPath Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln "build\Targets" $logPath
     if (-not $?) {
+        write-host "See the README for more details on BuildBoss: $(join-path $sourcePath "src\Tools\BuildBoss\README.md")"
         exit 1
     }
     write-host ""
