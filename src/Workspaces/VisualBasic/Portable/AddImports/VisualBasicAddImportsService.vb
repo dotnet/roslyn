@@ -46,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
-                placeSystemNamespaceFirst)
+                placeSystemNamespaceFirst,
+                Array.Empty(Of SyntaxAnnotation))
         End Function
     End Class
 End Namespace
