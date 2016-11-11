@@ -1139,9 +1139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (tokenOnLeftOfPosition.Parent?.IsKind(SyntaxKind.ParenthesizedExpression,
+            if (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
                     SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true ||
-                tokenOnLeftOfPosition.Parent?.Parent?.IsKind(SyntaxKind.ParenthesizedExpression,
+                tokenOnLeftOfPosition.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression,
                     SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true)
             {
                 return true;
@@ -1149,8 +1149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // (int a, i$$
             // ($$int a, int b
-            if (tokenOnLeftOfPosition.Parent?.IsKind(SyntaxKind.ParameterList) == true &&
-                tokenOnLeftOfPosition.Parent?.Parent?.IsKind(SyntaxKind.ParenthesizedLambdaExpression) == true)
+            if (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParameterList) == true &&
+                tokenOnLeftOfPosition.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression) == true)
             {
                 return true;
             }
@@ -1163,10 +1163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            if (token.Parent?.IsKind(SyntaxKind.SingleVariableDesignation) == true)
+            if (token.Parent.IsKind(SyntaxKind.SingleVariableDesignation) == true)
             {
                 var designation = (SingleVariableDesignationSyntax)token.Parent;
-                if (designation.Parent?.IsKind(SyntaxKind.DeclarationExpression) == true)
+                if (designation.IsParentKind(SyntaxKind.DeclarationExpression) == true)
                 {
                     var declaration = (DeclarationExpressionSyntax)designation.Parent;
                     return !declaration.Type.IsMissing && designation.Identifier == token;
