@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using Roslyn.Test.Performance.Utilities;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
@@ -123,10 +124,10 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class WallClockTraceManager : ITraceManager
     {
-        private List<int> durations = new List<int>();
+        private List<long> durations = new List<long>();
         private string testName = "";
 
-        private int currentStartTime;
+        private Stopwatch stopwatch;
 
         public WallClockTraceManager()
         {
@@ -157,7 +158,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
-            durations.Add(System.Environment.TickCount - currentStartTime);
+            stopwatch.Stop();
+            durations.Add(stopwatch.ElapsedMilliseconds);
         }
 
         public void EndScenarios()
@@ -187,7 +189,7 @@ namespace Roslyn.Test.Performance.Utilities
         public void StartScenario(string scenarioName, string processName)
         {
             testName = scenarioName;
-            currentStartTime = System.Environment.TickCount;
+            stopwatch = Stopwatch.StartNew();
         }
 
         public void Stop()
