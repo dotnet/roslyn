@@ -21,6 +21,18 @@ namespace Microsoft.CodeAnalysis.Syntax
             return new SyntaxTriviaListBuilder(4);
         }
 
+        public static SyntaxTriviaList Create(IEnumerable<SyntaxTrivia> trivia)
+        {
+            if (trivia == null)
+            {
+                return new SyntaxTriviaList();
+            }
+
+            var builder = SyntaxTriviaListBuilder.Create();
+            builder.AddRange(trivia);
+            return builder.ToList();
+        }
+
         public int Count
         {
             get { return _count; }

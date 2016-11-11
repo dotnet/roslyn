@@ -825,9 +825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">A sequence of trivia.</param>
         Public Shared Function TriviaList(trivias As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            Dim builder = SyntaxTriviaListBuilder.Create()
-            builder.AddRange(trivias)
-            Return builder.ToList()
+            Return SyntaxTriviaListBuilder.Create(trivias)
         End Function
 
         ''' <summary>
