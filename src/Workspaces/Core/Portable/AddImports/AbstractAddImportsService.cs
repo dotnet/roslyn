@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         public bool HasExistingImport(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
         {
-            var containers = GetContainers(root, contextLocation);
+            var containers = GetAllContainers(root, contextLocation);
             return HasExistingImport(import, containers);
         }
 
-        private static SyntaxNode[] GetContainers(SyntaxNode root, SyntaxNode contextLocation)
+        private static SyntaxNode[] GetAllContainers(SyntaxNode root, SyntaxNode contextLocation)
         {
             contextLocation = contextLocation ?? root;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
             contextLocation = contextLocation ?? root;
 
-            var containers = GetContainers(root, contextLocation);
+            var containers = GetAllContainers(root, contextLocation);
             var filteredImports = newImports.Where(i => !HasExistingImport(i, containers)).ToArray();
 
             var externAliases = filteredImports.OfType<TExternSyntax>().ToArray();
