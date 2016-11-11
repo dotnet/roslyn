@@ -142,7 +142,7 @@ namespace Roslyn.Test.Performance.Utilities
         // need to worry about other tests showing up
         public void Cleanup()
         {
-            var totalDuration = durations.Aggregate(0, (t, v) => t + v);
+            var totalDuration = durations.Sum(v => v);
             var average = totalDuration / durations.Count;
             var allString = string.Join(",", durations);
 
