@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(trivia));
             }
 
-            // Handle common case where we're passed an empty array.
+            // Just return ourselves if we're not being asked to add anything.
             var triviaList = trivia as IList<SyntaxTrivia>;
             if (triviaList.Count == 0)
             {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
                     builder.Add(this[i]);
                 }
 
-                return builder.ToList();
+                return builder.Count == thisCount ? this : builder.ToList();
             }
             finally
             {
