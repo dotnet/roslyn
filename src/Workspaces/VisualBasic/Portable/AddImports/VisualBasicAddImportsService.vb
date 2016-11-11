@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
@@ -13,6 +15,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             NamespaceBlockSyntax,
             ImportsStatementSyntax,
             ImportsStatementSyntax)
+
+        Protected Overrides Function GetGlobalImports(compilation As Compilation) As ImmutableArray(Of SyntaxNode)
+            Dim generator = VisualBasicSyntaxGenerator.Instance
+            Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
+
+            For Each import In compilation.MemberImports()
+                If TypeOf import Is INamespaceSymbol Then
+                    result.Add(generator.NamespaceImportDeclaration(import.ToDisplayString()))
+                End If
+            Next
+
+            Return result.ToImmutableAndFree()
+        End Function
 
         Protected Overrides Function GetAlias(usingOrAlias As ImportsStatementSyntax) As SyntaxNode
             Return usingOrAlias.ImportsClauses.OfType(Of SimpleImportsClauseSyntax).

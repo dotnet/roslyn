@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
@@ -81,85 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     pFunc = null;
                     return VSConstants.E_INVALIDARG;
             }
-        }
-
-        internal override Document AddImports(
-            Document document, int position, XElement snippetNode,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
-        {
-            var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
-            if (importsNode == null ||
-                !importsNode.HasElements)
-            {
-                return document;
-            }
-
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var contextLocation = root.FindToken(position).Parent;
-
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
-            if (!newUsingDirectives.Any())
-            {
-                return document;
-            }
-
-            // In Venus/Razor, inserting imports statements into the subject buffer does not work.
-            // Instead, we add the imports through the contained language host.
-            if (TryAddImportsToContainedDocument(document, newUsingDirectives.Where(u => u.Alias == null).Select(u => u.Name.ToString())))
-            {
-                return document;
-            }
-
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var newRoot = addImportService.AddImports(root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
-
-            var newDocument = document.WithSyntaxRoot(newRoot);
-
-            var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
-
-            return formattedDocument;
-        }
-
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
-        {
-            var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var existingUsings = contextLocation.GetEnclosingUsingDirectives();
-            var newUsings = new List<UsingDirectiveSyntax>();
-
-            foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
-            {
-                var namespaceElement = import.Element(namespaceXmlName);
-                if (namespaceElement == null)
-                {
-                    continue;
-                }
-
-                var namespaceToImport = namespaceElement.Value.Trim();
-                if (string.IsNullOrEmpty(namespaceToImport))
-                {
-                    continue;
-                }
-
-                var candidateUsing = SyntaxFactory.ParseCompilationUnit("using " + namespaceToImport + ";").DescendantNodes().OfType<UsingDirectiveSyntax>().FirstOrDefault();
-                if (candidateUsing == null)
-                {
-                    continue;
-                }
-
-                if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))
-                {
-                    newUsings.Add(candidateUsing.WithAdditionalAnnotations(Formatter.Annotation).WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
-                }
-            }
-
-            return newUsings;
-        }
-
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
         }
     }
 }

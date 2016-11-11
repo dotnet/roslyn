@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim importsStatement = GetImportsStatement(symbol)
 
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-            If addImportService.HasExistingImport(root, root, importsStatement) Then
+            If addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement) Then
                 Return Nothing
             End If
 
@@ -355,10 +355,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Private Overloads Shared Async Function AddImportAsync(
                 contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean,
                 importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
