@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             }
 
             return contextNode.GetAncestor<TNamespaceDeclarationSyntax>() ??
-                   (SyntaxNode)contextNode.GetAncestor<TCompilationUnitSyntax>();
+                   (SyntaxNode)contextNode.GetAncestorOrThis<TCompilationUnitSyntax>();
         }
     }
 }
