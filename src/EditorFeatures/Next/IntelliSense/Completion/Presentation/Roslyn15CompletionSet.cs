@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             if (document != null)
             {
-                var options = document.Options;
-                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems);
-                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters);
+                var options = document.Project.Solution.Options;
+                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
+                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
             }
         }
 
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
                 {
-                    var presentationItem = this.PresentationItemMap.Keys.FirstOrDefault(k => k.Item.DisplayText == displayText);
+                    var completionItem = this.CompletionItemMap.Keys.FirstOrDefault(k => k.DisplayText == displayText);
 
-                    if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
+                    if (completionItem != null && completionItem != SuggestionModeItem)
                     {
                         var highlightedSpans = completionHelper.GetHighlightedSpans(
-                            presentationItem.Item, FilterText, CultureInfo.CurrentCulture);
+                            completionItem, FilterText, CultureInfo.CurrentCulture);
                         if (highlightedSpans != null)
                         {
                             return highlightedSpans.Select(s => s.ToSpan()).ToArray();

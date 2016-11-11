@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -61,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new IncrementalAnalyzerDelegatee(this, workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
-        private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
+        private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
         {
-            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id), highPriority: true);
+            Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
         }
 
         // internal for testing
@@ -127,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                return e.Option.Feature == SimplificationOptions.PerLanguageFeatureName ||
-                       e.Option.Feature == SimplificationOptions.NonPerLanguageFeatureName ||
+                return e.Option.Feature == nameof(SimplificationOptions) ||
+                       e.Option.Feature == nameof(CodeStyleOptions) ||
                        e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
                        e.Option == RuntimeOptions.FullSolutionAnalysis ||
                        e.Option == InternalDiagnosticsOptions.UseDiagnosticEngineV2 ||

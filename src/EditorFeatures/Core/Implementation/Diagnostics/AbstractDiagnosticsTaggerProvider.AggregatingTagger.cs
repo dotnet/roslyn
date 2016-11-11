@@ -29,9 +29,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private int _refCount;
             private bool _disposed;
 
+            /// <summary>
+            /// The current Document that our <see cref="_subjectBuffer"/> is associated with.
+            /// If our buffer becomes associated with another document, we will clear out any
+            /// cached diagnostic information we've collected so far as it's no longer valid.
+            /// </summary>
+            private DocumentId _currentDocumentId;
+
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+            // Use a chain of tasks to make sure that we process each diagnostic event serially.
+            // This also ensures that the first diagnostic event we hear about will be processed
+            // after the initial background work to get the first group of diagnostics.
+            private readonly object _taskGate = new object();
+            private Task _taskChain;
 
             private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
 
@@ -42,25 +55,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
 
+                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                _currentDocumentId = document?.Id;
+
+                // Kick off a background task to collect the initial set of diagnostics.
+                var cancellationToken = _initialDiagnosticsCancellationSource.Token;
+                var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".GetInitialDiagnostics");
+                var task = Task.Run(() => GetInitialDiagnosticsInBackground(document, cancellationToken), cancellationToken);
+                task.CompletesAsyncOperation(asyncToken);
+
+                _taskChain = task;
+
                 // Register to hear about diagnostics changing.  When we're notified about new
                 // diagnostics (and those diagnostics are for our buffer), we'll ensure that
                 // we have an underlying tagger responsible for asynchronously handling diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
-
-                // Kick off a background task to collect the initial set of diagnostics.
-                var cancellationToken = _initialDiagnosticsCancellationSource.Token;
-                var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".GetInitialDiagnostics");
-                var task = Task.Run(() => GetInitialDiagnostics(cancellationToken), cancellationToken);
-                task.CompletesAsyncOperation(asyncToken);
             }
 
-            private void GetInitialDiagnostics(CancellationToken cancellationToken)
+            private void GetInitialDiagnosticsInBackground(
+                Document document, CancellationToken cancellationToken)
             {
+                this.AssertIsBackground();
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Also, collect the initial set of diagnostics to show.
-                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 if (document != null)
                 {
                     var project = document.Project;
@@ -73,15 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                             continue;
                         }
 
-                        OnDiagnosticsUpdated(
+                        OnDiagnosticsUpdatedOnBackground(
                             DiagnosticsUpdatedArgs.DiagnosticsCreated(
                                 updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics));
                     }
                 }
             }
 
-            private ImmutableArray<DiagnosticData> AdjustInitialDiagnostics(Solution solution, UpdatedEventArgs args, CancellationToken cancellationToken)
+            private ImmutableArray<DiagnosticData> AdjustInitialDiagnostics(
+                Solution solution, UpdatedEventArgs args, CancellationToken cancellationToken)
             {
+                this.AssertIsBackground();
+
                 // we only reach here if there is the document
                 var document = solution.GetDocument(args.DocumentId);
                 Contract.ThrowIfNull(document);
@@ -96,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // GetDiagnostics returns whatever cached diagnostics in the service which can be stale ones. for example, build error will be most likely stale
                 // diagnostics. so here we make sure we filter out any diagnostics that is not in the text range.
-                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 var fullSpan = new TextSpan(0, text.Length);
                 foreach (var diagnostic in _owner._diagnosticService.GetDiagnostics(
                     args.Workspace, args.ProjectId, args.DocumentId, args.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken))
@@ -107,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
 
             public void OnTaggerCreated()
@@ -137,14 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                     // Disconnect us from our underlying taggers and make sure they're
                     // released as well.
-                    foreach (var kvp in _idToProviderAndTagger)
-                    {
-                        var tagger = kvp.Value.Item2;
-
-                        DisconnectFromTagger(tagger);
-                    }
-
-                    _idToProviderAndTagger.Clear();
+                    DisconnectFromAllTaggers();
                     _owner.RemoveTagger(this, _subjectBuffer);
                 }
             }
@@ -161,6 +175,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
+            private void DisconnectFromAllTaggers()
+            {
+                this.AssertIsForeground();
+
+                foreach (var kvp in _idToProviderAndTagger)
+                {
+                    var tagger = kvp.Value.Item2;
+
+                    DisconnectFromTagger(tagger);
+                }
+
+                _idToProviderAndTagger.Clear();
+            }
+
             private void RegisterNotification(Action action)
             {
                 var token = _owner._listener.BeginAsyncOperation(GetType().Name + "RegisterNotification");
@@ -169,24 +197,76 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                OnDiagnosticsUpdated(e);
+                lock (_taskGate)
+                {
+                    // Chain the events so we process them serially.  This also ensures
+                    // that we don't process events while still getting our initial set
+                    // of diagnostics.
+                    var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".OnDiagnosticsUpdated");
+                    _taskChain = _taskChain.SafeContinueWith(
+                        _ => OnDiagnosticsUpdatedOnBackground(e), TaskScheduler.Default);
+                    _taskChain.CompletesAsyncOperation(asyncToken);
+                }
             }
 
-            private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdatedOnBackground(DiagnosticsUpdatedArgs e)
             {
-                // First see if this is a document/project removal.  If so, clear out any state we
-                // have associated with any analyzers we have for that document/project.
-                ProcessRemovedDiagnostics(e);
+                this.AssertIsBackground();
+                RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e));
+            }
+
+            /// <summary>
+            /// We do all mutation work on the UI thread.  That ensures that all mutation
+            /// is processed serially *and* it means we can safely examine things like
+            /// subject buffers and open documents without any threat of race conditions.
+            /// Note that we do not do any expensive work here.  We just store (or remove)
+            /// the data we were given in appropriate buckets.
+            /// 
+            /// For example, we create a TaggerProvider per unique DiagnosticUpdatedArgs.Id
+            /// we get.  So if we see a new id we simply create a tagger for it and pass it
+            /// these args to store.  Otherwise we pass these args to the existing tagger.
+            /// 
+            /// Similarly, clearing out data is just a matter of us clearing our reference
+            /// to the data.  
+            /// </summary>
+            private void OnDiagnosticsUpdatedOnForeground(DiagnosticsUpdatedArgs e)
+            {
+                this.AssertIsForeground();
+
+                if (_disposed)
+                {
+                    return;
+                }
 
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                var ourDocumentId = ourDocument?.Id;
+                if (ourDocumentId != _currentDocumentId)
+                {
+                    // Our buffer has started tracking some other document entirely.
+                    // We have to clear out all of the diagnostics we have currently stored.
+                    RemoveAllCachedDiagnostics();
+                }
+
+                _currentDocumentId = ourDocumentId;
+
+                // Now see if the document we're tracking corresponds to the diagnostics
+                // we're hearing about.  If not, just ignore them.
                 if (ourDocument == null ||
                     ourDocument.Project.Solution.Workspace != e.Workspace ||
                     ourDocument.Id != e.DocumentId)
                 {
                     return;
                 }
+
+                // We're hearing about diagnostics for our document.  We may be hearing
+                // about new diagnostics coming, or existing diagnostics being cleared
+                // out.
+
+                // First see if this is a document/project removal.  If so, clear out any state we
+                // have associated with any analyzers we have for that document/project.
+                ProcessRemovedDiagnostics(e);
 
                 // Make sure we can find an editor snapshot for these errors.  Otherwise we won't
                 // be able to make ITagSpans for them.  If we can't, just bail out.  This happens
@@ -241,45 +321,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
                 }
 
-                if (this.IsForeground())
-                {
-                    OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
-                }
-                else
-                {
-                    RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot));
-                }
+                OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
             }
 
             private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
             {
+                this.AssertIsForeground();
+                Debug.Assert(!_disposed);
+
                 if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
                 {
                     // Wasn't a removal.  We don't need to do anything here.
                     return;
                 }
 
-                if (this.IsForeground())
-                {
-                    ProcessDocumentOrProjectRemovalOnForeground(e);
-                }
-                else
-                {
-                    RegisterNotification(() => ProcessDocumentOrProjectRemovalOnForeground(e));
-                }
-            }
-
-            private void ProcessDocumentOrProjectRemovalOnForeground(DiagnosticsUpdatedArgs e)
-            {
                 // See if we're being told about diagnostics going away because a document/project
                 // was removed.  If so, clear out any diagnostics we have associated with this
                 // diagnostic source ID and notify any listeners that 
-
-                this.AssertIsForeground();
-                if (_disposed)
-                {
-                    return;
-                }
 
                 var id = e.Id;
                 ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
@@ -295,14 +353,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
+            private void RemoveAllCachedDiagnostics()
+            {
+                this.AssertIsForeground();
+
+                DisconnectFromAllTaggers();
+                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
+            }
+
             private void OnDiagnosticsUpdatedOnForeground(
                 DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
-                if (_disposed)
-                {
-                    return;
-                }
+                Debug.Assert(!_disposed);
 
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
@@ -344,6 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
+
                 this.TagsChanged?.Invoke(sender, args);
             }
 

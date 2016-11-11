@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -19,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(this MethodSymbol method)
         {
-            var dynamicFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(method.ReturnType, method.ReturnTypeCustomModifiers.Length, RefKind.None);
-            var dynamicFlagsInfo = DynamicFlagsCustomTypeInfo.Create(dynamicFlags);
-            return dynamicFlagsInfo.GetCustomTypeInfoPayload();
+            return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType, method.ReturnTypeCustomModifiers.Length, RefKind.None);
         }
     }
 }

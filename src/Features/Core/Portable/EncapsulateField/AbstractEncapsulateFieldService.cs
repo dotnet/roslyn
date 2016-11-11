@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
@@ -15,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
@@ -219,7 +220,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
 
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
-            var solutionWithProperty = await AddPropertyAsync(document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
+            var solutionWithProperty = await AddPropertyAsync(
+                document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
             return new Result(solutionWithProperty, originalField.ToDisplayString(), originalField.GetGlyph());
         }
@@ -232,14 +234,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return solution;
             }
 
+            var projectId = document.Project.Id;
             if (field.IsReadOnly)
             {
                 // Inside the constructor we want to rename references the field to the final field name.
                 var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
-                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Options,
-                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution = await Renamer.RenameSymbolAsync(solution,
+                        SymbolAndProjectId.Create(field, projectId), 
+                        finalFieldName, solution.Options,
+                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
                     document = solution.GetDocument(document.Id);
 
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -248,13 +254,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options,
-                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution,
+                    SymbolAndProjectId.Create(field, projectId),
+                    generatedPropertyName, solution.Options,
+                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Just rename everything.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(
+                    solution, SymbolAndProjectId.Create(field, projectId), 
+                    generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -265,7 +276,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
-            var options = new CodeGenerationOptions(contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span));
+            var options = new CodeGenerationOptions(
+                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
+                parseOptions: fieldDeclaration.SyntaxTree.Options);
 
             var destination = field.ContainingType;
             var updatedDocument = await codeGenerationService.AddPropertyAsync(destinationSolution, destination, property, options, cancellationToken)
@@ -277,7 +290,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return updatedDocument.Project.Solution;
         }
 
-        protected IPropertySymbol GenerateProperty(string propertyName, string fieldName, Accessibility accessibility, IFieldSymbol field, INamedTypeSymbol containingSymbol, SyntaxAnnotation annotation, Document document, CancellationToken cancellationToken)
+        protected IPropertySymbol GenerateProperty(
+            string propertyName, string fieldName, 
+            Accessibility accessibility, 
+            IFieldSymbol field, 
+            INamedTypeSymbol containingSymbol, 
+            SyntaxAnnotation annotation, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 

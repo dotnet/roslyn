@@ -1136,7 +1136,7 @@ Friend Class RedNodeWriter
         For Each child In allChildren
             If child.IsList Then
                 If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", DirectCast({0}.Node, Syntax.InternalSyntax.VisualBasicSyntaxNode)", ChildNewVarName(child))
+                    _writer.Write(", {0}.Node", ChildNewVarName(child))
                 Else
                     _writer.Write(", {0}.Node", ChildNewVarName(child))
                 End If

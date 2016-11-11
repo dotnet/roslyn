@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
         ''' Gets the DisplayName for the given node.
         ''' </summary>
         Public Function GetDisplayName(semanticModel As SemanticModel, node As SyntaxNode) As String Implements ICodeLensDisplayInfoService.GetDisplayName
-            If VisualBasicSyntaxFactsServiceFactory.Instance.IsGlobalAttribute(node) Then
+            If VisualBasicSyntaxFactsService.Instance.IsGlobalAttribute(node) Then
                 Return node.ToString()
             End If
 
@@ -117,8 +117,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             Dim symbolName As String = Nothing
 
             Select Case node.Kind()
-                Case SyntaxKind.GetAccessorBlock
-                Case SyntaxKind.SetAccessorBlock
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock
                     ' Indexer properties should Not include get And set
                     symbol = semanticModel.GetDeclaredSymbol(node)
                     If IsAccessorForDefaultProperty(symbol) AndAlso node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
@@ -129,8 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                         symbolName = FormatPropertyAccessor(node, symbolName)
                     End If
 
-                Case SyntaxKind.AddHandlerAccessorBlock
-                Case SyntaxKind.RemoveHandlerAccessorBlock
+                Case SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock
                     ' Append "add" Or "remove" to event handlers
                     symbolName = SymbolToDisplayString(symbol)
                     symbolName = FormatEventHandler(node, symbolName)

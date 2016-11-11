@@ -44,10 +44,22 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, Guid projectGuid, params string[] commandLineArguments)
         {
             var projectFilePath = Path.GetTempPath();
-            var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
-            var commandLineForOptions = string.Join(" ", commandLineArguments);
+            var binOutputPath = GetOutputPathFromArguments(commandLineArguments) ?? Path.Combine(projectFilePath, projectName + ".dll");
 
-            return CPSProjectFactory.CreateCPSProject(
+            return CreateCSharpCPSProject(environment, projectName, projectFilePath, binOutputPath, projectGuid, commandLineArguments);
+        }
+
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, string binOutputPath, params string[] commandLineArguments)
+        {
+            var projectFilePath = Path.GetTempPath();
+            return CreateCSharpCPSProject(environment, projectName, projectFilePath, binOutputPath, projectGuid: Guid.NewGuid(), commandLineArguments: commandLineArguments);
+        }
+
+        public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, string projectFilePath, string binOutputPath, Guid projectGuid, params string[] commandLineArguments)
+        {
+            var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
+            
+            var cpsProject = CPSProjectFactory.CreateCPSProject(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
                 hierarchy,
@@ -56,7 +68,28 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectGuid,
                 LanguageNames.CSharp,
                 new TestCSharpCommandLineParserService(),
-                commandLineForOptions);
+                binOutputPath);
+
+            var commandLineForOptions = string.Join(" ", commandLineArguments);
+            cpsProject.SetOptions(commandLineForOptions);
+
+            return cpsProject;
+        }
+
+        private static string GetOutputPathFromArguments(string[] commandLineArguments)
+        {
+            const string outPrefix = "/out:";
+            string outputPath = null;
+            foreach (var arg in commandLineArguments)
+            {
+                var index = arg.IndexOf(outPrefix);
+                if (index >= 0)
+                {
+                    outputPath = arg.Substring(index + outPrefix.Length);
+                }
+            }
+
+            return outputPath;
         }
 
         private sealed class TestCSharpCommandLineParserService : ICommandLineParserService

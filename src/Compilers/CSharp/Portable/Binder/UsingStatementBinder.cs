@@ -40,10 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
 
-                    if (declarator.Initializer != null)
-                    {
-                        ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator.Initializer.Value);
-                    }
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
                 return locals.ToImmutableAndFree();
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

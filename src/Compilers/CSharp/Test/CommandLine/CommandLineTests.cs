@@ -5,10 +5,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,6 +20,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,9 +31,6 @@ using Xunit;
 
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
-using System.IO.MemoryMappedFiles;
-using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -59,10 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 _patterns = patterns;
             }
 
-            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
+            internal override IEnumerable<string> EnumerateFiles(string directory,
+                                                                 string fileNamePattern,
+                                                                 SearchOption searchOption)
             {
                 var key = directory + "|" + fileNamePattern;
-                if (searchOption == PortableShim.SearchOption.TopDirectoryOnly)
+                if (searchOption == SearchOption.TopDirectoryOnly)
                 {
                     return _patterns[key];
                 }
@@ -1104,6 +1107,21 @@ d.cs
             Assert.True(parsedArgs.DisplayHelp);
             Assert.False(parsedArgs.SourceFiles.Any());
 
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.DisplayVersion);
+            Assert.False(parsedArgs.SourceFiles.Any());
+
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.DisplayVersion);
+            Assert.True(parsedArgs.SourceFiles.Any());
+
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version:something" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.DisplayVersion);
+            Assert.False(parsedArgs.SourceFiles.Any());
+
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayHelp);
@@ -1171,7 +1189,7 @@ d.cs
         [Fact]
         public void LangVersion()
         {
-            LanguageVersion defaultVersion = LanguageVersion.Latest.MapLatestToVersion();
+            LanguageVersion defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
 
             var parsedArgs = DefaultParse(new[] { "/langversion:1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
@@ -1215,13 +1233,12 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.Default, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS1617: Invalid option 'latest' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("latest").WithLocation(1, 1)
-                );
+            parsedArgs.Errors.Verify();
+            Assert.Equal(LanguageVersion.Latest, parsedArgs.ParseOptions.SpecifiedLanguageVersion);
             Assert.Equal(defaultVersion, parsedArgs.ParseOptions.LanguageVersion);
 
             parsedArgs = DefaultParse(new[] { "/langversion:iso-1", "a.cs" }, _baseDirectory);
@@ -2996,39 +3013,66 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         public void ParseInstrumentTestNames()
         {
             var parsedArgs = DefaultParse(SpecializedCollections.EmptyEnumerable<string>(), _baseDirectory);
-            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
             parsedArgs = DefaultParse(new[] { @"/instrument", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
             parsedArgs = DefaultParse(new[] { @"/instrument:""""", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
             parsedArgs = DefaultParse(new[] { @"/instrument:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
             parsedArgs = DefaultParse(new[] { "/instrument:", "Test.Flag.Name", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'instrument' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "instrument"));
-            Assert.Equal("", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
-            parsedArgs = DefaultParse(new[] { "/instrument:Test.Flag.Name", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal("Test.Flag.Name", parsedArgs.EmitOptions.Instrument);
+            parsedArgs = DefaultParse(new[] { "/instrument:InvalidOption", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption"));
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
 
-            parsedArgs = DefaultParse(new[] { @"/instrument:""Test Flag.Name""", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/instrument:None", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_InvalidInstrumentationKind).WithArguments("None"));
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray<InstrumentationKind>.Empty));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:TestCoverage,InvalidOption", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                Diagnostic(ErrorCode.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption"));
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:TestCoverage", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal(@"Test Flag.Name", parsedArgs.EmitOptions.Instrument);
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            parsedArgs = DefaultParse(new[] { @"/instrument:""TestCoverage""", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            parsedArgs = DefaultParse(new[] { @"/instrument:""TESTCOVERAGE""", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:TestCoverage,TestCoverage", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            parsedArgs = DefaultParse(new[] { "/instrument:TestCoverage", "/instrument:TestCoverage", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -7214,8 +7258,7 @@ public class C { }
             // Multiple duplicates
             commandLineArgs = new[] { "a.cs", "a.cs", "a.cs" };
             // warning CS2002: Source file 'a.cs' specified multiple times
-            // warning CS2002: Source file 'a.cs' specified multiple times
-            var warnings = new[] { aWrnString, aWrnString };
+            var warnings = new[] { aWrnString };
             TestCS2002(commandLineArgs, tempDir.Path, 0, warnings);
 
             // Case-insensitive
@@ -8651,6 +8694,27 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+        }
+
+        [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
+        [Fact]
+        public void Version()
+        {
+            var folderName = Temp.CreateDirectory().ToString();
+            var expected = FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion;
+            var argss = new[]
+            {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help",
+            };
+
+            foreach (var args in argss)
+            {
+                var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
+                Assert.Equal(expected, output.Trim());
+            }
         }
 
         public class QuotedArgumentTests

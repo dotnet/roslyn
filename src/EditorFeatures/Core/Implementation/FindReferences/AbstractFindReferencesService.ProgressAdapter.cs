@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.Editor.Navigation;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Navigation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 {
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         /// <summary>
         /// Forwards IFindReferencesProgress calls to a FindRefrencesContext instance.
         /// </summary>
-        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IFindReferencesProgress
+        private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly FindReferencesContext _context;
@@ -41,40 +45,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public void OnStarted() { }
-            public void OnCompleted() { }
-            public void OnFindInDocumentStarted(Document document) { }
-            public void OnFindInDocumentCompleted(Document document) { }
+            public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
+            public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
 
             // Simple context forwarding functions.
-            public void ReportProgress(int current, int maximum) => _context.ReportProgress(current, maximum);
+            public Task ReportProgressAsync(int current, int maximum) => 
+                _context.ReportProgressAsync(current, maximum);
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private DefinitionItem GetDefinitionItem(ISymbol definition)
+            private DefinitionItem GetDefinitionItem(SymbolAndProjectId definition)
             {
-                return _definitionToItem.GetOrAdd(definition, _definitionFactory);
+                return _definitionToItem.GetOrAdd(definition.Symbol, _definitionFactory);
             }
 
-            public void OnDefinitionFound(ISymbol definition)
+            public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
             {
-                _context.OnDefinitionFound(GetDefinitionItem(definition));
+                return _context.OnDefinitionFoundAsync(GetDefinitionItem(definition));
             }
 
-            public void OnReferenceFound(ISymbol definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
             {
+                // Ignore duplicate locations.  We don't want to clutter the UI with them.
+                if (location.IsDuplicateReferenceLocation)
+                {
+                    return;
+                }
+
                 var referenceItem = location.TryCreateSourceReferenceItem(
                     GetDefinitionItem(definition));
 
                 if (referenceItem != null)
                 {
-                    _context.OnReferenceFound(referenceItem);
+                    await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
                 }
             }
 
-            public void CallThirdPartyExtensions()
+            public async Task CallThirdPartyExtensionsAsync()
             {
                 var factory = _solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 foreach (var definition in _definitionToItem.Keys)
@@ -82,7 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var item = factory.GetThirdPartyDefinitionItem(_solution, definition);
                     if (item != null)
                     {
-                        _context.OnDefinitionFound(item);
+                        // ConfigureAwait(true) because we want to come back on the 
+                        // same thread after calling into extensions.
+                        await _context.OnDefinitionFoundAsync(item).ConfigureAwait(true);
                     }
                 }
             }

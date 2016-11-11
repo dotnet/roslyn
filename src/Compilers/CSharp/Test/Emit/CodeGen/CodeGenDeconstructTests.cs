@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
+        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         const string commonSource =
 @"public class Pair<T1, T2>
 {
@@ -80,29 +82,106 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x, y)", lhs.ToString());
+                Assert.Equal("(System.Int64, System.String)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       40 (0x28)
+  // Code size       48 (0x30)
   .maxstack  3
-  .locals init (string V_0, //y
-                int V_1,
-                string V_2)
+  .locals init (long V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3,
+                string V_4)
   IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_1
-  IL_0007:  ldloca.s   V_2
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
   IL_0009:  call       ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ldloc.1
+  IL_000e:  ldloc.2
   IL_000f:  conv.i8
-  IL_0010:  ldloc.2
-  IL_0011:  stloc.0
-  IL_0012:  box        ""long""
-  IL_0017:  ldstr      "" ""
-  IL_001c:  ldloc.0
-  IL_001d:  call       ""string string.Concat(object, object, object)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ret
+  IL_0010:  ldloc.3
+  IL_0011:  stloc.s    V_4
+  IL_0013:  dup
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  stloc.1
+  IL_0018:  pop
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""long""
+  IL_001f:  ldstr      "" ""
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""string string.Concat(object, object, object)""
+  IL_002a:  call       ""void System.Console.WriteLine(string)""
+  IL_002f:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(13632, "https://github.com/dotnet/roslyn/issues/13632")]
+        public void SimpleAssignWithoutConversion()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                string V_1, //y
+                int V_2,
+                string V_3,
+                string V_4)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_2
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.2
+  IL_000f:  ldloc.3
+  IL_0010:  stloc.s    V_4
+  IL_0012:  dup
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  stloc.1
+  IL_0017:  pop
+  IL_0018:  ldloc.0
+  IL_0019:  box        ""int""
+  IL_001e:  ldstr      "" ""
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""string string.Concat(object, object, object)""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
 }");
         }
 
@@ -132,7 +211,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -160,12 +239,12 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void VerifyExecutionOrder()
+        public void VerifyExecutionOrder_Deconstruct()
         {
             string source = @"
 using System;
@@ -201,11 +280,56 @@ getHolderforY
 getDeconstructReceiver
 Deconstruct
 Conversion1
-setX
 Conversion2
+setX
 setY
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyExecutionOrder_TupleLiteral()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        (c.getHolderForX().x, c.getHolderForY().y) = (new D1(), new D2());
+    }
+}
+class D1
+{
+    public D1() { Console.WriteLine(""Constructor1""); }
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public D2() { Console.WriteLine(""Constructor2""); }
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+Constructor1
+Conversion1
+Constructor2
+Conversion2
+setX
+setY
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -238,7 +362,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -266,7 +390,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -305,7 +429,7 @@ struct C : IDeconstructable
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -338,8 +462,31 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutParamsDisallowed()
+        {
+            string source = @"
+class C
+{
+    public void Deconstruct(out int a, out string b, out params int[] c)
+    {
+        a = 1;
+        b = ""ignored"";
+        c = new[] { 2, 2 };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public void Deconstruct(out int a, out string b, out params int[] c)
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
+                );
         }
 
         [Fact]
@@ -371,7 +518,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -403,7 +550,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -434,7 +581,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -474,9 +621,8 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
@@ -517,7 +663,7 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -565,7 +711,7 @@ Deconstruct
 conversion
 conversion";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -621,9 +767,8 @@ Deconstruct
 indexSet (with value 101)
 Final array values[2] 101
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -693,71 +838,82 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      141 (0x8d)
+  // Code size      152 (0x98)
   .maxstack  10
-  .locals init (long V_0, //x
-                int V_1) //y
+  .locals init (int V_0, //y
+                long V_1,
+                long V_2,
+                long V_3,
+                long V_4,
+                long V_5,
+                long V_6,
+                long V_7,
+                long V_8,
+                long V_9,
+                int V_10)
   IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.1
+  IL_0001:  conv.i8
   IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.1
+  IL_0003:  conv.i8
   IL_0004:  ldc.i4.1
-  IL_0005:  ldc.i4.1
+  IL_0005:  conv.i8
   IL_0006:  ldc.i4.1
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.4
-  IL_0009:  ldc.i4.2
-  IL_000a:  newobj     ""System.ValueTuple<int, int, int>..ctor(int, int, int)""
-  IL_000f:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>..ctor(int, int, int, int, int, int, int, (int, int, int))""
-  IL_0014:  dup
-  IL_0015:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item1""
-  IL_001a:  conv.i8
-  IL_001b:  stloc.0
-  IL_001c:  dup
-  IL_001d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item2""
-  IL_0022:  conv.i8
-  IL_0023:  stloc.0
+  IL_0007:  conv.i8
+  IL_0008:  ldc.i4.1
+  IL_0009:  conv.i8
+  IL_000a:  ldc.i4.1
+  IL_000b:  conv.i8
+  IL_000c:  ldc.i4.1
+  IL_000d:  conv.i8
+  IL_000e:  ldc.i4.1
+  IL_000f:  conv.i8
+  IL_0010:  ldc.i4.4
+  IL_0011:  conv.i8
+  IL_0012:  ldc.i4.2
+  IL_0013:  newobj     ""System.ValueTuple<long, long, int>..ctor(long, long, int)""
+  IL_0018:  newobj     ""System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>..ctor(long, long, long, long, long, long, long, (long, long, int))""
+  IL_001d:  dup
+  IL_001e:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item1""
+  IL_0023:  stloc.1
   IL_0024:  dup
-  IL_0025:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item3""
-  IL_002a:  conv.i8
-  IL_002b:  stloc.0
-  IL_002c:  dup
-  IL_002d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item4""
-  IL_0032:  conv.i8
-  IL_0033:  stloc.0
-  IL_0034:  dup
-  IL_0035:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item5""
-  IL_003a:  conv.i8
-  IL_003b:  stloc.0
-  IL_003c:  dup
-  IL_003d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item6""
-  IL_0042:  conv.i8
-  IL_0043:  stloc.0
-  IL_0044:  dup
-  IL_0045:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item7""
-  IL_004a:  conv.i8
-  IL_004b:  stloc.0
-  IL_004c:  dup
-  IL_004d:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_0052:  ldfld      ""int System.ValueTuple<int, int, int>.Item1""
-  IL_0057:  conv.i8
-  IL_0058:  stloc.0
-  IL_0059:  dup
-  IL_005a:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_005f:  ldfld      ""int System.ValueTuple<int, int, int>.Item2""
-  IL_0064:  conv.i8
-  IL_0065:  stloc.0
-  IL_0066:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
-  IL_006b:  ldfld      ""int System.ValueTuple<int, int, int>.Item3""
-  IL_0070:  stloc.1
-  IL_0071:  ldloc.0
-  IL_0072:  box        ""long""
-  IL_0077:  ldstr      "" ""
-  IL_007c:  ldloc.1
-  IL_007d:  box        ""int""
-  IL_0082:  call       ""string string.Concat(object, object, object)""
-  IL_0087:  call       ""void System.Console.WriteLine(string)""
-  IL_008c:  ret
+  IL_0025:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item2""
+  IL_002a:  stloc.2
+  IL_002b:  dup
+  IL_002c:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item3""
+  IL_0031:  stloc.3
+  IL_0032:  dup
+  IL_0033:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item4""
+  IL_0038:  stloc.s    V_4
+  IL_003a:  dup
+  IL_003b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item5""
+  IL_0040:  stloc.s    V_5
+  IL_0042:  dup
+  IL_0043:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item6""
+  IL_0048:  stloc.s    V_6
+  IL_004a:  dup
+  IL_004b:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item7""
+  IL_0050:  stloc.s    V_7
+  IL_0052:  dup
+  IL_0053:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0058:  ldfld      ""long System.ValueTuple<long, long, int>.Item1""
+  IL_005d:  stloc.s    V_8
+  IL_005f:  dup
+  IL_0060:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0065:  ldfld      ""long System.ValueTuple<long, long, int>.Item2""
+  IL_006a:  stloc.s    V_9
+  IL_006c:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0071:  ldfld      ""int System.ValueTuple<long, long, int>.Item3""
+  IL_0076:  stloc.s    V_10
+  IL_0078:  ldloc.s    V_9
+  IL_007a:  ldloc.s    V_10
+  IL_007c:  stloc.0
+  IL_007d:  box        ""long""
+  IL_0082:  ldstr      "" ""
+  IL_0087:  ldloc.0
+  IL_0088:  box        ""int""
+  IL_008d:  call       ""string string.Concat(object, object, object)""
+  IL_0092:  call       ""void System.Console.WriteLine(string)""
+  IL_0097:  ret
 }
 ");
         }
@@ -780,7 +936,38 @@ class C
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "9 10", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,43): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "a: 1").WithArguments("a", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 43),
+                // (9,49): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "b: 2").WithArguments("b", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 49),
+                // (9,55): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 55),
+                // (9,61): warning CS8123: The tuple element name 'd' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "d: 4").WithArguments("d", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 61),
+                // (9,67): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 5").WithArguments("e", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 67),
+                // (9,73): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f: 6").WithArguments("f", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 73),
+                // (9,79): warning CS8123: The tuple element name 'g' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "g: 7").WithArguments("g", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 79),
+                // (9,85): warning CS8123: The tuple element name 'h' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "h: 8").WithArguments("h", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 85),
+                // (9,91): warning CS8123: The tuple element name 'i' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "i: 9").WithArguments("i", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 91),
+                // (9,97): warning CS8123: The tuple element name 'j' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
+                //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "j: 10").WithArguments("j", "(long, long, long, long, long, long, long, long, long, int)").WithLocation(9, 97)
+                );
         }
 
         [Fact]
@@ -825,10 +1012,12 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       48 (0x30)
+  // Code size       52 (0x34)
   .maxstack  3
   .locals init (string V_0, //x
-                string V_1) //y
+                string V_1, //y
+                string V_2,
+                string V_3)
   IL_0000:  ldstr      ""goodbye""
   IL_0005:  stloc.0
   IL_0006:  ldnull
@@ -836,17 +1025,249 @@ class C
   IL_000c:  newobj     ""System.ValueTuple<string, string>..ctor(string, string)""
   IL_0011:  dup
   IL_0012:  ldfld      ""string System.ValueTuple<string, string>.Item1""
-  IL_0017:  stloc.0
+  IL_0017:  stloc.2
   IL_0018:  ldfld      ""string System.ValueTuple<string, string>.Item2""
-  IL_001d:  stloc.1
-  IL_001e:  ldstr      ""{0}{1}""
-  IL_0023:  ldloc.0
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""string string.Format(string, object, object)""
-  IL_002a:  call       ""void System.Console.WriteLine(string)""
-  IL_002f:  ret
+  IL_001d:  stloc.3
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.3
+  IL_0021:  stloc.1
+  IL_0022:  ldstr      ""{0}{1}""
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.1
+  IL_0029:  call       ""string string.Format(string, object, object)""
+  IL_002e:  call       ""void System.Console.WriteLine(string)""
+  IL_0033:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsNotEmittedIfUnused()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  stloc.2
+  IL_0011:  pop
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        var z = ((x, y) = new C());
+        z.ToString();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //z
+                int V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""void C.Deconstruct(out int, out int)""
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  stloc.3
+  IL_0011:  ldloc.3
+  IL_0012:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  constrained. ""System.ValueTuple<int, int>""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  pop
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationCanOnlyBeParsedAsStatement()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        var z = ((var x, int y) = new C());
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS1003: Syntax error, '=>' expected
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(6, 33),
+                // (6,33): error CS1525: Invalid expression term '='
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 33),
+                // (6,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void MixedDeconstructionCannotBeParsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x;
+        (x, int y) = new C();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,10): error CS1031: Type expected
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(7, 10),
+                // (7,10): error CS0128: A local variable or function named 'x' is already defined in this scope
+                //         (x, int y) = new C();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(7, 10),
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWithTupleNamesCannotBeParsed()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        (Alice: var x, Bob: int y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8124: Tuple must contain at least two elements.
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(Alice: var ").WithLocation(6, 9),
+                // (6,21): error CS1026: ) expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(6, 21),
+                // (6,21): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 21),
+                // (6,22): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 22),
+                // (6,22): error CS1513: } expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 22),
+                // (6,34): error CS1002: ; expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 34),
+                // (6,34): error CS1513: } expected
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 34),
+                // (6,36): error CS1525: Invalid expression term '='
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 36),
+                // (6,17): error CS0103: The name 'var' does not exist in the current context
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 17),
+                // (6,21): error CS0103: The name 'x' does not exist in the current context
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 21),
+                // (6,24): warning CS0164: This label has not been referenced
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Bob").WithLocation(6, 24),
+                // (6,33): warning CS0168: The variable 'y' is declared but never used
+                //         (Alice: var x, Bob: int y) = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsedInLambda()
+        {
+            string source = @"
+class C
+{
+    static void F(System.Action a) { }
+    static void F<T>(System.Func<T> f) { System.Console.Write(f().ToString()); }
+    static void Main()
+    {
+        int x, y;
+        F(() => (x, y) = (1, 2));
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -927,18 +1348,25 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Swap", @"
 {
-  // Code size       37 (0x25)
+  // Code size       41 (0x29)
   .maxstack  2
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  ldsfld     ""int C.y""
   IL_0005:  ldsfld     ""int C.x""
   IL_000a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
   IL_000f:  dup
   IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0015:  stsfld     ""int C.x""
-  IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001f:  stsfld     ""int C.y""
-  IL_0024:  ret
+  IL_0015:  stloc.0
+  IL_0016:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  stsfld     ""int C.x""
+  IL_0022:  ldloc.1
+  IL_0023:  stsfld     ""int C.y""
+  IL_0028:  ret
 }
+
 ");
         }
 
@@ -983,7 +1411,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1009,7 +1437,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1031,7 +1459,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1053,7 +1481,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1077,7 +1505,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "override", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "override", additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1105,7 +1533,7 @@ class C
                 var expected = String.Join(" ", Enumerable.Range(1, i).Select(n => n));
 
                 var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple).Replace("OUTPUT", output);
-                var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithRefsFeature());
+                var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs, parseOptions: TestOptions.Regular.WithRefsFeature());
                 comp.VerifyDiagnostics();
             }
         }
@@ -1135,7 +1563,72 @@ static class D
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnderspecifiedDeconstructGenericExtensionMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0411: The type arguments for method 'Extension.Deconstruct<T>(C, out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("Extension.Deconstruct<T>(C, out int, out T)").WithLocation(8, 18),
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void UnspecifiedGenericMethodIsNotCandidate()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        (x, y) = new C();
+    }
+}
+static class Extension
+{
+    public static void Deconstruct<T>(this C value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public static void Deconstruct(this C value, out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+        System.Console.Write(""Deconstructed"");
+    }
+}";
+
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1167,7 +1660,76 @@ static class Extension
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0411: The type arguments for method 'C1.Deconstruct<T>(out int, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C1()").WithArguments("C1.Deconstruct<T>(out int, out T)").WithLocation(9, 18),
+                // (9,18): error CS8129: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousDeconstructGenericMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1();
+        System.Console.Write($""{x} {y}"");
+    }
+}
+class C1
+{
+    public void Deconstruct<T>(out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+    }
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 2;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -1187,7 +1749,19 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x, (y, z))", lhs.ToString());
+                Assert.Equal("(System.Int32, (System.String, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1350,13 +1924,13 @@ getDeconstructReceiver
 Deconstruct1
 Deconstruct2
 Conversion1
-setX
 Conversion2
-setY
 Conversion3
+setX
+setY
 setZ
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1391,20 +1965,20 @@ Deconstructing ((4, 5), (6, 7))
 Deconstructing (4, 5)
 Deconstructing (6, 7)
 Converting 1
-setX1 1
 Converting 2
-setX2 2
 Converting 3
-setX3 3
 Converting 4
-setX4 4
 Converting 5
-setX5 5
 Converting 6
-setX6 6
 Converting 7
+setX1 1
+setX2 2
+setX3 3
+setX4 4
+setX5 5
+setX6 6
 setX7 7";
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1433,7 +2007,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -1474,6 +2048,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(13631, "https://github.com/dotnet/roslyn/issues/13631")]
         public void DeconstructionDeclaration()
         {
             string source = @"
@@ -1487,8 +2062,34 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //x2
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_0017:  ldloc.2
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.0
+  IL_001b:  box        ""int""
+  IL_0020:  ldstr      "" ""
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""string string.Concat(object, object, object)""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
+}
+");
         }
 
         [Fact]
@@ -1512,20 +2113,24 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var lhs = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().First();
+                Assert.Equal(@"var (x1, (x2, x3))", lhs.ToString());
+                Assert.Null(model.GetTypeInfo(lhs).Type);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1550,20 +2155,20 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1625,14 +2230,18 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(string x1, byte x2, var x3)", lhs.ToString());
+                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
                 Assert.Equal(@"(null, 2, 3)", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1657,19 +2266,23 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(string x1, var x2)", lhs.ToString());
+                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
                 Assert.Equal(@"(null, (1, 2))", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
 
-                var nestedLiteral = literal.Arguments[1];
+                var nestedLiteral = literal.Arguments[1].Expression;
                 Assert.Equal(@"(1, 2)", nestedLiteral.ToString());
-                Assert.Null(model.GetTypeInfo(nestedLiteral).Type);
-                Assert.Null(model.GetTypeInfo(nestedLiteral).ConvertedType);
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedLiteral).ConvertedType.ToTestDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1717,15 +2330,15 @@ Deconstructing (1, hello)
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
@@ -1737,11 +2350,6 @@ Deconstructing (1, hello)
         private static void VerifyModelForDeconstructionLocal(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
-        }
-
-        private static void VerifyModelForDeconstructionFor(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
-        {
-            VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForInitializerVariable, references);
         }
 
         private static void VerifyModelForDeconstructionForeach(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
@@ -1781,12 +2389,31 @@ Deconstructing (1, hello)
             }
         }
 
-        private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
+        private static void VerifyModelForDeconstructionField(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            return (decl.Parent as TypedVariableComponentSyntax)?.Type;
+            var field = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(decl.Identifier.ValueText, field.Name);
+            Assert.Equal(SymbolKind.Field, ((FieldSymbol)field).Kind);
+            Assert.Same(field, model.GetDeclaredSymbol((SyntaxNode)decl));
+            Assert.Same(field, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility);
+            Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
+
+            foreach (var reference in references)
+            {
+                Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
+                Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
+                Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
+            }
         }
 
-        private static SingleVariableDesignationSyntax GetDeconstructionLocal(SyntaxTree tree, string name)
+        private static TypeSyntax GetTypeSyntax(SingleVariableDesignationSyntax decl)
+        {
+            return (decl.Parent as DeclarationExpressionSyntax)?.Type;
+        }
+
+        private static SingleVariableDesignationSyntax GetDeconstructionVariable(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
         }
@@ -1833,11 +2460,11 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -1852,7 +2479,7 @@ class var
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1878,19 +2505,19 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionLocal(model, x4, x4Ref);
 
@@ -1900,12 +2527,12 @@ class C
                 Assert.Equal("int", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
                 Assert.Null(model.GetAliasInfo(x1Type));
 
-                var x34Var = (TypedVariableComponentSyntax)x3.Parent.Parent;
+                var x34Var = (DeclarationExpressionSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1935,11 +2562,11 @@ class D
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
@@ -1958,7 +2585,7 @@ class D
                 Assert.Null(model.GetAliasInfo(x2Type));
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -1985,22 +2612,60 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 4);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReferences(tree, "x2", 3);
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForWithBadInitializersCannotParse()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for (var (x1, x2) = (1, 2), x1 = 0; ; )
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1002: ; expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
+                // (6,35): error CS1525: Invalid expression term ','
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
+                // (6,35): error CS1002: ; expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
+                // (6,35): error CS1525: Invalid expression term ','
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
+                // (6,43): error CS1026: ) expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 43),
+                // (6,47): error CS1513: } expected
+                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 47)
+                );
         }
 
         [Fact]
@@ -2030,13 +2695,13 @@ class var
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
                 var x1Type = GetTypeSyntax(x1);
@@ -2049,7 +2714,7 @@ class var
                 Assert.Equal("var", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 var", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2076,13 +2741,13 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReferences(tree, "x1", 3);
-                VerifyModelForDeconstructionFor(model, x1, x1Ref);
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
-                VerifyModelForDeconstructionFor(model, x2, x2Ref);
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
 
                 // extra checks on x1
                 var x1Type = GetTypeSyntax(x1);
@@ -2095,7 +2760,7 @@ class C
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2125,62 +2790,65 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
                 int V_1, //x1
-                int V_2) //x2
+                int V_2, //x2
+                int V_3)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0031
+    IL_000b:  br.s       IL_0033
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
     IL_0013:  dup
     IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-    IL_0019:  stloc.1
+    IL_0019:  stloc.3
     IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_001f:  stloc.2
-    IL_0020:  ldloc.1
-    IL_0021:  box        ""int""
-    IL_0026:  ldloc.2
-    IL_0027:  box        ""int""
-    IL_002c:  call       ""void C.Print(object, object)""
-    IL_0031:  ldloc.0
-    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0037:  brtrue.s   IL_000d
-    IL_0039:  leave.s    IL_0045
+    IL_001f:  ldloc.3
+    IL_0020:  stloc.1
+    IL_0021:  stloc.2
+    IL_0022:  ldloc.1
+    IL_0023:  box        ""int""
+    IL_0028:  ldloc.2
+    IL_0029:  box        ""int""
+    IL_002e:  call       ""void C.Print(object, object)""
+    IL_0033:  ldloc.0
+    IL_0034:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0039:  brtrue.s   IL_000d
+    IL_003b:  leave.s    IL_0047
   }
   finally
   {
-    IL_003b:  ldloc.0
-    IL_003c:  brfalse.s  IL_0044
-    IL_003e:  ldloc.0
-    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0044:  endfinally
+    IL_003d:  ldloc.0
+    IL_003e:  brfalse.s  IL_0046
+    IL_0040:  ldloc.0
+    IL_0041:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0046:  endfinally
   }
-  IL_0045:  ret
+  IL_0047:  ret
 }
 ");
         }
@@ -2209,77 +2877,80 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 var symbol = model.GetDeclaredSymbol(x1);
 
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       91 (0x5b)
+  // Code size       95 (0x5f)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
                 int V_2, //x1
-                int V_3) //x2
+                int V_3, //x2
+                int V_4)
   IL_0000:  call       ""(int, int)[] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0054
+  IL_0008:  br.s       IL_0058
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
   IL_0011:  dup
   IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0017:  stloc.2
-  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001d:  stloc.3
-  IL_001e:  ldc.i4.4
-  IL_001f:  newarr     ""object""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""int""
-  IL_002c:  stelem.ref
-  IL_002d:  dup
-  IL_002e:  ldc.i4.1
-  IL_002f:  ldstr      "" ""
-  IL_0034:  stelem.ref
-  IL_0035:  dup
-  IL_0036:  ldc.i4.2
-  IL_0037:  ldloc.3
-  IL_0038:  box        ""int""
-  IL_003d:  stelem.ref
-  IL_003e:  dup
-  IL_003f:  ldc.i4.3
-  IL_0040:  ldstr      "" - ""
-  IL_0045:  stelem.ref
-  IL_0046:  call       ""string string.Concat(params object[])""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ldloc.1
-  IL_0051:  ldc.i4.1
-  IL_0052:  add
-  IL_0053:  stloc.1
+  IL_0017:  stloc.s    V_4
+  IL_0019:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001e:  ldloc.s    V_4
+  IL_0020:  stloc.2
+  IL_0021:  stloc.3
+  IL_0022:  ldc.i4.4
+  IL_0023:  newarr     ""object""
+  IL_0028:  dup
+  IL_0029:  ldc.i4.0
+  IL_002a:  ldloc.2
+  IL_002b:  box        ""int""
+  IL_0030:  stelem.ref
+  IL_0031:  dup
+  IL_0032:  ldc.i4.1
+  IL_0033:  ldstr      "" ""
+  IL_0038:  stelem.ref
+  IL_0039:  dup
+  IL_003a:  ldc.i4.2
+  IL_003b:  ldloc.3
+  IL_003c:  box        ""int""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.3
+  IL_0044:  ldstr      "" - ""
+  IL_0049:  stelem.ref
+  IL_004a:  call       ""string string.Concat(params object[])""
+  IL_004f:  call       ""void System.Console.Write(string)""
   IL_0054:  ldloc.1
-  IL_0055:  ldloc.0
-  IL_0056:  ldlen
-  IL_0057:  conv.i4
-  IL_0058:  blt.s      IL_000a
-  IL_005a:  ret
+  IL_0055:  ldc.i4.1
+  IL_0056:  add
+  IL_0057:  stloc.1
+  IL_0058:  ldloc.1
+  IL_0059:  ldloc.0
+  IL_005a:  ldlen
+  IL_005b:  conv.i4
+  IL_005c:  blt.s      IL_000a
+  IL_005e:  ret
 }");
         }
 
@@ -2308,25 +2979,25 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      106 (0x6a)
+  // Code size      110 (0x6e)
   .maxstack  3
   .locals init ((int, int)[,] V_0,
                 int V_1,
@@ -2334,7 +3005,8 @@ class C
                 int V_3,
                 int V_4,
                 int V_5, //x1
-                int V_6) //x2
+                int V_6, //x2
+                int V_7)
   IL_0000:  call       ""(int, int)[,] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2349,41 +3021,43 @@ class C
   IL_0017:  ldc.i4.0
   IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_001d:  stloc.3
-  IL_001e:  br.s       IL_0065
+  IL_001e:  br.s       IL_0069
   IL_0020:  ldloc.0
   IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0027:  stloc.s    V_4
-  IL_0029:  br.s       IL_005c
+  IL_0029:  br.s       IL_0060
   IL_002b:  ldloc.0
   IL_002c:  ldloc.3
   IL_002d:  ldloc.s    V_4
   IL_002f:  call       ""(int, int)[*,*].Get""
   IL_0034:  dup
   IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_003a:  stloc.s    V_5
+  IL_003a:  stloc.s    V_7
   IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0041:  stloc.s    V_6
-  IL_0043:  ldloc.s    V_5
-  IL_0045:  box        ""int""
-  IL_004a:  ldloc.s    V_6
-  IL_004c:  box        ""int""
-  IL_0051:  call       ""void C.Print(object, object)""
-  IL_0056:  ldloc.s    V_4
-  IL_0058:  ldc.i4.1
-  IL_0059:  add
-  IL_005a:  stloc.s    V_4
-  IL_005c:  ldloc.s    V_4
-  IL_005e:  ldloc.2
-  IL_005f:  ble.s      IL_002b
-  IL_0061:  ldloc.3
-  IL_0062:  ldc.i4.1
-  IL_0063:  add
-  IL_0064:  stloc.3
+  IL_0041:  ldloc.s    V_7
+  IL_0043:  stloc.s    V_5
+  IL_0045:  stloc.s    V_6
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  box        ""int""
+  IL_004e:  ldloc.s    V_6
+  IL_0050:  box        ""int""
+  IL_0055:  call       ""void C.Print(object, object)""
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ldc.i4.1
+  IL_005d:  add
+  IL_005e:  stloc.s    V_4
+  IL_0060:  ldloc.s    V_4
+  IL_0062:  ldloc.2
+  IL_0063:  ble.s      IL_002b
   IL_0065:  ldloc.3
-  IL_0066:  ldloc.1
-  IL_0067:  ble.s      IL_0020
-  IL_0069:  ret
+  IL_0066:  ldc.i4.1
+  IL_0067:  add
+  IL_0068:  stloc.3
+  IL_0069:  ldloc.3
+  IL_006a:  ldloc.1
+  IL_006b:  ble.s      IL_0020
+  IL_006d:  ret
 }");
         }
 
@@ -2419,16 +3093,16 @@ static class Extension
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
                 // extra check on var
-                var x12Var = (TypedVariableComponentSyntax)x1.Parent.Parent;
+                var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
@@ -2437,18 +3111,19 @@ static class Extension
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       60 (0x3c)
+  // Code size       64 (0x40)
   .maxstack  3
   .locals init (string V_0,
                 int V_1,
                 int V_2, //x2
                 int V_3,
-                int V_4)
+                int V_4,
+                int V_5)
   IL_0000:  call       ""string C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0032
+  IL_0008:  br.s       IL_0036
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  callvirt   ""char string.this[int].get""
@@ -2457,20 +3132,22 @@ static class Extension
   IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
   IL_001a:  ldloc.3
   IL_001b:  ldloc.s    V_4
-  IL_001d:  stloc.2
-  IL_001e:  box        ""int""
-  IL_0023:  ldloc.2
-  IL_0024:  box        ""int""
-  IL_0029:  call       ""void C.Print(object, object)""
-  IL_002e:  ldloc.1
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  stloc.1
+  IL_001d:  stloc.s    V_5
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  stloc.2
+  IL_0022:  box        ""int""
+  IL_0027:  ldloc.2
+  IL_0028:  box        ""int""
+  IL_002d:  call       ""void C.Print(object, object)""
   IL_0032:  ldloc.1
-  IL_0033:  ldloc.0
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  blt.s      IL_000a
-  IL_003b:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  ldloc.0
+  IL_0038:  callvirt   ""int string.Length.get""
+  IL_003d:  blt.s      IL_000a
+  IL_003f:  ret
 }");
         }
 
@@ -2499,33 +3176,33 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
-                var x4 = GetDeconstructionLocal(tree, "x4");
+                var x4 = GetDeconstructionVariable(tree, "x4");
                 var x4Ref = GetReference(tree, "x4");
                 VerifyModelForDeconstructionForeach(model, x4, x4Ref);
 
-                var x5 = GetDeconstructionLocal(tree, "x5");
+                var x5 = GetDeconstructionVariable(tree, "x5");
                 var x5Ref = GetReference(tree, "x5");
                 VerifyModelForDeconstructionForeach(model, x5, x5Ref);
 
                 // extra check on var
-                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2626,20 +3303,20 @@ class C
                 var tree = compilation.SyntaxTrees.First();
                 var model = compilation.GetSemanticModel(tree);
 
-                var x1 = GetDeconstructionLocal(tree, "x1");
+                var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
                 VerifyModelForDeconstructionForeach(model, x1, x1Ref);
 
-                var x2 = GetDeconstructionLocal(tree, "x2");
+                var x2 = GetDeconstructionVariable(tree, "x2");
                 var x2Ref = GetReference(tree, "x2");
                 VerifyModelForDeconstructionForeach(model, x2, x2Ref);
 
-                var x3 = GetDeconstructionLocal(tree, "x3");
+                var x3 = GetDeconstructionVariable(tree, "x3");
                 var x3Ref = GetReference(tree, "x3");
                 VerifyModelForDeconstructionForeach(model, x3, x3Ref);
 
                 // extra check on var
-                var x23Var = (TypedVariableComponentSyntax)x2.Parent.Parent;
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
@@ -2652,12 +3329,12 @@ Deconstructing (4, (5, 6))
 Deconstructing (5, 6)
 4 5 6";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       90 (0x5a)
+  // Code size       98 (0x62)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
                 int V_1, //x2
@@ -2665,13 +3342,15 @@ Deconstructing (5, 6)
                 int V_3,
                 Pair<int, int> V_4,
                 int V_5,
-                int V_6)
+                int V_6,
+                int V_7,
+                int V_8)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0045
+    IL_000b:  br.s       IL_004d
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
     IL_0013:  ldloca.s   V_3
@@ -2684,29 +3363,33 @@ Deconstructing (5, 6)
     IL_0027:  ldloc.3
     IL_0028:  conv.i8
     IL_0029:  ldloc.s    V_5
-    IL_002b:  stloc.1
-    IL_002c:  ldloc.s    V_6
-    IL_002e:  stloc.2
-    IL_002f:  box        ""long""
-    IL_0034:  ldloc.1
-    IL_0035:  box        ""int""
-    IL_003a:  ldloc.2
-    IL_003b:  box        ""int""
-    IL_0040:  call       ""void C.Print(object, object, object)""
-    IL_0045:  ldloc.0
-    IL_0046:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_004b:  brtrue.s   IL_000d
-    IL_004d:  leave.s    IL_0059
+    IL_002b:  stloc.s    V_7
+    IL_002d:  ldloc.s    V_6
+    IL_002f:  stloc.s    V_8
+    IL_0031:  ldloc.s    V_7
+    IL_0033:  stloc.1
+    IL_0034:  ldloc.s    V_8
+    IL_0036:  stloc.2
+    IL_0037:  box        ""long""
+    IL_003c:  ldloc.1
+    IL_003d:  box        ""int""
+    IL_0042:  ldloc.2
+    IL_0043:  box        ""int""
+    IL_0048:  call       ""void C.Print(object, object, object)""
+    IL_004d:  ldloc.0
+    IL_004e:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0053:  brtrue.s   IL_000d
+    IL_0055:  leave.s    IL_0061
   }
   finally
   {
-    IL_004f:  ldloc.0
-    IL_0050:  brfalse.s  IL_0058
-    IL_0052:  ldloc.0
-    IL_0053:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0058:  endfinally
+    IL_0057:  ldloc.0
+    IL_0058:  brfalse.s  IL_0060
+    IL_005a:  ldloc.0
+    IL_005b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0060:  endfinally
   }
-  IL_0059:  ret
+  IL_0061:  ret
 }
 ");
         }
@@ -2810,6 +3493,1106 @@ class C
 ";
             var comp = CompileAndVerify(source, expectedOutput: "0 10 ", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IntTupleDeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new int[] { 1, 2 };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = (3, 4);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArrayIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleDeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = (""hello"", ""world"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicArray()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic[] x = new string[] { """", """" };
+        M(x);
+        System.Console.WriteLine($""{x[0]} {x[1]}"");
+    }
+
+    static void M(dynamic[] x)
+    {
+        (x[0], x[1]) = new C();
+    }
+
+    public void Deconstruct(out string a, out string b)
+    {
+        a = ""hello"";
+        b = ""world"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructionIntoDynamicMember()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic x = System.ValueTuple.Create(1, 2);
+        (x.Item1, x.Item2) = new C();
+        System.Console.WriteLine($""{x.Item1} {x.Item2}"");
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 3;
+        b = 4;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAndLocalWithSameName()
+        {
+            string source = @"
+class C
+{
+    public int x = 3;
+    static void Main()
+    {
+        new C().M();
+    }
+    void M()
+    {
+        var (x, y) = (1, 2);
+        System.Console.Write($""{x} {y} {this.x}"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoGlobalDeconstructionUnlessScript()
+        {
+            string source = @"
+class C
+{
+    var (x, y) = (1, 2);
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,2): error CS1520: Method must have a return type
+                // {
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
+                // (4,11): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
+                // (4,14): error CS1001: Identifier expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 14),
+                // (4,16): error CS1002: ; expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(4, 16),
+                // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
+                // (4,18): error CS8124: Tuple must contain at least two elements.
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(4, 18),
+                // (4,19): error CS1031: Type expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1026: ) expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
+                // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
+                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+        }
+
+        [Fact]
+        public void SimpleDeconstructionInScript()
+        {
+            var source =
+@"
+using alias = System.Int32;
+(string x, alias y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x = GetDeconstructionVariable(tree, "x");
+                var xSymbol = model.GetDeclaredSymbol(x);
+                var xRef = GetReference(tree, "x");
+                Assert.Equal("System.String Script.x", xSymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x, xRef);
+
+                var y = GetDeconstructionVariable(tree, "y");
+                var ySymbol = model.GetDeclaredSymbol(y);
+                var yRef = GetReference(tree, "y");
+                Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, y, yRef);
+
+                // extra checks on x
+                var xType = GetTypeSyntax(x);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(xType).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(xType).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(xType));
+
+                // extra checks on y
+                var yType = GetTypeSyntax(y);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(yType).Symbol.Kind);
+                Assert.Equal("int", model.GetSymbolInfo(yType).Symbol.ToDisplayString());
+                Assert.Equal("alias=System.Int32", model.GetAliasInfo(yType).ToTestDisplayString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      151 (0x97)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1,
+                string V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldstr      ""hello""
+    IL_000c:  ldc.i4.s   42
+    IL_000e:  newobj     ""System.ValueTuple<string, int>..ctor(string, int)""
+    IL_0013:  dup
+    IL_0014:  ldfld      ""string System.ValueTuple<string, int>.Item1""
+    IL_0019:  stloc.2
+    IL_001a:  ldfld      ""int System.ValueTuple<string, int>.Item2""
+    IL_001f:  stloc.3
+    IL_0020:  ldarg.0
+    IL_0021:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0026:  ldloc.2
+    IL_0027:  stfld      ""string x""
+    IL_002c:  ldarg.0
+    IL_002d:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0032:  ldloc.3
+    IL_0033:  stfld      ""int y""
+    IL_0038:  ldstr      ""{0} {1}""
+    IL_003d:  ldarg.0
+    IL_003e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0043:  ldfld      ""string x""
+    IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004e:  ldfld      ""int y""
+    IL_0053:  box        ""int""
+    IL_0058:  call       ""string string.Format(string, object, object)""
+    IL_005d:  call       ""void System.Console.Write(string)""
+    IL_0062:  nop
+    IL_0063:  ldnull
+    IL_0064:  stloc.1
+    IL_0065:  leave.s    IL_0081
+  }
+  catch System.Exception
+  {
+    IL_0067:  stloc.s    V_4
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.s   -2
+    IL_006c:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0077:  ldloc.s    V_4
+    IL_0079:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_007e:  nop
+    IL_007f:  leave.s    IL_0096
+  }
+  IL_0081:  ldarg.0
+  IL_0082:  ldc.i4.s   -2
+  IL_0084:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0089:  ldarg.0
+  IL_008a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_008f:  ldloc.1
+  IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_0095:  nop
+  IL_0096:  ret
+}");
+        }
+
+        [Fact]
+        public void NoGlobalDeconstructionOutsideScript()
+        {
+            var source =
+@"
+(string x, int y) = (""hello"", 42);
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics(
+                // (2,19): error CS1022: Type or namespace definition, or end-of-file expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(2, 19),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_EOFExpected, @"""hello""").WithLocation(2, 22),
+                // (2,22): error CS1026: ) expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""hello""").WithLocation(2, 22),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+
+            var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
+            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+        }
+
+        [Fact]
+        public void NestedDeconstructionInScript()
+        {
+            var source =
+@"
+(string x, (int y, int z)) = (""hello"", (42, 43));
+System.Console.Write($""{x} {y} {z}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
+        }
+
+        [Fact]
+        public void VarDeconstructionInScript()
+        {
+            var source =
+@"
+(var x, var y) = (""hello"", 42);
+System.Console.Write($""{x} {y}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionInScript()
+        {
+            var source =
+@"
+(var x1, var (x2, x3)) = (""hello"", (42, 43));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                var x1Ref = GetReference(tree, "x1");
+                Assert.Equal("System.String Script.x1", x1Symbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                var x2Ref = GetReference(tree, "x2");
+                Assert.Equal("System.Int32 Script.x2", x2Symbol.ToTestDisplayString());
+                VerifyModelForDeconstructionField(model, x2, x2Ref);
+
+                // extra checks on x1's var
+                var x1Type = GetTypeSyntax(x1);
+                Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+                Assert.Equal("string", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+                Assert.Null(model.GetAliasInfo(x1Type));
+
+                // extra check on x2 and x3's var
+                var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
+                Assert.Equal("var", x23Var.Type.ToString());
+                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void EvaluationOrderForDeconstructionInScript()
+        {
+            var source =
+    @"
+(int, int) M(out int x) { x = 1; return (2, 3); }
+var (x2, x3) = M(out var x1);
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      182 (0xb6)
+  .maxstack  4
+  .locals init (int V_0,
+                object V_1,
+                int V_2,
+                int V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_000d:  ldarg.0
+    IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0013:  ldflda     ""int x1""
+    IL_0018:  callvirt   ""(int, int) M(out int)""
+    IL_001d:  dup
+    IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0023:  stloc.2
+    IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0029:  stloc.3
+    IL_002a:  ldarg.0
+    IL_002b:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_0030:  ldloc.2
+    IL_0031:  stfld      ""int x2""
+    IL_0036:  ldarg.0
+    IL_0037:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_003c:  ldloc.3
+    IL_003d:  stfld      ""int x3""
+    IL_0042:  ldstr      ""{0} {1} {2}""
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_004d:  ldfld      ""int x1""
+    IL_0052:  box        ""int""
+    IL_0057:  ldarg.0
+    IL_0058:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_005d:  ldfld      ""int x2""
+    IL_0062:  box        ""int""
+    IL_0067:  ldarg.0
+    IL_0068:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
+    IL_006d:  ldfld      ""int x3""
+    IL_0072:  box        ""int""
+    IL_0077:  call       ""string string.Format(string, object, object, object)""
+    IL_007c:  call       ""void System.Console.Write(string)""
+    IL_0081:  nop
+    IL_0082:  ldnull
+    IL_0083:  stloc.1
+    IL_0084:  leave.s    IL_00a0
+  }
+  catch System.Exception
+  {
+    IL_0086:  stloc.s    V_4
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.s   -2
+    IL_008b:  stfld      ""int <<Initialize>>d__0.<>1__state""
+    IL_0090:  ldarg.0
+    IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+    IL_0096:  ldloc.s    V_4
+    IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_009d:  nop
+    IL_009e:  leave.s    IL_00b5
+  }
+  IL_00a0:  ldarg.0
+  IL_00a1:  ldc.i4.s   -2
+  IL_00a3:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_00ae:  ldloc.1
+  IL_00af:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_00b4:  nop
+  IL_00b5:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DeconstructionForEachInScript()
+        {
+            var source =
+@"
+foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x1Symbol.Kind);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void DeconstructionInForLoopInScript()
+        {
+            var source =
+@"
+for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
+{
+    System.Console.Write($""{x1} {x2} {x3}"");
+    break;
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Symbol = model.GetDeclaredSymbol(x1);
+                Assert.Equal("System.String x1", x1Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x1Symbol.Kind);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Symbol = model.GetDeclaredSymbol(x2);
+                Assert.Equal("System.Int32 x2", x2Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void DeconstructionInCSharp6Script()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x, y)").WithArguments("tuples", "7").WithLocation(2, 1),
+                // (2,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void InvalidDeconstructionInScript()
+        {
+            var source =
+@"
+int (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(2, 6),
+                // (2,9): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(2, 9)
+                );
+
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Int32", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript()
+        {
+            var source =
+@"
+int x1;
+var (x1, x2) = (1, 2);
+System.Console.Write(x1);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS0102: The type 'Script' already contains a definition for 'x1'
+                // var (x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x1").WithArguments("Script", "x1").WithLocation(3, 6),
+                // (4,22): error CS0229: Ambiguity between 'x1' and 'x1'
+                // System.Console.Write(x1);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "x1").WithArguments("x1", "x1").WithLocation(4, 22)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstX1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "x1").Single();
+            var firstX1Symbol = model.GetDeclaredSymbol(firstX1);
+            Assert.Equal("System.Int32 Script.x1", firstX1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstX1Symbol.Kind);
+
+            var secondX1 = GetDeconstructionVariable(tree, "x1");
+            var secondX1Symbol = model.GetDeclaredSymbol(secondX1);
+            Assert.Equal("System.Int32 Script.x1", secondX1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondX1Symbol.Kind);
+
+            Assert.NotEqual(firstX1Symbol, secondX1Symbol);
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript2()
+        {
+            var source =
+@"
+var (x, y) = (1, 2);
+var (z, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS0102: The type 'Script' already contains a definition for 'y'
+                // var (z, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "y").WithArguments("Script", "y").WithLocation(3, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").First();
+            var firstYSymbol = model.GetDeclaredSymbol(firstY);
+            Assert.Equal("System.Int32 Script.y", firstYSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstYSymbol.Kind);
+
+            var secondY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").Skip(1).First();
+            var secondYSymbol = model.GetDeclaredSymbol(secondY);
+            Assert.Equal("System.Int32 Script.y", secondYSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondYSymbol.Kind);
+
+            Assert.NotEqual(firstYSymbol, secondYSymbol);
+        }
+
+        [Fact]
+        public void NameConflictInDeconstructionInScript3()
+        {
+            var source =
+@"
+var (x, (y, x)) = (1, (2, ""hello""));
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,13): error CS0102: The type 'Script' already contains a definition for 'x'
+                // var (x, (y, x)) = (1, (2, "hello"));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x").WithArguments("Script", "x").WithLocation(2, 13)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var firstX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").First();
+            var firstXSymbol = model.GetDeclaredSymbol(firstX);
+            Assert.Equal("System.Int32 Script.x", firstXSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, firstXSymbol.Kind);
+
+            var secondX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").Skip(1).First();
+            var secondXSymbol = model.GetDeclaredSymbol(secondX);
+            Assert.Equal("System.String Script.x", secondXSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, secondXSymbol.Kind);
+
+            Assert.NotEqual(firstXSymbol, secondXSymbol);
+        }
+
+        [Fact]
+        public void UnassignedUsedInDeconstructionInScript()
+        {
+            var source =
+@"
+System.Console.Write(x);
+var (x, y) = (1, 2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            var xRef = GetReference(tree, "x");
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x, xRef);
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FailedInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x, y) = (1, null);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
+                );
+
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
+                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                // var (x, y) = (1, null);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.True(xType.IsErrorType());
+            Assert.Equal("var", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.True(yType.IsErrorType());
+            Assert.Equal("var", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FailedCircularInferenceInDeconstructionInScript()
+        {
+            var source =
+@"
+var (x1, x2) = (x2, x1);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (x2, x1);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x2").WithArguments("x2").WithLocation(2, 10),
+                // (2,6): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (x2, x1);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 6)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+            var x1Type = ((FieldSymbol)x1Symbol).Type;
+            Assert.True(x1Type.IsErrorType());
+            Assert.Equal("var", x1Type.Name);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Symbol = model.GetDeclaredSymbol(x2);
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x2, x2Ref);
+            var x2Type = ((FieldSymbol)x2Symbol).Type;
+            Assert.True(x2Type.IsErrorType());
+            Assert.Equal("var", x2Type.Name);
+        }
+
+        [Fact]
+        public void FailedCircularInferenceInDeconstructionInScript2()
+        {
+            var source =
+@"
+var (x1, x2) = (y1, y2);
+var (y1, y2) = (x1, x2);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (3,6): error CS7019: Type of 'y1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (y1, y2) = (x1, x2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "y1").WithArguments("y1").WithLocation(3, 6),
+                // (2,6): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (y1, y2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(2, 6),
+                // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
+                // var (x1, x2) = (y1, y2);
+                Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x2").WithArguments("x2").WithLocation(2, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+            var x1Type = ((FieldSymbol)x1Symbol).Type;
+            Assert.True(x1Type.IsErrorType());
+            Assert.Equal("var", x1Type.Name);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Symbol = model.GetDeclaredSymbol(x2);
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x2, x2Ref);
+            var x2Type = ((FieldSymbol)x2Symbol).Type;
+            Assert.True(x2Type.IsErrorType());
+            Assert.Equal("var", x2Type.Name);
+        }
+
+        [Fact]
+        public void VarAliasInVarDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (3,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(3, 6),
+                // (3,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(3, 11),
+                // (3,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(3, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarTypeInVarDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return null; }
+}
+var (x1, (x2, x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 6),
+                // (6,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 11),
+                // (6,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // var (x1, (x2, x3)) = (1, (2, 3));
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(6, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra check on var
+            var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
+            Assert.Equal("var", x123Var.Type.ToString());
+            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+        }
+
+        [Fact]
+        public void VarAliasInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+using var = System.Byte;
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2 3");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("System.Byte Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("System.Byte Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            var x1Alias = model.GetAliasInfo(x1Type);
+            Assert.Equal(SymbolKind.NamedType, x1Alias.Target.Kind);
+            Assert.Equal("byte", x1Alias.Target.ToDisplayString());
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("byte", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            var x3Alias = model.GetAliasInfo(x3Type);
+            Assert.Equal(SymbolKind.NamedType, x3Alias.Target.Kind);
+            Assert.Equal("byte", x3Alias.Target.ToDisplayString());
+        }
+
+        [Fact]
+        public void VarTypeInTypedDeconstructionInScript()
+        {
+            var source =
+@"
+class var
+{
+    public static implicit operator var(int i) { return new var(); }
+    public override string ToString() { return ""var""; }
+}
+(var x1, (var x2, var x3)) = (1, (2, 3));
+System.Console.Write($""{x1} {x2} {x3}"");
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "var var var");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Symbol = model.GetDeclaredSymbol(x1);
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x1, x1Ref);
+
+            var x3 = GetDeconstructionVariable(tree, "x3");
+            var x3Symbol = model.GetDeclaredSymbol(x3);
+            var x3Ref = GetReference(tree, "x3");
+            Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            VerifyModelForDeconstructionField(model, x3, x3Ref);
+
+            // extra checks on x1's var
+            var x1Type = GetTypeSyntax(x1);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x1Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x1Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x1Type));
+
+            // extra checks on x3's var
+            var x3Type = GetTypeSyntax(x3);
+            Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
+            Assert.Equal("var", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
+            Assert.Null(model.GetAliasInfo(x3Type));
         }
     }
 }

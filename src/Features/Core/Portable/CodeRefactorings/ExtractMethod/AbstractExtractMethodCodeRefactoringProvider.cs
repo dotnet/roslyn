@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
-                var description = document.Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var description = documentOptions.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
                                       FeaturesResources.Extract_Method_plus_Local : FeaturesResources.Extract_Method;
 
                 var codeAction = new MyCodeAction(description, (c) => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));

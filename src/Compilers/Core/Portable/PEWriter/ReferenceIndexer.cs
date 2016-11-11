@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -18,26 +19,15 @@ namespace Microsoft.Cci
             this.metadataWriter = metadataWriter;
         }
 
-        public override void Visit(IAssembly assembly)
+        public override void Visit(CommonPEModuleBuilder module)
         {
-            this.module = assembly;
-            this.Visit((IModule)assembly);
-            this.Visit(assembly.GetFiles(Context));
-            this.Visit(assembly.GetResources(Context));
-        }
-
-        public override void Visit(IModule module)
-        {
-            this.module = module;
-
             // Visit these assembly-level attributes even when producing a module.
             // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
-            Visit(module.AssemblyAttributes);
-            Visit(module.AssemblySecurityAttributes);
+            Visit(module.GetSourceAssemblyAttributes());
+            Visit(module.GetSourceAssemblySecurityAttributes());
 
             Visit(module.GetAssemblyReferences(Context));
-            Visit(module.ModuleReferences);
-            Visit(module.ModuleAttributes);
+            Visit(module.GetSourceModuleAttributes());
             Visit(module.GetTopLevelTypes(Context));
 
             foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))
@@ -45,12 +35,9 @@ namespace Microsoft.Cci
                 VisitExportedType(exportedType.Type);
             }
 
-            if (module.AsAssembly == null)
-            {
-                Visit(module.GetResources(Context));
-            }
-
+            Visit(module.GetResources(Context));
             VisitImports(module.GetImports());
+            Visit(module.GetFiles(Context));
         }
 
         private void VisitExportedType(ITypeReference exportedType)
@@ -66,7 +53,7 @@ namespace Microsoft.Cci
             else
             {
                 definingAssembly = ((IModuleReference)definingUnit).GetContainingAssembly(Context);
-                if (definingAssembly != null && !ReferenceEquals(definingAssembly, this.module.GetContainingAssembly(Context)))
+                if (definingAssembly != null && !ReferenceEquals(definingAssembly, Context.Module.GetContainingAssembly(Context)))
                 {
                     Visit(definingAssembly);
                 }

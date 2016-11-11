@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MakeTupleCreationExpression(node.Syntax, DirectCast(node.Type, NamedTypeSymbol), rewrittenArguments)
         End Function
 
-        Private Function MakeTupleCreationExpression(syntax As VisualBasicSyntaxNode, type As NamedTypeSymbol, rewrittenArguments As ImmutableArray(Of BoundExpression)) As BoundExpression
+        Private Function MakeTupleCreationExpression(syntax As SyntaxNode, type As NamedTypeSymbol, rewrittenArguments As ImmutableArray(Of BoundExpression)) As BoundExpression
             Dim underlyingTupleType As NamedTypeSymbol = If(type.TupleUnderlyingType, type)
             Debug.Assert(underlyingTupleType.IsTupleCompatible())
 

@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
-        public override bool IsTupleCompatible(out int tupleCardinality)
+        public sealed override bool IsTupleCompatible(out int tupleCardinality)
         {
             if (IsTupleType)
             {

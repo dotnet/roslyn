@@ -253,9 +253,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return s_defaultRules;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
     }
 }

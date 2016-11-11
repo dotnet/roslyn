@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub PopulateRangeVariableMapForAnonymousType(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             anonymousTypeInstance As BoundExpression,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol),
             ByRef firstUnmappedRangeVariable As Integer

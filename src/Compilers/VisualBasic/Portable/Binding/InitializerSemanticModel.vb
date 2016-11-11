@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New InitializerSemanticModel(root, binder, parentSemanticModel, position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
             Dim boundInitializer As BoundNode = Nothing
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     boundInitializer = BindInitializer(binder, initSyntax, diagnostics)
                 Case SyntaxKind.Parameter
-                    Dim parameterSyntax = DirectCast(node, parameterSyntax)
+                    Dim parameterSyntax = DirectCast(node, ParameterSyntax)
                     boundInitializer = BindInitializer(binder, parameterSyntax.Default, diagnostics)
 
                 Case SyntaxKind.EnumMemberDeclaration
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function BindInitializer(binder As Binder, initializer As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Private Function BindInitializer(binder As Binder, initializer As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
             Select Case Me.MemberSymbol.Kind

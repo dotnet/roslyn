@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var trailingExpression = new BoundDefaultOperator(method.GetNonNullSyntaxNode(), submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
-                    block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
+                    block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
                     // return in cases where one was missing should never produce different Diagnostics.
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // insert the implicit "return" statement at the end of the method body
         // Normally, we wouldn't bother attaching syntax trees to compiler-generated nodes, but these
         // ones are going to have sequence points.
-        internal static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, CSharpSyntaxNode syntax = null)
+        internal static BoundBlock AppendImplicitReturn(BoundBlock body, MethodSymbol method, SyntaxNode syntax = null)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);

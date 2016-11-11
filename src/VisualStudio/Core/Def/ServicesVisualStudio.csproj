@@ -1,13 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -20,7 +17,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <UseCodebase>true</UseCodebase>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
@@ -49,6 +45,14 @@
     <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
+      <Link>Implementation\Diagnostics\DiagnosticArguments.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
+      <Link>Implementation\Diagnostics\DiagnosticResultSerializer.cs</Link>
+    </Compile>
+    <Compile Include="Experimentation\IVsExperimentationService.cs" />
+    <Compile Include="Experimentation\VisualStudioExperimentationService.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />
     <Compile Include="IAnalyzerNodeSetup.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyChecker.cs" />
@@ -58,7 +62,6 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\Diagnostics\IRemoteHostDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
@@ -86,11 +89,15 @@
     <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
+    <Compile Include="Implementation\Options\LocalUserRegistryOptionPersister.cs" />
+    <Compile Include="Implementation\Options\RoamingVisualStudioProfileOptionPersister.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\ICodeModelFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\IDeferredProjectWorkspaceService.cs" />
+    <Compile Include="Implementation\ProjectSystem\Interop\IVsSolution7.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_ICompilerOptionsHostObject.cs" />
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IIntellisenseBuildTarget.cs" />
     <Compile Include="Implementation\ProjectSystem\CPS\IWorkspaceProjectContextFactory.cs" />
@@ -104,21 +111,17 @@
     <Compile Include="Implementation\ProjectSystem\Legacy\AbstractLegacyProject_IAnalyzerHost.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioFrameworkAssemblyPathResolverFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
-    <Compile Include="Implementation\Options\AbstractLanguageSettingsSerializer.cs" />
-    <Compile Include="Implementation\Options\ExportLanguageSpecificOptionSerializerAttribute.cs" />
-    <Compile Include="Implementation\Options\ExportOptionSerializerAttribute.cs" />
+    <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientFactory.cs" />
-    <Compile Include="Implementation\Remote\IRemoteHostClientService.cs" />
-    <Compile Include="Implementation\Remote\RemoteHostClient.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
+    <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
     <Compile Include="Implementation\Remote\RemoteHostOptions.cs" />
     <Compile Include="Implementation\Serialization\AssemblySerializationInfoService.cs" />
-    <Compile Include="Implementation\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Implementation\TableDataSource\DiagnosticTableControlEventProcessorProvider.AggregateDiagnosticTableControlEventProcessor.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\IVisualStudioDiagnosticListSuppressionStateService.cs" />
     <Compile Include="Implementation\TableDataSource\Suppression\VisualStudioDiagnosticListTableCommandHandler.cs" />
@@ -152,45 +155,23 @@
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
-    <Compile Include="Implementation\Watson\ErrorReportSettings.cs" />
-    <Compile Include="Implementation\Watson\ExceptionInfo.cs" />
-    <Compile Include="Implementation\Watson\NativeWin32Stubs.cs" />
-    <Compile Include="Implementation\Watson\Watson.cs" />
-    <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
     <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.ExceptionFormatting.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
+    <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
     <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
-    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
-    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\IDelayService.cs" />
-    <Compile Include="SymbolSearch\IIOService.cs" />
-    <Compile Include="SymbolSearch\ILogService.cs" />
-    <Compile Include="SymbolSearch\IPatchService.cs" />
-    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.Update.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.DatabaseFactoryService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.DelayService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.IOService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.LogService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchService.RemoteControlService.cs" />
-    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -200,6 +181,7 @@
     <Compile Include="Shared\LogicalStringComparer.cs" />
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.LogService.cs" />
     <Compile Include="Telemetry\CodeMarkerLogger.cs" />
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
     <Compile Include="Telemetry\ProjectTelemetryIncrementalAnalyzerProvider.cs" />
@@ -207,9 +189,15 @@
     <Compile Include="Telemetry\VSTelemetryActivityLogger.cs" />
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
+    <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddMetadataReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddProjectReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveMetadataReferenceUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveProjectReferenceUndoUnit.cs" />
     <Compile Include="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -263,29 +251,37 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.CodeSense.Roslyn" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
@@ -350,7 +346,7 @@
     <Compile Include="Implementation\AbstractOleCommandTarget.Execute.cs" />
     <Compile Include="Implementation\AbstractOleCommandTarget.Query.cs" />
     <Compile Include="Implementation\AbstractVsTextViewFilter.cs" />
-    <Compile Include="Implementation\AbstractVsTextViewFilter`3.cs" />
+    <Compile Include="Implementation\AbstractVsTextViewFilter`2.cs" />
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerFileWatcherService.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyPresenter.cs" />
     <Compile Include="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
@@ -446,15 +442,13 @@
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageInfo.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageTextOps.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.VsCodeWindowManager.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsContainedLanguageFactory.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsDebuggerEvents.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsImmediateStatementCompletion2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsLanguageDebugInfo.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.IVsLanguageDebugInfo2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractLanguageService`3.VsLanguageDebugInfo.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsContainedLanguageFactory.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsDebuggerEvents.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsImmediateStatementCompletion2.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageDebugInfo.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageDebugInfo2.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.VsLanguageDebugInfo.cs" />
     <Compile Include="Implementation\LanguageService\AbstractPackage`2.cs" />
-    <Compile Include="Implementation\LanguageService\AbstractPackage`3.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IOleCommandTarget.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryManager_IVsLibrary.cs" />
@@ -661,31 +655,10 @@
     <Compile Include="Implementation\Venus\VenusCommandFilter.cs" />
     <Compile Include="Implementation\VisualStudioMetadataAsSourceFileSupportService.cs" />
     <Compile Include="Implementation\VsRefactorNotifyService.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentPersistentStorage_IdentifierTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.AbstractTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.DocumentTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.DocumentTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierLocationTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierLocationTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.IdentifierTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.NameTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.OpenSession.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.Pool.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.SolutionTable.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.SolutionTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.StringNameTableAccessor.cs" />
-    <Compile Include="Implementation\Workspace\Esent\EsentStorage.TableKinds.cs" />
     <Compile Include="Implementation\Workspace\GlobalOperationNotificationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
-    <Compile Include="Implementation\Workspace\PersistenceServiceFactory.cs" />
-    <Compile Include="Implementation\Workspace\PersistentStorageService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />
@@ -735,12 +708,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="SymbolSearch\SymbolSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="Commands.vsct">
@@ -748,11 +718,6 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Implementation\Options\Style\" />
-  </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

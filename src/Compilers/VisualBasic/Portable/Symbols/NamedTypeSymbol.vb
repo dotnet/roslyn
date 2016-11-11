@@ -1080,6 +1080,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>True if this Is an interface type.</returns>
         Friend MustOverride ReadOnly Property IsInterface As Boolean
 
+        ''' <summary>
+        ''' Get synthesized WithEvents overrides that aren't returned by <see cref="GetMembers"/>
+        ''' </summary>
+        Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+
 #Region "INamedTypeSymbol"
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity
@@ -1243,18 +1248,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         ''' <returns></returns>
-        Public Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+        Public NotOverridable Overrides Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
             If IsTupleType Then
                 tupleCardinality = 0
                 Return False
             End If
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
-            If (Not IsUnboundGenericType AndAlso
+            If Not IsUnboundGenericType AndAlso
                 ContainingSymbol?.Kind = SymbolKind.Namespace AndAlso
                 ContainingNamespace?.ContainingNamespace?.IsGlobalNamespace = True AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
-                ContainingNamespace.Name = MetadataHelpers.SystemString) Then
+                ContainingNamespace.Name = MetadataHelpers.SystemString Then
 
                 Dim arity = Me.Arity
 

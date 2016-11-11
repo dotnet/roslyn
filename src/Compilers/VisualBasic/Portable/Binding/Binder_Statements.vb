@@ -62,16 +62,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MultiLineIfBlock
                     Return BindMultiLineIfBlock(DirectCast(node, MultiLineIfBlockSyntax), diagnostics)
 
+                Case SyntaxKind.ElseIfStatement
+                    ' ElseIf without a preceding If.
+                    Debug.Assert(node.ContainsDiagnostics)
+                    Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
+
                 Case SyntaxKind.SelectBlock
                     Return BindSelectBlock(DirectCast(node, SelectBlockSyntax), diagnostics)
 
-                Case SyntaxKind.CaseStatement,
-                     SyntaxKind.SelectStatement
-                    ' Valid select/case statement within select case statement is handled in BindSelectBlock.
-                    ' We should reach here only for invalid case statements which are not inside any SelectBlock.
+                Case SyntaxKind.CaseStatement
+                    ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
+                    ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
                     ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
                     Debug.Assert(node.ContainsDiagnostics)
-                    Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                    Dim caseStatement = DirectCast(node, CaseStatementSyntax)
+                    Dim statement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(statement), hasErrors:=True)
 
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
@@ -219,14 +226,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' a loop statement is legal as long as it is part of a do loop block
                     If Not SyntaxFacts.IsDoLoopBlock(node.Parent.Kind) Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whileOrUntilClause = DirectCast(node, LoopStatementSyntax).WhileOrUntilClause
+                        Dim childNodes = If(whileOrUntilClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whileOrUntilClause.Condition, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.CatchStatement
                     ' a catch statement is legal as long as it is part of a catch block
                     If Not node.Parent.Kind = SyntaxKind.CatchBlock Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whenClause = DirectCast(node, CatchStatementSyntax).WhenClause
+                        Dim childNodes = If(whenClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whenClause.Filter, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.ResumeStatement, SyntaxKind.ResumeNextStatement, SyntaxKind.ResumeLabelStatement
@@ -1149,7 +1164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                diagnostics,
                                                                                asNewVariablePlaceholder)
 
-                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringCustomModifiers(declType))
+                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringAll(declType))
                             End If
 
                         Case SyntaxKind.AnonymousObjectCreationExpression
@@ -1165,7 +1180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
                         valueExpression = BadExpression(asNew, valueExpression, type)
                     ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
-                           Not type.IsSameTypeIgnoringCustomModifiers(valueExpression.Type) Then
+                           Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
                         ' An error must have been reported elsewhere.    
                         valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
                     End If
@@ -1326,6 +1341,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BoundKind.ArrayLiteral
                             arrayLiteral = DirectCast(inferFrom, BoundArrayLiteral)
                             inferredType = arrayLiteral.InferredType
+
+                        Case BoundKind.TupleLiteral
+                            Dim tupleLiteral = DirectCast(inferFrom, BoundTupleLiteral)
+                            inferredType = tupleLiteral.InferredType
 
                         Case Else
                             inferredType = inferFrom.Type
@@ -1860,7 +1879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result.Free()
         End Sub
 
-        Friend Function AdjustAssignmentTarget(node As VisualBasicSyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
+        Friend Function AdjustAssignmentTarget(node As SyntaxNode, op1 As BoundExpression, diagnostics As DiagnosticBag, ByRef isError As Boolean) As BoundExpression
             Select Case op1.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(op1, BoundXmlMemberAccess)
@@ -1926,7 +1945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindAssignment(node As VisualBasicSyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
+        Private Function BindAssignment(node As SyntaxNode, op1 As BoundExpression, op2 As BoundExpression, diagnostics As DiagnosticBag) As BoundAssignmentOperator
 
             Dim isError As Boolean = False
             op1 = AdjustAssignmentTarget(node, op1, diagnostics, isError)
@@ -1991,7 +2010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag) As BoundBlock
             Dim stmtListBinder = Me.GetBinder(stmtList)
             Return BindBlock(syntax, stmtList, diagnostics, stmtListBinder)
         End Function
@@ -1999,12 +2018,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As VisualBasicSyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
+        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As DiagnosticBag, stmtListBinder As Binder) As BoundBlock
             Dim boundStatements(stmtList.Count - 1) As BoundStatement
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
             For i = 0 To boundStatements.Length - 1
-                Dim boundStatement As boundStatement = stmtListBinder.BindStatement(stmtList(i), diagnostics)
+                Dim boundStatement As BoundStatement = stmtListBinder.BindStatement(stmtList(i), diagnostics)
                 boundStatements(i) = boundStatement
 
                 Select Case boundStatement.Kind
@@ -2286,15 +2305,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim tokenType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
 
                             If node.Kind = SyntaxKind.AddHandlerStatement Then
-                                If Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) OrElse
-                                   Not method.ReturnType.IsSameTypeIgnoringCustomModifiers(tokenType) Then
+                                If Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) OrElse
+                                   Not method.ReturnType.IsSameTypeIgnoringAll(tokenType) Then
                                     badShape = True
                                 End If
-                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(tokenType) OrElse Not method.IsSub Then
+                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(tokenType) OrElse Not method.IsSub Then
                                 badShape = True
                             End If
 
-                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) Then
                             badShape = True
                         End If
 
@@ -3214,9 +3233,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim bestCandidate As OverloadResolution.Candidate = userDefinedOperator.BestResult.Value.Candidate
 
-            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringCustomModifiers(left.Type)) Then
+            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringAll(left.Type)) Then
 
                 If isRelational Then
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_UnacceptableForLoopRelOperator2, bestCandidate.UnderlyingSymbol,
@@ -4141,7 +4160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="methodOrPropertyGroup">The method or property group.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         Private Function CreateBoundInvocationExpressionFromMethodOrPropertyGroup(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             methodOrPropertyGroup As BoundMethodOrPropertyGroup,
             diagnostics As DiagnosticBag
         ) As BoundExpression
@@ -4194,7 +4213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             container As TypeSymbol,
             symbolChecker As Func(Of Symbol, Boolean),
             result As LookupResult,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As Boolean
             result.Clear()
@@ -4379,7 +4398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' There is one exception to this rule: the parent is a declarator and has multiple names then 
                     ' the identifier syntax should be used to be able to distinguish between the error locations.
                     ' e.g. dim x, y as Integer = 23
-                    Dim syntaxNodeForErrors As VisualBasicSyntaxNode
+                    Dim syntaxNodeForErrors As SyntaxNode
                     If localDeclarations.Kind <> BoundKind.AsNewLocalDeclarations Then
                         syntaxNodeForErrors = declarationSyntax.Parent
 
@@ -4447,7 +4466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             localSymbol As LocalSymbol,
             iDisposable As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
@@ -4483,7 +4502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub BuildAndVerifyUsingInfo(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             resourceType As TypeSymbol,
             placeholderInfo As Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)),
             iDisposable As TypeSymbol,
@@ -4530,7 +4549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Check the given type of and report WRN_MutableGenericStructureInUsing if needed.</summary>
         ''' <remarks>This function should only be called for a type of a using variable.</remarks>
-        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As DiagnosticBag)
             ' Dev10 #666593: Warn if the type of the variable is not a reference type or an immutable structure.
             If Not type.IsReferenceType Then
                 If type.IsTypeParameter Then

@@ -169,30 +169,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (innerStatement.Kind())
                 {
-                    case SyntaxKind.DeconstructionDeclarationStatement:
-                        {
-                            var decl = (DeconstructionDeclarationStatementSyntax)innerStatement;
-                            CollectLocalsFromDeconstruction(
-                                decl.Assignment.VariableComponent,
-                                LocalDeclarationKind.RegularVariable,
-                                locals,
-                                innerStatement);
-                            break;
-                        }
                     case SyntaxKind.LocalDeclarationStatement:
                         {
+                            Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
                             LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind);
+                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
                                 locals.Add(localSymbol);
+
+                                // also gather expression-declared variables from the bracketed argument lists and the initializers
+                                ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, localDeclarationBinder);
                             }
+
                         }
                         break;
 
                     case SyntaxKind.ExpressionStatement:
-                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder);
+                    case SyntaxKind.IfStatement:
+                    case SyntaxKind.YieldReturnStatement:
+                    case SyntaxKind.ReturnStatement:
+                    case SyntaxKind.ThrowStatement:
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.SwitchStatement:
+                        var switchStatement = (SwitchStatementSyntax)innerStatement;
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(switchStatement.Expression) ?? enclosingBinder);
+                        break;
+
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.LockStatement:
+                        Binder statementBinder = enclosingBinder.GetBinder(innerStatement);
+                        Debug.Assert(statementBinder != null); // Lock, Do and while loops always have binders.
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, statementBinder);
                         break;
 
                     default:
@@ -203,71 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return locals.ToImmutableAndFree();
         }
-
-        internal void CollectLocalsFromDeconstruction(
-            VariableComponentSyntax declaration,
-            LocalDeclarationKind kind,
-            ArrayBuilder<LocalSymbol> locals,
-            SyntaxNode deconstructionStatement)
-        {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.ParenthesizedVariableComponent:
-                    {
-                        var component = (ParenthesizedVariableComponentSyntax)declaration;
-                        foreach (var decl in component.Variables)
-                        {
-                            CollectLocalsFromDeconstruction(decl, kind, locals, deconstructionStatement);
-                        }
-                        break;
-                    }
-                case SyntaxKind.TypedVariableComponent:
-                    {
-                        var component = (TypedVariableComponentSyntax)declaration;
-                        CollectLocalsFromDeconstruction(component.Designation, component.Type, kind, locals, deconstructionStatement);
-                        break;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
-            }
-        }
-
-        internal void CollectLocalsFromDeconstruction(
-            VariableDesignationSyntax designation,
-            TypeSyntax closestTypeSyntax,
-            LocalDeclarationKind kind,
-            ArrayBuilder<LocalSymbol> locals,
-            SyntaxNode deconstructionStatement)
-        {
-            switch (designation.Kind())
-            {
-                case SyntaxKind.SingleVariableDesignation:
-                    {
-                        var single = (SingleVariableDesignationSyntax)designation;
-                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
-                                                                    this.ContainingMemberOrLambda,
-                                                                    this,
-                                                                    closestTypeSyntax,
-                                                                    single.Identifier,
-                                                                    kind,
-                                                                    deconstructionStatement);
-                        locals.Add(localSymbol);
-                        break;
-                    }
-                case SyntaxKind.ParenthesizedVariableDesignation:
-                    {
-                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
-                        foreach (var d in tuple.Variables)
-                        {
-                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement);
-                        }
-                        break;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
-            }
-        }
-
         protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {
             ArrayBuilder<LocalFunctionSymbol> locals = null;
@@ -303,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
-        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
+        protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind, Binder initializerBinderOpt = null)
         {
             return SourceLocalSymbol.MakeLocal(
                 this.ContainingMemberOrLambda,
@@ -312,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declaration.Type,
                 declarator.Identifier,
                 kind,
-                declarator.Initializer);
+                declarator.Initializer,
+                initializerBinderOpt);
         }
 
         protected LocalFunctionSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
@@ -473,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ReportConflictWithLocal(Symbol local, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            // Quirk of the way we represent lambda parameters.                
+            // Quirk of the way we represent lambda parameters.
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
             if (newSymbolKind == SymbolKind.ErrorType) return true;
@@ -485,16 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declaredInThisScope && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
             {
-                // TODO: Message should change to something like "A {0} named '{1}' is already defined in this scope"
-
-                // A local variable named '{0}' is already defined in this scope
+                // A local variable or function named '{0}' is already defined in this scope
                 diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                 return true;
             }
 
             if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method || newSymbolKind == SymbolKind.TypeParameter)
             {
-                // TODO: Fix up the message for local functions and type parameters. Maybe like the above todo - $"A {newSymbolKind.Localize()} named '{name}' cannot ..."
                 // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;

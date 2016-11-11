@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _features As ImmutableDictionary(Of String, String)
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+        Private _specifiedLanguageVersion As LanguageVersion
         Private _languageVersion As LanguageVersion
 
         ''' <summary>
@@ -29,19 +30,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="kind">The kind of source code.<see cref="SourceCodeKind"/></param>
         ''' <param name="preprocessorSymbols">An enumerable sequence of KeyValuePair representing preprocessor symbols.</param>
         Public Sub New(
-            Optional languageVersion As LanguageVersion = LanguageVersion.Latest,
+            Optional languageVersion As LanguageVersion = LanguageVersion.Default,
             Optional documentationMode As DocumentationMode = DocumentationMode.Parse,
             Optional kind As SourceCodeKind = SourceCodeKind.Regular,
             Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing)
 
-            MyClass.New(languageVersion.MapLatestToVersion(),
+            MyClass.New(languageVersion,
                         documentationMode,
                         kind,
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
                         ImmutableDictionary(Of String, String).Empty)
 
             ' We test the mapped value, _languageVersion, rather than the parameter, languageVersion,
-            ' which has Not had "Latest" mapped to the latest version yet.
+            ' which has not had "Latest" mapped to the latest version yet.
             If Not _languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
@@ -66,7 +67,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
                         features)
 
-            If Not languageVersion.IsValid Then
+            ' We test the mapped value, _languageVersion, rather than the parameter, languageVersion,
+            ' which has not had "Latest" mapped to the latest version yet.
+            If Not _languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
@@ -114,19 +117,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, documentationMode)
 
             Debug.Assert(Not preprocessorSymbols.IsDefault)
-            _languageVersion = languageVersion
+            _specifiedLanguageVersion = languageVersion
+            _languageVersion = languageVersion.MapSpecifiedToEffectiveVersion
             _preprocessorSymbols = preprocessorSymbols
             _features = features
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
             MyClass.New(
-                languageVersion:=other._languageVersion,
+                languageVersion:=other._specifiedLanguageVersion,
                 documentationMode:=other.DocumentationMode,
                 kind:=other.Kind,
                 preprocessorSymbols:=other._preprocessorSymbols,
                 features:=other._features)
         End Sub
+
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
 
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
@@ -139,7 +149,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns the parser language version.
+        ''' Returns the specified language version, which is the value that was specified in the call to the
+        ''' constructor, or modified using the <see cref="WithLanguageVersion"/> method, or provided on the command line.
+        ''' </summary>        
+        Public ReadOnly Property SpecifiedLanguageVersion As LanguageVersion
+            Get
+                Return _specifiedLanguageVersion
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns the effective language version, which the compiler uses to select the
+        ''' language rules to apply to the program.
         ''' </summary>        
         Public ReadOnly Property LanguageVersion As LanguageVersion
             Get
@@ -174,16 +195,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="version">The parser language version.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if different language version is different; otherwise current instance.</returns>
         Public Shadows Function WithLanguageVersion(version As LanguageVersion) As VisualBasicParseOptions
-            version = version.MapLatestToVersion()
-            If version = _languageVersion Then
+            If version = _specifiedLanguageVersion Then
                 Return Me
             End If
 
-            If Not version.IsValid Then
+            Dim effectiveVersion = version.MapSpecifiedToEffectiveVersion()
+            If Not effectiveVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(version))
             End If
 
-            Return New VisualBasicParseOptions(Me) With {._languageVersion = version}
+            Return New VisualBasicParseOptions(Me) With {._specifiedLanguageVersion = version, ._languageVersion = effectiveVersion}
         End Function
 
         ''' <summary>
@@ -311,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If Me.LanguageVersion <> other.LanguageVersion Then
+            If Me.SpecifiedLanguageVersion <> other.SpecifiedLanguageVersion Then
                 Return False
             End If
 
@@ -336,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>A hashcode representing this instance.</returns>
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.LanguageVersion))
+            Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.SpecifiedLanguageVersion))
         End Function
     End Class
 End Namespace

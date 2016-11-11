@@ -5,15 +5,38 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticTest : CSharpTestBase
     {
+        /// <summary>
+        /// Ensure string resources are included.
+        /// </summary>
+        [Fact]
+        public void Resources()
+        {
+            var excludedErrorCodes = new[]
+            {
+                ErrorCode.Void,
+                ErrorCode.Unknown,
+                ErrorCode.WRN_ALinkWarn, // Not reported, but retained to allow configuring class of related warnings. See CSharpDiagnosticFilter.Filter.
+            };
+            foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if (Array.IndexOf(excludedErrorCodes, code) >= 0)
+                {
+                    continue;
+                }
+                var message = ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture);
+                Assert.False(string.IsNullOrEmpty(message));
+            }
+        }
+
         [Fact]
         public void TestDiagnostic()
         {

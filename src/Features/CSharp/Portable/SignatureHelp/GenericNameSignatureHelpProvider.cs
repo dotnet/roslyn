@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleSymbols =
-                symbols.Where(s => s.GetArity() > 0)
-                       .Where(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                symbols.WhereAsArray(s => s.GetArity() > 0)
+                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(symbolDisplayService, semanticModel, genericIdentifier.SpanStart);
 

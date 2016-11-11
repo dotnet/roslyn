@@ -1,8 +1,7 @@
 @echo off
-@setlocal
+@setlocal enabledelayedexpansion
 
 set RoslynRoot=%~dp0
-set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%RoslynRoot%nuget.config" -Project2ProjectTimeOut 1200
 set DevDivPackages=%RoslynRoot%src\Setup\DevDivPackages
 
 :ParseArguments
@@ -45,8 +44,19 @@ call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15.project.json"
 echo Restoring packages: Toolsets (Dev15 VS SDK 'Willow' build tools)
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15Willow.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolsets (Dev15 VS SDK RC build tools)
+call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15rc.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Roslyn SDK
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\roslynsdk.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
+echo Locating MSBuild for Solution restore
+call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :RestoreFailed
+
+REM If we have an applocal copy of MSBuild, pass it to NuGet.  Otherwise, assume NuGet knows how to find it.
+if exist "%DevenvDir%\..\..\MSBuild\15.0\Bin\MSBuild.exe" (
+    set NuGetAdditionalCommandLineArgs=%NuGetAdditionalCommandLineArgs% -msbuildpath "%DevenvDir%\..\..\MSBuild\15.0\Bin"
+)
 
 echo Restoring packages: Samples
 call "%NugetExe%" restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
@@ -54,13 +64,16 @@ call "%NugetExe%" restore "%RoslynRoot%src\Samples\Samples.sln" %NuGetAdditional
 echo Restoring packages: Templates
 call "%NugetExe%" restore "%RoslynRoot%src\Setup\Templates\Templates.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolset
+call "%NugetExe%" restore "%RoslynRoot%build\Toolset\Toolset.csproj" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Roslyn (this may take some time)
 call "%NugetExe%" restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 echo Restoring packages: DevDiv tools
-call %NugetExe% restore "%RoslynRoot%src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
-call %NugetExe% restore "%DevDivPackages%\Roslyn\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
-call %NugetExe% restore "%DevDivPackages%\Debugger\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%RoslynRoot%src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%DevDivPackages%\Roslyn\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+call "%NugetExe%" restore "%DevDivPackages%\Debugger\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
 exit /b 0
 

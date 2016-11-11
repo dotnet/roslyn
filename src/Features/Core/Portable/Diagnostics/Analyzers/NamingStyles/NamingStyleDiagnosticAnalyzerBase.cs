@@ -3,22 +3,23 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal abstract class NamingStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class NamingStyleDiagnosticAnalyzerBase : 
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorNamingStyle = new DiagnosticDescriptor(
-            IDEDiagnosticIds.NamingRuleId,
-            s_localizableTitleNamingStyle,
-            s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true);
+
+        protected NamingStyleDiagnosticAnalyzerBase()
+            : base(IDEDiagnosticIds.NamingRuleId,
+                   s_localizableTitleNamingStyle, 
+                   s_localizableMessage)
+        {
+        }
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
         // We would prefer to respond to the names of all symbols.
@@ -32,19 +33,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 SymbolKind.Property
             }.ToImmutableArray();
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptorNamingStyle);
-        public bool RunInProcess => true;
+        public bool OpenFileOnly(Workspace workspace) => true;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(CompilationStartAction);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(CompilationStartAction);
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
             var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Workspace;
-            var categorizationService = workspace.Services.GetService<ISymbolCategorizationService>();
-
             var optionSet = (context.Options as WorkspaceAnalyzerOptions)?.Workspace.Options;
             var currentValue = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
 
@@ -58,15 +54,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 var viewModel = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(currentValue));
                 var preferencesInfo = viewModel.GetPreferencesInfo();
                 context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo, categorizationService),
+                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
                     _symbolKinds);
             }
         }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences, ISymbolCategorizationService categorizationService)
+        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
         {
             NamingRule applicableRule;
-            if (preferences.TryGetApplicableRule(context.Symbol, categorizationService, out applicableRule))
+            if (preferences.TryGetApplicableRule(context.Symbol, out applicableRule))
             {
                 string failureReason;
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
@@ -74,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources._0_naming_violation_1, applicableRule.Title, failureReason),
+                         string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
                          DiagnosticCategory.Style,
                          applicableRule.EnforcementLevel,
                          isEnabledByDefault: true);
@@ -89,8 +85,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

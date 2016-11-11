@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
             }
 
-            if (ReturnType.ContainsTuple() &&
+            if (ReturnType.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttributeOpt(ReturnType));
+                    compilation.SynthesizeTupleNamesAttribute(ReturnType));
             }
         }
 

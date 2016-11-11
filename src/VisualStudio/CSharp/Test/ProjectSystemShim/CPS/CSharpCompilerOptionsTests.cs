@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
@@ -44,7 +45,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-                project.SetCommandLineArguments(@"/warnaserror");
+                project.SetOptions(@"/warnaserror");
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
             }
@@ -54,31 +55,65 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ProjectOutputBinPathChange_CPS()
         {
-            var initialBinPath = @"C:\test.dll";
+            var initialObjPath = @"C:\test.dll";
+            var initialBinPath = initialObjPath;
 
             using (var environment = new TestEnvironment())
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", $"/out:{initialBinPath}"))
+            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: $"/out:{initialObjPath}"))
             {
-                Assert.Equal(initialBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(initialBinPath, project.TryGetObjOutputPath());
+                Assert.Equal(initialObjPath, project.ObjOutputPath);
+                Assert.Equal(initialBinPath, project.BinOutputPath);
 
-                // Change output folder.
-                var newBinPath = @"C:\NewFolder\test.dll";
-                project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                // Change obj output folder from command line arguments - verify that objOutputPath changes, but binOutputPath is the same.
+                var newObjPath = @"C:\NewFolder\test.dll";
+                project.SetOptions($"/out:{newObjPath}");
+                Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(initialBinPath, project.BinOutputPath);
 
-                // Change output file name.
-                newBinPath = @"C:\NewFolder\test2.dll";
-                project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                // Change output file name - verify that objOutputPath changes, but binOutputPath is the same.
+                newObjPath = @"C:\NewFolder\test2.dll";
+                project.SetOptions($"/out:{newObjPath}");
+                Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(initialBinPath, project.BinOutputPath);
 
-                // Change output file name and folder.
-                newBinPath = @"C:\NewFolder3\test3.dll";
-                project.SetCommandLineArguments($"/out:{newBinPath}");
-                Assert.Equal(newBinPath, project.TryGetBinOutputPath());
-                Assert.Equal(newBinPath, project.TryGetObjOutputPath());
+                // Change output file name and folder - verify that objOutputPath changes, but binOutputPath is the same.
+                newObjPath = @"C:\NewFolder3\test3.dll";
+                project.SetOptions($"/out:{newObjPath}");
+                Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(initialBinPath, project.BinOutputPath);
+
+                // Change bin output folder - verify that binOutputPath changes, but objOutputPath is the same.
+                var newBinPath = @"C:\NewFolder4\test.dll";
+                ((IWorkspaceProjectContext)project).BinOutputPath = newBinPath;
+                Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(newBinPath, project.BinOutputPath);
+
+                // Change bin output folder to non-normalized path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
+                newBinPath = @"test.dll";
+                var expectedNewBinPath = Path.Combine(Path.GetTempPath(), newBinPath);
+                ((IWorkspaceProjectContext)project).BinOutputPath = newBinPath;
+                Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(expectedNewBinPath, project.BinOutputPath);
+            }
+        }
+
+        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void InvalidProjectOutputBinPaths_CPS()
+        {
+            using (var environment = new TestEnvironment())
+            using (var project1 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null)) // Null binOutputPath
+            using (var project2 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test2", binOutputPath: String.Empty)) // Empty binOutputPath
+            using (var project3 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test3", binOutputPath: "Test.dll")) // Non-rooted binOutputPath
+            {
+                // Null output path is allowed.
+                Assert.Equal(null, project1.BinOutputPath);
+
+                // Empty output path is not allowed, it gets reset to null.
+                Assert.Equal(null, project2.BinOutputPath);
+
+                // Non-rooted output path is not allowed, it gets reset to a temp rooted path.
+                Assert.Equal(Path.Combine(Path.GetTempPath(), "Test.dll"), project3.BinOutputPath);
             }
         }
 
@@ -99,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void ProjectLastDesignTimeBuildSucceededSetter_CPS()
         {

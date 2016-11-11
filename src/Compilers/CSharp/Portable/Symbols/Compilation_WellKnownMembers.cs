@@ -108,7 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
-                    result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    if (type.IsValueTupleType())
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
+                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
+                    }
+                    else
+                    {
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                    }
                 }
 
                 if ((object)Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) != null)
@@ -491,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal SynthesizedAttributeData SynthesizeTupleNamesAttributeOpt(TypeSymbol type)
+        internal SynthesizedAttributeData SynthesizeTupleNamesAttribute(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.ContainsTuple());
@@ -500,11 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)stringType != null);
             var names = TupleNamesEncoder.Encode(type, stringType);
 
-            // If there are no names, elide the attribute entirely
-            if (names.IsDefault)
-            {
-                return null;
-            }
+            Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
 
             var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
@@ -542,10 +546,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return names;
             }
 
-            private static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
+            internal static bool TryGetNames(TypeSymbol type, ArrayBuilder<string> namesBuilder)
             {
                 type.VisitType((t, builder, _ignore) => AddNames(t, builder), namesBuilder);
-                Debug.Assert(namesBuilder.Any());
                 return namesBuilder.Any(name => name != null);
             }
 
@@ -581,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType, int customModifiersCount, RefKind refKind)
             {
                 var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
+                Encode(type, customModifiersCount, refKind, flagsBuilder, addCustomModifierFlags: true);
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
@@ -595,21 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantsBuilder.ToImmutableAndFree();
             }
 
-            internal static ImmutableArray<bool> Encode(TypeSymbol type, int customModifiersCount, RefKind refKind)
-            {
-                var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, customModifiersCount, refKind, transformFlagsBuilder, addCustomModifierFlags: true);
-                return transformFlagsBuilder.ToImmutableAndFree();
-            }
-
             internal static ImmutableArray<bool> EncodeWithoutCustomModifierFlags(TypeSymbol type, RefKind refKind)
             {
                 var transformFlagsBuilder = ArrayBuilder<bool>.GetInstance();
-                EncodeInternal(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
+                Encode(type, -1, refKind, transformFlagsBuilder, addCustomModifierFlags: false);
                 return transformFlagsBuilder.ToImmutableAndFree();
             }
 
-            private static void EncodeInternal(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
+            internal static void Encode(TypeSymbol type, int customModifiersCount, RefKind refKind, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
             {
                 Debug.Assert(!transformFlagsBuilder.Any());
 

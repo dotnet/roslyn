@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundExpression CreateConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             bool isCast,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected BoundExpression CreateConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             bool isCast,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (source.Kind == BoundKind.TupleLiteral)
                 {
                     var sourceTuple = (BoundTupleLiteral)source;
-                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination.TupleElementNames, sourceTuple, diagnostics);
+                    TupleTypeSymbol.ReportNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
                     source = new BoundConvertedTupleLiteral(
                         sourceTuple.Syntax,
                         sourceTuple.Type,
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetIsNumeric && source.IsPointerType();
         }
 
-        protected BoundExpression CreateUserDefinedConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             if (!conversion.IsValid)
             {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        private static BoundExpression CreateAnonymousFunctionConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
             // which is a conversion on top of an unbound lambda, replace it with the bound
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateMethodGroupConversion(CSharpSyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
             BoundExpression receiverOpt = group.ReceiverOpt;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleLiteralConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destTupleType = (TupleTypeSymbol)targetType;
                 // do not lose the original element names in the literal if different from names in the target
 
-                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType.TupleElementNames, sourceTuple, diagnostics);
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
                 // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error.
         /// </returns>
-        private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, CSharpSyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
             {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>
         /// True if there is any error.
         /// </returns>
-        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression receiverOpt, Symbol memberSymbol, CSharpSyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
+        private bool MemberGroupFinalValidationAccessibilityChecks(BoundExpression receiverOpt, Symbol memberSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
             // Perform final validation of the method to be invoked.
 
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
-                    CSharpSyntaxNode errorNode = node;
+                    SyntaxNode errorNode = node;
                     if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
                     {
                         errorNode = node.Parent;
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Where diagnostics should be added.</param>
         /// <returns>True if a diagnostic has been added.</returns>
         private bool MethodGroupConversionHasErrors(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             Conversion conversion,
             BoundExpression receiverOpt,
             bool isExtensionMethod,
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ConstantValue FoldConstantConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
             TypeSymbol destination,
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ConstantValue FoldConstantNumericConversion(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             ConstantValue sourceValue,
             TypeSymbol destination,
             DiagnosticBag diagnostics)

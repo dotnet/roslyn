@@ -235,9 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current is DeclarationExpressionSyntax)
                 {
                     var decl = (DeclarationExpressionSyntax)current;
-                    var component = decl.VariableComponent as TypedVariableComponentSyntax;
-                    var name = component?.Designation as SingleVariableDesignationSyntax;
-                    if (name == null) break;
+                    var name = decl.Designation as SingleVariableDesignationSyntax;
+                    if (name == null)
+                    {
+                        break;
+                    }
+
                     return name.Identifier.ValueText.ToCamelCase();
                 }
                 else
@@ -281,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 arguments.Select(a => a.NameColon != null)).ToList();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a))).ToList();
+                arguments.Select(semanticModel.GenerateNameForArgument)).ToList();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }

@@ -14,13 +14,16 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
@@ -111,8 +114,32 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var newSwitchNode = generator.InsertSwitchSections(switchNode, insertLocation, newSections)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
+            // Make sure we didn't cause any braces to be imbalanced when we added members
+            // to the switch.
+            AddMissingBraces(document, ref root, ref switchNode);
+
             var newRoot = root.ReplaceNode(switchNode, newSwitchNode);
+
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private void AddMissingBraces(
+            Document document,
+            ref SyntaxNode root,
+            ref SyntaxNode switchNode)
+        {
+            // Parsing of the switch may have caused imbalanced braces.  i.e. the switch
+            // may have consumed a brace that was intended for a higher level construct.
+            // So balance the tree first, then do the switch replacement.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            SyntaxNode newRoot;
+            SyntaxNode newSwitchNode;
+            syntaxFacts.AddFirstMissingCloseBrace(
+                root, switchNode, out newRoot, out newSwitchNode);
+
+            root = newRoot;
+            switchNode = newSwitchNode;
         }
 
         private int InsertPosition(ISwitchStatement switchStatement)

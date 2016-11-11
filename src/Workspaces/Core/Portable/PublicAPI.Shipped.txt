@@ -506,7 +506,8 @@ Microsoft.CodeAnalysis.Options.Option<T>
 Microsoft.CodeAnalysis.Options.Option<T>.DefaultValue.get -> T
 Microsoft.CodeAnalysis.Options.Option<T>.Feature.get -> string
 Microsoft.CodeAnalysis.Options.Option<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue = default(T)) -> void
+Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name) -> void
+Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue) -> void
 Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
 Microsoft.CodeAnalysis.Options.OptionKey
 Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
@@ -515,11 +516,11 @@ Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Op
 Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
 Microsoft.CodeAnalysis.Options.OptionSet
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
-abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
-abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
+Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
+Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
-abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.DefaultValue.get -> T
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Feature.get -> string

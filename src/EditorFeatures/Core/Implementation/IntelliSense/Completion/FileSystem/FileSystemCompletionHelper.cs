@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
             _itemRules = itemRules;
 
             _lazyGetDrives = new Lazy<string[]>(() =>
-                IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
+                IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>()));
         }
 
         public ImmutableArray<CompletionItem> GetItems(string pathSoFar, string documentPath)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
         {
-            var result = ImmutableArray.CreateBuilder<CompletionItem>();
+            var result = ArrayBuilder<CompletionItem>.GetInstance();
             var pathKind = PathUtilities.GetPathKind(path);
             switch (pathKind)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                     throw ExceptionUtilities.Unreachable;
             }
 
-            return result.AsImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private static bool IsDriveRoot(string fullPath)
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)
         {
-            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, SpecializedCollections.EmptyArray<FileSystemInfo>());
+            return IOUtilities.PerformIO(directoryInfo.GetFileSystemInfos, Array.Empty<FileSystemInfo>());
         }
     }
 }

@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub AddNameAndTypeArgumentsOrParameters(symbol As INamedTypeSymbol, noEscaping As Boolean)
             Dim partKind As SymbolDisplayPartKind
-            Dim symbolName = symbol.Name
+            Dim symbolName As String = Nothing
             Dim skipTypeArguments As Boolean = False
 
             If symbol.IsAnonymousType Then
@@ -210,7 +210,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 symbol = symbol.TupleUnderlyingType
             End If
 
-                If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
+            ' It would be nice to handle C# NoPia symbols too, but it's not worth the effort.
+
+            Dim illegalGenericInstantiationSymbol = TryCast(symbol, NoPiaIllegalGenericInstantiationSymbol)
+            If illegalGenericInstantiationSymbol IsNot Nothing Then
+                symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol
+            Else
+                Dim ambiguousCanonicalTypeSymbol = TryCast(symbol, NoPiaAmbiguousCanonicalTypeSymbol)
+                If ambiguousCanonicalTypeSymbol IsNot Nothing Then
+                    symbol = ambiguousCanonicalTypeSymbol.FirstCandidate
+                Else
+                    Dim missingCanonicalTypeSymbol = TryCast(symbol, NoPiaMissingCanonicalTypeSymbol)
+                    If missingCanonicalTypeSymbol IsNot Nothing Then
+                        symbolName = missingCanonicalTypeSymbol.FullTypeName
+                    End If
+                End If
+            End If
+
+            If symbolName Is Nothing Then
+                symbolName = symbol.Name
+            End If
+
+            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
                 String.IsNullOrEmpty(symbolName) Then
 
                 symbolName = StringConstants.NamedSymbolErrorName
@@ -351,10 +372,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If hasNames Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames(i), noEscaping:=False))
-                    AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
-                    AddSpace()
+                    Dim name = elementNames(i)
+                    If name IsNot Nothing Then
+                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
+                        AddSpace()
+                        AddPunctuation(SyntaxKind.AsKeyword)
+                        AddSpace()
+                    End If
                 End If
 
                 elementTypes(i).Accept(Me.NotFirstVisitor)

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
@@ -52,29 +53,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             get
             {
-                return _lastDesignTimeBuildSucceeded;
+                return LastDesignTimeBuildSucceeded;
             }
             set
             {
-                _lastDesignTimeBuildSucceeded = value;
+                SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value);
             }
         }
+
+        string IWorkspaceProjectContext.BinOutputPath
+        {
+            get
+            {
+                return base.BinOutputPath;
+            }
+            set
+            {
+                NormalizeAndSetBinOutputPathAndRelatedData(value);
+            }
+        }
+
         #endregion
 
         #region Options
-        public void SetCommandLineArguments(string commandLineForOptions)
+        public void SetOptions(string commandLineForOptions)
         {
             var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
-            PostSetCommandLineArguments(commandLineArguments);
+            PostSetOptions(commandLineArguments);
         }
 
-        private void PostSetCommandLineArguments(CommandLineArguments commandLineArguments)
+        private void PostSetOptions(CommandLineArguments commandLineArguments)
         {
-            // Invoke SetOutputPathAndRelatedData to update the project tracker bin path for this project, if required.
+            // Invoke SetOutputPathAndRelatedData to update the project obj output path.
             if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
             {
-                var newOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
-                SetOutputPathAndRelatedData(newOutputPath, hasSameBinAndObjOutputPaths: true);
+                var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                SetObjOutputPathAndRelatedData(objOutputPath);
             }
         }
         #endregion
@@ -95,29 +109,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
         {
             var abstractProject = GetAbstractProject(project);
-
-            // AbstractProject and ProjectTracker track project references using the project bin output path.
-            // Setting the command line arguments should have already set the output file name and folder.
-            // We fetch this output path to add the reference.
-            var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
-            if (!string.IsNullOrEmpty(binPathOpt))
-            {
-                AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(binPathOpt, properties);
-            }
+            AddProjectReference(new ProjectReference(abstractProject.Id, properties.Aliases, properties.EmbedInteropTypes));
         }
 
         public void RemoveProjectReference(IWorkspaceProjectContext project)
         {
             var referencedProject = GetAbstractProject(project);
-
-            // AbstractProject and ProjectTracker track project references using the project bin output path.
-            // We fetch this output path to remove the reference.
-            var binPathOpt = referencedProject.TryGetBinOutputPath();
-            if (!string.IsNullOrEmpty(binPathOpt))
-            {
-                base.RemoveMetadataReference(binPathOpt);
-            }
+            var projectReference = GetCurrentProjectReferences().Single(p => p.ProjectId == referencedProject.Id);
+            RemoveProjectReference(projectReference);
         }
 
         private AbstractProject GetAbstractProject(IWorkspaceProjectContext project)
@@ -135,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #region Files
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
+            AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty());
         }
 
         public void RemoveSourceFile(string filePath)

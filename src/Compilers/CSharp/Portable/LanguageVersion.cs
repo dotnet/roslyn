@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     public enum LanguageVersion
     {
         /// <summary>
+        /// The default language version, which is the latest major supported version.
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
         /// C# language version 1.0.
         /// </summary>
         CSharp1 = 1,
@@ -71,9 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class LanguageVersionExtensions
     {
-        internal static LanguageVersion MapLatestToVersion(this LanguageVersion version)
+        internal static LanguageVersion MapSpecifiedToEffectiveVersion(this LanguageVersion version)
         {
-            return (version == LanguageVersion.Latest) ? LanguageVersion.CSharp7 : version;
+            switch (version)
+            {
+                case LanguageVersion.Latest:
+                case LanguageVersion.Default:
+                    return LanguageVersion.CSharp7;
+                default:
+                    return version;
+            }
         }
 
         internal static bool IsValid(this LanguageVersion value)

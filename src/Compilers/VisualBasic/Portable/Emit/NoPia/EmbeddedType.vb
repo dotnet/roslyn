@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Debug.Assert(Not underlyingNamedType.IsGenericType)
         End Sub
 
-        Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Public Sub EmbedAllMembersOfImplementedInterface(syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
             Debug.Assert(UnderlyingNamedType.IsInterfaceType())
 
             If _embeddedAllMembersOfImplementedInterface Then
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End Get
         End Property
 
-        Protected Overrides Function GetBaseClass(moduleBuilder As PEModuleBuilder, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
+        Protected Overrides Function GetBaseClass(moduleBuilder As PEModuleBuilder, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
             Dim baseType = UnderlyingNamedType.BaseTypeNoUseSiteDiagnostics
             Return If(baseType IsNot Nothing, moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics), Nothing)
         End Function
@@ -82,13 +82,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
 
             For Each [interface] In UnderlyingNamedType.GetInterfacesToEmit()
-                Dim translated = moduleBeingBuilt.Translate([interface],
+                Dim typeRef = moduleBeingBuilt.Translate([interface],
                                                             DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
                                                             context.Diagnostics)
 
-                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
-                ' TODO: Add support for tuple attributes on interface implementations
-                Yield New Cci.TypeReferenceWithAttributes(translated)
+                Yield [interface].GetTypeRefWithAttributes(UnderlyingNamedType.DeclaringCompilation, typeRef)
             Next
         End Function
 
@@ -166,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
-        Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+        Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim member = If(hasGuid,
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctor,
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctorStringString)
@@ -201,11 +199,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return Nothing
         End Function
 
-        Protected Overrides Sub ReportMissingAttribute(description As AttributeDescription, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Overrides Sub ReportMissingAttribute(description As AttributeDescription, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
             EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_NoPIAAttributeMissing2, syntaxNodeOpt, UnderlyingNamedType, description.FullName)
         End Sub
 
-        Protected Overrides Sub EmbedDefaultMembers(defaultMember As String, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Overrides Sub EmbedDefaultMembers(defaultMember As String, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
             For Each s In UnderlyingNamedType.GetMembers(defaultMember)
                 Select Case s.Kind
                     Case SymbolKind.Field

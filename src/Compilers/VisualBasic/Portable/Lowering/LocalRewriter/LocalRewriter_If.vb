@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteIfStatement(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             rewrittenCondition As BoundExpression,
             rewrittenConsequence As BoundStatement,
             rewrittenAlternative As BoundStatement,

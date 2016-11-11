@@ -196,9 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                   syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
                                                                   diagnostics:=context.Diagnostics)
 
-                ' TODO(https://github.com/dotnet/roslyn/issues/12592):
-                ' Add support for tuple attributes on interface implementations
-                Yield New Cci.TypeReferenceWithAttributes(typeRef)
+                Yield t.GetTypeRefWithAttributes(Me.DeclaringCompilation, typeRef)
             Next
             If Me.HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output

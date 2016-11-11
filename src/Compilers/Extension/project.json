@@ -1,13 +1,12 @@
 ﻿{
-  "dependencies": {
-    "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
-    "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
-    "Roslyn.Microsoft.Build": "0.0.2"
-  },
-  "frameworks": {
-    "net46": { }
-  },
-  "runtimes": {
-    "win7": { }
-  }
+    "dependencies": {
+        "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
+        "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319"
+    },
+    "frameworks": {
+        "net46": { }
+    },
+    "runtimes": {
+        "win7": { }
+    }
 }

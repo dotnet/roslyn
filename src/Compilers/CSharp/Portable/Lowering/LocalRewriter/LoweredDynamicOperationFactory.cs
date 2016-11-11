@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal LoweredDynamicOperation MakeDynamicConstructorInvocation(
-        CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             TypeSymbol type,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,

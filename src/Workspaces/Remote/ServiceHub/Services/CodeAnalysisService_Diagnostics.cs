@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -28,8 +30,11 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
+                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.GetOptionSetChecksum(), CancellationToken).ConfigureAwait(false);
+
                     // entry point for diagnostic service
-                    var solution = await RoslynServices.SolutionService.GetSolutionAsync(new Checksum(solutionChecksum), CancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+
                     var projectId = arguments.GetProjectId();
                     var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
 
@@ -52,15 +57,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<List<AnalyzerReference>> GetHostAnalyzerReferences(IEnumerable<Checksum> checksums)
+        private async Task<IEnumerable<AnalyzerReference>> GetHostAnalyzerReferences(IEnumerable<Checksum> checksums)
         {
-            var analyzers = new List<AnalyzerReference>();
-            foreach (var checksum in checksums)
-            {
-                analyzers.Add(await RoslynServices.AssetService.GetAssetAsync<AnalyzerReference>(checksum, CancellationToken).ConfigureAwait(false));
-            }
+            // get all (checksum, asset) list
+            var assets = await RoslynServices.AssetService.GetAssetsAsync<AnalyzerReference>(checksums, CancellationToken).ConfigureAwait(false);
 
-            return analyzers;
+            // return just asset part
+            return assets.Select(t => t.Item2);
         }
 
         private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)

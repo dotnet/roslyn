@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 callInput = ProcessNullableOperand(operand, operandHasValueExpression, temps, inits, doNotCaptureLocals:=True)
             End If
 
-            Debug.Assert(callInput.Type.IsSameTypeIgnoringCustomModifiers(operatorCall.Method.Parameters(0).Type),
+            Debug.Assert(callInput.Type.IsSameTypeIgnoringAll(operatorCall.Method.Parameters(0).Type),
                          "operator must take unwrapped value of the operand")
 
             Dim whenHasValue As BoundExpression = operatorCall.Update(operatorCall.Method,
@@ -249,11 +249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        suppressObjectClone:=operatorCall.SuppressObjectClone,
                                                                        type:=operatorCall.Method.ReturnType)
 
-            If Not whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType) Then
+            If Not whenHasValue.Type.IsSameTypeIgnoringAll(resultType) Then
                 whenHasValue = WrapInNullable(whenHasValue, resultType)
             End If
 
-            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType), "result type must be same as resultType")
+            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringAll(resultType), "result type must be same as resultType")
 
             ' RESULT
 

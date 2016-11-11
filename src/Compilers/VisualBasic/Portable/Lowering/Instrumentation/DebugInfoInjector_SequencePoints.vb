@@ -61,19 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 condition.Type)
         End Function
 
-        Private Shared Function MakeLocalRead(syntax As VisualBasicSyntaxNode, localSym As LocalSymbol) As BoundLocal
+        Private Shared Function MakeLocalRead(syntax As SyntaxNode, localSym As LocalSymbol) As BoundLocal
             Dim boundNode = New BoundLocal(syntax, localSym, isLValue:=False, type:=localSym.Type)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
 
-        Private Shared Function MakeLocalWrite(syntax As VisualBasicSyntaxNode, localSym As LocalSymbol) As BoundLocal
+        Private Shared Function MakeLocalWrite(syntax As SyntaxNode, localSym As LocalSymbol) As BoundLocal
             Dim boundNode = New BoundLocal(syntax, localSym, isLValue:=True, type:=localSym.Type)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
 
-        Private Shared Function MakeAssignmentExpression(syntax As VisualBasicSyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
+        Private Shared Function MakeAssignmentExpression(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
             Debug.Assert(left.Type = right.Type)
             Dim boundNode = New BoundAssignmentOperator(syntax, left, right, suppressObjectClone:=True)
             boundNode.SetWasCompilerGenerated()
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return previousPrologue
         End Function
 
-        Private Shared Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode, nameIndex As Integer) As BoundStatement
+        Private Shared Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As SyntaxNode, nameIndex As Integer) As BoundStatement
             If syntax.Parent.IsKind(SyntaxKind.PropertyStatement) Then
                 ' Property [|P As Integer = 1|] Implements I.P
                 ' Property [|P As New Integer|] Implements I.P
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundSequencePoint(syntax.Parent, rewrittenStatement)
         End Function
 
-        Private Shared Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As VisualBasicSyntaxNode) As BoundStatement
+        Private Shared Function MarkInitializerSequencePoint(rewrittenStatement As BoundStatement, syntax As SyntaxNode) As BoundStatement
             Debug.Assert(syntax.IsKind(SyntaxKind.ModifiedIdentifier))
             Debug.Assert(syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
 

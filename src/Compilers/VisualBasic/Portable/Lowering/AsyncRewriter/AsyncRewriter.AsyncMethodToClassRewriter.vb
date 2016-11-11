@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me._owner._builderType,
                             "SetResult",
                             If(Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction,
-                               {Me.F.Local(Me._exprRetValue, False)}, SpecializedCollections.EmptyArray(Of BoundExpression)()))))
+                               {Me.F.Local(Me._exprRetValue, False)}, Array.Empty(Of BoundExpression)()))))
 
                 ' STMT:   ReturnLabel: ' for the forced exit from the method, such as return from catch block above
                 bodyBuilder.Add(Me.F.Label(Me._exitLabel))

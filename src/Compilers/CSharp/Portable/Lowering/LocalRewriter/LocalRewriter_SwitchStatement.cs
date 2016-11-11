@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, node.BreakLabel, node);
 
-            // Create the sequence point if generating debug info and
-            // node is not compiler generated
+            // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
                 rewrittenStatement = _instrumenter.InstrumentSwitchStatement(node, rewrittenStatement);
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement MakeSwitchStatement(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement MakeSwitchStatementWithNonNullableExpression(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundStatement preambleOpt,
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement MakeSwitchStatementWithNullableExpression(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenExpression,
             ImmutableArray<BoundSwitchSection> rewrittenSections,
             LabelSymbol constantTargetOpt,
@@ -184,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax,
                 locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: statementBuilder.ToImmutableAndFree());
         }
 
@@ -261,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Checks whether we are generating a hash table based string switch and
         // we need to generate a new helper method for computing string hash value.
         // Creates the method if needed.
-        private void EnsureStringHashFunction(ImmutableArray<BoundSwitchSection> rewrittenSections, CSharpSyntaxNode syntaxNode)
+        private void EnsureStringHashFunction(ImmutableArray<BoundSwitchSection> rewrittenSections, SyntaxNode syntaxNode)
         {
             var module = this.EmitModule;
             if (module == null)

@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis
                 return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementTypeResolution)
                             .Select(s => reader.Compilation.CreateArrayTypeSymbol(s, rank)));
             }
-
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadSymbolKey(), reader.ReadInteger());
-            }
         }
     }
 }

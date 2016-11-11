@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
                     if (projectAbsolutePath != null)
                     {
-                        IProjectFileLoader loader;
-                        if (TryGetLoaderFromProjectPath(projectAbsolutePath, reportMode, out loader))
+                        if (TryGetLoaderFromProjectPath(projectAbsolutePath, reportMode, out var loader))
                         {
                             // projects get added to 'loadedProjects' as side-effect
                             // never prefer metadata when loading solution, all projects get loaded if they can.
@@ -202,11 +201,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            string fullPath;
-            this.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), ReportMode.Throw, out fullPath);
-
-            IProjectFileLoader loader;
-            this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader);
+            this.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), ReportMode.Throw, out var fullPath);
+            this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out var loader);
 
             var loadedProjects = new LoadState(projectPathToProjectIdMap);
             var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
@@ -221,8 +217,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private Dictionary<ProjectId, ProjectInfo> _projectIdToProjectInfoMap
                 = new Dictionary<ProjectId, ProjectInfo>();
 
-            private List<ProjectInfo> _projectInfoList
-                = new List<ProjectInfo>();
+            /// <summary>
+            /// Used to memoize results of <see cref="ProjectAlreadyReferencesProject"/> calls.
+            /// Reset any time internal state is changed.
+            /// </summary>
+            private Dictionary<ProjectId, Dictionary<ProjectId, bool>> _projectAlreadyReferencesProjectResultCache
+                = new Dictionary<ProjectId, Dictionary<ProjectId, bool>>();
 
             private readonly Dictionary<string, ProjectId> _projectPathToProjectIdMap
                 = new Dictionary<string, ProjectId>();
@@ -238,30 +238,51 @@ namespace Microsoft.CodeAnalysis.MSBuild
             public void Add(ProjectInfo info)
             {
                 _projectIdToProjectInfoMap.Add(info.Id, info);
-                _projectInfoList.Add(info);
+                //Memoized results of ProjectAlreadyReferencesProject may no longer be correct;
+                //reset the cache.
+                _projectAlreadyReferencesProjectResultCache.Clear();
             }
 
-            public bool TryGetValue(ProjectId id, out ProjectInfo info)
+            /// <summary>
+            /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
+            /// on the project identified by <paramref name="targetProject"/>.
+            /// </summary>
+            public bool ProjectAlreadyReferencesProject(ProjectId fromProject, ProjectId targetProject)
             {
-                return _projectIdToProjectInfoMap.TryGetValue(id, out info);
+                if ( !_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out var fromProjectMemo))
+                {
+                    fromProjectMemo = new Dictionary<ProjectId, bool>();
+                    _projectAlreadyReferencesProjectResultCache.Add(fromProject, fromProjectMemo);
+                }
+
+                if ( !fromProjectMemo.TryGetValue(targetProject, out var answer))
+                {
+                    answer =
+                        _projectIdToProjectInfoMap.TryGetValue(fromProject, out var info) &&
+                        info.ProjectReferences.Any(pr =>
+                            pr.ProjectId == targetProject ||
+                            ProjectAlreadyReferencesProject(pr.ProjectId, targetProject)
+                        );
+                    fromProjectMemo.Add(targetProject, answer);
+                }
+
+                return answer;
             }
 
-            public IReadOnlyList<ProjectInfo> Projects
+            public IEnumerable<ProjectInfo> Projects
             {
-                get { return _projectInfoList; }
+                get { return _projectIdToProjectInfoMap.Values; }
             }
 
             public ProjectId GetProjectId(string fullProjectPath)
             {
-                ProjectId id;
-                _projectPathToProjectIdMap.TryGetValue(fullProjectPath, out id);
+                _projectPathToProjectIdMap.TryGetValue(fullProjectPath, out var id);
                 return id;
             }
 
             public ProjectId GetOrCreateProjectId(string fullProjectPath)
             {
-                ProjectId id;
-                if (!_projectPathToProjectIdMap.TryGetValue(fullProjectPath, out id))
+                if (!_projectPathToProjectIdMap.TryGetValue(fullProjectPath, out var id))
                 {
                     id = ProjectId.CreateNewId(debugName: fullProjectPath);
                     _projectPathToProjectIdMap.Add(fullProjectPath, id);
@@ -344,9 +365,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
             {
-                string name;
-                ImmutableArray<string> folders;
-                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out var name, out var folders);
 
                 docs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
@@ -361,9 +380,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var additionalDocs = new List<DocumentInfo>();
             foreach (var docFileInfo in additionalDocFileInfos)
             {
-                string name;
-                ImmutableArray<string> folders;
-                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out var name, out var folders);
 
                 additionalDocs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
@@ -491,9 +508,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             foreach (var projectFileReference in projectFileReferences)
             {
-                string fullPath;
-
-                if (TryGetAbsoluteProjectPath(projectFileReference.Path, Path.GetDirectoryName(thisProjectPath), reportMode, out fullPath))
+                if (TryGetAbsoluteProjectPath(projectFileReference.Path, Path.GetDirectoryName(thisProjectPath), reportMode, out var fullPath))
                 {
                     // if the project is already loaded, then just reference the one we have
                     var existingProjectId = loadedProjects.GetProjectId(fullPath);
@@ -503,8 +518,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         continue;
                     }
 
-                    IProjectFileLoader loader;
-                    TryGetLoaderFromProjectPath(fullPath, ReportMode.Ignore, out loader);
+                    TryGetLoaderFromProjectPath(fullPath, ReportMode.Ignore, out var loader);
 
                     // get metadata if preferred or if loader is unknown
                     if (preferMetadata || loader == null)
@@ -526,7 +540,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         // If that other project already has a reference on us, this will cause a circularity.
                         // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
                         // must be taken at least once.
-                        if (ProjectAlreadyReferencesProject(loadedProjects, projectId, targetProject: thisProjectId))
+                        if (loadedProjects.ProjectAlreadyReferencesProject(projectId, targetProject: thisProjectId))
                         {
                             // We'll try to make this metadata if we can
                             var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
@@ -554,18 +568,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return resolvedReferences;
-        }
-
-        /// <summary>
-        /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
-        /// on the project identified by <paramref name="targetProject"/>.
-        /// </summary>
-        private bool ProjectAlreadyReferencesProject(LoadState loadedProjects, ProjectId fromProject, ProjectId targetProject)
-        {
-            ProjectInfo info;
-
-            return loadedProjects.TryGetValue(fromProject, out info) && info.ProjectReferences.Any(pr => pr.ProjectId == targetProject ||
-                ProjectAlreadyReferencesProject(loadedProjects, pr.ProjectId, targetProject));
         }
 
         /// <summary>
@@ -648,8 +650,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     extension = extension.Substring(1);
                 }
 
-                string language;
-                if (_extensionToLanguageMap.TryGetValue(extension, out language))
+                if (_extensionToLanguageMap.TryGetValue(extension, out var language))
                 {
                     if (_workspace.Services.SupportedLanguages.Contains(language))
                     {

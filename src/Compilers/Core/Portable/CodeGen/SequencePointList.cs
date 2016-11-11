@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Construct a list with no sequence points.
         private SequencePointList()
         {
-            _points = SpecializedCollections.EmptyArray<OffsetAndSpan>();
+            _points = Array.Empty<OffsetAndSpan>();
         }
 
         // Construct a list with sequence points from exactly one syntax tree.
@@ -118,15 +118,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string lastPath = null;
             Cci.DebugSourceDocument lastDebugDocument = null;
 
-            // First, count the number of sequence points.
-            int count = 0;
-            SequencePointList current = this;
-            while (current != null)
-            {
-                count += current._points.Length;
-                current = current._next;
-            }
-
             FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
@@ -136,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             lastPathIsMapped = firstReal.Value.HasMappedPath;
             lastDebugDocument = documentProvider(lastPath, basePath: lastPathIsMapped ? this._tree.FilePath : null);
 
-            current = this;
+            SequencePointList current = this;
             while (current != null)
             {
                 SyntaxTree currentTree = current._tree;
@@ -203,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // Find the document for the first non-hidden sequence point (issue #4370)
-        // Returns null if a real sequence point was found.
+        // Returns null if a real sequence point was not found.
         private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
@@ -216,10 +207,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
                     if (!isHidden)
                     {
-                        FileLinePositionSpan fileLinePositionSpan = this._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
+                        FileLinePositionSpan fileLinePositionSpan = current._tree.GetMappedLineSpanAndVisibility(span, out isHidden);
                         if (!isHidden)
                         {
-
                             return fileLinePositionSpan;
                         }
                     }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -141,9 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
+            DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
+            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
                 return false;
             }
@@ -190,8 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             lines[0] = lines[0].Substring(3);
 
             // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(subjectBuffer.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(subjectBuffer.GetOption(FormattingOptions.UseTabs), subjectBuffer.GetOption(FormattingOptions.TabSize));
+            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
+            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count - 1; i++)
             {
                 lines[i] = indentText + lines[i];
@@ -217,21 +219,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
+            DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
             // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
             // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
             // on ENTER inside an existing XML doc comment.
 
-            if (subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
+            if (subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, options, cancellationToken))
                 {
                     return true;
                 }
             }
 
-            if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+            if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, options, cancellationToken))
             {
                 return true;
             }
@@ -246,6 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
+            DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
@@ -288,8 +292,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             lines[0] = lines[0].Substring(3);
 
             // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(subjectBuffer.GetOption(FormattingOptions.TabSize));
-            var indentText = lineOffset.CreateIndentationString(subjectBuffer.GetOption(FormattingOptions.UseTabs), subjectBuffer.GetOption(FormattingOptions.TabSize));
+            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
+            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count; i++)
             {
                 lines[i] = indentText + lines[i];
@@ -330,6 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
+            DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
@@ -376,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
-            InsertExteriorTrivia(textView, subjectBuffer, currentLine, previousLine);
+            InsertExteriorTrivia(textView, subjectBuffer, options, currentLine, previousLine);
 
             return true;
         }
@@ -388,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             int originalPosition,
             ITextBuffer subjectBuffer,
             ITextView textView,
+            DocumentOptionSet options,
             CancellationToken cancellationToken)
         {
             var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
@@ -407,10 +413,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             AddLineBreaks(text, lines);
 
             // Add indents
-            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(subjectBuffer.GetOption(FormattingOptions.TabSize));
+            var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
             Contract.Assume(line.Start + lineOffset == startPosition);
 
-            var indentText = lineOffset.CreateIndentationString(subjectBuffer.GetOption(FormattingOptions.UseTabs), subjectBuffer.GetOption(FormattingOptions.TabSize));
+            var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count; i++)
             {
                 lines[i] = indentText + lines[i];
@@ -432,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             ITextBuffer subjectBuffer,
             ITextView textView,
             int originalCaretPosition,
-            Func<SyntaxTree, SourceText, int, int, ITextBuffer, ITextView, CancellationToken, bool> insertAction,
+            Func<SyntaxTree, SourceText, int, int, ITextBuffer, ITextView, DocumentOptionSet, CancellationToken, bool> insertAction,
             CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -449,7 +455,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
-            return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
@@ -671,12 +678,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            InsertExteriorTrivia(view, subjectBuffer, currentLine, previousLine);
+            var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
+            InsertExteriorTrivia(view, subjectBuffer, documentOptions, currentLine, previousLine);
         }
 
-        private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, TextLine currentLine, TextLine previousLine)
+        private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, DocumentOptionSet options, TextLine currentLine, TextLine previousLine)
         {
-            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, subjectBuffer);
+            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, options);
 
             var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
             var replaceSpan = firstNonWhitespaceOffset != null
@@ -688,10 +697,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + insertionText.Length));
         }
 
-        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, ITextBuffer subjectBuffer)
+        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, DocumentOptionSet options)
         {
-            var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
-            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
+            var useTabs = options.GetOption(FormattingOptions.UseTabs);
+            var tabSize = options.GetOption(FormattingOptions.TabSize);
 
             var previousLineText = previousLine.ToString();
             var firstNonWhitespaceColumn = previousLineText.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);

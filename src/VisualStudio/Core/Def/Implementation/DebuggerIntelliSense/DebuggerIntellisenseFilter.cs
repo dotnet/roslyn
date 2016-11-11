@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,10 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService, TProject> : AbstractVsTextViewFilter<TPackage, TLanguageService, TProject>, IDisposable
-        where TPackage : AbstractPackage<TPackage, TLanguageService, TProject>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService, TProject>
-        where TProject : AbstractProject
+    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable
+        where TPackage : AbstractPackage<TPackage, TLanguageService>
+        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IWpfTextView _wpfTextView;
@@ -28,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal bool Enabled { get; set; }
 
         public DebuggerIntelliSenseFilter(
-            AbstractLanguageService<TPackage, TLanguageService, TProject> languageService,
+            AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService adapterFactory,
             ICommandHandlerServiceFactory commandFactory)

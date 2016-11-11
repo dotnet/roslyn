@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal class DirectiveParser : SyntaxParser
     {
         private const int MAX_DIRECTIVE_IDENTIFIER_WIDTH = 128;
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                eod = eod.WithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
+                eod = eod.TokenWithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
                 if (_context.HasUnfinishedRegion())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
@@ -547,7 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (builder != null)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.PreprocessingMessage(builder.ToString()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.PreprocessingMessage(builder.ToString()));
             }
 
             return endOfDirective;
@@ -592,7 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (!skippedTokens.IsNull)
             {
-                endOfDirective = endOfDirective.WithLeadingTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
+                endOfDirective = endOfDirective.TokenWithLeadingTrivia(
+                    SyntaxFactory.SkippedTokensTrivia(skippedTokens.ToList()));
             }
 
             return endOfDirective;

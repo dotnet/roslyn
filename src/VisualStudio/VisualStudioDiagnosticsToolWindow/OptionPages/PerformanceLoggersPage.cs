@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
-        private IOptionService _optionService;
+        private IGlobalOptionService _optionService;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
@@ -22,11 +22,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-                var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _optionService = workspace.Services.GetService<IOptionService>();
+                _optionService = componentModel.GetService<IGlobalOptionService>();
             }
 
-            return new InternalOptionsControl(LoggerOptions.FeatureName, serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -35,17 +34,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             if (_optionService.GetOption(LoggerOptions.EtwLoggerKey))
             {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new EtwLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger || l is TraceLogger));
-                return;
+                Logger.SetLogger(AggregateLogger.AddOrReplace(new EtwLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger));
             }
 
             if (_optionService.GetOption(LoggerOptions.TraceLoggerKey))
             {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceLogger(_optionService), Logger.GetLogger(), l => l is EtwLogger || l is TraceLogger));
-                return;
+                Logger.SetLogger(AggregateLogger.AddOrReplace(new TraceLogger(_optionService), Logger.GetLogger(), l => l is TraceLogger));
             }
-
-            Logger.SetLogger(null);
         }
     }
 }

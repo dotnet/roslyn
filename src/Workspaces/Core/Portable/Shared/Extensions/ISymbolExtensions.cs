@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.ArrayType;
         }
 
+        public static bool IsTupleType(this ISymbol symbol)
+        {
+            return (symbol as ITypeSymbol)?.IsTupleType ?? false;
+        }
+
         public static bool IsAnonymousFunction(this ISymbol symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction;
@@ -416,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            var results = ArrayBuilder<ITypeSymbol>.GetInstance();
             results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
@@ -426,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return results.AsImmutable();
+            return results.ToImmutableAndFree();
         }
 
         public static bool IsAttribute(this ISymbol symbol)
@@ -819,6 +824,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  method.MethodKind == MethodKind.EventRemove);
         }
 
+        public static bool IsFromSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
+        }
+
         public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
         {
             return new DeclarationModifiers(
@@ -946,7 +956,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
         /// attribute.
         /// </summary>
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             symbols = symbols.RemoveOverriddenSymbolsWithinSet();
 
@@ -962,7 +973,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
             Func<Location, bool> isSymbolDefinedInSource = l => l.IsInSource;
-            return symbols.Where(s =>
+            return symbols.WhereAsArray(s =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
@@ -975,9 +986,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     hideModuleNameAttribute));
         }
 
-        private static IEnumerable<T> RemoveOverriddenSymbolsWithinSet<T>(this IEnumerable<T> symbols) where T : ISymbol
+        private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            HashSet<ISymbol> overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new HashSet<ISymbol>();
 
             foreach (var symbol in symbols)
             {
@@ -987,12 +998,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return symbols.Where(s => !overriddenSymbols.Contains(s));
+            return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));
         }
 
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
-            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation).Where(s => !s.IsUnsafe());
+            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
+                .WhereAsArray(s => !s.IsUnsafe());
         }
     }
 }

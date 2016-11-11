@@ -126,13 +126,13 @@
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Automatically_format_block_on" xml:space="preserve">
+  <data name="Automatically_format_block_on_close_brace" xml:space="preserve">
     <value>Automatically format _block on }</value>
   </data>
   <data name="Automatically_format_on_paste" xml:space="preserve">
     <value>Automatically format on _paste</value>
   </data>
-  <data name="Automatically_format_statement_on" xml:space="preserve">
+  <data name="Automatically_format_statement_on_semicolon" xml:space="preserve">
     <value>Automatically format _statement on ;</value>
   </data>
   <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
@@ -312,12 +312,6 @@
   <data name="Use_var_when_generating_locals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
-  <data name="For_locals_parameters_and_members" xml:space="preserve">
-    <value>For locals, parameters and members</value>
-  </data>
-  <data name="For_member_access_expressions" xml:space="preserve">
-    <value>For member access expressions</value>
-  </data>
   <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
@@ -368,9 +362,6 @@
   </data>
   <data name="Using_Directives" xml:space="preserve">
     <value>Using Directives</value>
-  </data>
-  <data name="Outlining" xml:space="preserve">
-    <value>Outlining</value>
   </data>
   <data name="Performance" xml:space="preserve">
     <value>Performance</value>
@@ -488,5 +479,32 @@
   </data>
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
+  </data>
+  <data name="null_checking_colon" xml:space="preserve">
+    <value>'null' checking:</value>
+  </data>
+  <data name="Prefer_throw_expression" xml:space="preserve">
+    <value>Prefer throw-expression</value>
+  </data>
+  <data name="Prefer_conditional_delegate_call" xml:space="preserve">
+    <value>Prefer conditional delegate call</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'is' with 'cast' check</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'as' with 'null' check</value>
+  </data>
+  <data name="Prefer_block_body" xml:space="preserve">
+    <value>Prefer block body</value>
+  </data>
+  <data name="Prefer_expression_body" xml:space="preserve">
+    <value>Prefer expression body</value>
+  </data>
+  <data name="Automatically_format_on_return" xml:space="preserve">
+    <value>Automatically format on return</value>
+  </data>
+  <data name="Automatically_format_when_typing" xml:space="preserve">
+    <value>Automatically format when typing</value>
   </data>
 </root>

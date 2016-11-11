@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.DeclarationPattern:
                         {
-                            return ((BoundDeclarationPattern)node).LocalSymbol;
+                            return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitQueryClause(node);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
         {
             if (!_dataFlowsOut.Contains(symbol) && !(symbol is FieldSymbol) && !IsInside)
             {
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.ReportUnassigned(symbol, node);
         }
 
-        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, CSharpSyntaxNode node, Location location)
+        protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
             if (!_dataFlowsOut.Contains(parameter) && (node == null || node is ReturnStatementSyntax))
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.ReportUnassignedOutParameter(parameter, node, location);
         }
 
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
         {
             if (!IsInside)
             {

@@ -94,6 +94,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Me.&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Me() As String
+            Get
+                Return ResourceManager.GetString("Add_Me", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add Overloads.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String
@@ -1143,15 +1152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implement Abstract Class.
-        '''</summary>
-        Friend ReadOnly Property Implement_Abstract_Class() As String
-            Get
-                Return ResourceManager.GetString("Implement_Abstract_Class", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
         Friend ReadOnly Property Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement() As String
@@ -1517,6 +1517,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Make_0_an_Async_Function() As String
             Get
                 Return ResourceManager.GetString("Make_0_an_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Function.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Function() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Function", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Make Async Sub.
+        '''</summary>
+        Friend ReadOnly Property Make_Async_Sub() As String
+            Get
+                Return ResourceManager.GetString("Make_Async_Sub", resourceCulture)
             End Get
         End Property
         

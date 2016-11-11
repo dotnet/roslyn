@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundExpression RewriteConditionalOperator(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,

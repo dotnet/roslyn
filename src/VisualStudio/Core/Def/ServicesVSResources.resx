@@ -480,6 +480,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
+  <data name="NotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="SuppressionNotSupportedToolTip" xml:space="preserve">
+    <value>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</value>
+  </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
@@ -560,9 +566,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Pascal_Case_Name" xml:space="preserve">
     <value>Pascal Case Name</value>
-  </data>
-  <data name="Custom_Tags_must_match_all" xml:space="preserve">
-    <value>Custom Tags (must match all)</value>
   </data>
   <data name="Severity_colon" xml:space="preserve">
     <value>Severity:</value>
@@ -647,7 +650,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Project_loading_failed" xml:space="preserve">
     <value>Project loading failed.</value>
   </data>
-  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_2_Open_a_Visual_Studio_Developer_Command_Prompt_3_Set_environment_variable_TraceDesignTime_to_true_set_TraceDesignTime_true_4_Delete_vs_directory_suo_file_5_Restart_VS_from_the_command_prompt_you_set_the_environment_varaible_devenv_6_Open_the_solution_7_Check_0_and_look_for_the_failed_tasks_FAILED" xml:space="preserve">
+  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows" xml:space="preserve">
     <value>To see what caused the issue, please try below.
 
 1. Close Visual Studio
@@ -699,19 +702,118 @@ Additional information: {1}</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
-  <data name="Copy_to_clipboard" xml:space="preserve">
+  <data name="Copy_to_Clipboard" xml:space="preserve">
     <value>Copy to Clipboard</value>
   </data>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
-  </data>
-  <data name="End_of_inner_exception_stack" xml:space="preserve">
-    <value>--- End of inner exception stack trace ---</value>
   </data>
   <data name="in_0_line_1" xml:space="preserve">
     <value>in {0}:line {1}</value>
   </data>
   <data name="Unknown_parameters" xml:space="preserve">
     <value>&lt;Unknown Parameters&gt;</value>
+  </data>
+  <data name="End_of_inner_exception_stack" xml:space="preserve">
+    <value>--- End of inner exception stack trace ---</value>
+  </data>
+  <data name="For_locals_parameters_and_members" xml:space="preserve">
+    <value>For locals, parameters and members</value>
+  </data>
+  <data name="For_member_access_expressions" xml:space="preserve">
+    <value>For member access expressions</value>
+  </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Expression_preferences_colon" xml:space="preserve">
+    <value>Expression preferences:</value>
+  </data>
+  <data name="Block_Structure_Guides" xml:space="preserve">
+    <value>Block Structure Guides</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
+    <value>Show guides for code level constructs</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show guides for declaration level constructs</value>
+  </data>
+  <data name="Show_outlining_for_code_level_constructs" xml:space="preserve">
+    <value>Show outlining for code level constructs</value>
+  </data>
+  <data name="Show_outlining_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show outlining for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show outlining for declaration level constructs</value>
+  </data>
+  <data name="Variable_preferences_colon" xml:space="preserve">
+    <value>Variable preferences:</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
+  <data name="For_methods" xml:space="preserve">
+    <value>For methods</value>
+  </data>
+  <data name="Code_block_preferences_colon" xml:space="preserve">
+    <value>Code block preferences:</value>
+  </data>
+  <data name="For_accessors" xml:space="preserve">
+    <value>For accessors</value>
+  </data>
+  <data name="For_constructors" xml:space="preserve">
+    <value>For constructors</value>
+  </data>
+  <data name="For_indexers" xml:space="preserve">
+    <value>For indexers</value>
+  </data>
+  <data name="For_operators" xml:space="preserve">
+    <value>For operators</value>
+  </data>
+  <data name="For_properties" xml:space="preserve">
+    <value>For properties</value>
+  </data>
+  <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
+    <value>Some naming rules are incomplete. Please complete or remove them.</value>
+  </data>
+  <data name="Manage_specifications" xml:space="preserve">
+    <value>Manage specifications</value>
+  </data>
+  <data name="Manage_styles" xml:space="preserve">
+    <value>Manage styles</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="Specification" xml:space="preserve">
+    <value>Specification</value>
+  </data>
+  <data name="Style" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
+    <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
+  </data>
+  <data name="Prefer_collection_initializer" xml:space="preserve">
+    <value>Prefer collection initializer</value>
+  </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
+  <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
+    <value>Collapse #regions when collapsing to definitions</value>
+  </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
   </data>
 </root>

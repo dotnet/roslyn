@@ -3,6 +3,7 @@
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
@@ -25,47 +26,87 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeParameterFromArgumentInferT() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main() \n Dim f As [|Foo(Of Integer)|] \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main() \n Dim f As Foo(Of Integer) \n End Sub \n End Module \n Friend Class Foo(Of T) \n End Class"),
+"Module Program
+    Sub Main()
+        Dim f As [|Foo(Of Integer)|]
+    End Sub
+End Module",
+"Module Program
+    Sub Main()
+        Dim f As Foo(Of Integer)
+    End Sub
+End Module
+Friend Class Foo(Of T)
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromTypeParameter() As Task
             Await TestAsync(
-NewLines("Class C \n Dim emp As List(Of [|Employee|]) \n End Class"),
-NewLines("Class C \n Dim emp As List(Of Employee) \n Private Class Employee \n End Class \n End Class"),
+"Class C
+    Dim emp As List(Of [|Employee|])
+End Class",
+"Class C
+    Dim emp As List(Of Employee)
+    Private Class Employee
+    End Class
+End Class",
 index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromFieldDeclarationIntoSameType() As Task
             Await TestAsync(
-NewLines("Class C \n dim f as [|Foo|] \n End Class"),
-NewLines("Class C \n dim f as Foo \n Private Class Foo \n End Class \n End Class"),
+"Class C
+    dim f as [|Foo|]
+End Class",
+"Class C
+    dim f as Foo
+    Private Class Foo
+    End Class
+End Class",
 index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromFieldDeclarationIntoSameNamespace() As Task
             Await TestAsync(
-NewLines("Class C \n dim f as [|Foo|] \n End Class"),
-NewLines("Class C \n dim f as Foo \n End Class \n Friend Class Foo \n End Class"),
+"Class C
+    dim f as [|Foo|]
+End Class",
+"Class C
+    dim f as Foo
+End Class
+Friend Class Foo
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnLowercaseName() As Task
             Await TestMissingAsync(
-NewLines("Class C \n dim f as [|foo|] \n End Class"))
+"Class C
+    dim f as [|foo|]
+End Class")
         End Function
 
         <WorkItem(539716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539716")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromFullyQualifiedFieldIntoSameNamespace() As Task
             Await TestAsync(
-NewLines("Namespace NS \n Class Foo \n Private x As New NS.[|Bar|] \n End Class \n End Namespace"),
-NewLines("Namespace NS \n Class Foo \n Private x As New NS.Bar \n End Class \n Friend Class Bar \n End Class \n End Namespace"),
+"Namespace NS
+    Class Foo
+        Private x As New NS.[|Bar|]
+    End Class
+End Namespace",
+"Namespace NS
+    Class Foo
+        Private x As New NS.Bar
+    End Class
+    Friend Class Bar
+    End Class
+End Namespace",
 index:=1,
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Function
@@ -73,80 +114,275 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassWithCtorFromObjectCreation() As Task
             Await TestAsync(
-NewLines("Class C \n Dim f As Foo = New [|Foo|]() \n End Class"),
-NewLines("Class C \n Dim f As Foo = New Foo() \n Private Class Foo \n Public Sub New() \n End Sub \n End Class \n End Class"),
+"Class C
+    Dim f As Foo = New [|Foo|]()
+End Class",
+"Class C
+    Dim f As Foo = New Foo()
+    Private Class Foo
+        Public Sub New()
+        End Sub
+    End Class
+End Class",
 index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestCreateException() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Throw New [|Foo|]() \n End Sub \n End Module"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports System.Runtime.Serialization \n Module Program \n Sub Main(args As String()) \n Throw New Foo() \n End Sub \n End Module \n <Serializable> Friend Class Foo \n Inherits Exception \n Public Sub New() \n End Sub \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As SerializationInfo, context As StreamingContext) \n MyBase.New(info, context) \n End Sub \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Throw New [|Foo|]()
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.Serialization
+Module Program
+    Sub Main(args As String())
+        Throw New Foo()
+    End Sub
+End Module
+<Serializable> Friend Class Foo
+    Inherits Exception
+    Public Sub New()
+    End Sub
+    Public Sub New(message As String)
+        MyBase.New(message)
+    End Sub
+    Public Sub New(message As String, innerException As Exception)
+        MyBase.New(message, innerException)
+    End Sub
+    Protected Sub New(info As SerializationInfo, context As StreamingContext)
+        MyBase.New(info, context)
+    End Sub
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestCreateFieldDelegatingConstructor() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Call New [|Foo|](1, ""blah"") \n End Sub \n End Module"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Call New Foo(1, ""blah"") \n End Sub \n End Module \n Friend Class Foo \n Private v1 As Integer \n Private v2 As String \n Public Sub New(v1 As Integer, v2 As String) \n Me.v1 = v1 \n Me.v2 = v2 \n End Sub \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Call New [|Foo|](1, ""blah"")
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Call New Foo(1, ""blah"")
+    End Sub
+End Module
+Friend Class Foo
+    Private v1 As Integer
+    Private v2 As String
+    Public Sub New(v1 As Integer, v2 As String)
+        Me.v1 = v1
+        Me.v2 = v2
+    End Sub
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestCreateBaseDelegatingConstructor() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As B = New [|D|](4) \n End Sub \n End Module \n Class B \n Protected Sub New(value As Integer) \n End Sub \n End Class"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As B = New D(4) \n End Sub \n End Module \n Friend Class D \n Inherits B \n Public Sub New(value As Integer) \n MyBase.New(value) \n End Sub \n End Class \n Class B \n Protected Sub New(value As Integer) \n End Sub \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As B = New [|D|](4)
+    End Sub
+End Module
+Class B
+    Protected Sub New(value As Integer)
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As B = New D(4)
+    End Sub
+End Module
+Friend Class D
+    Inherits B
+    Public Sub New(value As Integer)
+        MyBase.New(value)
+    End Sub
+End Class
+Class B
+    Protected Sub New(value As Integer)
+    End Sub
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoNamespace() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Namespace Outer \n Module Program \n Sub Main(args As String()) \n Call New [|Blah|]() \n End Sub \n End Module \n End Namespace"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Namespace Outer \n Module Program \n Sub Main(args As String()) \n Call New Blah() \n End Sub \n End Module \n Friend Class Blah \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Namespace Outer
+    Module Program
+        Sub Main(args As String())
+            Call New [|Blah|]()
+        End Sub
+    End Module
+End Namespace",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Namespace Outer
+    Module Program
+        Sub Main(args As String())
+            Call New Blah()
+        End Sub
+    End Module
+    Friend Class Blah
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateAssignmentToBaseField() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(i As Integer) \n Dim d As B = New [|D|](i) \n End Sub \n End Module \n Class B \n Protected i As Integer \n End Class"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(i As Integer) \n Dim d As B = New D(i) \n End Sub \n End Module \n Friend Class D \n Inherits B \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class \n Class B \n Protected i As Integer \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(i As Integer)
+        Dim d As B = New [|D|](i)
+    End Sub
+End Module
+Class B
+    Protected i As Integer
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(i As Integer)
+        Dim d As B = New D(i)
+    End Sub
+End Module
+Friend Class D
+    Inherits B
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class
+Class B
+    Protected i As Integer
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateGenericType() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New [|Foo(Of M)|] \n End Sub \n End Class"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New Foo(Of M) \n End Sub \n End Class \n Friend Class Foo(Of M) \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Outer(Of M)
+    Sub Main(i As Integer)
+        Call New [|Foo(Of M)|]
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Outer(Of M)
+    Sub Main(i As Integer)
+        Call New Foo(Of M)
+    End Sub
+End Class
+Friend Class Foo(Of M)
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoClass() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New [|Foo(Of M)|] \n End Sub \n End Class"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New Foo(Of M) \n End Sub \n Private Class Foo(Of M) \n End Class \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Outer(Of M)
+    Sub Main(i As Integer)
+        Call New [|Foo(Of M)|]
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Outer(Of M)
+    Sub Main(i As Integer)
+        Call New Foo(Of M)
+    End Sub
+    Private Class Foo(Of M)
+    End Class
+End Class",
 index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoClassFromFullyQualifiedInvocation() As Task
             Await TestAsync(
-NewLines("Class Program \n Sub Test() \n Dim d = New [|Program.Foo|]() \n End Sub \n End Class"),
-NewLines("Class Program \n Sub Test() \n Dim d = New Program.Foo() \n End Sub \n Private Class Foo \n Public Sub New() \n End Sub \n End Class \n End Class"))
+"Class Program
+    Sub Test()
+        Dim d = New [|Program.Foo|]()
+    End Sub
+End Class",
+"Class Program
+    Sub Test()
+        Dim d = New Program.Foo()
+    End Sub
+    Private Class Foo
+        Public Sub New()
+        End Sub
+    End Class
+End Class")
         End Function
 
         <WorkItem(5776, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoNamespaceFromFullyQualifiedInvocation() As Task
             Await TestAsync(
-NewLines("Namespace Foo \n Class Program \n Sub Test() \n Dim d = New [|Foo.Bar|]() \n End Sub \n End Class \n End Namespace"),
-NewLines("Namespace Foo \n Class Program \n Sub Test() \n Dim d = New Foo.Bar() \n End Sub \n End Class \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
+"Namespace Foo
+    Class Program
+        Sub Test()
+            Dim d = New [|Foo.Bar|]()
+        End Sub
+    End Class
+End Namespace",
+"Namespace Foo
+    Class Program
+        Sub Test()
+            Dim d = New Foo.Bar()
+        End Sub
+    End Class
+    Friend Class Bar
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace",
 index:=1,
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Function
@@ -154,16 +390,38 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestInSecondConstraintClause() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program(Of T As {Foo, [|IBar|]}) \n End Class"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program(Of T As {Foo, IBar}) \n End Class \n Friend Interface IBar \n End Interface"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program(Of T As {Foo, [|IBar|]})
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program(Of T As {Foo, IBar})
+End Class
+Friend Interface IBar
+End Interface",
 index:=1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoNewNamespace() As Task
             Await TestAddDocument(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Sub Main() \n Call New Foo.[|Bar|]() \n End Sub \n End Class"),
-NewLines("Namespace Foo \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Sub Main()
+        Call New Foo.[|Bar|]()
+    End Sub
+End Class",
+"Namespace Foo
+    Friend Class Bar
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace",
 expectedContainers:={"Foo"},
 expectedDocumentName:="Bar.vb")
         End Function
@@ -171,8 +429,16 @@ expectedDocumentName:="Bar.vb")
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoGlobalNamespaceNewFile() As Task
             Await TestAddDocument(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
-NewLines("Friend Class Foo \n End Class"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim x As New [|Foo|]
+    End Sub
+End Module",
+"Friend Class Foo
+End Class",
 expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Foo.vb")
         End Function
@@ -180,24 +446,75 @@ expectedDocumentName:="Foo.vb")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeThatImplementsInterface1() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As [|IFoo|] = New Foo() \n End Sub \n End Module"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As IFoo = New Foo() \n End Sub \n End Module \n Friend Interface IFoo \n End Interface"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As [|IFoo|] = New Foo()
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As IFoo = New Foo()
+    End Sub
+End Module
+Friend Interface IFoo
+End Interface",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeThatImplementsInterface2() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As IFoo = New [|Foo|]() \n End Sub \n End Module \n Friend Interface IFoo \n End Interface"),
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As IFoo = New Foo() \n End Sub \n End Module \n Friend Class Foo \n Implements IFoo \n End Class \n Friend Interface IFoo \n End Interface"),
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As IFoo = New [|Foo|]()
+    End Sub
+End Module
+Friend Interface IFoo
+End Interface",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        Dim d As IFoo = New Foo()
+    End Sub
+End Module
+Friend Class Foo
+    Implements IFoo
+End Class
+Friend Interface IFoo
+End Interface",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeWithNamedArguments() As Task
             Await TestAsync(
-NewLines("Class Program \n Sub Test() \n Dim x = New [|Bar|](value:=7) \n End Sub \n End Class"),
-NewLines("Class Program \n Sub Test() \n Dim x = New Bar(value:=7) \n End Sub \n End Class \n Friend Class Bar \n Private value As Integer \n Public Sub New(value As Integer) \n Me.value = value \n End Sub \n End Class"),
+"Class Program
+    Sub Test()
+        Dim x = New [|Bar|](value:=7)
+    End Sub
+End Class",
+"Class Program
+    Sub Test()
+        Dim x = New Bar(value:=7)
+    End Sub
+End Class
+Friend Class Bar
+    Private value As Integer
+    Public Sub New(value As Integer)
+        Me.value = value
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -205,31 +522,55 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotIntoType() As Task
             Await TestActionCountAsync(
-NewLines("Class Program \n Inherits [|Temp|] \n Sub Test() \n End Sub \n End Class"),
+"Class Program
+    Inherits [|Temp|]
+    Sub Test()
+    End Sub
+End Class",
 count:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromReturnType() As Task
             Await TestAsync(
-NewLines("Class Foo \n Function F() As [|Bar|] \n End Function \n End Class"),
-NewLines("Class Foo \n Function F() As Bar \n End Function \n End Class \n Public Class Bar \n End Class"),
+"Class Foo
+    Function F() As [|Bar|]
+    End Function
+End Class",
+"Class Foo
+    Function F() As Bar
+    End Function
+End Class
+Public Class Bar
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassWhereKeywordBecomesTypeName() As Task
             Await TestAsync(
-NewLines("Class Foo \n Dim x As New [|[Class]|] \n End Class"),
-NewLines("Class Foo \n Dim x As New [Class] \n End Class \n Friend Class [Class] \n End Class"),
+"Class Foo
+    Dim x As New [|[Class]|]
+End Class",
+"Class Foo
+    Dim x As New [Class]
+End Class
+Friend Class [Class]
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNegativeTestGenerateClassFromEscapedType() As Task
             Await TestAsync(
-NewLines("Class Foo \n Dim x as New [|[Bar]|] \n End Class"),
-NewLines("Class Foo \n Dim x as New [Bar] \n End Class \n Friend Class Bar \n End Class"),
+"Class Foo
+    Dim x as New [|[Bar]|]
+End Class",
+"Class Foo
+    Dim x as New [Bar]
+End Class
+Friend Class Bar
+End Class",
 index:=1)
         End Function
 
@@ -237,8 +578,18 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeIntoContainingNamespace() As Task
             Await TestAsync(
-NewLines("Namespace NS \n Class Foo \n Dim x As New NS.[|Bar|] \n End Class \n End Namespace"),
-NewLines("Namespace NS \n Class Foo \n Dim x As New NS.Bar \n End Class \n Friend Class Bar \n End Class \n End Namespace"),
+"Namespace NS
+    Class Foo
+        Dim x As New NS.[|Bar|]
+    End Class
+End Namespace",
+"Namespace NS
+    Class Foo
+        Dim x As New NS.Bar
+    End Class
+    Friend Class Bar
+    End Class
+End Namespace",
 index:=1,
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Function
@@ -247,8 +598,14 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeIntoContainingModule() As Task
             Await TestAsync(
-NewLines("Module M \n Dim x As [|C|] \n End Module"),
-NewLines("Module M \n Dim x As C \n Private Class C \n End Class \n End Module"),
+"Module M
+    Dim x As [|C|]
+End Module",
+"Module M
+    Dim x As C
+    Private Class C
+    End Class
+End Module",
 index:=2)
         End Function
 
@@ -256,15 +613,22 @@ index:=2)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateInterfaceInImplementsStatement() As Task
             Await TestAsync(
-NewLines("Class C \n Implements [|D|] \n End Class"),
-NewLines("Class C \n Implements D \n End Class \n Friend Interface D \n End Interface"),
+"Class C
+    Implements [|D|]
+End Class",
+"Class C
+    Implements D
+End Class
+Friend Interface D
+End Interface",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAbsenceOfGenerateIntoInvokingTypeForConstraintList() As Task
             Await TestActionCountAsync(
-NewLines("Class EmployeeList(Of T As [|Employee|]) \n End Class"),
+"Class EmployeeList(Of T As [|Employee|])
+End Class",
 count:=3,
 parseOptions:=TestOptions.Regular)
         End Function
@@ -272,14 +636,21 @@ parseOptions:=TestOptions.Regular)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnImportsDirective() As Task
             Await TestMissingAsync(
-NewLines("Imports [|System|]"))
+"Imports [|System|]")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNoContainersInNewType() As Task
             Await TestAddDocument(
-NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
-NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
+"Class Base
+    Sub Main
+        Dim p = New [|Derived|]()
+    End Sub
+End Class",
+"Friend Class Derived
+    Public Sub New()
+    End Sub
+End Class",
 expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Derived.vb")
         End Function
@@ -287,34 +658,64 @@ expectedDocumentName:="Derived.vb")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedInsideBinaryExpressions() As Task
             Await TestMissingAsync(
-NewLines("Class Base \n Sub Main \n Dim a = 1 + [|Foo|] \n End Sub \n End Class"))
+"Class Base
+    Sub Main
+        Dim a = 1 + [|Foo|]
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedIfLeftSideOfDotIsNotAName() As Task
             Await TestMissingAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n Call 1.[|T|] \n End Sub \n End Module"))
+"Module Program
+    Sub Main(args As String())
+        Call 1.[|T|]
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOfferedIfLeftFromDotIsNotAName() As Task
             Await TestMissingAsync(
-NewLines("Class C1 \n Sub Foo \n Me.[|Foo|] = 3 \n End Sub \n End Class"))
+"Class C1
+    Sub Foo
+        Me.[|Foo|] = 3
+    End Sub
+End Class")
         End Function
 
         <WorkItem(539786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539786")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMissingOnAssignedVariable() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n [|B|] = 10 \n End Sub \n End Module"))
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Module Program
+    Sub Main(args As String())
+        [|B|] = 10
+    End Sub
+End Module")
         End Function
 
         <WorkItem(539757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539757")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestArrayInference1() As Task
             Await TestAsync(
-NewLines("Class Base \n Sub Main \n Dim p() As Base = New [|Derived|](10) {} \n End Sub \n End Class"),
-NewLines("Class Base \n Sub Main \n Dim p() As Base = New Derived(10) {} \n End Sub \n End Class \n Friend Class Derived \n Inherits Base \n End Class"),
+"Class Base
+    Sub Main
+        Dim p() As Base = New [|Derived|](10) {}
+    End Sub
+End Class",
+"Class Base
+    Sub Main
+        Dim p() As Base = New Derived(10) {}
+    End Sub
+End Class
+Friend Class Derived
+    Inherits Base
+End Class",
 index:=1)
         End Function
 
@@ -322,8 +723,19 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestArrayInference2() As Task
             Await TestAsync(
-NewLines("Class Base \n Sub Main \n Dim p As Base() = New [|Derived|](10) {} \n End Sub \n End Class"),
-NewLines("Class Base \n Sub Main \n Dim p As Base() = New Derived(10) {} \n End Sub \n End Class \n Friend Class Derived \n Inherits Base \n End Class"),
+"Class Base
+    Sub Main
+        Dim p As Base() = New [|Derived|](10) {}
+    End Sub
+End Class",
+"Class Base
+    Sub Main
+        Dim p As Base() = New Derived(10) {}
+    End Sub
+End Class
+Friend Class Derived
+    Inherits Base
+End Class",
 index:=1)
         End Function
 
@@ -331,8 +743,18 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestArrayInference3() As Task
             Await TestAsync(
-NewLines("Class Base \n Sub Main \n Dim p As Base = New [|Derived|](10) {} \n End Sub \n End Class"),
-NewLines("Class Base \n Sub Main \n Dim p As Base = New Derived(10) {} \n End Sub \n End Class \n Friend Class Derived \n End Class"),
+"Class Base
+    Sub Main
+        Dim p As Base = New [|Derived|](10) {}
+    End Sub
+End Class",
+"Class Base
+    Sub Main
+        Dim p As Base = New Derived(10) {}
+    End Sub
+End Class
+Friend Class Derived
+End Class",
 index:=1)
         End Function
 
@@ -340,8 +762,22 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMatchWithDifferentArity() As Task
             Await TestAsync(
-NewLines("Class Program \n Private Sub Main() \n Dim f As [|Foo(Of Integer)|] \n End Sub \n End Class \n Class Foo \n End Class"),
-NewLines("Class Program \n Private Sub Main() \n Dim f As Foo(Of Integer) \n End Sub \n End Class \n Friend Class Foo(Of T) \n End Class \n Class Foo \n End Class"),
+"Class Program
+    Private Sub Main()
+        Dim f As [|Foo(Of Integer)|]
+    End Sub
+End Class
+Class Foo
+End Class",
+"Class Program
+    Private Sub Main()
+        Dim f As Foo(Of Integer)
+    End Sub
+End Class
+Friend Class Foo(Of T)
+End Class
+Class Foo
+End Class",
 index:=1)
         End Function
 
@@ -349,8 +785,24 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNoUnavailableTypeParameters1() As Task
             Await TestAsync(
-NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test = New [|Test|](x, y) \n End Sub \n End Class"),
-NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test = New Test(x, y) \n End Sub \n End Class \n Friend Class Test \n Private x As Object \n Private y As Object \n Public Sub New(x As Object, y As Object) \n Me.x = x \n Me.y = y \n End Sub \n End Class"),
+"Class C(Of T1, T2)
+    Sub M(x As T1, y As T2)
+        Dim a As Test = New [|Test|](x, y)
+    End Sub
+End Class",
+"Class C(Of T1, T2)
+    Sub M(x As T1, y As T2)
+        Dim a As Test = New Test(x, y)
+    End Sub
+End Class
+Friend Class Test
+    Private x As Object
+    Private y As Object
+    Public Sub New(x As Object, y As Object)
+        Me.x = x
+        Me.y = y
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -358,8 +810,24 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestMultipleTypeParamsInConstructor1() As Task
             Await TestAsync(
-NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test(Of T1, T2) = New [|Test(Of T1, T2)|](x, y) \n End Sub \n End Class"),
-NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test(Of T1, T2) = New Test(Of T1, T2)(x, y) \n End Sub \n End Class \n Friend Class Test(Of T1, T2) \n Private x As T1 \n Private y As T2 \n Public Sub New(x As T1, y As T2) \n Me.x = x \n Me.y = y \n End Sub \n End Class"),
+"Class C(Of T1, T2)
+    Sub M(x As T1, y As T2)
+        Dim a As Test(Of T1, T2) = New [|Test(Of T1, T2)|](x, y)
+    End Sub
+End Class",
+"Class C(Of T1, T2)
+    Sub M(x As T1, y As T2)
+        Dim a As Test(Of T1, T2) = New Test(Of T1, T2)(x, y)
+    End Sub
+End Class
+Friend Class Test(Of T1, T2)
+    Private x As T1
+    Private y As T2
+    Public Sub New(x As T1, y As T2)
+        Me.x = x
+        Me.y = y
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -367,8 +835,26 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateWithVoidArg() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n Dim x As C = New [|C|](M()) \n End Sub \n Sub M() \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main(args As String()) \n Dim x As C = New C(M()) \n End Sub \n Sub M() \n End Sub \n End Module \n Friend Class C \n Private v As Object \n Public Sub New(v As Object) \n Me.v = v \n End Sub \n End Class"),
+"Module Program
+    Sub Main(args As String())
+        Dim x As C = New [|C|](M())
+    End Sub
+    Sub M()
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String())
+        Dim x As C = New C(M())
+    End Sub
+    Sub M()
+    End Sub
+End Module
+Friend Class C
+    Private v As Object
+    Public Sub New(v As Object)
+        Me.v = v
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -376,23 +862,50 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestInAsClause() As Task
             Await TestAsync(
-NewLines("Class D \n Sub M() \n Dim x As New [|C|](4) \n End Sub \n End Class"),
-NewLines("Class D \n Sub M() \n Dim x As New C(4) \n End Sub \n End Class \n Friend Class C \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"),
+"Class D
+    Sub M()
+        Dim x As New [|C|](4)
+    End Sub
+End Class",
+"Class D
+    Sub M()
+        Dim x As New C(4)
+    End Sub
+End Class
+Friend Class C
+    Private v As Integer
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOnConstructorToActualType() As Task
             Await TestMissingAsync(
-NewLines("Class C \n Sub Test() \n Dim x As Integer = 1 \n Dim obj As New [|C|](x) \n End Sub \n End Class"))
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New [|C|](x)
+    End Sub
+End Class")
         End Function
 
         <WorkItem(540986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540986")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateAttribute1() As Task
             Await TestAsync(
-NewLines("<[|AttClass|]()> \n Class C \n End Class"),
-NewLines("Imports System \n <AttClass()> \n Class C \n End Class \n Friend Class AttClassAttribute \n Inherits Attribute \n End Class"),
+"<[|AttClass|]()>
+Class C
+End Class",
+"Imports System
+<AttClass()>
+Class C
+End Class
+Friend Class AttClassAttribute
+    Inherits Attribute
+End Class",
 index:=1)
         End Function
 
@@ -400,8 +913,17 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateAttribute2() As Task
             Await TestAsync(
-NewLines("Imports System \n <[|AttClass|]()> \n Class C \n End Class"),
-NewLines("Imports System \n <AttClass()> \n Class C \n End Class \n Friend Class AttClassAttribute \n Inherits Attribute \n End Class"),
+"Imports System
+<[|AttClass|]()>
+Class C
+End Class",
+"Imports System
+<AttClass()>
+Class C
+End Class
+Friend Class AttClassAttribute
+    Inherits Attribute
+End Class",
 index:=1)
         End Function
 
@@ -409,15 +931,39 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNotOnDictionaryAccess() As Task
             Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections \n Imports System.Collections.Generic \n Public Class A \n Public Sub Foo() \n Dim Table As Hashtable = New Hashtable() \n Table![|Orange|] = ""A fruit"" \n Table(""Broccoli"") = ""A vegetable"" \n Console.WriteLine(Table!Orange) \n End Sub \n End Class"))
+"Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Public Class A
+    Public Sub Foo()
+        Dim Table As Hashtable = New Hashtable()
+        Table![|Orange|] = ""A fruit"" 
+ Table(""Broccoli"") = ""A vegetable"" 
+ Console.WriteLine(Table!Orange)
+    End Sub
+End Class")
         End Function
 
         <WorkItem(542392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542392")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityConstraint1() As Task
             Await TestAsync(
-NewLines("Imports System.Runtime.CompilerServices \n Module StringExtensions \n <Extension()> \n Public Sub Print(ByVal aString As String, x As [|C|]) \n Console.WriteLine(aString) \n End Sub \n End Module"),
-NewLines("Imports System.Runtime.CompilerServices \n Module StringExtensions \n <Extension()> \n Public Sub Print(ByVal aString As String, x As C) \n Console.WriteLine(aString) \n End Sub \n Public Class C \n End Class \n End Module"),
+"Imports System.Runtime.CompilerServices
+Module StringExtensions
+    <Extension()>
+    Public Sub Print(ByVal aString As String, x As [|C|])
+        Console.WriteLine(aString)
+    End Sub
+End Module",
+"Imports System.Runtime.CompilerServices
+Module StringExtensions
+    <Extension()>
+    Public Sub Print(ByVal aString As String, x As C)
+        Console.WriteLine(aString)
+    End Sub
+    Public Class C
+    End Class
+End Module",
 index:=2)
         End Function
 
@@ -448,15 +994,37 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNestedType() As Task
             Await TestAsync(
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n Dim i = 2 \n Dim r As New i.[|Extension|] \n End Sub \n Public Class i \n End Class \n End Module"),
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n Dim i = 2 \n Dim r As New i.Extension \n End Sub \n Public Class i \n Friend Class Extension \n End Class \n End Class \n End Module"))
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+        Dim i = 2
+        Dim r As New i.[|Extension|]
+    End Sub
+    Public Class i
+    End Class
+End Module",
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+        Dim i = 2
+        Dim r As New i.Extension
+    End Sub
+    Public Class i
+        Friend Class Extension
+        End Class
+    End Class
+End Module")
         End Function
 
         <WorkItem(543397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543397")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNewModule() As Task
             Await TestMissingAsync(
-NewLines("Module Program \n Sub Main \n Dim f As New [|Program|] \n End Sub \n End Module"))
+"Module Program
+    Sub Main
+        Dim f As New [|Program|]
+    End Sub
+End Module")
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -536,8 +1104,23 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAnonymousMethodArgument() As Task
             Await TestAsync(
-NewLines("Module Program \n Sub Main() \n Dim c = New [|C|](Function() x) \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n Dim c = New C(Function() x) \n End Sub \n End Module \n Friend Class C \n Private p As Func(Of Object) \n Public Sub New(p As Func(Of Object)) \n Me.p = p \n End Sub \n End Class"),
+"Module Program
+    Sub Main()
+        Dim c = New [|C|](Function() x)
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim c = New C(Function() x)
+    End Sub
+End Module
+Friend Class C
+    Private p As Func(Of Object)
+    Public Sub New(p As Func(Of Object))
+        Me.p = p
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -545,8 +1128,26 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestOmittedArguments() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n Dim x = New [|C|](,) \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n Dim x = New C(,) \n End Sub \n End Module \n Friend Class C \n Private p1 As Object \n Private p2 As Object \n Public Sub New(p1 As Object, p2 As Object) \n Me.p1 = p1 \n Me.p2 = p2 \n End Sub \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim x = New [|C|](,)
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim x = New C(,)
+    End Sub
+End Module
+Friend Class C
+    Private p1 As Object
+    Private p2 As Object
+    Public Sub New(p1 As Object, p2 As Object)
+        Me.p1 = p1
+        Me.p2 = p2
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -554,8 +1155,21 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeThatBindsToNamespace() As Task
             Await TestAsync(
-NewLines("Imports System \n [|<System>|] \n Module Program \n Sub Main() \n End Sub \n End Module"),
-NewLines("Imports System \n <System> \n Module Program \n Sub Main() \n End Sub \n End Module \n Friend Class SystemAttribute \n Inherits Attribute \n End Class"),
+"Imports System
+[|<System>|]
+Module Program
+    Sub Main()
+    End Sub
+End Module",
+"Imports System
+<System>
+Module Program
+    Sub Main()
+    End Sub
+End Module
+Friend Class SystemAttribute
+    Inherits Attribute
+End Class",
 index:=1)
         End Function
 
@@ -649,7 +1263,7 @@ End Class
 </text>.NormalizedValue,
 index:=1,
 compareTokens:=False,
-options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), False}})
+options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
         <WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")>
@@ -692,8 +1306,28 @@ End Namespace</Text>.NormalizedValue
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithProperties1() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As String \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today}
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today}
+    End Sub
+End Module
+Friend Class Customer
+    Private x As Integer
+    Private y As String
+    Public Sub New(x As Integer, y As String)
+        Me.x = x
+        Me.y = y
+    End Sub
+    Public Property Age As Date
+    Public Property Name As String
+End Class",
 index:=1)
         End Function
 
@@ -701,8 +1335,28 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithProperties2() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today}
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today}
+    End Sub
+End Module
+Friend Class Customer
+    Private x As Integer
+    Private y As String
+    Public Sub New(x As Integer, y As String)
+        Me.x = x
+        Me.y = y
+    End Sub
+    Public Property Age As Date
+    Public Property Name As Object
+End Class",
 index:=1)
         End Function
 
@@ -710,8 +1364,28 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithProperties3() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today}
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today}
+    End Sub
+End Module
+Friend Class Customer
+    Private x As Integer
+    Private y As String
+    Public Sub New(x As Integer, y As String)
+        Me.x = x
+        Me.y = y
+    End Sub
+    Public Property Age As Date
+    Public Property Name As Object
+End Class",
 index:=1)
         End Function
 
@@ -719,8 +1393,22 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithProperties4() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Public Property Age As Date \n Public Property Name As String \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today}
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today}
+    End Sub
+End Module
+Friend Class Customer
+    Public Property Age As Date
+    Public Property Name As String
+End Class",
 index:=1)
         End Function
 
@@ -728,8 +1416,20 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithNameOf() As Task
             Await TestAsync(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n End Module \n Friend Class Z \n End Class"),
+"Imports System
+Module Program
+    Sub Main()
+        Dim x = nameof([|Z|])
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main()
+        Dim x = nameof([|Z|])
+    End Sub
+End Module
+Friend Class Z
+End Class",
 index:=1)
         End Function
 
@@ -737,8 +1437,20 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithNameOf2() As Task
             Await TestAsync(
-NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n End Class"),
-NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n Private Class Z \n End Class \n End Class "),
+"Imports System
+Class Program
+    Sub Main()
+        Dim x = nameof([|Z|])
+    End Sub
+End Class",
+"Imports System
+Class Program
+    Sub Main()
+        Dim x = nameof([|Z|])
+    End Sub
+    Private Class Z
+    End Class
+End Class",
 index:=2)
         End Function
 
@@ -746,8 +1458,20 @@ index:=2)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestWithNameOf3() As Task
             Await TestAsync(
-NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Program.Z|]) \n End Sub \n End Class"),
-NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Program.Z|]) \n End Sub \n Private Class Z \n End Class \n End Class "),
+"Imports System
+Class Program
+    Sub Main()
+        Dim x = nameof([|Program.Z|])
+    End Sub
+End Class",
+"Imports System
+Class Program
+    Sub Main()
+        Dim x = nameof([|Program.Z|])
+    End Sub
+    Private Class Z
+    End Class
+End Class",
 index:=0)
         End Function
 
@@ -755,8 +1479,18 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForNestedType() As Task
             Await TestAsync(
-NewLines("Public Interface I \n  Sub Foo(a As [|X.Y.Z|]) \n End Interface \n Public Class X \n End Class"),
-NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public Class X \n Public Class Y \n End Class \n End Class"),
+"Public Interface I
+    Sub Foo(a As [|X.Y.Z|])
+End Interface
+Public Class X
+End Class",
+"Public Interface I
+    Sub Foo(a As X.Y.Z)
+End Interface
+Public Class X
+    Public Class Y
+    End Class
+End Class",
 index:=0)
         End Function
 
@@ -764,16 +1498,20 @@ index:=0)
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeInImports() As Task
             Await TestAsync(
-NewLines("Imports [|Fizz|]"),
-NewLines("Friend Class Fizz\nEnd Class\n"))
+"Imports [|Fizz|]",
+"Friend Class Fizz
+End Class
+")
         End Function
 
         <WorkItem(1130905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130905")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeInImports2() As Task
             Await TestAsync(
-NewLines("Imports [|Fizz|]"),
-NewLines("Imports Fizz \n Friend Class Fizz \n End Class"),
+"Imports [|Fizz|]",
+"Imports Fizz
+Friend Class Fizz
+End Class",
 index:=1)
         End Function
 
@@ -781,8 +1519,13 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
-NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
+"Public Class A
+    Public B As New [|B|]()
+End Class",
+"Public Class B
+    Public Sub New()
+    End Sub
+End Class",
 index:=0)
         End Function
 
@@ -790,8 +1533,17 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields2() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
-NewLines("Public Class A \n Public B As New B() \n End Class \n\n Public Class B \n Public Sub New() \n End Sub \n End Class"),
+"Public Class A
+    Public B As New [|B|]()
+End Class",
+"Public Class A
+    Public B As New B()
+End Class
+
+Public Class B
+    Public Sub New()
+    End Sub
+End Class",
 index:=1)
         End Function
 
@@ -799,8 +1551,16 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields3() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
-NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
+"Public Class A
+    Public B As New [|B|]()
+End Class",
+"Public Class A
+    Public B As New B()
+    Public Class B
+        Public Sub New()
+        End Sub
+    End Class
+End Class",
 index:=2)
         End Function
 
@@ -808,8 +1568,11 @@ index:=2)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields4() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
-NewLines("Public Class B \n End Class"),
+"Public Class A
+    Public B As New [|B|]
+End Class",
+"Public Class B
+End Class",
 index:=0)
         End Function
 
@@ -817,8 +1580,15 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields5() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
-NewLines("Public Class A \n Public B As New B \n End Class \n\n Public Class B \n End Class"),
+"Public Class A
+    Public B As New [|B|]
+End Class",
+"Public Class A
+    Public B As New B
+End Class
+
+Public Class B
+End Class",
 index:=1)
         End Function
 
@@ -826,8 +1596,14 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields6() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
-NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
+"Public Class A
+    Public B As New [|B|]
+End Class",
+"Public Class A
+    Public B As New B
+    Public Class B
+    End Class
+End Class",
 index:=2)
         End Function
 
@@ -835,8 +1611,11 @@ index:=2)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields7() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
-NewLines("Public Class B(Of T) \n End Class"),
+"Public Class A
+    Public B As New [|B(Of Integer)|]
+End Class",
+"Public Class B(Of T)
+End Class",
 index:=0)
         End Function
 
@@ -844,8 +1623,15 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields8() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
-NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Public Class B(Of T) \n End Class"),
+"Public Class A
+    Public B As New [|B(Of Integer)|]
+End Class",
+"Public Class A
+    Public B As New B(Of Integer)
+End Class
+
+Public Class B(Of T)
+End Class",
 index:=1)
         End Function
 
@@ -853,8 +1639,14 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields9() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
-NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
+"Public Class A
+    Public B As New [|B(Of Integer)|]
+End Class",
+"Public Class A
+    Public B As New B(Of Integer)
+    Public Class B(Of T)
+    End Class
+End Class",
 index:=2)
         End Function
 
@@ -875,8 +1667,16 @@ index:=2)
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestAsync(
-NewLines("Module Program \n <[|Extension|]> \n End Module"),
-NewLines("Imports System \n Module Program \n <Extension> \n End Module \n Friend Class ExtensionAttribute \n Inherits Attribute \n End Class"),
+"Module Program
+    <[|Extension|]>
+End Module",
+"Imports System
+Module Program
+    <Extension>
+End Module
+Friend Class ExtensionAttribute
+    Inherits Attribute
+End Class",
 index:=1)
             End Function
         End Class

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             return symbol.TypeSwitch(
                 (IFieldSymbol field) => !field.IsConst,
-                (IPropertySymbol property) => property.SetMethod != null);
+                (IPropertySymbol property) => property.IsWritableInConstructor());
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
@@ -97,11 +97,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase()));
+                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
             return parameters;
         }
+
+        private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,

@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 using Roslyn.Utilities;
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var statements = new List<SyntaxNode>();
             if (setAccessorDeclaration?.Body != null)
             {
-                statements.AddRange(setAccessorDeclaration?.Body?.Statements);
+                statements.AddRange(setAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
             }
             else if (propertyBackingField != null)
             {
@@ -119,6 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements);
         }
+
+        private static StatementSyntax WithFormattingAnnotation(StatementSyntax statement)
+            => statement.WithAdditionalAnnotations(Formatter.Annotation);
 
         private static SyntaxNode GetGetMethod(
             SyntaxGenerator generator,
@@ -146,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 if (getAccessorDeclaration?.Body != null)
                 {
-                    statements.AddRange(getAccessorDeclaration.Body.Statements);
+                    statements.AddRange(getAccessorDeclaration.Body.Statements.Select(WithFormattingAnnotation));
                 }
                 else if (propertyBackingField != null)
                 {

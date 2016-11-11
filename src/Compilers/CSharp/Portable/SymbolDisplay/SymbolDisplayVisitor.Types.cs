@@ -178,10 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (format.DelegateStyle == SymbolDisplayDelegateStyle.NameAndSignature)
                 {
                     var invokeMethod = symbol.DelegateInvokeMethod;
-                    var invokeMethodSymbol = invokeMethod as MethodSymbol;
-                    if (invokeMethodSymbol != null)
+                    if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefKindIfRequired(invokeMethodSymbol.RefKind);
+                        AddRefIfRequired();
                     }
 
                     if (invokeMethod.ReturnsVoid)

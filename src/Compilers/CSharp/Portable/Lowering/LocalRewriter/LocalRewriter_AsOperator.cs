@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeAsOperator(
             BoundAsOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
             Conversion conversion,

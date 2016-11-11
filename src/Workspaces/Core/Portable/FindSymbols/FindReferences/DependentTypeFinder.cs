@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,15 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using SymbolAndProjectIdSet = HashSet<SymbolAndProjectId<INamedTypeSymbol>>;
+
     /// <summary>
-    /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution.
+    /// Provides helper methods for finding dependent types (derivations, implementations, 
+    /// etc.) across a solution.  The results found are returned in pairs of <see cref="ISymbol"/>s
+    /// and <see cref="ProjectId"/>s.  The Ids specify what project we were searching in when
+    /// we found the symbol.  That project has the compilation that we found the specific
+    /// source or metadata symbol within.  Note that for metadata symbols there could be
+    /// many projects where the same symbol could be found.  However, we only return the
+    /// first instance we found.
     /// </summary>
-    /// <remarks>
-    /// This type makes heavy use of <see cref="ConditionalWeakTable{TKey, TValue}"/> for caching purposes. When
-    /// modifying these caches, care must be taken to avoid introducing memory leaks. Instances of <see cref="Compilation"/>
-    /// are used as the keys in these caches, so in general only symbols or other data from that same compilation should be stored
-    /// in the associated value.
-    /// </remarks>
     internal static class DependentTypeFinder
     {
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
@@ -34,52 +35,50 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
             t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 
-        /// <summary>
-        /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
-        /// within the compilation.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
-            new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
+        private static readonly ObjectPool<SymbolAndProjectIdSet> s_setPool = new ObjectPool<SymbolAndProjectIdSet>(
+            () => new SymbolAndProjectIdSet(SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance));
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(type, solution, projects: null,
+            return FindDerivedClassesAsync(
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                 transitive: false, cancellationToken: cancellationToken);
         }
 
         /// <summary>
-        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
+        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(SymbolAndProjectId{INamedTypeSymbol}, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyDerivedClassesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(type, solution, projects,
+            return FindDerivedClassesAsync(
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects,
                 transitive: true, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type,
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects, 
             bool transitive,
             CancellationToken cancellationToken)
         {
-            if (s_isNonSealedClass(type))
+            if (s_isNonSealedClass(type.Symbol))
             {
-                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches =
+                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches =
                     (set, metadataType) => TypeDerivesFrom(set, metadataType, transitive);
 
-                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches =
-                    (set, metadataType) => set.Contains(metadataType.BaseType?.OriginalDefinition);
+                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches =
+                    (set, metadataType) => set.Contains(SymbolAndProjectId.Create(metadataType.BaseType?.OriginalDefinition, projectId: null));
 
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,
@@ -89,51 +88,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
         /// <summary>
-        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync"/> for 
+        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(SymbolAndProjectId, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyImplementingTypesAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             var derivedAndImplementingTypes = await FindDerivedAndImplementingTypesAsync(
-                type, solution, projects,
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects,
                 transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // We only want implementing types here, not derived interfaces.
-            return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Class).ToList();
+            return derivedAndImplementingTypes.WhereAsArray(t => t.Symbol.TypeKind == TypeKind.Class);
         }
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
             return FindDerivedAndImplementingTypesAsync(
-                type, solution, projects: null,
+                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                 transitive: false, cancellationToken: cancellationToken);
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingTypesAsync(
-            INamedTypeSymbol type,
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive, 
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
-            if (type?.TypeKind == TypeKind.Interface)
+            if (type.Symbol?.TypeKind == TypeKind.Interface)
             {
-                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches =
+                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches =
                     (s, t) => TypeDerivesFrom(s, t, transitive) ||
                               TypeImplementsFrom(s, t, transitive);
 
@@ -145,22 +144,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
            }
 
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesAsync(
-            INamedTypeSymbol type,
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesAsync(
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            type = type.OriginalDefinition;
+            type = type.WithSymbol(type.Symbol.OriginalDefinition);
             projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
-            var searchInMetadata = type.Locations.Any(s_isInMetadata);
+            var searchInMetadata = type.Symbol.Locations.Any(s_isInMetadata);
 
             // Note: it is not sufficient to just walk the list of projects passed in,
             // searching only those for derived types.
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // First find all the projects that could potentially reference this type.
             var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
-                type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
+                type.Symbol, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
 
             // Now, based on the list of projects that could actually reference the type,
             // and the list of projects the caller wants to search, find the actual list of
@@ -188,8 +187,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
                 solution, projects, projectsThatCouldReferenceType);
 
-            var currentMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-            var currentSourceAndMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            var currentMetadataTypes = CreateSymbolAndProjectIdSet();
+            var currentSourceAndMetadataTypes = CreateSymbolAndProjectIdSet();
 
             currentSourceAndMetadataTypes.Add(type);
             if (searchInMetadata)
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 currentMetadataTypes.Add(type);
             }
 
-            var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            var result = CreateSymbolAndProjectIdSet();
 
             // Now walk the projects from left to right seeing what our type cascades to. Once we 
             // reach a fixed point in that project, take all the types we've found and move to the
@@ -218,17 +217,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive, cancellationToken).ConfigureAwait(false);
             }
 
-            return result;
+            return ToImmutableAndFree(result);
+        }
+
+        private static ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>> ToImmutableAndFree(
+            SymbolAndProjectIdSet set)
+        {
+            var array = set.ToImmutableArray();
+            s_setPool.ClearAndFree(set);
+            return array;
         }
 
         private static async Task FindTypesInProjectAsync(
             bool searchInMetadata,
-            HashSet<INamedTypeSymbol> result,
-            HashSet<INamedTypeSymbol> currentMetadataTypes,
-            HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
+            SymbolAndProjectIdSet result,
+            SymbolAndProjectIdSet currentMetadataTypes,
+            SymbolAndProjectIdSet currentSourceAndMetadataTypes,
             Project project,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -237,20 +244,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
             {
-                var foundMetadataTypes = await FindMetadataTypesInProjectAsync(
-                    currentMetadataTypes, project, metadataTypeMatches, cancellationToken).ConfigureAwait(false);
+                var foundMetadataTypes = await FindAllMatchingMetadataTypesInProjectAsync(
+                    currentMetadataTypes, project, metadataTypeMatches, 
+                    cancellationToken).ConfigureAwait(false);
 
-                foreach (var foundType in foundMetadataTypes)
+                foreach (var foundTypeAndProjectId in foundMetadataTypes)
                 {
+                    var foundType = foundTypeAndProjectId.Symbol;
                     Debug.Assert(foundType.Locations.Any(s_isInMetadata));
 
                     // Add to the result list.
-                    result.Add(foundType);
+                    result.Add(foundTypeAndProjectId);
 
                     if (transitive && shouldContinueSearching(foundType))
                     {
-                        currentMetadataTypes.Add(foundType);
-                        currentSourceAndMetadataTypes.Add(foundType);
+                        currentMetadataTypes.Add(foundTypeAndProjectId);
+                        currentSourceAndMetadataTypes.Add(foundTypeAndProjectId);
                     }
                 }
             }
@@ -262,16 +271,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 shouldContinueSearching,
                 transitive, cancellationToken).ConfigureAwait(false);
 
-            foreach (var foundType in foundSourceTypes)
+            foreach (var foundTypeAndProjectId in foundSourceTypes)
             {
+                var foundType = foundTypeAndProjectId.Symbol;
                 Debug.Assert(foundType.Locations.All(s_isInSource));
 
                 // Add to the result list.
-                result.Add(foundType);
+                result.Add(foundTypeAndProjectId);
 
                 if (transitive && shouldContinueSearching(foundType))
                 {
-                    currentSourceAndMetadataTypes.Add(foundType);
+                    currentSourceAndMetadataTypes.Add(foundTypeAndProjectId);
                 }
             }
         }
@@ -390,41 +400,97 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindMetadataTypesInProjectAsync(
-            HashSet<INamedTypeSymbol> metadataTypes,
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindAllMatchingMetadataTypesInProjectAsync(
+            SymbolAndProjectIdSet metadataTypes,
             Project project,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
             CancellationToken cancellationToken)
         {
             if (metadataTypes.Count == 0)
             {
-                return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                return ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>.Empty;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var typesInCompilation = GetAllAccessibleMetadataTypesInCompilation(compilation, cancellationToken);
+            var result = CreateSymbolAndProjectIdSet();
 
-            var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            // Seed the current set of types we're searching for with the types we were given.
+            var currentTypes = metadataTypes;
 
-            foreach (var type in typesInCompilation)
+            while (currentTypes.Count > 0)
             {
-                if (metadataTypeMatches(metadataTypes, type))
+                var immediateDerivedTypes = CreateSymbolAndProjectIdSet();
+
+                foreach (var reference in compilation.References.OfType<PortableExecutableReference>())
                 {
-                    result.Add(type);
+                    await FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
+                        currentTypes, project, metadataTypeMatches,
+                        compilation, reference, immediateDerivedTypes,
+                        cancellationToken).ConfigureAwait(false);
                 }
+
+                // Add what we found to the result set.
+                result.AddRange(immediateDerivedTypes);
+
+                // Now keep looping, using the set we found to spawn the next set of searches.
+                currentTypes = immediateDerivedTypes;
             }
 
-            return result;
+            return ToImmutableAndFree(result);
+        }
+
+        private static async Task FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
+            SymbolAndProjectIdSet metadataTypes,
+            Project project,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
+            Compilation compilation,
+            PortableExecutableReference reference,
+            SymbolAndProjectIdSet result,
+            CancellationToken cancellationToken)
+        {
+            // We store an index in SymbolTreeInfo of the *simple* metadata type name
+            // to the names of the all the types that either immediately derive or 
+            // implement that type.  Because the mapping is from the simple name
+            // we might get false positives.  But that's fine as we still use 
+            // 'metadataTypeMatches' to make sure the match is correct.
+            var symbolTreeInfo = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (symbolTreeInfo == null)
+            {
+                return;
+            }
+
+            // For each type we care about, see if we can find any derived types
+            // in this index.
+            foreach (var metadataType in metadataTypes)
+            {
+                var baseTypeName = metadataType.Symbol.Name;
+
+                // For each derived type we find, see if we can map that back 
+                // to an actual symbol.  Then check if that symbol actually fits
+                // our criteria.
+                foreach (var derivedType in symbolTreeInfo.GetDerivedMetadataTypes(baseTypeName, compilation, cancellationToken))
+                {
+                    if (derivedType != null && derivedType.Locations.Any(s_isInMetadata))
+                    {
+                        if (metadataTypeMatches(metadataTypes, derivedType))
+                        {
+                            result.Add(SymbolAndProjectId.Create(derivedType, project.Id));
+                        }
+                    }
+                }
+            }
         }
 
         private static bool TypeDerivesFrom(
-            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type, bool transitive)
+            SymbolAndProjectIdSet metadataTypes, INamedTypeSymbol type, bool transitive)
         {
             if (transitive)
             {
                 for (var current = type.BaseType; current != null; current = current.BaseType)
                 {
-                    if (metadataTypes.Contains(current.OriginalDefinition))
+                    if (metadataTypes.Contains(
+                        SymbolAndProjectId.Create(current.OriginalDefinition, projectId: null)))
                     {
                         return true;
                     }
@@ -434,18 +500,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                return metadataTypes.Contains(type.BaseType?.OriginalDefinition);
+                return metadataTypes.Contains(
+                    SymbolAndProjectId.Create(type.BaseType?.OriginalDefinition, projectId: null));
             }
         }
 
         private static bool TypeImplementsFrom(
-            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type, bool transitive)
+            SymbolAndProjectIdSet metadataTypes, INamedTypeSymbol type, bool transitive)
         {
             var interfaces = transitive ? type.AllInterfaces : type.Interfaces;
 
             foreach (var interfaceType in interfaces)
             {
-                if (metadataTypes.Contains(interfaceType.OriginalDefinition))
+                if (metadataTypes.Contains(SymbolAndProjectId.Create(interfaceType.OriginalDefinition, projectId: null)))
                 {
                     return true;
                 }
@@ -454,10 +521,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
-            HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindSourceTypesInProjectAsync(
+            SymbolAndProjectIdSet sourceAndMetadataTypes,
             Project project,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -469,9 +536,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var cachedModels = new ConcurrentSet<SemanticModel>();
             var cachedInfos = new ConcurrentSet<IDeclarationInfo>();
 
-            var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            var finalResult = CreateSymbolAndProjectIdSet();
 
-            var typesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            var typesToSearchFor = CreateSymbolAndProjectIdSet();
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
             var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes);
@@ -480,7 +547,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             while (typesToSearchFor.Count > 0)
             {
                 // Compute the set of names to look for in the base/interface lists.
-                inheritanceQuery.TypeNames.AddRange(typesToSearchFor.Select(c => c.Name));
+                inheritanceQuery.TypeNames.AddRange(typesToSearchFor.Select(c => c.Symbol.Name));
 
                 // Search all the documents of this project in parallel.
                 var tasks = project.Documents.Select(d => FindImmediatelyInheritingTypesInDocumentAsync(
@@ -498,13 +565,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var task in tasks)
                 {
-                    if (task.Result != null)
+                    var result = await task.ConfigureAwait(false);
+                    if (result != null)
                     {
-                        foreach (var derivedType in task.Result)
+                        foreach (var derivedType in result)
                         {
                             if (finalResult.Add(derivedType))
                             {
-                                if (transitive && shouldContinueSearching(derivedType))
+                                if (transitive && shouldContinueSearching(derivedType.Symbol))
                                 {
                                     typesToSearchFor.Add(derivedType);
                                 }
@@ -514,20 +582,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return finalResult;
+            return ToImmutableAndFree(finalResult);
         }
 
         private static bool ImmediatelyDerivesOrImplementsFrom(
-            HashSet<INamedTypeSymbol> typesToSearchFor, INamedTypeSymbol type)
+            SymbolAndProjectIdSet typesToSearchFor, INamedTypeSymbol type)
         {
-            if (typesToSearchFor.Contains(type.BaseType?.OriginalDefinition))
+            if (typesToSearchFor.Contains(SymbolAndProjectId.Create(type.BaseType?.OriginalDefinition, projectId: null)))
             {
                 return true;
             }
 
             foreach (var interfaceType in type.Interfaces)
             {
-                if (typesToSearchFor.Contains(interfaceType.OriginalDefinition))
+                if (typesToSearchFor.Contains(SymbolAndProjectId.Create(interfaceType.OriginalDefinition, projectId: null)))
                 {
                     return true;
                 }
@@ -536,41 +604,42 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyInheritingTypesInDocumentAsync(
             Document document,
-            HashSet<INamedTypeSymbol> typesToSearchFor,
+            SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels, 
             ConcurrentSet<IDeclarationInfo> cachedInfos, 
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
             var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
-            HashSet<INamedTypeSymbol> result = null;
+            var result = CreateSymbolAndProjectIdSet();
             foreach (var symbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
-                result = await ProcessSymbolInfo(
+                await ProcessSymbolInfo(
                     document, symbolInfo,
                     typesToSearchFor,
                     inheritanceQuery, cachedModels,
                     typeImmediatelyMatches, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return result;
+            return ToImmutableAndFree(result);
         }
 
-        private static async Task<HashSet<INamedTypeSymbol>> ProcessSymbolInfo(
+        private static async Task ProcessSymbolInfo(
             Document document,
             DeclaredSymbolInfo info,
-            HashSet<INamedTypeSymbol> typesToSearchFor,
+            SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels,
-            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
-            HashSet<INamedTypeSymbol> result,
+            Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
+            SymbolAndProjectIdSet result,
             CancellationToken cancellationToken)
         {
+            var projectId = document.Project.Id;
             // If we're searching for enums/structs/delegates, then we can just look at the kind of
             // the info to see if we have a match.
             if ((inheritanceQuery.DerivesFromSystemEnum && info.Kind == DeclaredSymbolInfoKind.Enum) ||
@@ -580,8 +649,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
-                    result = result ?? new HashSet<INamedTypeSymbol>();
-                    result.Add(symbol);
+                    result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
             else if (inheritanceQuery.DerivesFromSystemObject && info.Kind == DeclaredSymbolInfoKind.Class)
@@ -594,8 +662,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                 {
-                    result = result ?? new HashSet<INamedTypeSymbol>();
-                    result.Add(symbol);
+                    result.Add(SymbolAndProjectId.Create(symbol, projectId));
                 }
             }
             else if (AnyInheritanceNamesMatch(info, inheritanceQuery.TypeNames))
@@ -606,13 +673,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (typeImmediatelyMatches(typesToSearchFor, symbol))
                     {
-                        result = result ?? new HashSet<INamedTypeSymbol>();
-                        result.Add(symbol);
+                        result.Add(SymbolAndProjectId.Create(symbol, projectId));
                     }
                 }
             }
-
-            return result;
         }
 
         private static bool AnyInheritanceNamesMatch(
@@ -638,19 +702,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return info.Resolve(semanticModel, cancellationToken);
         }
 
-        private static List<INamedTypeSymbol> GetAllAccessibleMetadataTypesInCompilation(
-            Compilation compilation, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Note that we are checking the GlobalNamespace of the compilation (which includes all types).
-            return s_compilationAllAccessibleMetadataTypesTable.GetValue(compilation, c =>
-                compilation.GlobalNamespace.GetAllTypes(cancellationToken)
-                                           .Where(t => t.Locations.All(s_isInMetadata) &&
-                                                       t.DeclaredAccessibility != Accessibility.Private &&
-                                                       t.IsAccessibleWithin(c.Assembly)).ToList());
-        }
-
         private class InheritanceQuery
         {
             public readonly bool DerivesFromSystemObject;
@@ -660,14 +711,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly HashSet<string> TypeNames;
 
-            public InheritanceQuery(HashSet<INamedTypeSymbol> sourceAndMetadataTypes)
+            public InheritanceQuery(SymbolAndProjectIdSet sourceAndMetadataTypes)
             {
-                DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
-                DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
-                DerivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Enum);
-                DerivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_MulticastDelegate);
+                DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Object);
+                DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_ValueType);
+                DerivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Enum);
+                DerivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_MulticastDelegate);
                 TypeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
+        }
+
+        private static SymbolAndProjectIdSet CreateSymbolAndProjectIdSet()
+        {
+            return s_setPool.Allocate();
         }
     }
 }

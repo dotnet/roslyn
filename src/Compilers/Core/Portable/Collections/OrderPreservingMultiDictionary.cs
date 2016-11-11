@@ -137,6 +137,14 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        public bool Contains(K key, V value)
+        {
+            ValueSet valueSet;
+            return !this.IsEmpty &&
+                _dictionary.TryGetValue(key, out valueSet) &&
+                valueSet.Contains(value);
+        }
+
         /// <summary>
         /// Get a collection of all the keys.
         /// </summary>
@@ -192,6 +200,15 @@ namespace Microsoft.CodeAnalysis.Collections
                         return arrayBuilder[index];
                     }
                 }
+            }
+
+            internal bool Contains(V item)
+            {
+                Debug.Assert(this.Count >= 1);
+                var arrayBuilder = _value as ArrayBuilder<V>;
+                return arrayBuilder == null
+                    ? EqualityComparer<V>.Default.Equals(item, (V)_value)
+                    : arrayBuilder.Contains(item);
             }
 
             internal ImmutableArray<V> Items

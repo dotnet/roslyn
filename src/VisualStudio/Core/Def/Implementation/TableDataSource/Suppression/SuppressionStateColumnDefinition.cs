@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class SuppressionStateColumnDefinition : TableColumnDefinitionBase
     {
         public const string ColumnName = "suppressionstate";
-        private static readonly string[] s_defaultFilters = new[] { ServicesVSResources.Active, ServicesVSResources.Suppressed };
-        private static readonly string[] s_defaultCheckedFilters = new[] { ServicesVSResources.Active };
+        private static readonly string[] s_defaultFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable, ServicesVSResources.Suppressed };
+        private static readonly string[] s_defaultCheckedFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable };
 
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Suppression_State;
@@ -37,6 +37,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 tableControl.SetFilter(ColumnName, new ColumnHashSetFilter(suppressionStateColumn, excluded: ServicesVSResources.Suppressed));
             }
+        }
+
+        public override bool TryCreateToolTip(ITableEntryHandle entry, out object toolTip)
+        {
+            object content;
+            if (entry.TryGetValue(ColumnName, out content) &&
+                content as string == ServicesVSResources.NotApplicable)
+            {
+                toolTip = ServicesVSResources.SuppressionNotSupportedToolTip;
+                return true;
+            }
+
+            toolTip = null;
+            return false;
         }
     }
 }

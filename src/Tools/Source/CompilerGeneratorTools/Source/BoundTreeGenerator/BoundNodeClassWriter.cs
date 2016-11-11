@@ -404,7 +404,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
 
@@ -463,7 +463,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As VisualBasicSyntaxNode" } : new[] { "kind As BoundKind", "syntax as VisualBasicSyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
 
@@ -540,7 +540,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "CSharpSyntaxNode syntax" } : new[] { "BoundKind kind", "CSharpSyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select field.Type + " " + ToCamelCase(field.Name));
                         ParenList(fields, x => x);
@@ -589,7 +589,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As VisualBasicSyntaxNode" } : new[] { "kind As BoundKind", "syntax as VisualBasicSyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
                         ParenList(fields, x => x);
@@ -1239,13 +1239,13 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt", StringComparison.Ordinal))
+                                    if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
                                     {
-                                        Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? SpecializedCollections.EmptyArray<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                        Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
                                     else
                                     {
-                                        Write("new TreeDumperNode(\"{0}\", null, from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
+                                        Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
                                 }
                                 else
@@ -1260,7 +1260,7 @@ namespace BoundTreeGenerator
                         }
                         else
                         {
-                            WriteLine("SpecializedCollections.EmptyArray<TreeDumperNode>()");
+                            WriteLine("Array.Empty<TreeDumperNode>()");
                         }
                         WriteLine(");");
                         Unbrace();
@@ -1314,7 +1314,7 @@ namespace BoundTreeGenerator
                         }
                         else
                         {
-                            WriteLine("SpecializedCollections.EmptyArray(Of TreeDumperNode)())");
+                            WriteLine("Array.Empty(Of TreeDumperNode)())");
                         }
                         Outdent();
                         WriteLine("End Function");

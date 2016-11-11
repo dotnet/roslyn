@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Rename
             var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
             if (symbolInfo.Symbol != null)
             {
+                if (symbolInfo.Symbol.IsTupleType())
+                {
+                    return TokenRenameInfo.NoSymbolsTokenInfo;
+                }
+
                 return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.Symbol);
             }
 
@@ -129,6 +134,15 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                 return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+            }
+
+            if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
+                symbolInfo.CandidateSymbols.Length == 1)
+            {
+                // TODO(cyrusn): We're allowing rename here, but we likely should let the user
+                // know that there is an error in the code and that rename results might be
+                // inaccurate.
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.CandidateSymbols[0]);
             }
 
             return TokenRenameInfo.NoSymbolsTokenInfo;

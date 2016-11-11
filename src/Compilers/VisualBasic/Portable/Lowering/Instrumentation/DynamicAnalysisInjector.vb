@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Shared Function HasValidMappedLineSpan(syntax As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function HasValidMappedLineSpan(syntax As SyntaxNode) As Boolean
             Return syntax.GetLocation().GetMappedLineSpan().IsValid
         End Function
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _methodBodyFactory = methodBodyFactory
 
             ' The first point indicates entry into the method and has the span of the method definition.
-            Dim bodySyntax As VisualBasicSyntaxNode = methodBody.Syntax
+            Dim bodySyntax As SyntaxNode = methodBody.Syntax
             If Not method.IsImplicitlyDeclared Then
                 _methodEntryInstrumentation = AddAnalysisPoint(bodySyntax, SkipAttributes(bodySyntax), methodBodyFactory)
             End If
@@ -153,7 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function InstrumentReturnStatement(original As BoundReturnStatement, rewritten As BoundStatement) As BoundStatement
             Dim previous As BoundStatement = MyBase.InstrumentReturnStatement(original, rewritten)
             If Not original.IsEndOfMethodReturn Then
-                Return AddDynamicAnalysis(original, previous)
+                If original.ExpressionOpt IsNot Nothing Then
+                    ' Synthesized return statements require instrumentation if they return values,
+                    ' e.g. in simple expression lambdas.
+                    Return CollectDynamicAnalysis(original, previous)
+                Else
+                    Return AddDynamicAnalysis(original, previous)
+                End If
             End If
             Return previous
         End Function
@@ -241,11 +247,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
 
-        Private Function GetSourceDocument(syntax As VisualBasicSyntaxNode) As Cci.DebugSourceDocument
+        Private Function GetSourceDocument(syntax As SyntaxNode) As Cci.DebugSourceDocument
             Return GetSourceDocument(syntax, syntax.GetLocation().GetMappedLineSpan())
         End Function
 
-        Private Function GetSourceDocument(syntax As VisualBasicSyntaxNode, span As FileLinePositionSpan) As Cci.DebugSourceDocument
+        Private Function GetSourceDocument(syntax As SyntaxNode, span As FileLinePositionSpan) As Cci.DebugSourceDocument
             Dim path As String = span.Path
             ' If the path for the syntax node is empty, try the path for the entire syntax tree.
             If path.Length = 0 Then
@@ -255,15 +261,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _debugDocumentProvider.Invoke(path, basePath:="")
         End Function
 
-        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, alternateSpan As Text.TextSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+        Private Function AddAnalysisPoint(syntaxForSpan As SyntaxNode, alternateSpan As Text.TextSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
             Return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory)
         End Function
 
-        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+        Private Function AddAnalysisPoint(syntaxForSpan As SyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
             Return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory)
         End Function
 
-        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, span As FileLinePositionSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+        Private Function AddAnalysisPoint(syntaxForSpan As SyntaxNode, span As FileLinePositionSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
 
             ' Add an entry in the spans array.
             Dim spansIndex As Integer = _spansBuilder.Count
@@ -274,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statementFactory.Assignment(payloadCell, statementFactory.Literal(True))
         End Function
 
-        Private Shared Function SyntaxForSpan(statement As BoundStatement) As VisualBasicSyntaxNode
+        Private Shared Function SyntaxForSpan(statement As BoundStatement) As SyntaxNode
             Select Case statement.Kind
                 Case BoundKind.IfStatement
                     Return DirectCast(statement, BoundIfStatement).Condition.Syntax
@@ -303,17 +309,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If equalsValue IsNot Nothing Then
                         Return equalsValue.Value
                     End If
+                    Dim asNew = TryCast(statement.Syntax, AsNewClauseSyntax)
+                    If asNew IsNot Nothing Then
+                        Return asNew._newExpression
+                    End If
             End Select
 
             Return statement.Syntax
         End Function
 
-        Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+        Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             Return DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, syntax, diagnostics), MethodSymbol)
         End Function
 
         ' If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.
-        Private Shared Function SkipAttributes(syntax As VisualBasicSyntaxNode) As Text.TextSpan
+        Private Shared Function SkipAttributes(syntax As SyntaxNode) As Text.TextSpan
             Select Case syntax.Kind()
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock
                     Dim methodSyntax As MethodStatementSyntax = DirectCast(syntax, MethodBlockSyntax).SubOrFunctionStatement

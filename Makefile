@@ -51,8 +51,8 @@ bootstrap: $(ROSLYN_TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	$(MSBUILD_CMD) src/Compilers/CSharp/CscCore/CscCore.csproj && \
 	$(MSBUILD_CMD) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj && \
 	mkdir -p $(BOOTSTRAP_PATH) && \
-	cp -f Binaries/$(BUILD_CONFIGURATION)/csccore/* $(BOOTSTRAP_PATH) && \
-	cp -f Binaries/$(BUILD_CONFIGURATION)/vbccore/* $(BOOTSTRAP_PATH) && \
+	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/CscCore/* $(BOOTSTRAP_PATH) && \
+	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/VbcCore/* $(BOOTSTRAP_PATH) && \
 	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) && \
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 

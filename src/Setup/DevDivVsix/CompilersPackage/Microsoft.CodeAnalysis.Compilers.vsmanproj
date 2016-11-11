@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\ProducesNoOutput.Settings.props" />
 
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
     <OutputPath>$(OutDir)Insertion\</OutputPath>
     <IsPackage>true</IsPackage>
+    <FinalizeValidate>false</FinalizeValidate>
+    <ValidateManifest>false</ValidateManifest>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
@@ -19,4 +21,6 @@
   <ItemGroup>
     <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
+
+  <Target Name="ValidateManifest" />
 </Project>

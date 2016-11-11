@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -314,8 +314,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
                 awaiterSlotCount,
-                awaiterMap);
+                awaiterMap,
+                GetLambdaSyntaxFacts());
         }
+
+        protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {

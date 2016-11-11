@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
     /// <summary>
     /// Represents the result of a FindReferences Count operation.
     /// </summary>
-    internal struct ReferenceCount
+    internal class ReferenceCount
     {
         /// <summary>
         /// Represents the number of references to a given symbol.

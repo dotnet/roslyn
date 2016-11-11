@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
             else
             {
-                var projectIdsForHierarchy = workspace.ProjectTracker.Projects
+                var projectIdsForHierarchy = workspace.ProjectTracker.ImmutableProjects
                     .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                     .Where(p => p.Hierarchy == projectHierarchyOpt)
                     .Select(p => workspace.CurrentSolution.GetProject(p.Id).Id)
@@ -128,7 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+
             var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
             foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
@@ -171,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private static string GetFixTitle(bool isAddSuppression)
@@ -367,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             waitDialogMessage = isAddSuppression ? ServicesVSResources.Applying_suppressions_fix : ServicesVSResources.Applying_remove_suppressions_fix;
             Action<IWaitContext> applyFix = context =>
             {
-                var operations = SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(newSolution));
+                var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 var cancellationToken = context.CancellationToken;
                 _editHandlerService.ApplyAsync(
                     _workspace,
@@ -567,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     if (documentDiagnosticsToFix.Any())
                     {
                         var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                        finalBuilder.Add(document, diagnostics.ToImmutableArray());
+                        finalBuilder.Add(document, diagnostics);
                     }
                 }
             }
@@ -629,7 +630,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 if (projectDiagnosticsToFix.Any())
                 {
                     var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                    finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
+                    finalBuilder.Add(project, projectDiagnostics);
                 }
             }
 

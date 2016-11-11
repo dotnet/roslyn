@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!document.Options.GetOption(ExtractMethodOptions.AllowBestEffort) ||
+            if (!document.Project.Solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, document.Project.Language) ||
                 !result.Status.HasBestEffort() || result.Document == null)
             {
                 if (notificationService != null)
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
             Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, CancellationToken cancellationToken)
         {
-            OptionSet options = document.Options;
+            OptionSet options = document.Project.Solution.Options;
 
             if (options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language) || !result.Reasons.IsSingle())
             {

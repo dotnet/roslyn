@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -122,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -232,7 +233,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -342,7 +343,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -931,8 +932,8 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+                Tuple.Create((IOption)CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
+                Tuple.Create((IOption)CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
             await TestAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,

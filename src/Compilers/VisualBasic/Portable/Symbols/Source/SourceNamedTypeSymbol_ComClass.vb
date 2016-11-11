@@ -1009,6 +1009,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
                     Return Nothing
                 End Function
+
+                Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+                    Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+                End Function
             End Class
 
             Private Class SynthesizedComMethod
@@ -1262,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+                Friend Overrides ReadOnly Property Syntax As SyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get

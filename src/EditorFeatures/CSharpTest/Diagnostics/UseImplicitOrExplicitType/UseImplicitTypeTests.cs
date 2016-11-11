@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,17 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
-        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private static readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private static readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private static readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private static readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
+        private static readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private static readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private static readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private static readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
+        public static IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
 
-        private IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() =>
+        public static IDictionary<OptionKey, object> ImplicitTypeButKeepIntrinsics() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo);
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone);
 
-        private IDictionary<OptionKey, object> Options(OptionKey option, object value)
+        private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             var options = new Dictionary<OptionKey, object>();
             options.Add(option, value);
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     [|int|] _myfield = 5;
@@ -85,6 +87,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     public event [|D|] _myevent;
@@ -96,6 +99,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -110,6 +114,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -124,6 +129,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -138,11 +144,12 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-        [|Func<string, bool>|] comparer = delegate(string value) {
+        [|Func<string, bool>|] comparer = delegate (string value) {
             return value != ""0"";
         };
     }
@@ -154,6 +161,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -168,6 +176,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -182,6 +191,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -196,6 +206,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -210,6 +221,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -224,6 +236,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -238,17 +251,16 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
         try
         {
-
         }
         catch ([|Exception|] e)
         {
-
             throw;
         }
     }
@@ -260,16 +272,16 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-         [|Program|] p = new Program();
+        [|Program|] p = new Program();
     }
 
     class var
     {
-
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -279,11 +291,12 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
     {
-         [|var|] p = new Program();
+        [|var|] p = new Program();
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -293,6 +306,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -308,6 +322,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -323,6 +338,7 @@ class Program
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     void M()
@@ -337,6 +353,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     void M()
@@ -351,6 +368,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -358,13 +376,13 @@ class C
         [|IInterface|] i = new A();
     }
 }
+
 class A : IInterface
 {
-
 }
+
 interface IInterface
 {
-
 }", options: ImplicitTypeEverywhere());
         }
 
@@ -373,11 +391,17 @@ interface IInterface
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|int[]|] n1 = {2, 4, 6, 8};
+        [|int[]|] n1 = {
+            2,
+            4,
+            6,
+            8
+        };
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -387,6 +411,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -395,6 +420,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -409,6 +435,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -417,6 +444,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -431,6 +459,7 @@ class C
         {
             await TestAsync(
 @"using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -439,6 +468,7 @@ class C
     }
 }",
 @"using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -453,6 +483,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     void M()
@@ -461,6 +492,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     void M()
@@ -475,6 +507,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C<T>
 {
     static void M()
@@ -483,6 +516,7 @@ class C<T>
     }
 }",
 @"using System;
+
 class C<T>
 {
     static void M()
@@ -497,6 +531,7 @@ class C<T>
         {
             await TestAsync(
 @"using System;
+
 class var<T>
 {
     void M()
@@ -505,6 +540,7 @@ class var<T>
     }
 }",
 @"using System;
+
 class var<T>
 {
     void M()
@@ -519,19 +555,21 @@ class var<T>
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|int[]|] n1 = new int[4] {2, 4, 6, 8};
+        [|int[]|] n1 = new int[4] { 2, 4, 6, 8 };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        var n1 = new int[4] {2, 4, 6, 8};
+        var n1 = new int[4] { 2, 4, 6, 8 };
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -541,19 +579,21 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|int[]|] n1 = new[] {2, 4, 6, 8};
+        [|int[]|] n1 = new[] { 2, 4, 6, 8 };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        var n1 = new[] {2, 4, 6, 8};
+        var n1 = new[] { 2, 4, 6, 8 };
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -563,26 +603,26 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-        [|int[][]|] cs = new[]
-        {
-            new[]{1,2,3,4},
-            new[]{5,6,7,8}
+        [|int[][]|] cs = new[] {
+            new[] { 1, 2, 3, 4 },
+            new[] { 5, 6, 7, 8 }
         };
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-        var cs = new[]
-        {
-            new[]{1,2,3,4},
-            new[]{5,6,7,8}
+        var cs = new[] {
+            new[] { 1, 2, 3, 4 },
+            new[] { 5, 6, 7, 8 }
         };
     }
 }", options: ImplicitTypeEverywhere());
@@ -593,24 +633,28 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         [|Customer|] cc = new Customer { City = ""Madras"" };
     }
+
     private class Customer
     {
         public string City { get; set; }
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         var cc = new Customer { City = ""Madras"" };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -624,6 +668,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -633,6 +678,7 @@ class C
 }",
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -648,6 +694,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -657,6 +704,7 @@ class C
             new Customer { City = ""Madras"" }
         };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -664,6 +712,7 @@ class C
 }",
 @"using System;
 using System.Collections.Generic;
+
 class C
 {
     static void M()
@@ -673,6 +722,7 @@ class C
             new Customer { City = ""Madras"" }
         };
     }
+
     private class Customer
     {
         public string City { get; set; }
@@ -685,24 +735,24 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         for ([|int|] i = 0; i < 5; i++)
         {
-
         }
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         for (var i = 0; i < 5; i++)
         {
-
         }
     }
 }", options: ImplicitTypeEverywhere());
@@ -713,6 +763,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -720,11 +771,11 @@ class C
         var l = new List<int> { 1, 3, 5 };
         foreach ([|int|] item in l)
         {
-
         }
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
@@ -732,7 +783,6 @@ class C
         var l = new List<int> { 1, 3, 5 };
         foreach (var item in l)
         {
-
         }
     }
 }", options: ImplicitTypeEverywhere());
@@ -745,42 +795,42 @@ class C
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     static void M()
     {
         var customers = new List<Customer>();
-        [|IEnumerable<Customer>|] expr =
-            from c in customers
-            where c.City == ""London""
-            select c;
-        }
-
-        private class Customer
-        {
-            public string City { get; set; }
-        }
+        [|IEnumerable<Customer>|] expr = from c in customers
+                                     where c.City == ""London""
+                                     select c;
     }
+
+    private class Customer
+    {
+        public string City { get; set; }
+    }
+}
 }",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
+
 class C
 {
     static void M()
     {
         var customers = new List<Customer>();
-        var expr =
-            from c in customers
-            where c.City == ""London""
-            select c;
-        }
-
-        private class Customer
-        {
-            public string City { get; set; }
-        }
+        var expr = from c in customers
+                   where c.City == ""London""
+                   select c;
     }
+
+    private class Customer
+    {
+        public string City { get; set; }
+    }
+}
 }", options: ImplicitTypeEverywhere());
         }
 
@@ -789,15 +839,16 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
         using ([|Res|] r = new Res())
         {
-
         }
     }
+
     private class Res : IDisposable
     {
         public void Dispose()
@@ -807,15 +858,16 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
         using (var r = new Res())
         {
-
         }
     }
+
     private class Res : IDisposable
     {
         public void Dispose()
@@ -831,6 +883,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class Program
 {
     void Method()
@@ -840,6 +893,7 @@ class Program
     }
 }",
 @"using System;
+
 class Program
 {
     void Method()
@@ -855,26 +909,30 @@ class Program
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-       C obj = new C();
-       [|C|] anotherObj = obj?.Test();
+        C obj = new C();
+        [|C|] anotherObj = obj?.Test();
     }
+
     C Test()
     {
         return this;
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-       C obj = new C();
-       var anotherObj = obj?.Test();
+        C obj = new C();
+        var anotherObj = obj?.Test();
     }
+
     C Test()
     {
         return this;
@@ -887,21 +945,23 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       [|int|] intNumber = checked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        [|int|] intNumber = checked((int)number1);
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       var intNumber = checked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        var intNumber = checked((int)number1);
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -911,21 +971,23 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       [|int|] intNumber = unchecked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        [|int|] intNumber = unchecked((int)number1);
     }
 }",
 @"using System;
+
 class C
 {
     static void M()
     {
-       long number1 = int.MaxValue + 20L;
-       var intNumber = unchecked((int)number1);
+        long number1 = int.MaxValue + 20L;
+        var intNumber = unchecked((int)number1);
     }
 }", options: ImplicitTypeEverywhere());
         }
@@ -936,6 +998,7 @@ class C
             await TestAsync(
 @"using System;
 using System.Threading.Tasks;
+
 class C
 {
     public async void ProcessRead()
@@ -950,6 +1013,7 @@ class C
 }",
 @"using System;
 using System.Threading.Tasks;
+
 class C
 {
     public async void ProcessRead()
@@ -969,6 +1033,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -977,6 +1042,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void ProcessRead()
@@ -991,6 +1057,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     static void M()
@@ -1005,6 +1072,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     private const int maxValue = int.MaxValue;
@@ -1021,6 +1089,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     private const int maxValue = int.MaxValue;
@@ -1031,6 +1100,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     private const int maxValue = int.MaxValue;
@@ -1047,6 +1117,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1055,6 +1126,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1069,6 +1141,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1077,6 +1150,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1091,6 +1165,7 @@ class C
         {
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1105,6 +1180,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1113,6 +1189,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1127,6 +1204,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1136,6 +1214,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1158,6 +1237,7 @@ class C
             // and we do not suggest `use var` here.
             await TestMissingAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1173,6 +1253,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1181,15 +1262,16 @@ class C
         [|Boolean|] s = a is IInterface;
     }
 }
+
 class A : IInterface
 {
-
 }
+
 interface IInterface
 {
-
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1198,13 +1280,13 @@ class C
         var s = a is IInterface;
     }
 }
+
 class A : IInterface
 {
-
 }
+
 interface IInterface
 {
-
 }", options: ImplicitTypeWhereApparent());
         }
 
@@ -1213,6 +1295,7 @@ interface IInterface
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1221,15 +1304,16 @@ class C
         [|IInterface|] s = a as IInterface;
     }
 }
+
 class A : IInterface
 {
-
 }
+
 interface IInterface
 {
-
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1238,13 +1322,13 @@ class C
         var s = a as IInterface;
     }
 }
+
 class A : IInterface
 {
-
 }
+
 interface IInterface
 {
-
 }", options: ImplicitTypeWhereApparent());
         }
 
@@ -1253,6 +1337,7 @@ interface IInterface
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1261,6 +1346,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1281,6 +1367,7 @@ class C
         [|XElement|] a = XElement.Load();
     }
 }
+
 class XElement
 {
     internal static XElement Load() => return null;
@@ -1292,6 +1379,7 @@ class XElement
         var a = XElement.Load();
     }
 }
+
 class XElement
 {
     internal static XElement Load() => return null;
@@ -1303,6 +1391,7 @@ class XElement
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1311,6 +1400,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1325,6 +1415,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1334,6 +1425,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1349,6 +1441,7 @@ class C
         {
             await TestAsync(
 @"using System;
+
 class C
 {
     public void Process()
@@ -1359,6 +1452,7 @@ class C
     }
 }",
 @"using System;
+
 class C
 {
     public void Process()
@@ -1476,8 +1570,24 @@ namespace System
         public async Task ValueTupleCreate()
         {
             await TestAsync(
-@"using System; class C { static void M() { [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1); } }" + trivial2uple,
-@"using System; class C { static void M() { var s = ValueTuple.Create(1, 1); } }" + trivial2uple,
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        var s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
 options: ImplicitTypeWhereApparent(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
@@ -1487,7 +1597,13 @@ withScriptOption: true);
         public async Task TupleWithDifferentNames()
         {
             await TestMissingAsync(
-@"class C { static void M() { [|(int, string)|] s = (c: 1, d: ""hello""); } }",
+@"class C
+{
+    static void M()
+    {
+        [|(int, string)|] s = (c: 1, d: ""hello"");
+    }
+}",
 options: ImplicitTypeEverywhere(),
 parseOptions: TestOptions.Regular,
 withScriptOption: true);

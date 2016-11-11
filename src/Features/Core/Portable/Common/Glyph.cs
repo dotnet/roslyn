@@ -4,6 +4,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal enum Glyph
     {
+        None,
+
         Assembly,
 
         BasicFile,

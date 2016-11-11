@@ -44,7 +44,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers2()
@@ -72,7 +72,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1);
+            await TestAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -215,7 +215,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -313,7 +313,7 @@ class Program
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected);
+            await TestAsync(initial, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
@@ -448,24 +448,96 @@ class Program
         public async Task AddAsyncInDelegate()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private async void method()
+    {
+        string content = await Task<String>.Run(delegate () {
+            [|await Task.Delay(1000)|];
+            return ""Test"";
+        });
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private async void method()
+    {
+        string content = await Task<String>.Run(async delegate () {
+            await Task.Delay(1000);
+            return ""Test"";
+        });
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate2()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private void method()
+    {
+        string content = await Task<String>.Run(delegate () {
+            [|await Task.Delay(1000)|];
+            return ""Test"";
+        });
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private void method()
+    {
+        string content = await Task<String>.Run(async delegate () {
+            await Task.Delay(1000);
+            return ""Test"";
+        });
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AddAsyncInDelegate3()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private void method()
+    {
+        string content = await Task<String>.Run(delegate () {
+            [|await Task.Delay(1000)|];
+            return ""Test"";
+        });
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    private void method()
+    {
+        string content = await Task<String>.Run(async delegate () {
+            await Task.Delay(1000);
+            return ""Test"";
+        });
+    }
+}");
         }
 
         [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
@@ -481,8 +553,7 @@ class C
     {
         try
         {
-            [|await|]
-            await Task.Delay(100);
+            [|await|] await Task.Delay(100);
         }
         finally
         {

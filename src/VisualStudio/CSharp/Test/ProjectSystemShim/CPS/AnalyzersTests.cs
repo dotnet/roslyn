@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
                 project.SetRuleSetFile(ruleSetFile.Path);
-                project.SetCommandLineArguments($"/ruleset:{ruleSetFile.Path}");
+                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
@@ -76,7 +76,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Equal(ruleSetFile.Path, project.RuleSetFile.FilePath);
 
                 // We need to explicitly update the command line arguments so the new ruleset is used to update options.
-                project.SetCommandLineArguments($"/ruleset:{ruleSetFile.Path}");
+                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
                 var ca1012DiagnosticOption = project.CurrentCompilationOptions.SpecificDiagnosticOptions["CA1012"];
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
 

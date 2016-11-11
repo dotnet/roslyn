@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // GetSpanInView() can return an empty collection if the tracking span isn't mapped to anything
                         // in the current view, specifically a `@model SomeModelClass` directive in a Razor file.
                         var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).FirstOrDefault();
-                        if (ss != null && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
+                        if (ss != default(SnapshotSpan) && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
                         {
                             return Tuple.Create(kvp.Key, ss);
                         }

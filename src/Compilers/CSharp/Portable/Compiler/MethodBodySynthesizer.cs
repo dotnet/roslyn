@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the base class had a constructor that initializes its state a global variable would access partially initialized object. 
             // For this reason Script class must always derive directly from a class that has no state (System.Object).
 
-            CSharpSyntaxNode syntax = loweredBody.Syntax;
+            SyntaxNode syntax = loweredBody.Syntax;
 
             // base constructor call:
             Debug.Assert((object)constructor.ContainingType.BaseTypeNoUseSiteDiagnostics == null || constructor.ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static void MakeSubmissionInitialization(
             ArrayBuilder<BoundStatement> statements,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             MethodSymbol submissionConstructor,
             SynthesizedSubmissionFields synthesizedFields,
             CSharpCompilation compilation)
@@ -498,7 +498,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBlock(syntax,
                 locals: tmps.AsImmutable(),
-                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create<BoundStatement>(
                     tmp0Init,
                     loopStart,
@@ -515,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = block.Syntax;
 
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
-            Debug.Assert(syntax.Kind() == SyntaxKind.Block);
+            Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);
 
             // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact 
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.
@@ -524,25 +523,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)baseTypeFinalize != null)
             {
-                BoundStatement baseFinalizeCall = new BoundSequencePointWithSpan( //sequence point to mimic Dev10
+                BoundStatement baseFinalizeCall = new BoundExpressionStatement(
                     syntax,
-                    new BoundExpressionStatement(
+                    BoundCall.Synthesized(
                         syntax,
-                        BoundCall.Synthesized(
+                        new BoundBaseReference(
                             syntax,
-                            new BoundBaseReference(
-                                syntax,
-                                method.ContainingType)
-                            { WasCompilerGenerated = true },
-                            baseTypeFinalize)
-                        )
-                    { WasCompilerGenerated = true },
-                    ((BlockSyntax)syntax).CloseBraceToken.Span);
+                            method.ContainingType)
+                        { WasCompilerGenerated = true },
+                        baseTypeFinalize))
+                    { WasCompilerGenerated = true };
+
+                if (syntax.Kind() == SyntaxKind.Block)
+                {
+                    //sequence point to mimic Dev10
+                    baseFinalizeCall = new BoundSequencePointWithSpan(
+                        syntax,
+                        baseFinalizeCall,
+                        ((BlockSyntax)syntax).CloseBraceToken.Span);
+                }
 
                 return new BoundBlock(
                     syntax,
                     ImmutableArray<LocalSymbol>.Empty,
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundTryStatement(
                             syntax,
@@ -551,7 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new BoundBlock(
                                 syntax,
                                 ImmutableArray<LocalSymbol>.Empty,
-                                ImmutableArray<LocalFunctionSymbol>.Empty,
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )

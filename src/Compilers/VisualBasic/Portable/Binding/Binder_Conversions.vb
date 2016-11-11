@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -66,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyDirectCastConversion(
-             node As VisualBasicSyntaxNode,
+             node As SyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (argument.HasErrors OrElse targetType.IsErrorType) Then
                 argument = MakeRValue(argument, diagnostics)
 
-                Return New BoundDirectCast(node, argument, ConversionKind:=Nothing, Type:=targetType, HasErrors:=True)
+                Return New BoundDirectCast(node, argument, conversionKind:=Nothing, type:=targetType, hasErrors:=True)
             End If
 
             ' Classify conversion
@@ -103,13 +102,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If argument.HasErrors Then
-                Return New BoundDirectCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundDirectCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             Dim sourceType = argument.Type
 
             If sourceType IsNot Nothing AndAlso sourceType.IsErrorType() Then
-                Return New BoundDirectCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundDirectCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             Debug.Assert(argument.IsNothingLiteral() OrElse (sourceType IsNot Nothing AndAlso Not sourceType.IsErrorType()))
@@ -119,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If sourceType.IsValueType AndAlso sourceType.IsRestrictedType() AndAlso
                        (targetType.IsObjectType() OrElse targetType.SpecialType = SpecialType.System_ValueType) Then
                     ReportDiagnostic(diagnostics, argument.Syntax, ERRID.ERR_RestrictedConversion1, sourceType)
-                    Return New BoundDirectCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundDirectCast(node, argument, conv, targetType, hasErrors:=True)
                 End If
             End If
 
@@ -127,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Conversions.NoConversion(conv) Then
                 ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics)
-                Return New BoundDirectCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundDirectCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             If Conversions.IsIdentityConversion(conv) Then
@@ -149,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If constantResult IsNot Nothing Then
                 Debug.Assert(Conversions.IsIdentityConversion(conv) OrElse
                                       conv = ConversionKind.WideningNothingLiteral OrElse
-                                      sourceType.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(targetType.GetEnumUnderlyingTypeOrSelf()))
+                                      sourceType.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(targetType.GetEnumUnderlyingTypeOrSelf()))
                 Debug.Assert(Not integerOverflow)
                 Debug.Assert(Not constantResult.IsBad)
             Else
@@ -173,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ApplyTryCastConversion(
-             node As VisualBasicSyntaxNode,
+             node As SyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
              diagnostics As DiagnosticBag
@@ -184,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (argument.HasErrors OrElse targetType.IsErrorType) Then
                 argument = MakeRValue(argument, diagnostics)
 
-                Return New BoundTryCast(node, argument, ConversionKind:=Nothing, Type:=targetType, HasErrors:=True)
+                Return New BoundTryCast(node, argument, conversionKind:=Nothing, type:=targetType, hasErrors:=True)
             End If
 
             ' Classify conversion
@@ -216,13 +215,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If argument.HasErrors Then
-                Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             Dim sourceType = argument.Type
 
             If sourceType IsNot Nothing AndAlso sourceType.IsErrorType() Then
-                Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             Debug.Assert(argument.IsNothingLiteral() OrElse (sourceType IsNot Nothing AndAlso Not sourceType.IsErrorType()))
@@ -232,17 +231,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If targetType.IsValueType() Then
                     Dim castSyntax = TryCast(node, CastExpressionSyntax)
                     ReportDiagnostic(diagnostics, If(castSyntax IsNot Nothing, castSyntax.Type, node), ERRID.ERR_TryCastOfValueType1, targetType)
-                    Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
 
                 ElseIf targetType.IsTypeParameter() AndAlso Not targetType.IsReferenceType Then
                     Dim castSyntax = TryCast(node, CastExpressionSyntax)
                     ReportDiagnostic(diagnostics, If(castSyntax IsNot Nothing, castSyntax.Type, node), ERRID.ERR_TryCastOfUnconstrainedTypeParam1, targetType)
-                    Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
 
                 ElseIf sourceType.IsValueType AndAlso sourceType.IsRestrictedType() AndAlso
                        (targetType.IsObjectType() OrElse targetType.SpecialType = SpecialType.System_ValueType) Then
                     ReportDiagnostic(diagnostics, argument.Syntax, ERRID.ERR_RestrictedConversion1, sourceType)
-                    Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                    Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
                 End If
             End If
 
@@ -250,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Conversions.NoConversion(conv) Then
                 ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics)
-                Return New BoundTryCast(node, argument, conv, targetType, HasErrors:=True)
+                Return New BoundTryCast(node, argument, conv, targetType, hasErrors:=True)
             End If
 
             Dim constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
@@ -295,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Friend Function ApplyImplicitConversion(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             targetType As TypeSymbol,
             expression As BoundExpression,
             diagnostics As DiagnosticBag,
@@ -308,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of explicit or non-identity conversion.
         ''' </summary>
         Private Function ApplyConversion(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             targetType As TypeSymbol,
             argument As BoundExpression,
             isExplicit As Boolean,
@@ -324,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If targetType.IsErrorType Then
                 argument = MakeRValueAndIgnoreDiagnostics(argument)
 
-                If Not isExplicit AndAlso argument.Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                If Not isExplicit AndAlso argument.Type.IsSameTypeIgnoringAll(targetType) Then
                     Return argument
                 End If
 
@@ -413,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function must return a BoundConversion node in case of non-identity conversion.
         ''' </summary>
         Private Function CreateConversionAndReportDiagnostic(
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -429,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' don't need representation in the bound tree (they would be optimized away in emit, but are so common
             ' that this is an important way to save both time and memory).
             If (Not isExplicit OrElse explicitSemanticForConcatArgument) AndAlso Conversions.IsIdentityConversion(convKind.Key) Then
-                Debug.Assert(argument.Type.IsSameTypeIgnoringCustomModifiers(targetType))
+                Debug.Assert(argument.Type.IsSameTypeIgnoringAll(targetType))
                 Debug.Assert(tree Is argument.Syntax)
                 Return MakeRValue(argument, diagnostics)
             End If
@@ -493,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If sourceType.IsValueType AndAlso sourceType.IsRestrictedType() AndAlso
                        (targetType.IsObjectType() OrElse targetType.SpecialType = SpecialType.System_ValueType) Then
                     ReportDiagnostic(diagnostics, argument.Syntax, ERRID.ERR_RestrictedConversion1, sourceType)
-                    Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, HasErrors:=True)
+                    Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
                 End If
             End If
 
@@ -577,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics, copybackConversionParamName)
                 End If
 
-                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, HasErrors:=True)
+                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
             End If
 
 DoneWithDiagnostics:
@@ -587,7 +586,7 @@ DoneWithDiagnostics:
             End If
 
             If argument.HasErrors OrElse (sourceType IsNot Nothing AndAlso sourceType.IsErrorType()) Then
-                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, HasErrors:=True)
+                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
             End If
 
             Return CreatePredefinedConversion(tree, argument, convKind.Key, isExplicit, targetType, diagnostics)
@@ -644,7 +643,7 @@ DoneWithDiagnostics:
         ''' </summary>
         Private Function MakeVarianceConversionSuggestion(
             convKind As ConversionKind,
-            location As VisualBasicSyntaxNode,
+            location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,
@@ -799,7 +798,7 @@ DoneWithDiagnostics:
                     Dim sourceArg As TypeSymbol = sourceArguments(i)
                     Dim destinationArg As TypeSymbol = destinationArguments(i)
 
-                    If sourceArg.IsSameTypeIgnoringCustomModifiers(destinationArg) Then
+                    If sourceArg.IsSameTypeIgnoringAll(destinationArg) Then
                         Continue For
                     End If
 
@@ -948,7 +947,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Function CreatePredefinedConversion(
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             argument As BoundExpression,
             convKind As ConversionKind,
             isExplicit As Boolean,
@@ -996,7 +995,11 @@ DoneWithDiagnostics:
 
                     ' The conversion has the lambda stored internally to not clutter the bound tree with synthesized nodes 
                     ' in the first pass. Later the node get's rewritten into a delegate creation with the lambda if needed.
-                    Return New BoundConversion(tree, argument, convKind, False, isExplicit, boundLambdaOpt, relaxationReceiverPlaceholderOpt, targetType)
+                    Return New BoundConversion(tree, argument, convKind, False, isExplicit, Nothing,
+                                               If(boundLambdaOpt Is Nothing,
+                                                  Nothing,
+                                                  New BoundRelaxationLambda(tree, boundLambdaOpt, relaxationReceiverPlaceholderOpt).MakeCompilerGenerated()),
+                                               targetType)
                 Else
                     Debug.Assert(diagnostics.HasAnyErrors())
                 End If
@@ -1017,11 +1020,43 @@ DoneWithDiagnostics:
                 constantResult = Conversions.TryFoldNothingReferenceConversion(argument, convKind, targetType)
             End If
 
-            Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, targetType)
+            Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
+
+            Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
+        End Function
+
+        Private Function CreateConversionForTupleElements(
+            tree As SyntaxNode,
+            sourceType As TypeSymbol,
+            targetType As TypeSymbol,
+            convKind As ConversionKind,
+            isExplicit As Boolean
+        ) As BoundConvertedTupleElements
+
+            If (convKind And ConversionKind.Tuple) <> 0 Then
+                Dim ignore = DiagnosticBag.GetInstance()
+                Dim sourceElementTypes = sourceType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
+                Dim targetElementTypes = targetType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
+
+                Dim placeholders = ArrayBuilder(Of BoundRValuePlaceholder).GetInstance(sourceElementTypes.Length)
+                Dim converted = ArrayBuilder(Of BoundExpression).GetInstance(sourceElementTypes.Length)
+
+                For i As Integer = 0 To sourceElementTypes.Length - 1
+                    Dim placeholder = New BoundRValuePlaceholder(tree, sourceElementTypes(i)).MakeCompilerGenerated()
+                    placeholders.Add(placeholder)
+                    converted.Add(ApplyConversion(tree, targetElementTypes(i), placeholder, isExplicit, ignore))
+                Next
+
+                ignore.Free()
+
+                Return New BoundConvertedTupleElements(tree, placeholders.ToImmutableAndFree(), converted.ToImmutableAndFree()).MakeCompilerGenerated()
+            End If
+
+            Return Nothing
         End Function
 
         Private Function CreateUserDefinedConversion(
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             argument As BoundExpression,
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
@@ -1126,7 +1161,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyExpression(
             ByRef argument As BoundExpression,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1245,7 +1280,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyUnboundLambdaExpression(
             unboundLambda As UnboundLambda,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1435,7 +1470,11 @@ DoneWithDiagnostics:
             End If
 
             If conversionSemantics = SyntaxKind.CTypeKeyword Then
-                Return New BoundConversion(tree, boundLambda, convKind, False, isExplicit, relaxationLambdaOpt, targetType)
+                Return New BoundConversion(tree, boundLambda, convKind, False, isExplicit, Nothing,
+                                           If(relaxationLambdaOpt Is Nothing,
+                                              Nothing,
+                                              New BoundRelaxationLambda(tree, relaxationLambdaOpt, receiverPlaceholderOpt:=Nothing).MakeCompilerGenerated()),
+                                           targetType)
             ElseIf conversionSemantics = SyntaxKind.DirectCastKeyword Then
                 Return New BoundDirectCast(tree, boundLambda, convKind, relaxationLambdaOpt, targetType)
             ElseIf conversionSemantics = SyntaxKind.TryCastKeyword Then
@@ -1448,7 +1487,7 @@ DoneWithDiagnostics:
         Private Function ReclassifyQueryLambdaExpression(
             lambda As BoundQueryLambda,
             conversionSemantics As SyntaxKind,
-            tree As VisualBasicSyntaxNode,
+            tree As SyntaxNode,
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
@@ -1525,7 +1564,7 @@ DoneWithDiagnostics:
             If delegateInvoke.OriginalDefinition.ReturnType.IsTypeParameter() Then
                 Dim restrictedType As TypeSymbol = Nothing
                 If delegateReturnType.IsRestrictedTypeOrArrayType(restrictedType) Then
-                    Dim location As VisualBasicSyntaxNode
+                    Dim location As SyntaxNode
 
                     If lambda.Expression.Kind = BoundKind.RangeVariableAssignment Then
                         location = DirectCast(lambda.Expression, BoundRangeVariableAssignment).Value.Syntax
@@ -1559,9 +1598,9 @@ DoneWithDiagnostics:
             Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
         End Function
 
-        Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As VisualBasicSyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As SyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
 
-            If convKind = ConversionKind.InterpolatedString Then
+            If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
                 Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
             End If
@@ -1572,7 +1611,7 @@ DoneWithDiagnostics:
 
         Private Function ReclassifyTupleLiteral(
                        convKind As ConversionKind,
-                       tree As VisualBasicSyntaxNode,
+                       tree As SyntaxNode,
                        isExplicit As Boolean,
                        sourceTuple As BoundTupleLiteral,
                        destination As TypeSymbol,
@@ -1580,7 +1619,7 @@ DoneWithDiagnostics:
 
             ' We have a successful tuple conversion rather than producing a separate conversion node 
             ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Dim isNullableTupleConversion = (convKind = ConversionKind.WideningNullable) Or (convKind = ConversionKind.NarrowingNullable)
+            Dim isNullableTupleConversion = (convKind And ConversionKind.Nullable) <> 0
             Debug.Assert(Not isNullableTupleConversion OrElse destination.IsNullableType())
 
             Dim targetType = destination
@@ -1596,6 +1635,9 @@ DoneWithDiagnostics:
 
             If targetType.IsTupleType Then
                 Dim destTupleType = DirectCast(targetType, TupleTypeSymbol)
+
+                TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics)
+
                 ' do not lose the original element names in the literal if different from names in the target
                 ' Come back to this, what about locations? (https:'github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt)
@@ -1640,7 +1682,7 @@ DoneWithDiagnostics:
 
         Private Sub WarnOnNarrowingConversionBetweenSealedClassAndAnInterface(
             convKind As ConversionKind,
-            location As VisualBasicSyntaxNode,
+            location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag
@@ -1679,7 +1721,7 @@ DoneWithDiagnostics:
         End Function
 
         Private Sub ReportNoConversionError(
-            location As VisualBasicSyntaxNode,
+            location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             diagnostics As DiagnosticBag,
@@ -1695,7 +1737,7 @@ DoneWithDiagnostics:
                 If sourceArray.Rank <> targetArray.Rank Then
                     ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayRankMismatch2, sourceType, targetType)
 
-                ElseIf sourceArray.IsSZArray <> targetArray.IsSZArray
+                ElseIf sourceArray.IsSZArray <> targetArray.IsSZArray Then
                     ReportDiagnostic(diagnostics, location, ERRID.ERR_TypeMismatch2, sourceType, targetType)
 
                 ElseIf Not (sourceElement.IsErrorType() OrElse targetElement.IsErrorType()) Then

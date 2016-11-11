@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
-            CSharpSyntaxNode syntax = loop.Syntax;
+            SyntaxNode syntax = loop.Syntax;
             var startLabel = new GeneratedLabelSymbol("start");
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
 

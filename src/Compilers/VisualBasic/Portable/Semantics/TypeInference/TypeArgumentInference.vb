@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -100,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride Function InferTypeAndPropagateHints() As Boolean
 
             <Conditional("DEBUG")>
-            Public Sub VerifyIncomingInferenceComplete( _
-                    ByVal nodeType As InferenceNodeType _
+            Public Sub VerifyIncomingInferenceComplete(
+                    ByVal nodeType As InferenceNodeType
                 )
                 If Not Graph.SomeInferenceHasFailed() Then
                     For Each current As InferenceNode In IncomingEdges
@@ -121,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Parameter As ParameterSymbol
             Public InferredFromObject As Boolean
             Public TypeParameter As TypeParameterSymbol
-            Public ArgumentLocation As VisualBasicSyntaxNode
+            Public ArgumentLocation As SyntaxNode
 
         End Class
 
@@ -228,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function InferTypeAndPropagateHints() As Boolean
                 Dim numberOfIncomingEdges As Integer = IncomingEdges.Count
                 Dim restartAlgorithm As Boolean = False
-                Dim argumentLocation As VisualBasicSyntaxNode
+                Dim argumentLocation As SyntaxNode
                 Dim numberOfIncomingWithNothing As Integer = 0
 
                 If numberOfIncomingEdges > 0 Then
@@ -302,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If firstInferredType Is Nothing Then
                             firstInferredType = currentTypeInfo.ResultType
 
-                        ElseIf Not firstInferredType.IsSameTypeIgnoringCustomModifiers(currentTypeInfo.ResultType) Then
+                        ElseIf Not firstInferredType.IsSameTypeIgnoringAll(currentTypeInfo.ResultType) Then
                             ' Whidbey failed hard here, in Orcas we added dominant type information.
                             Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         End If
@@ -360,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub AddTypeHint(
                 type As TypeSymbol,
                 typeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -380,7 +374,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     For Each competitor As DominantTypeDataTypeInference In InferenceTypeCollection.GetTypeDataList()
 
                         ' Do not merge array literals with other expressions
-                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
+                        If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringAll(competitor.ResultType) Then
+                            competitor.ResultType = TypeInferenceCollection.MergeTupleNames(competitor.ResultType, type)
                             competitor.InferenceRestrictions = Conversions.CombineConversionRequirements(
                                                                         competitor.InferenceRestrictions,
                                                                         inferenceRestrictions)
@@ -569,16 +564,23 @@ HandleAsAGeneralExpression:
 
                         Dim arrayLiteral As BoundArrayLiteral = Nothing
                         Dim argumentTypeByAssumption As Boolean = False
+                        Dim expressionType As TypeSymbol
 
                         If Expression.Kind = BoundKind.ArrayLiteral Then
                             arrayLiteral = DirectCast(Expression, BoundArrayLiteral)
                             argumentTypeByAssumption = arrayLiteral.NumberOfCandidates <> 1
+                            expressionType = New ArrayLiteralTypeSymbol(arrayLiteral)
+
+                        ElseIf Expression.Kind = BoundKind.TupleLiteral Then
+                            expressionType = DirectCast(Expression, BoundTupleLiteral).InferredType
+                        Else
+                            expressionType = Expression.Type
                         End If
 
                         ' Need to create an ArrayLiteralTypeSymbol
                         inferenceOk = Graph.InferTypeArgumentsFromArgument(
                             Expression.Syntax,
-                            If(Expression.Kind <> BoundKind.ArrayLiteral, Expression.Type, New ArrayLiteralTypeSymbol(arrayLiteral)),
+                            expressionType,
                             argumentTypeByAssumption,
                             ParameterType,
                             Parameter,
@@ -1286,7 +1288,7 @@ HandleAsAGeneralExpression:
                 genericParameter As TypeParameterSymbol,
                 inferredType As TypeSymbol,
                 inferredTypeByAssumption As Boolean,
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 parameter As ParameterSymbol,
                 inferredFromObject As Boolean,
                 inferenceRestrictions As RequiredConversion
@@ -1363,7 +1365,7 @@ HandleAsAGeneralExpression:
             '   -- If P is Array Of T, and A is Array Of X, then infer X for T
             '   -- If P is ByRef T, then infer A for T
             Private Function InferTypeArgumentsFromArgumentDirectly(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1445,7 +1447,7 @@ HandleAsAGeneralExpression:
                         Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType, NamedTypeSymbol), Nothing)
 
                         If argumentTypeAsNamedType IsNot Nothing AndAlso argumentTypeAsNamedType.IsGenericType Then
-                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(parameterTypeAsNamedType.OriginalDefinition) Then
+                            If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringAll(parameterTypeAsNamedType.OriginalDefinition) Then
 
                                 Do
 
@@ -1619,7 +1621,7 @@ HandleAsAGeneralExpression:
             ' here (to show success at pattern-matching) and leave the downstream code to produce an error message about
             ' failing to infer T.
             Friend Function InferTypeArgumentsFromArgument(
-                argumentLocation As VisualBasicSyntaxNode,
+                argumentLocation As SyntaxNode,
                 argumentType As TypeSymbol,
                 argumentTypeByAssumption As Boolean,
                 parameterType As TypeSymbol,
@@ -1807,7 +1809,7 @@ HandleAsAGeneralExpression:
                     Return False
                 End If
 
-                If baseSearchType.IsSameTypeIgnoringCustomModifiers(fixedType) Then
+                If baseSearchType.IsSameTypeIgnoringAll(fixedType) Then
                     ' If the types checked were already identical, then exit
                     Return False
                 End If
@@ -1837,7 +1839,7 @@ HandleAsAGeneralExpression:
                 If match Is Nothing Then
                     match = type
                     Return True
-                ElseIf match.IsSameTypeIgnoringCustomModifiers(type) Then
+                ElseIf match.IsSameTypeIgnoringAll(type) Then
                     Return True
                 Else
                     match = Nothing
@@ -1853,7 +1855,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1866,7 +1868,7 @@ HandleAsAGeneralExpression:
 
                     Case Else
                         For Each [interface] In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If [interface].OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseInterface.OriginalDefinition) Then
+                            If [interface].OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual([interface], match) Then
                                     Return False
                                 End If
@@ -1885,7 +1887,7 @@ HandleAsAGeneralExpression:
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
                         For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
-                            If constraint.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
                                 End If
@@ -1903,7 +1905,7 @@ HandleAsAGeneralExpression:
                         Dim baseType As NamedTypeSymbol = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
 
                         While baseType IsNot Nothing
-                            If baseType.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(baseClass.OriginalDefinition) Then
+                            If baseType.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(baseType, match) Then
                                     Return False
                                 End If
@@ -2211,7 +2213,7 @@ HandleAsAGeneralExpression:
                                     Dim lambdaReturnNamedType = DirectCast(lambdaReturnType, NamedTypeSymbol)
                                     Dim returnNamedType = DirectCast(returnType, NamedTypeSymbol)
                                     If lambdaReturnNamedType.Arity = 1 AndAlso
-                                            IsSameTypeIgnoringCustomModifiers(lambdaReturnNamedType.OriginalDefinition,
+                                            IsSameTypeIgnoringAll(lambdaReturnNamedType.OriginalDefinition,
                                                                               returnNamedType.OriginalDefinition) Then
 
                                         ' We can assume that the lambda will have return type Task(Of T) or IEnumerable(Of T)
@@ -2339,8 +2341,5 @@ HandleAsAGeneralExpression:
             End Sub
 
         End Class
-
     End Class
-
 End Namespace
-

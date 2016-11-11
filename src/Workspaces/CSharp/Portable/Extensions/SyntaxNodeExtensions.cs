@@ -229,14 +229,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return Matcher.Single<SyntaxTrivia>(t => t.Kind() == kind, description);
         }
 
+        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
+            this SyntaxNode node, SourceText sourceText = null, 
+            bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
+            => node.GetFirstToken().GetAllPrecedingTriviaToPreviousToken(
+                sourceText, includePreviousTokenTrailingTriviaOnlyIfOnSameLine);
+
         /// <summary>
         /// Returns all of the trivia to the left of this token up to the previous token (concatenates
         /// the previous token's trailing trivia and this token's leading trivia).
         /// </summary>
-        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(this SyntaxToken token)
+        public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
+            this SyntaxToken token, SourceText sourceText = null, 
+            bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
         {
             var prevToken = token.GetPreviousToken(includeSkipped: true);
             if (prevToken.Kind() == SyntaxKind.None)
+            {
+                return token.LeadingTrivia;
+            }
+
+            if (includePreviousTokenTrailingTriviaOnlyIfOnSameLine && 
+                !sourceText.AreOnSameLine(prevToken, token))
             {
                 return token.LeadingTrivia;
             }
@@ -253,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return true;
             }
 
@@ -268,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return true;
             }
 
@@ -310,76 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // todo: we need to dive into trivia here.
             return tokens.SpansPreprocessorDirective();
-        }
-
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            params SyntaxTrivia[] trivia) where T : SyntaxNode
-        {
-            if (trivia.Length == 0)
-            {
-                return node;
-            }
-
-            return node.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            SyntaxTriviaList trivia) where T : SyntaxNode
-        {
-            if (trivia.Count == 0)
-            {
-                return node;
-            }
-
-            return node.WithLeadingTrivia(trivia.Concat(node.GetLeadingTrivia()));
-        }
-
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
-        {
-            return node.WithPrependedLeadingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            params SyntaxTrivia[] trivia) where T : SyntaxNode
-        {
-            if (trivia.Length == 0)
-            {
-                return node;
-            }
-
-            return node.WithAppendedTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            SyntaxTriviaList trivia) where T : SyntaxNode
-        {
-            if (trivia.Count == 0)
-            {
-                return node;
-            }
-
-            return node.WithTrailingTrivia(node.GetTrailingTrivia().Concat(trivia));
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
-        {
-            return node.WithAppendedTrailingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static T With<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> leadingTrivia,
-            IEnumerable<SyntaxTrivia> trailingTrivia) where T : SyntaxNode
-        {
-            return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
         public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)

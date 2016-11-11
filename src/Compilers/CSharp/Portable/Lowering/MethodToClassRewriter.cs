@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
-        protected readonly Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
+        // The lambda rewriter also saves/restores the proxies across passes, since local function
+        // reference rewriting is done in a separate pass but still requires the frame proxies
+        // created in the first pass.
+        protected Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
         // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract TypeMap TypeMap { get; }
 
         // Subclasses override this method to fetch a frame pointer.
-        protected abstract BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass);
+        protected abstract BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass);
 
         protected abstract MethodSymbol CurrentMethod { get; }
 
@@ -235,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 rewrittenType);
         }
 
-        private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, CSharpSyntaxNode syntax)
+        private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, SyntaxNode syntax)
         {
             var newMethod = GetOrCreateBaseFunctionWrapper(methodBeingCalled, syntax);
             if (!newMethod.IsGenericMethod)
@@ -256,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newMethod.Construct(visitedTypeArgs.AsImmutableOrNull());
         }
 
-        private MethodSymbol GetOrCreateBaseFunctionWrapper(MethodSymbol methodBeingWrapped, CSharpSyntaxNode syntax)
+        private MethodSymbol GetOrCreateBaseFunctionWrapper(MethodSymbol methodBeingWrapped, SyntaxNode syntax)
         {
             methodBeingWrapped = methodBeingWrapped.ConstructedFrom;
 
@@ -283,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return wrapper;
         }
 
-        private bool TryReplaceWithProxy(Symbol parameterOrLocal, CSharpSyntaxNode syntax, out BoundNode replacement)
+        private bool TryReplaceWithProxy(Symbol parameterOrLocal, SyntaxNode syntax, out BoundNode replacement)
         {
             CapturedSymbolReplacement proxy;
             if (proxies.TryGetValue(parameterOrLocal, out proxy))
@@ -699,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
-            internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, CSharpSyntaxNode syntax, string name)
+            internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
                 : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), null, syntax.GetLocation(), name, DeclarationModifiers.Private)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);

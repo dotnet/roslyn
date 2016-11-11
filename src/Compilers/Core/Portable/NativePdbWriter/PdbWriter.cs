@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
+using System.Security.Cryptography;
 
 namespace Microsoft.Cci
 {
@@ -64,7 +65,7 @@ namespace Microsoft.Cci
                 // and we need just one per compile session
                 // pooling will be couter-productive in such scenario
                 _logData = new BlobBuilder(bufferFlushLimit);
-                _incrementalHash = IncrementalHash.Create(AssemblyHashAlgorithm.Sha1);
+                _incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
             }
             else
             {
@@ -290,7 +291,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private IModule Module => Context.Module;
+        private CommonPEModuleBuilder Module => Context.Module;
         private EmitContext Context => _metadataWriter.Context;
 
         public void SerializeDebugInfo(IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, CustomDebugInfoWriter customDebugInfoWriter)
@@ -354,7 +355,7 @@ namespace Microsoft.Cci
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var compilationOptions = Context.ModuleBuilder.CommonCompilation.Options;
+            var compilationOptions = Context.Module.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
@@ -1247,7 +1248,9 @@ namespace Microsoft.Cci
         private unsafe void DefineLocalConstantImpl(string name, object value, uint sigToken)
         {
             VariantStructure variant = new VariantStructure();
+#pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
+#pragma warning restore CS0618 // Type or member is obsolete
             _symWriter.DefineConstant2(name, variant, sigToken);
         }
 

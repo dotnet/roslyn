@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             NamingRules = namingRules;
         }
 
-        internal bool TryGetApplicableRule(ISymbol symbol, ISymbolCategorizationService categorizationService, out NamingRule applicableRule)
+        internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {
             if (NamingRules == null)
             {
@@ -23,14 +22,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            var matchingRule = NamingRules.FirstOrDefault(r => r.AppliesTo(symbol, categorizationService));
-            if (matchingRule == null)
+            if (!IsSymbolNameAnalyzable(symbol))
             {
                 applicableRule = null;
                 return false;
             }
+            
+            foreach (var namingRule in NamingRules)
+            {
+                if (namingRule.AppliesTo(symbol))
+                {
+                    applicableRule = namingRule;
+                    return true;
+                }
+            }
 
-            applicableRule = matchingRule.GetBestMatchingRule(symbol, categorizationService);
+            applicableRule = null;
+            return false;
+        }
+
+        private bool IsSymbolNameAnalyzable(ISymbol symbol)
+        {
+            if (symbol.Kind == SymbolKind.Method)
+            {
+                var methodSymbol = symbol as IMethodSymbol;
+                if (methodSymbol != null && methodSymbol.MethodKind != MethodKind.Ordinary)
+                {
+                    return false;
+                }
+            }
+
+            if (symbol.Kind == SymbolKind.Property)
+            {
+                var propertySymbol = symbol as IPropertySymbol;
+                if (propertySymbol != null && propertySymbol.IsIndexer)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
     }

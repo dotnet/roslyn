@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 
         // Cannot expose the following two field publicly because this structure is mutable
         // and might become not null/empty, unless we restrict access to it.
-        private static readonly Word[] s_emptyArray = SpecializedCollections.EmptyArray<Word>();
+        private static readonly Word[] s_emptyArray = Array.Empty<Word>();
         private static readonly BitVector s_nullValue = new BitVector(0, null, 0);
         private static readonly BitVector s_emptyValue = new BitVector(0, s_emptyArray, 0);
 
@@ -283,18 +283,34 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Modify this bit vector by '|'ing each element with the other bit vector.
         /// </summary>
-        /// <param name="other"></param>
-        public void UnionWith(BitVector other)
+        /// <returns>
+        /// True if any bits were set as a result of the union.
+        /// </returns>
+        public bool UnionWith(BitVector other)
         {
-            int l = other._bits.Length;
-            if (l > _bits.Length)
-                Array.Resize(ref _bits, l + 1);
-            _bits0 |= other._bits0;
-            for (int i = 0; i < l; i++)
-                _bits[i] |= other._bits[i];
+            bool anyChanged = false;
+
             if (other._capacity > _capacity)
                 EnsureCapacity(other._capacity);
+
+            Word oldbits = _bits0;
+            _bits0 |= other._bits0;
+
+            if (oldbits != _bits0)
+                anyChanged = true;
+
+            for (int i = 0; i < other._bits.Length; i++)
+            {
+                oldbits = _bits[i];
+                _bits[i] |= other._bits[i];
+
+                if (_bits[i] != oldbits)
+                    anyChanged = true;
+            }
+
             Check();
+
+            return anyChanged;
         }
 
         public bool this[int index]

@@ -345,6 +345,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _errorInfo = errorInfo;
             }
 
+            public TopLevelWithCustomErrorInfo(ModuleSymbol module, ref MetadataTypeName emittedName, DiagnosticInfo errorInfo, WellKnownType typeId)
+                : base(module, ref emittedName, typeId)
+            {
+                Debug.Assert(errorInfo != null);
+                _errorInfo = errorInfo;
+            }
+
             internal override DiagnosticInfo ErrorInfo
             {
                 get

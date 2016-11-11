@@ -350,5 +350,10 @@ namespace Microsoft.CodeAnalysis
         {
             return this.GetText(CancellationToken.None).ToString();
         }
+
+        internal virtual bool SupportsLocations
+        {
+            get { return this.HasCompilationUnitRoot; }
+        }
     }
 }

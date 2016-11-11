@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(ptr), type);
+                var value = type.Instantiate(ptr);
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Other));

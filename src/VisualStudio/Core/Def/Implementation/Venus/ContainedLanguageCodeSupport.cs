@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace,
-                targetDocument.Options,
+                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
                 formattingRules,
                 cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 

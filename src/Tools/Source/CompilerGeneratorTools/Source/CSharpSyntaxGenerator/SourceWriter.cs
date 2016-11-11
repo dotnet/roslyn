@@ -30,6 +30,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using System.Collections.Generic;");
             WriteLine("using System.Linq;");
             WriteLine("using System.Threading;");
+            WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine();
         }
@@ -138,7 +139,18 @@ namespace CSharpSyntaxGenerator
                     {
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+
+                        if (IsSeparatedNodeList(field.Type) || 
+                            IsNodeList(field.Type))
+                        {
+                            WriteLine("    public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}",
+                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        }
+                        else
+                        {
+                            WriteLine("    public abstract {0}{1} {2} {{ get; }}",
+                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        }
                     }
                 }
 
@@ -147,7 +159,9 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+
+                    WriteLine("   public abstract {0}{1} {2} {{ get; }}",
+                        (IsNew(field) ? "new " : ""), field.Type, field.Name);
                 }
 
                 WriteLine("  }");
@@ -165,7 +179,7 @@ namespace CSharpSyntaxGenerator
                 for (int i = 0, n = nodeFields.Count; i < n; i++)
                 {
                     var field = nodeFields[i];
-                    var type = GetFieldType(field);
+                    var type = GetFieldType(field, green: true);
                     WriteLine("    internal readonly {0} {1};", type, CamelCase(field.Name));
                 }
 
@@ -222,19 +236,19 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "    ");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine("    public {0}{1} {2} {{ get {{ return new {1}(this.{3}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(this.{3}); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                             );
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine("    public {0}{1} {2} {{ get {{ return new {1}(new SyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name), i
                             );
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine("    public {0}SyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new SyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
                             OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)
                             );
                     }
@@ -292,7 +306,8 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
+                
                 Write(", {0} {1}", type, CamelCase(field.Name));
             }
 
@@ -319,7 +334,7 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type);
                 WriteLine("      if ({0} != null)", CamelCase(field.Name));
                 WriteLine("      {");
@@ -331,7 +346,7 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      this.{0} = ({1})reader.{2}();", CamelCase(field.Name), type, GetReaderMethod(type));
             }
 
@@ -346,14 +361,14 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
-                string type = GetFieldType(field);
+                string type = GetFieldType(field, green: true);
                 WriteLine("      writer.WriteValue(this.{0});", CamelCase(field.Name));
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
-                var type = GetFieldType(field);
+                var type = GetFieldType(field, green: true);
                 WriteLine("      writer.{0}(this.{1});", GetWriterMethod(type), CamelCase(field.Name));
             }
 
@@ -523,8 +538,10 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
 
                 var type =
-                    field.Type == "SyntaxNodeOrTokenList" ? "SyntaxList<CSharpSyntaxNode>" :
-                    field.Type == "SyntaxTokenList" ? "SyntaxList<SyntaxToken>" :
+                    field.Type == "SyntaxNodeOrTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>" :
+                    field.Type == "SyntaxTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>" :
+                    IsNodeList(field.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + field.Type :
+                    IsSeparatedNodeList(field.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + field.Type :
                     field.Type;
 
                 Write("{0} {1}", type, CamelCase(field.Name));
@@ -796,7 +813,15 @@ namespace CSharpSyntaxGenerator
                 //int hash;
                 WriteLine("      int hash;");
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
-                Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                if (withSyntaxFactoryContext)
+                {
+                    Write("      var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
+                }
+                else
+                {
+                    Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                }
+
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(", out hash);");
                 //    if (cached != null) return (IdentifierNameSyntax)cached;
@@ -844,7 +869,14 @@ namespace CSharpSyntaxGenerator
                     Write(", ");
                 var type = field.Type;
                 if (type == "SyntaxNodeOrTokenList")
-                    type = "SyntaxList<CSharpSyntaxNode>";
+                {
+                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>";
+                }
+                else if (IsSeparatedNodeList(field.Type) ||
+                         IsNodeList(field.Type))
+                {
+                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + type;
+                }
                 Write("{0} {1}", type, CamelCase(field.Name));
             }
         }
@@ -959,7 +991,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            var type = GetFieldType(field);
+                            var type = GetFieldType(field, green: false);
                             WriteLine("    private {0} {1};", type, CamelCase(field.Name));
                         }
                     }
@@ -1618,7 +1650,7 @@ namespace CSharpSyntaxGenerator
                 }
                 else if (field.Type == "SyntaxList<SyntaxToken>")
                 {
-                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name));
+                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>()", CamelCase(field.Name));
                 }
                 else if (IsNodeList(field.Type))
                 {

@@ -605,7 +605,7 @@ class B
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var evalResult = FormatResult("o", value);
                 var children = GetChildren(evalResult);
                 Verify(children,

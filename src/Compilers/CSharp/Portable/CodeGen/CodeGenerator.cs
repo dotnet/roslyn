@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
                             constraints: slotConstraints,
-                            isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
+                            tupleElementNames: ImmutableArray<TypedConstant>.Empty,
                             isSlotReusable: false);
                     }
                     else
@@ -300,29 +300,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _indirectReturnState = IndirectReturnState.Emitted;
         }
 
-        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
             _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
         {
             EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
         }
 
-        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
+        private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
         {
             _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
         }
 
-        private void EmitSymbolToken(FieldSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
         {
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
             if (_emitPdbSequencePoints)
             {
                 if (syntax == null) //Null syntax indicates hidden sequence point (not equivalent to WasCompilerGenerated)
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.DefineHiddenSequencePoint();
         }
 
-        private void EmitSequencePoint(CSharpSyntaxNode syntax)
+        private void EmitSequencePoint(SyntaxNode syntax)
         {
             EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
         }

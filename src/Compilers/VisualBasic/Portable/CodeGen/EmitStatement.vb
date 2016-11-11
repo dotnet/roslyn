@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return Not Me._module.SourceModule.ContainingSourceAssembly.IsVbRuntime
         End Function
 
-        Private Sub EmitSetProjectError(syntaxNode As VisualBasicSyntaxNode, errorLineNumberOpt As BoundExpression)
+        Private Sub EmitSetProjectError(syntaxNode As SyntaxNode, errorLineNumberOpt As BoundExpression)
             Dim setProjectErrorMethod As MethodSymbol
 
             If errorLineNumberOpt Is Nothing Then
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(setProjectErrorMethod, syntaxNode)
         End Sub
 
-        Private Sub EmitClearProjectError(syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitClearProjectError(syntaxNode As SyntaxNode)
             Const clearProjectError As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError
             Dim clearProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
 
@@ -1083,7 +1083,7 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
             Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
@@ -1240,8 +1240,11 @@ OtherExpressions:
             End If
         End Sub
 
-        Private Function DefineLocal(local As LocalSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
-            Dim specType = local.Type.SpecialType
+        Private Function DefineLocal(local As LocalSymbol, syntaxNode As SyntaxNode) As LocalDefinition
+            Dim dynamicTransformFlags = ImmutableArray(Of TypedConstant).Empty
+            Dim tupleElementNames = If(Not local.IsCompilerGenerated AndAlso local.Type.ContainsTupleNames(),
+                VisualBasicCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)),
+                ImmutableArray(Of TypedConstant).Empty)
 
             ' We're treating constants of type Decimal and DateTime as local here to not create a new instance for each time
             ' the value is accessed. This means there will be one local in the scope for this constant.
@@ -1255,7 +1258,12 @@ OtherExpressions:
 
             If local.HasConstantValue Then
                 Dim compileTimeValue As MetadataConstant = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics)
-                Dim localConstantDef = New LocalConstantDefinition(local.Name, If(local.Locations.FirstOrDefault(), Location.None), compileTimeValue)
+                Dim localConstantDef = New LocalConstantDefinition(
+                    local.Name,
+                    If(local.Locations.FirstOrDefault(), Location.None),
+                    compileTimeValue,
+                    dynamicTransformFlags:=dynamicTransformFlags,
+                    tupleElementNames:=tupleElementNames)
                 ' Reference in the scope for debugging purpose
                 _builder.AddLocalConstantToScope(localConstantDef)
                 Return Nothing
@@ -1285,8 +1293,8 @@ OtherExpressions:
                 id:=localId,
                 pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
-                isDynamic:=False,
-                dynamicTransformFlags:=Nothing,
+                dynamicTransformFlags:=dynamicTransformFlags,
+                tupleElementNames:=tupleElementNames,
                 isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.
@@ -1374,7 +1382,7 @@ OtherExpressions:
         ''' <summary>
         ''' Allocates a temp without identity.
         ''' </summary>
-        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
+        Private Function AllocateTemp(type As TypeSymbol, syntaxNode As SyntaxNode) As LocalDefinition
             Return _builder.LocalSlotManager.AllocateSlot(
                 Me._module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
                 LocalSlotConstraints.None)
@@ -1438,16 +1446,16 @@ OtherExpressions:
         Private Sub DefineUserDefinedStateMachineHoistedLocal(field As StateMachineFieldSymbol)
             Debug.Assert(field.SlotIndex >= 0)
             Dim fakePdbOnlyLocal = New LocalDefinition(
-                        symbolOpt:=Nothing,
-                        nameOpt:=field.Name,
-                        type:=Nothing,
-                        slot:=field.SlotIndex,
-                        synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
-                        id:=Nothing,
-                        pdbAttributes:=LocalVariableAttributes.None,
-                        constraints:=LocalSlotConstraints.None,
-                        isDynamic:=False,
-                        dynamicTransformFlags:=Nothing)
+                symbolOpt:=Nothing,
+                nameOpt:=field.Name,
+                type:=Nothing,
+                slot:=field.SlotIndex,
+                synthesizedKind:=SynthesizedLocalKind.EmitterTemp,
+                id:=Nothing,
+                pdbAttributes:=LocalVariableAttributes.None,
+                constraints:=LocalSlotConstraints.None,
+                dynamicTransformFlags:=Nothing,
+                tupleElementNames:=Nothing)
             _builder.AddLocalToScope(fakePdbOnlyLocal)
         End Sub
 

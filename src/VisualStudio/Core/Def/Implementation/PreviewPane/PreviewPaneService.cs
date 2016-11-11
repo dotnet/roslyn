@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -146,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     return Guid.Parse(Guids.VisualBasicOptionPageNamingStyleIdString);
                 }
             }
-            else if (optionName == nameof(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess))
+            else if (optionName == nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
             {
                 if (optionLanguage == LanguageNames.CSharp)
                 {

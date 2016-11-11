@@ -16,83 +16,293 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Insert
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestPredefinedAssignment() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module M1 \n Sub Main() \n Dim b As Byte = 1 \n Dim c As Byte = 2 \n b = [|b & c|] \n End Sub \n End Module"),
-NewLines("Option Strict On \n Module M1 \n Sub Main() \n Dim b As Byte = 1 \n Dim c As Byte = 2 \n b = CByte(b & c) \n End Sub \n End Module"))
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim b As Byte = 1
+        Dim c As Byte = 2
+        b = [|b & c|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim b As Byte = 1
+        Dim c As Byte = 2
+        b = CByte(b & c)
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestAssignment() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub Main() \n Dim d As Derived = Nothing \n Dim b As Base = Nothing \n d = [|b|] \n End Sub \n End Module"),
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub Main() \n Dim d As Derived = Nothing \n Dim b As Base = Nothing \n d = CType(b, Derived) \n End Sub \n End Module"))
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub Main()
+        Dim d As Derived = Nothing
+        Dim b As Base = Nothing
+        d = [|b|]
+    End Sub
+End Module",
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub Main()
+        Dim d As Derived = Nothing
+        Dim b As Base = Nothing
+        d = CType(b, Derived)
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMethodCall() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub foo(d As Derived) \n End Sub \n Sub Main() \n Dim b As Base = Nothing \n foo([|b|]) \n End Sub \n End Module"),
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub foo(d As Derived) \n End Sub \n Sub Main() \n Dim b As Base = Nothing \n foo(CType(b, Derived)) \n End Sub \n End Module"))
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub foo(d As Derived)
+    End Sub
+    Sub Main()
+        Dim b As Base = Nothing
+        foo([|b|])
+    End Sub
+End Module",
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub foo(d As Derived)
+    End Sub
+    Sub Main()
+        Dim b As Base = Nothing
+        foo(CType(b, Derived))
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMethodCallPredefined() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module M1 \n Sub foo(d As Integer) \n End Sub \n Sub Main() \n foo([|""10""|]) \n End Sub \n End Module"),
-NewLines("Option Strict On \n Module M1 \n Sub foo(d As Integer) \n End Sub \n Sub Main() \n foo(CInt(""10"")) \n End Sub \n End Module"))
+"Option Strict On
+Module M1
+    Sub foo(d As Integer)
+    End Sub
+    Sub Main()
+        foo([|""10""|])
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub foo(d As Integer)
+    End Sub
+    Sub Main()
+        foo(CInt(""10"")) 
+ End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestConditional() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module M1 \n Sub Main() \n Dim i As Integer = 10 \n Dim b = If([|i|], True, False) \n End Sub \n End Module"),
-NewLines("Option Strict On \n Module M1 \n Sub Main() \n Dim i As Integer = 10 \n Dim b = If(CBool(i), True, False) \n End Sub \n End Module"))
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 10
+        Dim b = If([|i|], True, False)
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 10
+        Dim b = If(CBool(i), True, False)
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestReturn() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module M1 \n Function foo() As Integer \n Return [|""10""|] \n End Function \n End Module"),
-NewLines("Option Strict On \n Module M1 \n Function foo() As Integer \n Return CInt(""10"") \n End Function \n End Module"))
+"Option Strict On
+Module M1
+    Function foo() As Integer
+        Return [|""10""|] 
+ End Function
+End Module",
+"Option Strict On
+Module M1
+    Function foo() As Integer
+        Return CInt(""10"") 
+ End Function
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestLambda() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub Main() \n Dim l = Function() As Derived \n Return [|New Base()|] \n End Function \n End Sub \n End Module"),
-NewLines("Option Strict On \n Class Base \n End Class \n Class Derived \n Inherits Base \n End Class \n Module M1 \n Sub Main() \n Dim l = Function() As Derived \n Return CType(New Base(), Derived) \n End Function \n End Sub \n End Module"))
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub Main()
+        Dim l = Function() As Derived
+                    Return [|New Base()|]
+                End Function
+    End Sub
+End Module",
+"Option Strict On
+Class Base
+End Class
+Class Derived
+    Inherits Base
+End Class
+Module M1
+    Sub Main()
+        Dim l = Function() As Derived
+                    Return CType(New Base(), Derived)
+                End Function
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestAttribute() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module Program \n <System.Obsolete(""as"", [|10|])> \n Sub Main(args As String()) \n End Sub \n End Module"),
-NewLines("Option Strict On \n Module Program \n <System.Obsolete(""as"", CBool(10))> \n Sub Main(args As String()) \n End Sub \n End Module"))
+"Option Strict On
+Module Program
+    <System.Obsolete(""as"", [|10|])>
+    Sub Main(args As String())
+    End Sub
+End Module",
+"Option Strict On
+Module Program
+    <System.Obsolete(""as"", CBool(10))>
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestMultiline() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module Program \n Sub Main(args As String()) \n Dim x As Integer = [|10.0 + \n 11.0 + \n 10|] ' asas \n End Sub \n End Module"),
-NewLines("Option Strict On \n Module Program \n Sub Main(args As String()) \n Dim x As Integer = CInt(10.0 + \n 11.0 + \n 10) ' asas \n End Sub \n End Module"))
+"Option Strict On
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer = [|10.0 +
+        11.0 +
+        10|] ' asas 
+    End Sub
+End Module",
+"Option Strict On
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer = CInt(10.0 +
+        11.0 +
+        10) ' asas 
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestWidening() As Task
             Await TestMissingAsync(
-NewLines("Option Strict On \n Module Program \n Sub Main(args As String()) \n Dim x As Double = 10[||] \n End Sub \n End Module"))
+"Option Strict On
+Module Program
+    Sub Main(args As String())
+        Dim x As Double = 10[||]
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestInvalidCast() As Task
             Await TestMissingAsync(
-NewLines("Option Strict On \n Class A \n End Class \n Class B \n End Class \n Module Program[||] \n Sub Main(args As String()) \n Dim x As A = New B() \n End Sub \n End Module"))
+"Option Strict On
+Class A
+End Class
+Class B
+End Class
+Module Program[||]
+    Sub Main(args As String())
+        Dim x As A = New B()
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
         Public Async Function TestOptionStrictOn() As Task
             Await TestAsync(
-NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim red = ColorF.FromArgb(255, 255, 0, 0) \n Dim c As Color = [|red|] \n End Sub \n End Module \n Public Structure ColorF \n Public A, R, G, B As Single \n Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF \n Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)} \n End Function \n Public Shared Widening Operator CType(x As Color) As ColorF \n Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255) \n End Operator \n Public Shared Narrowing Operator CType(x As ColorF) As Color \n Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255)) \n End Operator \n End Structure \n Public Structure Color \n Public A, R, G, B As Byte \n Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color \n Return New Color With {.A = a, .R = r, .G = g, .B = b} \n End Function \n End Structure"),
-NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim red = ColorF.FromArgb(255, 255, 0, 0) \n Dim c As Color = CType(red, Color) \n End Sub \n End Module \n Public Structure ColorF \n Public A, R, G, B As Single \n Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF \n Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)} \n End Function \n Public Shared Widening Operator CType(x As Color) As ColorF \n Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255) \n End Operator \n Public Shared Narrowing Operator CType(x As ColorF) As Color \n Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255)) \n End Operator \n End Structure \n Public Structure Color \n Public A, R, G, B As Byte \n Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color \n Return New Color With {.A = a, .R = r, .G = g, .B = b} \n End Function \n End Structure"))
+"Option Strict On
+Module Module1
+    Sub Main()
+        Dim red = ColorF.FromArgb(255, 255, 0, 0)
+        Dim c As Color = [|red|]
+    End Sub
+End Module
+Public Structure ColorF
+    Public A, R, G, B As Single
+    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
+        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
+    End Function
+    Public Shared Widening Operator CType(x As Color) As ColorF
+        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
+    End Operator
+    Public Shared Narrowing Operator CType(x As ColorF) As Color
+        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
+    End Operator
+End Structure
+Public Structure Color
+    Public A, R, G, B As Byte
+    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
+        Return New Color With {.A = a, .R = r, .G = g, .B = b}
+    End Function
+End Structure",
+"Option Strict On
+Module Module1
+    Sub Main()
+        Dim red = ColorF.FromArgb(255, 255, 0, 0)
+        Dim c As Color = CType(red, Color)
+    End Sub
+End Module
+Public Structure ColorF
+    Public A, R, G, B As Single
+    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
+        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
+    End Function
+    Public Shared Widening Operator CType(x As Color) As ColorF
+        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
+    End Operator
+    Public Shared Narrowing Operator CType(x As ColorF) As Color
+        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
+    End Operator
+End Structure
+Public Structure Color
+    Public A, R, G, B As Byte
+    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
+        Return New Color With {.A = a, .R = r, .G = g, .B = b}
+    End Function
+End Structure")
         End Function
     End Class
 End Namespace

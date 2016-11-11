@@ -311,7 +311,7 @@ lSelect:
             End If
 
             If Me.IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
-                VisitLambdaConversion(node.Operand, node.RelaxationLambdaOpt)
+                VisitLambdaConversion(node.Operand, DirectCast(node.ExtendedInfoOpt, BoundRelaxationLambda)?.Lambda)
             Else
                 MyBase.VisitConversion(node)
             End If

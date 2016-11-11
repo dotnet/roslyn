@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 SyntaxNode newRoot;
 
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Options, semanticModel, cancellationToken, out newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out newRoot))
                 {
                     return newRoot;
                 }

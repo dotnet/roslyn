@@ -1,14 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-  <metadata>
+  <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.VisualBasic.Features</id>
     <description>
       .NET Compiler Platform ("Roslyn") support for creating Visual Basic editing experiences.
-      
-Supported Platforms:
-- .NET Framework 4.5
-- Windows 8
-- Portable Class Libraries
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
@@ -25,10 +20,8 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\portable-net45+win8" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\net45" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\net45" />
+    <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\BasicFeatures\Microsoft.CodeAnalysis.VisualBasic.Features.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

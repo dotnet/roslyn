@@ -88,9 +88,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_Outlining
-        {
-            get { return CSharpVSResources.Outlining; }
-        }
+            => ServicesVSResources.Outlining;
+
+        public static string Option_Show_outlining_for_declaration_level_constructs
+            => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
+
+        public static string Option_Show_outlining_for_code_level_constructs
+            => ServicesVSResources.Show_outlining_for_code_level_constructs;
+
+        public static string Option_Show_outlining_for_comments_and_preprocessor_regions
+            => ServicesVSResources.Show_outlining_for_comments_and_preprocessor_regions;
+
+        public static string Option_Collapse_regions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
+
+        public static string Option_Block_Structure_Guides
+            => ServicesVSResources.Block_Structure_Guides;
+
+        public static string Option_Show_guides_for_declaration_level_constructs
+            => ServicesVSResources.Show_guides_for_declaration_level_constructs;
+
+        public static string Option_Show_guides_for_code_level_constructs
+            => ServicesVSResources.Show_guides_for_code_level_constructs;
 
         public static string Option_Performance
         {

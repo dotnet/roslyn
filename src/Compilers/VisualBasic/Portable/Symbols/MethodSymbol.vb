@@ -141,6 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Build and add synthesized return type attributes for this method symbol.
+        ''' </summary>
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        End Sub
+
+        ''' <summary>
         ''' Optimization: in many cases, the parameter count (fast) is sufficient and we
         ''' don't need the actual parameter symbols (slow).
         ''' </summary>
@@ -162,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Should return syntax node that originated the method. 
         ''' </summary>
-        Friend MustOverride ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend MustOverride ReadOnly Property Syntax As SyntaxNode
 
         ''' <summary>
         ''' Returns true if calls to this method are omitted in the given syntax tree at the given syntax node location.

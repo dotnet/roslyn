@@ -206,7 +206,7 @@ Public Class ParseExpressionTest
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
         Assert.Equal("?", unexp(0).ToString())
-        Assert.Equal(36637, unexp(0).Errors(0).Code)
+        Assert.Equal(36637, unexp(0).Errors.First().Code)
     End Sub
 
     <Fact>
@@ -424,12 +424,46 @@ ToString]]>.Value)
 
         expr = ParseExpression("New Moo() From{1,2,3}")
         Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+    End Sub
 
-        expr = ParseExpression("New (A, B)")
-        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+    <Fact>
+    Public Sub ParseNewTuple()
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Sub Main()
+                    Dim x = New (A, B)
+                    Dim y = New (A, B)()
+                    Dim y = New (A As Integer, B$)
+                End Sub
+            End Module
+        ]]>,
+<errors>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
+    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
+</errors>
+        )
 
-        expr = ParseExpression("New (A as Integer, B as integer)(1, 2)")
-        Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind)
+        ParseAndVerify(<![CDATA[
+            Module Module1
+                Sub Main()
+                    Dim x As New (A, B)
+                    Dim y As New (A, B)()
+                    Dim y As New (A As Integer, B$)
+                End Sub
+
+                Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+                    ' this is actually ok, since it is an array
+                    Return (New(Integer, Integer)() {(4, 5)}, 5)
+                End Function
+            End Module
+        ]]>,
+                       <errors>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
+                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
+                       </errors>
+        )
     End Sub
 
     <Fact>

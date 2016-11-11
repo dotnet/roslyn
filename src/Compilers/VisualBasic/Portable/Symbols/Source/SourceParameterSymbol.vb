@@ -103,7 +103,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return (GetMatchingPropertyParameter() IsNot Nothing) OrElse (Me.ContainingSymbol.IsImplicitlyDeclared)
+                If Me.ContainingSymbol.IsImplicitlyDeclared Then
+
+                    If TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke AndAlso
+                       Not Me.ContainingType.AssociatedSymbol?.IsImplicitlyDeclared Then
+                        Return False
+                    End If
+
+                    Return True
+                End If
+
+                Return (GetMatchingPropertyParameter() IsNot Nothing)
             End Get
         End Property
 
@@ -289,6 +299,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '
             '  InAttribute, OutAttribute
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.

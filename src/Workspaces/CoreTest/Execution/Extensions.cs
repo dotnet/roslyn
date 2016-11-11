@@ -8,37 +8,62 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Execution
 {
     internal static class Extensions
     {
-        public static ChecksumObjectCollection<ProjectChecksumObject> ToProjectObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static async Task<T> GetValueAsync<T>(this ISolutionSynchronizationService service, Checksum checksum)
         {
-            Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Projects);
-            return new ChecksumObjectCollection<ProjectChecksumObject>(service, collection);
+            var syncService = (SolutionSynchronizationServiceFactory.Service)service;
+            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                // serialize asset to bits
+                await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                stream.Position = 0;
+                using (var reader = new ObjectReader(stream))
+                {
+                    // deserialize bits to object
+                    var serializer = syncService.Serializer_TestOnly;
+                    return serializer.Deserialize<T>(syncObject.Kind, reader, CancellationToken.None);
+                }
+            }
         }
 
-        public static ChecksumObjectCollection<DocumentChecksumObject> ToDocumentObjects(this ChecksumCollection collection, ISolutionChecksumService service)
+        public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, ISolutionSynchronizationService service)
         {
-            Contract.ThrowIfFalse(collection.Kind == WellKnownChecksumObjects.Documents || collection.Kind == WellKnownChecksumObjects.TextDocuments);
-            return new ChecksumObjectCollection<DocumentChecksumObject>(service, collection);
+            return new ChecksumObjectCollection<ProjectStateChecksums>(service, collection);
+        }
+
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this DocumentChecksumCollection collection, ISolutionSynchronizationService service)
+        {
+            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
+        }
+
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this TextDocumentChecksumCollection collection, ISolutionSynchronizationService service)
+        {
+            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
         }
     }
 
     /// <summary>
     /// this is a helper collection for unit test. just packaging checksum collection with actual items.
-    /// 
-    /// unlike ChecksumObjectWithChildren which can only have checksum or checksumCollection as its child, this lets another checksumObjectWithChildren as child as well
     /// </summary>
-    internal class ChecksumObjectCollection<T> : ChecksumObject, IEnumerable<T> where T : ChecksumObject
+    internal class ChecksumObjectCollection<T> : RemotableData, IEnumerable<T> where T : ChecksumWithChildren
     {
         public ImmutableArray<T> Children { get; }
 
-        public ChecksumObjectCollection(ISolutionChecksumService service, ChecksumCollection collection) : base(collection.Checksum, collection.Kind)
+        public ChecksumObjectCollection(ISolutionSynchronizationService service, ChecksumCollection collection) : base(collection.Checksum, collection.GetWellKnownSynchronizationKind())
         {
-            Children = ImmutableArray.CreateRange(collection.Select(c => (T)service.GetChecksumObject(c, CancellationToken.None)));
+            // using .Result here since we don't want to convert all calls to this to async.
+            // and none of ChecksumWithChildren actually use async
+            Children = ImmutableArray.CreateRange(collection.Select(c => service.GetValueAsync<T>(c).Result));
         }
 
         public int Count => Children.Length;
@@ -50,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         // somehow, ImmutableArray<T>.Enumerator doesn't implement IEnumerator<T>
         public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
 
-        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             throw new NotImplementedException("should not be called");
         }

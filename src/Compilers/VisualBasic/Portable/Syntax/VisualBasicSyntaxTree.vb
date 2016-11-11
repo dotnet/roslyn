@@ -219,10 +219,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            If path Is Nothing Then
-                Throw New ArgumentNullException(NameOf(path))
-            End If
-
             options = If(options, VisualBasicParseOptions.Default)
 
             Dim node As InternalSyntax.CompilationUnitSyntax

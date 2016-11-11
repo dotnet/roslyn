@@ -6,7 +6,6 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SymbolCategorization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -14,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         public Guid ID { get; private set; }
         public string Name { get; private set; }
-        public List<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
-        public List<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
-        public List<ModifierKind> RequiredModifierList { get; private set; }
-        public List<string> RequiredCustomTagList { get; private set; }
+
+        public IList<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
+        public IList<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
+        public IList<ModifierKind> RequiredModifierList { get; private set; }
 
         internal SymbolSpecification()
         {
@@ -51,27 +50,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 };
 
             RequiredModifierList = new List<ModifierKind>();
-
-            RequiredCustomTagList = new List<string>();
         }
 
-        public SymbolSpecification(Guid id, string symbolSpecName, List<SymbolKindOrTypeKind> symbolKindList, List<AccessibilityKind> accessibilityKindList, List<ModifierKind> modifierList, List<string> customTagList)
+        public SymbolSpecification(Guid id, string symbolSpecName,
+            IList<SymbolKindOrTypeKind> symbolKindList,
+            IList<AccessibilityKind> accessibilityKindList,
+            IList<ModifierKind> modifiers)
         {
             ID = id;
             Name = symbolSpecName;
             ApplicableAccessibilityList = accessibilityKindList;
-            RequiredModifierList = modifierList;
+            RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
-            RequiredCustomTagList = customTagList;
         }
 
-        internal bool AppliesTo(ISymbol symbol, ISymbolCategorizationService categorizationService)
+        internal bool AppliesTo(ISymbol symbol)
         {
             if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.AppliesTo(symbol)))
             {
                 return false;
             }
 
+            // Modifiers must match exactly
             if (!RequiredModifierList.All(m => m.MatchesSymbol(symbol)))
             {
                 return false;
@@ -82,25 +82,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            // TODO: More efficient to find the categorizers that are relevant and only check those
-            var applicableCategories = categorizationService.GetCategorizers().SelectMany(c => c.Categorize(symbol));
-            if (!RequiredCustomTagList.All(t => applicableCategories.Contains(t)))
-            {
-                return false;
-            }
-
             return true;
         }
 
         internal XElement CreateXElement()
         {
-            return new XElement(nameof(SymbolSpecification), 
+            return new XElement(nameof(SymbolSpecification),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 CreateSymbolKindsXElement(),
                 CreateAccessibilitiesXElement(),
-                CreateModifiersXElement(),
-                CreateCustomTagsXElement());
+                CreateModifiersXElement());
         }
 
         private XElement CreateSymbolKindsXElement()
@@ -139,53 +131,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return modifiersElement;
         }
 
-        private XElement CreateCustomTagsXElement()
-        {
-            var customTagsElement = new XElement(nameof(RequiredCustomTagList));
-
-            foreach (var customTag in RequiredCustomTagList)
-            {
-                customTagsElement.Add(new XElement("CustomTag", customTag));
-            }
-
-            return customTagsElement;
-        }
-
         internal static SymbolSpecification FromXElement(XElement symbolSpecificationElement)
         {
-            var result = new SymbolSpecification();
-            result.ID = Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value);
-            result.Name = symbolSpecificationElement.Attribute(nameof(Name)).Value;
-
+            var result = new SymbolSpecification()
+            {
+                ID = Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
+                Name = symbolSpecificationElement.Attribute(nameof(Name)).Value
+            };
             result.PopulateSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList)));
             result.PopulateAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList)));
             result.PopulateModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList)));
-            result.PopulateCustomTagListFromXElement(symbolSpecificationElement.Element(nameof(RequiredCustomTagList)));
 
             return result;
         }
 
         private void PopulateSymbolKindListFromXElement(XElement symbolKindListElement)
         {
-            ApplicableSymbolKindList = new List<SymbolKindOrTypeKind>();
+            var applicableSymbolKindList = new List<SymbolKindOrTypeKind>();
             foreach (var symbolKindElement in symbolKindListElement.Elements(nameof(SymbolKind)))
             {
-                ApplicableSymbolKindList.Add(SymbolKindOrTypeKind.AddSymbolKindFromXElement(symbolKindElement));
+                applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddSymbolKindFromXElement(symbolKindElement));
             }
 
             foreach (var typeKindElement in symbolKindListElement.Elements(nameof(TypeKind)))
             {
-                ApplicableSymbolKindList.Add(SymbolKindOrTypeKind.AddTypeKindFromXElement(typeKindElement));
+                applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddTypeKindFromXElement(typeKindElement));
             }
+            ApplicableSymbolKindList = applicableSymbolKindList;
         }
 
         private void PopulateAccessibilityListFromXElement(XElement accessibilityListElement)
         {
-            ApplicableAccessibilityList = new List<AccessibilityKind>();
+            var applicableAccessibilityList = new List<AccessibilityKind>();
             foreach (var accessibilityElement in accessibilityListElement.Elements(nameof(AccessibilityKind)))
             {
-                ApplicableAccessibilityList.Add(AccessibilityKind.FromXElement(accessibilityElement));
+                applicableAccessibilityList.Add(AccessibilityKind.FromXElement(accessibilityElement));
             }
+            ApplicableAccessibilityList = applicableAccessibilityList;
         }
 
         private void PopulateModifierListFromXElement(XElement modifierListElement)
@@ -194,15 +176,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var modifierElement in modifierListElement.Elements(nameof(ModifierKind)))
             {
                 RequiredModifierList.Add(ModifierKind.FromXElement(modifierElement));
-            }
-        }
-
-        private void PopulateCustomTagListFromXElement(XElement customTagListElement)
-        {
-            RequiredCustomTagList = new List<string>();
-            foreach (var customTag in customTagListElement.Elements("CustomTag"))
-            {
-                RequiredCustomTagList.Add(customTag.Value);
             }
         }
 
@@ -256,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
             }
         }
-        
+
         public class AccessibilityKind
         {
             public Accessibility Accessibility { get; set; }
@@ -384,7 +357,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
             }
         }
-        
         public enum ModifierKindEnum
         {
             IsAbstract,

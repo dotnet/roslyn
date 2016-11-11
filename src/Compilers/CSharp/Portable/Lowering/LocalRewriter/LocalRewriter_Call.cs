@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultDiscarded).ToExpression();
         }
 
-        private void EmbedIfNeedTo(BoundExpression receiver, ImmutableArray<MethodSymbol> methods, CSharpSyntaxNode syntaxNode)
+        private void EmbedIfNeedTo(BoundExpression receiver, ImmutableArray<MethodSymbol> methods, SyntaxNode syntaxNode)
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void EmbedIfNeedTo(BoundExpression receiver, ImmutableArray<PropertySymbol> properties, CSharpSyntaxNode syntaxNode)
+        private void EmbedIfNeedTo(BoundExpression receiver, ImmutableArray<PropertySymbol> properties, SyntaxNode syntaxNode)
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeCall(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             MethodSymbol method,
             ImmutableArray<BoundExpression> rewrittenArguments,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeCall(
             BoundCall node,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             MethodSymbol method,
             ImmutableArray<BoundExpression> rewrittenArguments,
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenBoundCall;
         }
 
-        private BoundExpression MakeCall(CSharpSyntaxNode syntax, BoundExpression rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)
+        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)
         {
             return MakeCall(
                 node: null,
@@ -328,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // expression trees rewrite this later.
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
+                                case ConversionKind.ImplicitThrow:
                                     return false;
 
                                 default:
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// may have distinct optional parameter values.
         /// </summary>
         private ImmutableArray<BoundExpression> MakeArguments(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
             MethodSymbol optionalParametersMethod,
@@ -596,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BuildParamsArray(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> rewrittenArguments,
@@ -799,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tempsRemainedInUse;
         }
 
-        private void InsertMissingOptionalArguments(CSharpSyntaxNode syntax,
+        private void InsertMissingOptionalArguments(SyntaxNode syntax,
             ImmutableArray<ParameterSymbol> parameters,
             BoundExpression[] arguments,
             ThreeState enableCallerInfo = ThreeState.Unknown)
@@ -816,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static SourceLocation GetCallerLocation(CSharpSyntaxNode syntax, ThreeState enableCallerInfo)
+        private static SourceLocation GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
         {
             switch (enableCallerInfo)
             {
@@ -875,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is done to match the native compiler behavior and user requests (see http://roslyn.codeplex.com/workitem/171). This behavior
         /// does not match the C# spec that currently requires to provide caller information only in explicit invocations and query expressions.
         /// </remarks>
-        private BoundExpression GetDefaultParameterValue(CSharpSyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
         {
             // TODO: Ideally, the enableCallerInfo parameter would be of just bool type with only 'true' and 'false' values, and all callers
             // explicitly provided one of those values, so that we do not rely on shape of syntax nodes in the rewriter. There are not many immediate callers, 
@@ -1035,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defaultValue;
         }
 
-        private BoundExpression GetDefaultParameterSpecial(CSharpSyntaxNode syntax, ParameterSymbol parameter)
+        private BoundExpression GetDefaultParameterSpecial(SyntaxNode syntax, ParameterSymbol parameter)
         {
             // We have a call to a method M([Optional] object x) which omits the argument. The value we generate
             // for the argument depends on the presence or absence of other attributes. The rules are:

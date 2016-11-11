@@ -175,8 +175,8 @@ Friend Module Program
         output.WriteLine("Imports System.Collections.Generic")
         output.WriteLine("Imports System.Collections.Immutable")
         output.WriteLine("Imports System.Runtime.CompilerServices")
+        output.WriteLine("Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax")
         output.WriteLine("Imports Microsoft.CodeAnalysis.VisualBasic.Syntax")
         output.WriteLine("Imports Roslyn.Utilities")
     End Sub
-
 End Module

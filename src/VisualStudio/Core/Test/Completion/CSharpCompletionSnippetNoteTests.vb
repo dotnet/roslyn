@@ -32,6 +32,28 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
+                state.SendTypeChars("var t = (interfac")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
+            Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
+                state.SendTypeChars("var t = (1, interfac")
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(726497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726497")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
@@ -99,7 +121,9 @@ class C
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "for"))
+                Await state.AssertSelectedCompletionItem(
+                    description:=String.Format(FeaturesResources._0_Keyword, "for") & vbCrLf &
+                                 String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "for"))
             End Using
         End Function
 

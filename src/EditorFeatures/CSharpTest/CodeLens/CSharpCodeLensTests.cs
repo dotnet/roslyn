@@ -146,5 +146,35 @@ public class A
 
             await RunReferenceTest(input);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        public async Task TestMethodReferences()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+public class A
+{
+    {|0: public void B()
+    {
+        C();
+    }|}
+
+    {|2: public void C()
+    {
+        D();
+    }|}
+
+    {|1: public void D()
+    {
+        C();
+    }|}
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>";
+            await RunMethodReferenceTest(input);
+        }
     }
 }

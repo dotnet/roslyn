@@ -139,60 +139,35 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Task<SyntaxTree> GetExistingSyntaxTreeTask()
-        {
-            if (_syntaxTreeResultTask != null)
-            {
-                return _syntaxTreeResultTask;
-            }
-
-            // First see if we already have a semantic model computed.  If so, we can just return
-            // that syntax tree.
-            SemanticModel semanticModel;
-            if (TryGetSemanticModel(out semanticModel))
-            {
-                // PERF: This is a hot code path, so cache the result to reduce allocations
-                var result = Task.FromResult(semanticModel.SyntaxTree);
-                Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
-                return _syntaxTreeResultTask;
-            }
-
-            // second, see whether we already computed the tree, if we already did, return the cache
-            SyntaxTree tree;
-            if (TryGetSyntaxTree(out tree))
-            {
-                if (_syntaxTreeResultTask == null)
-                {
-                    var result = Task.FromResult(tree);
-                    Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
-                }
-
-                return _syntaxTreeResultTask;
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            // If the language doesn't support getting syntax trees for a document, then bail out
-            // immediately.
+            // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
                 return SpecializedTasks.Default<SyntaxTree>();
             }
 
-            var syntaxTreeTask = GetExistingSyntaxTreeTask();
-            if (syntaxTreeTask != null)
+            // if we have a cached result task use it
+            if (_syntaxTreeResultTask != null)
             {
-                return syntaxTreeTask;
+                return _syntaxTreeResultTask;
             }
 
-            // we can't cache this result, since internally it uses AsyncLazy which
-            // care about cancellation token
+            // check to see if we already have the tree before actually going async
+            SyntaxTree tree;
+            if (TryGetSyntaxTree(out tree))
+            {
+                // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
+                // don't use the actual async task because it depends on a specific cancellation token
+                // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
+                Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
+                return _syntaxTreeResultTask;
+            }
+
+            // do it async for real.
             return DocumentState.GetSyntaxTreeAsync(cancellationToken);
         }
 
@@ -203,15 +178,6 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            // if we already have a stask for getting this syntax tree, and the task
-            // has completed, then we can just return that value.
-            var syntaxTreeTask = GetExistingSyntaxTreeTask();
-            if (syntaxTreeTask?.Status == TaskStatus.RanToCompletion)
-            {
-                return syntaxTreeTask.Result;
-            }
-
-            // Otherwise defer to our state to get this value.
             return DocumentState.GetSyntaxTree(cancellationToken);
         }
 
@@ -456,17 +422,30 @@ namespace Microsoft.CodeAnalysis
             return this.Name;
         }
 
+        private AsyncLazy<DocumentOptionSet> _cachedOptions;
+
         /// <summary>
         /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
-        /// merged with any settings the user has specified at the solution, project, and document levels.
+        /// merged with any settings the user has specified at the document levels.
         /// </summary>
-        public DocumentOptionSet Options
+        /// <remarks>
+        /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
+        /// </remarks>
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            get
+            if (_cachedOptions == null)
             {
-                // TODO: merge with document-specific options
-                return new DocumentOptionSet(Project.Solution.Options, Project.Language);
+                var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+                {
+                    var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                    var optionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, Project.Solution.Options, c).ConfigureAwait(false);
+                    return new DocumentOptionSet(optionSet, Project.Language);
+                }, cacheResult: true);
+
+                Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
             }
+
+            return _cachedOptions.GetValueAsync(cancellationToken);
         }
     }
 }

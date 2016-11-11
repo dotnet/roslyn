@@ -1918,6 +1918,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
                 }
+                else if (TypeKind == TypeKind.Class && SpecialType != SpecialType.System_Enum)
+                {
+                    TypeSymbol @base = GetDeclaredBaseType(null);
+                    if (@base?.SpecialType == SpecialType.None && @base.ContainingAssembly?.IsMissing == true)
+                    {
+                        var missingType = @base as MissingMetadataTypeSymbol.TopLevel;
+                        if ((object)missingType != null && missingType.Arity == 0)
+                        {
+                            string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
+                            switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
+                            {
+                                case SpecialType.System_Enum:
+                                case SpecialType.System_MulticastDelegate:
+                                case SpecialType.System_ValueType:
+                                    // This might be a structure, an enum, or a delegate
+                                    diagnostic = missingType.GetUseSiteDiagnostic();
+                                    break;
+                            }
+                        }
+                    }
+                }
             }
 
             return diagnostic;

@@ -140,20 +140,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitThrowStatement(BoundThrowStatement node)
         {
-            BoundExpression expr = node.ExpressionOpt;
-            if (expr != null)
-            {
-                this.EmitExpression(expr, true);
+            EmitThrow(node.ExpressionOpt);
+        }
 
-                var exprType = expr.Type;
+        private void EmitThrow(BoundExpression thrown)
+        {
+            if (thrown != null)
+            {
+                this.EmitExpression(thrown, true);
+
+                var exprType = thrown.Type;
                 // Expression type will be null for "throw null;".
                 if (exprType?.TypeKind == TypeKind.TypeParameter)
                 {
-                    this.EmitBox(exprType, expr.Syntax);
+                    this.EmitBox(exprType, thrown.Syntax);
                 }
             }
 
-            _builder.EmitThrow(isRethrow: expr == null);
+            _builder.EmitThrow(isRethrow: thrown == null);
         }
 
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
@@ -1194,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel,
             LocalOrParameter key,
-            CSharpSyntaxNode syntaxNode)
+            SyntaxNode syntaxNode)
         {
             LocalDefinition keyHash = null;
 
@@ -1329,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ImmutableArray<LocalSymbol> locals,
             ImmutableArray<BoundSwitchSection> switchSections,
             GeneratedLabelSymbol breakLabel,
-            CSharpSyntaxNode syntaxNode)
+            SyntaxNode syntaxNode)
         {
             var hasLocals = !locals.IsEmpty;
 
@@ -1383,22 +1387,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _builder.LocalSlotManager.GetLocal(symbol);
         }
 
-        private LocalDefinition DefineLocal(LocalSymbol local, CSharpSyntaxNode syntaxNode)
+        private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
-            var transformFlags = default(ImmutableArray<TypedConstant>);
-            bool hasDynamic = local.Type.ContainsDynamic();
-            var isDynamicSourceLocal = hasDynamic && !local.IsCompilerGenerated;
-            if (isDynamicSourceLocal)
-            {
-                NamedTypeSymbol booleanType = _module.Compilation.GetSpecialType(SpecialType.System_Boolean);
-                transformFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, booleanType, 0, RefKind.None);
-            }
+            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_Boolean), 0, RefKind.None) :
+                ImmutableArray<TypedConstant>.Empty;
+            var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)) :
+                ImmutableArray<TypedConstant>.Empty;
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
                 MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
-                LocalConstantDefinition localConstantDef = new LocalConstantDefinition(local.Name, local.Locations.FirstOrDefault() ?? Location.None, compileTimeValue, isDynamicSourceLocal, transformFlags);
+                LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
+                    local.Name,
+                    local.Locations.FirstOrDefault() ?? Location.None,
+                    compileTimeValue,
+                    dynamicTransformFlags: dynamicTransformFlags,
+                    tupleElementNames: tupleElementNames);
                 _builder.AddLocalConstantToScope(localConstantDef);
                 return null;
             }
@@ -1448,8 +1455,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 id: localId,
                 pdbAttributes: local.SynthesizedKind.PdbAttributes(),
                 constraints: constraints,
-                isDynamic: isDynamicSourceLocal,
-                dynamicTransformFlags: transformFlags,
+                dynamicTransformFlags: dynamicTransformFlags,
+                tupleElementNames: tupleElementNames,
                 isSlotReusable: local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release));
 
             // If named, add it to the local debug scope.

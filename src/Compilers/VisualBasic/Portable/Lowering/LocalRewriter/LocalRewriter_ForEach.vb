@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' inherits or implements IDisposable or not.</param>
         ''' <param name="rewrittenDisposeConversion">Conversion from the local type to IDisposable</param>
         Public Function GenerateDisposeCallForForeachAndUsing(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             rewrittenBoundLocal As BoundLocal,
             rewrittenCondition As BoundExpression,
             IsOrInheritsFromOrImplementsIDisposable As Boolean,

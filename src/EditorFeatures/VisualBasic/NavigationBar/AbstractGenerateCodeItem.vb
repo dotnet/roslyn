@@ -40,10 +40,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 formatterRules = New LineAdjustmentFormattingRule().Concat(formatterRules)
             End If
 
-
+            Dim documentOptions = Await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return Formatter.FormatAsync(newDocument,
                                          Formatter.Annotation,
-                                         options:=newDocument.Options,
+                                         options:=documentOptions,
                                          cancellationToken:=cancellationToken,
                                          rules:=formatterRules).WaitAndGetResult(cancellationToken)
         End Function
