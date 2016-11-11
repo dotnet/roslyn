@@ -41,7 +41,6 @@ namespace RunTests
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
             var max = (int)(Environment.ProcessorCount * 1.5);
-            var allPassed = true;
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
@@ -64,7 +63,6 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                                allPassed = false;
                             }
 
                             if (testResult.IsResultFromCache)
@@ -77,7 +75,6 @@ namespace RunTests
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Error: {ex.Message}");
-                            allPassed = false;
                             failures++;
                         }
 
@@ -94,14 +91,20 @@ namespace RunTests
                     var task = _testExecutor.RunTestAsync(waiting.Pop(), cancellationToken);
                     running.Add(task);
                 }
-
-                Console.WriteLine($"  { running.Count, 2} running, { waiting.Count,2} queued, { completed.Count,2} completed{((failures <=0)?"":$", {failures,2} failures")}");
+                // Display the current status of the TestRunner.
+                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
+                Console.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
+                if (failures > 0)
+                {
+                    Console.Write($", {failures, 2} failures");
+                }
+                Console.WriteLine();
                 Task.WaitAny(running.ToArray());
             } while (running.Count > 0);
 
             Print(completed);
 
-            return new RunAllResult(allPassed, cacheCount, completed.ToImmutableArray());
+            return new RunAllResult( (failures == 0), cacheCount, completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)
