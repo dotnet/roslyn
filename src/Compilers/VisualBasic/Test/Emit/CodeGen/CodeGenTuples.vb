@@ -6224,11 +6224,15 @@ End Class
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal((New String() {"System.Int32", "System.String"}), ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
             Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
+
+        Private Shared Function ElementTypeNames(tuple As INamedTypeSymbol) As IEnumerable(Of String)
+            Return tuple.TupleElements.Select(Function(t) t.Type.ToTestDisplayString())
+        End Function
 
         <Fact>
         Public Sub CreateTupleTypeSymbol_Locations()
@@ -6253,7 +6257,7 @@ End Class
             Assert.True(tuple.IsTupleType)
             Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
             Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tuple.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tuple))
             Assert.Equal(SymbolKind.NamedType, tuple.Kind)
             Assert.Equal(loc1, tuple.GetMembers("i1").Single.Locations.Single())
             Assert.Equal(loc2, tuple.GetMembers("i2").Single.Locations.Single())
@@ -6273,7 +6277,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
             Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
@@ -6293,7 +6297,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.Equal(New String() {"Alice", "Bob"}, GetTupleElementNames(tupleWithoutNames))
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
             Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
@@ -6314,9 +6318,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, Item2 As System.String, Charlie As System.Int32)", tupleWithSomeNames.ToTestDisplayString())
             Assert.Equal(New String() {Nothing, "Item2", "Charlie"}, GetTupleElementNames(tupleWithSomeNames))
-            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"},
-                         tupleWithSomeNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
-
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"}, ElementTypeNames(tupleWithSomeNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind)
             Assert.All(tupleWithSomeNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
@@ -6334,7 +6336,7 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(Item2 As System.Int32, Item1 As System.Int32)", tupleWithoutNames.ToTestDisplayString())
             Assert.Equal(New String() {"Item2", "Item1"}, GetTupleElementNames(tupleWithoutNames))
-            Assert.Equal(New String() {"System.Int32", "System.Int32"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.Int32"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
             Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
@@ -6360,7 +6362,7 @@ End Class
             Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithoutNames))
             Assert.All(tuple8WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
@@ -6385,7 +6387,7 @@ End Class
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, GetTupleElementNames(tuple8WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithNames))
             Assert.All(tuple8WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
@@ -6410,7 +6412,7 @@ End Class
             Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithoutNames))
             Assert.All(tuple9WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
@@ -6435,7 +6437,7 @@ End Class
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithNames))
             Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
@@ -6460,7 +6462,7 @@ End Class
             Assert.Equal(New String() {"Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithNames))
             Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
                 Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
@@ -6591,7 +6593,7 @@ End Class
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -6619,7 +6621,7 @@ End Class
             Assert.True(tuple.IsTupleType)
             Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
             Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tuple.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tuple))
             Assert.Equal(SymbolKind.NamedType, tuple.Kind)
             Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single())
             Assert.Equal(loc2, tuple.GetMembers("i2").Single().Locations.Single())
@@ -6638,7 +6640,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -6656,7 +6658,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithoutNames.ToTestDisplayString())
             Assert.Equal(New String() {"Alice", "Bob"}, GetTupleElementNames(tupleWithoutNames))
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -6672,7 +6674,7 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(Item2 As System.Int32, Item1 As System.Int32)", tupleWithoutNames.ToTestDisplayString())
             Assert.Equal(New String() {"Item2", "Item1"}, GetTupleElementNames(tupleWithoutNames))
-            Assert.Equal(New String() {"System.Int32", "System.Int32"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(New String() {"System.Int32", "System.Int32"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -6694,7 +6696,7 @@ End Class
             Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithoutNames))
 
         End Sub
 
@@ -6715,7 +6717,7 @@ End Class
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, GetTupleElementNames(tuple8WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithNames))
 
         End Sub
 
@@ -6736,7 +6738,7 @@ End Class
             Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithoutNames))
 
         End Sub
 
@@ -6757,7 +6759,7 @@ End Class
             Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithNames))
 
         End Sub
 

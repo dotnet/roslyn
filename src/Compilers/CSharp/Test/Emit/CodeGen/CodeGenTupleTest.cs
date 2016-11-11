@@ -4828,7 +4828,7 @@ class C
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -4865,7 +4865,7 @@ class C
             Assert.True(tuple.IsTupleType);
             Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32 i1, System.String i2)", tuple.ToTestDisplayString());
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tuple.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tuple));
             Assert.Equal(SymbolKind.NamedType, tuple.Kind);
             Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single());
             Assert.Equal(loc2, tuple.GetMembers("i2").Single().Locations.Single());
@@ -4885,7 +4885,7 @@ class C
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -4904,7 +4904,7 @@ class C
             Assert.True(tupleWithNames.IsTupleType);
             Assert.Equal("(System.Int32 Alice, System.String Bob)", tupleWithNames.ToTestDisplayString());
             Assert.Equal(new[] { "Alice", "Bob" }, GetTupleElementNames(tupleWithNames));
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -4923,7 +4923,7 @@ class C
             Assert.True(tupleWithSomeNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String Item2, System.Int32 Charlie)", tupleWithSomeNames.ToTestDisplayString());
             Assert.Equal(new[] { null, "Item2", "Charlie" }, GetTupleElementNames(tupleWithSomeNames));
-            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, tupleWithSomeNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
             Assert.All(tupleWithSomeNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -4941,7 +4941,7 @@ class C
             Assert.True(tupleWithNames.IsTupleType);
             Assert.Equal("(System.Int32 Item2, System.Int32 Item1)", tupleWithNames.ToTestDisplayString());
             Assert.Equal(new[] { "Item2", "Item1" }, GetTupleElementNames(tupleWithNames));
-            Assert.Equal(new[] { "System.Int32", "System.Int32" }, tupleWithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.Int32" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -4966,7 +4966,7 @@ class C
             Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault);
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
-                        tuple8WithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple8WithoutNames));
             Assert.All(tuple8WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
         }
@@ -4991,7 +4991,7 @@ class C
             Assert.Equal(new[] { "Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8" }, GetTupleElementNames(tuple8WithNames));
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
-                        tuple8WithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple8WithNames));
             Assert.All(tuple8WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
         }
@@ -5016,7 +5016,7 @@ class C
             Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault);
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
-                        tuple9WithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple9WithoutNames));
             Assert.All(tuple9WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
         }
@@ -5041,7 +5041,7 @@ class C
             Assert.Equal(new[] { "Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9" }, GetTupleElementNames(tuple9WithNames));
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
-                        tuple9WithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -5070,7 +5070,7 @@ class C
             Assert.Equal(new[] { "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9" }, GetTupleElementNames(tuple9WithNames));
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.Int32", "System.Int32" },
-                        tuple9WithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, null));
@@ -5146,7 +5146,6 @@ class C
             NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
 
-            // not tuple-compatible underlying type
             try
             {
                 // illegal C# identifiers and blank
@@ -5156,7 +5155,7 @@ class C
             catch (ArgumentException e)
             {
                 Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
-                Assert.Contains("1", e.Message);
+                Assert.Contains("elementNames[1]", e.Message);
             }
         }
 
@@ -5245,7 +5244,7 @@ End Class";
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
         }
 
@@ -5262,17 +5261,22 @@ End Class";
             var loc1 = Location.Create(syntaxTree, new TextSpan(0, 1));
             var loc2 = Location.Create(syntaxTree, new TextSpan(1, 1));
             var tuple = comp.CreateTupleTypeSymbol(
-                ImmutableArray.Create<ITypeSymbol>(intType, stringType), 
+                ImmutableArray.Create<ITypeSymbol>(intType, stringType),
                 ImmutableArray.Create<string>(null, null),
                 ImmutableArray.Create(loc1, loc2));
 
             Assert.True(tuple.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tuple.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tuple).IsDefault);
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tuple.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tuple));
             Assert.Equal(SymbolKind.NamedType, tuple.Kind);
             Assert.Equal(loc1, tuple.GetMembers("Item1").Single().Locations.Single());
             Assert.Equal(loc2, tuple.GetMembers("Item2").Single().Locations.Single());
+        }
+
+        private static IEnumerable<string> ElementTypeNames(INamedTypeSymbol tuple)
+        {
+            return tuple.TupleElements.Select(t => t.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5287,7 +5291,7 @@ End Class";
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString());
             Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
         }
 
@@ -5303,7 +5307,7 @@ End Class";
             Assert.True(tupleWithNames.IsTupleType);
             Assert.Equal("(System.Int32 Alice, System.String Bob)", tupleWithNames.ToTestDisplayString());
             Assert.Equal(new[] { "Alice", "Bob" }, GetTupleElementNames(tupleWithNames));
-            Assert.Equal(new[] { "System.Int32", "System.String" }, tupleWithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
         }
 
@@ -5318,7 +5322,7 @@ End Class";
             Assert.True(tupleWithNames.IsTupleType);
             Assert.Equal("(System.Int32 Item2, System.Int32 Item1)", tupleWithNames.ToTestDisplayString());
             Assert.Equal(new[] { "Item2", "Item1" }, GetTupleElementNames(tupleWithNames));
-            Assert.Equal(new[] { "System.Int32", "System.Int32" }, tupleWithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+            Assert.Equal(new[] { "System.Int32", "System.Int32" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
         }
 
@@ -5339,7 +5343,7 @@ End Class";
             Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault);
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
-                        tuple8WithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple8WithoutNames));
         }
 
         [Fact]
@@ -5359,7 +5363,7 @@ End Class";
             Assert.Equal(new[] { "Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8" }, GetTupleElementNames(tuple8WithNames));
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
-                        tuple8WithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple8WithNames));
         }
 
         [Fact]
@@ -5379,7 +5383,7 @@ End Class";
             Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault);
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
-                        tuple9WithoutNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple9WithoutNames));
         }
 
         [Fact]
@@ -5399,7 +5403,7 @@ End Class";
             Assert.Equal(new[] { "Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9" }, GetTupleElementNames(tuple9WithNames));
 
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
-                        tuple9WithNames.TupleElements.Select(t => t.Type.ToTestDisplayString()));
+                        ElementTypeNames(tuple9WithNames));
         }
 
         [Fact]

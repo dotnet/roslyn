@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Actual element names. 
-        ''' Could be different from _providedElementNames becasue of case insensitivity.
+        ''' Could be different from _providedElementNames because of case insensitivity.
         ''' I.E. - it is not an error to provide "item1" name to the first element
         '''        however its name must be "Item1", since it already has the name "Item1"
         '''        and having both "item1" and "Item1" names would be ambiguous
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         builder(index) = candidate
                     Else
                         ' there is a better field in the slot
-                        ' that can only happen if the candidate Is default.
+                        ' that can only happen if the candidate is default.
                         Debug.Assert(candidate.IsDefaultTupleElement)
                     End If
                 End If

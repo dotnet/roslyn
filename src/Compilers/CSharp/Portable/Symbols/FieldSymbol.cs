@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this field represents a tuple element, returns a corresponding default element field.
-        /// Otherwise returns null
+        /// Otherwise returns null.
         /// </summary>
         public virtual FieldSymbol CorrespondingTupleField
         {
