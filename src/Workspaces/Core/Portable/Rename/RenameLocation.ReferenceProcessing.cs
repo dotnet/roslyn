@@ -298,7 +298,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     if (location.IsInSource)
                     {
-                        results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id, isRenamableAccessor: isRenamableAccessor));
+                        results.Add(new RenameLocation(
+                            location, 
+                            solution.GetDocument(location.SourceTree).Id, 
+                            isRenamableAccessor: isRenamableAccessor));
                     }
                 }
 
@@ -375,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         if (location.Alias.Name == referencedSymbol.Name)
                         {
                             results.Add(new RenameLocation(location.Location, location.Document.Id,
-                                isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
+                                candidateReason: location.CandidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                             // We also need to add the location of the alias itself
                             var aliasLocation = location.Alias.Locations.Single();
@@ -389,8 +392,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             location.Location,
                             location.Document.Id,
                             isWrittenTo: location.IsWrittenTo,
-                            isCandidateLocation: location.IsCandidateLocation,
-                            isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup,
+                            candidateReason: location.CandidateReason,
                             isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                     }
                 }
