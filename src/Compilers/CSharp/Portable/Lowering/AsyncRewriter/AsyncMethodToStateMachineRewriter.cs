@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression expr = (BoundExpression)this.Visit(node.Expression);
-            return (expr != null) ? node.Update(expr) : (BoundStatement)F.Block();
+            return (expr != null) ? node.Update(expr) : (BoundStatement)F.StatementList();
         }
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this.state = cachedState = NotStartedStateMachine
                     F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine))));
 
-             return F.Block(blockBuilder.ToImmutableAndFree());
+            return F.Block(blockBuilder.ToImmutableAndFree());
         }
 
         private BoundStatement GenerateAwaitOnCompletedDynamic(LocalSymbol awaiterTemp)

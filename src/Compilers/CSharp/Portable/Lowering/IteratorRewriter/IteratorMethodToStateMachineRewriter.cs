@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // state_0:
             // state = -1;
+            // [optional: cachedThis = capturedThis;] 
             // [[rewritten body]]
             newBody = F.Block((object)cachedThis == null?
                                 ImmutableArray.Create(cachedState):

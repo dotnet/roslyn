@@ -423,6 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList()
+        {
+            return StatementList(ImmutableArray<BoundStatement>.Empty);
+        }
+
         public BoundStatementList StatementList(ImmutableArray<BoundStatement> statements)
         {
             return new BoundStatementList(Syntax, statements) { WasCompilerGenerated = true };

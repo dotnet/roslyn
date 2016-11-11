@@ -874,13 +874,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!used)
             {
                 // fetching unused captured frame is a no-op (like reading "this")
-                if(field.IsCapturedFrame)
+                if (field.IsCapturedFrame)
                 {
                     return;
                 }
 
-                //TODO: For static field access this may require ..ctor to run. Is this a side-effect?
-                // Accessing unused instance field on a struct is a noop. Just emit the receiver.
+                // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
+                // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
                 if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
                 {
                     EmitExpression(fieldAccess.ReceiverOpt, used: false);
@@ -891,6 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!field.IsConst || field.ContainingType.SpecialType == SpecialType.System_Decimal,
                 "rewriter should lower constant fields into constant expressions");
 
+            // static field access is sideeffecting since it gurantees that ..ctor has run.
+            // we emit static accesses even if unused.
             if (field.IsStatic)
             {
                 if (field.IsVolatile)
@@ -1261,8 +1263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.ObjectCreationExpression:
-                    //NOTE: there are cases involving ProxyAttribute
-                    //where newobj may produce null
+                    // NOTE: there are cases involving ProxyAttribute
+                    // where newobj may produce null
                     return true;
 
                 case BoundKind.Conversion:
@@ -1271,8 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     switch (conversion.ConversionKind)
                     {
                         case ConversionKind.Boxing:
-                            //NOTE: boxing can produce null for Nullable, but any call through that
-                            //will result in null reference exceptions anyways.
+                            // NOTE: boxing can produce null for Nullable, but any call through that
+                            // will result in null reference exceptions anyways.
                             return true;
 
                         case ConversionKind.MethodGroup:
@@ -1286,10 +1288,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    //NOTE: these actually can be null if called from a different language
-                    //however, we assume it is responsibility of the caller to nullcheck "this"
-                    //if we already have access to "this", we must be in a member and should 
-                    //not redo the check
+                    // NOTE: these actually can be null if called from a different language
+                    // however, we assume it is responsibility of the caller to nullcheck "this"
+                    // if we already have access to "this", we must be in a member and should 
+                    // not redo the check
                     return true;
 
                 case BoundKind.FieldAccess:
