@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    // cause all assets belong to the given solution to sync to remote host
-                    await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {

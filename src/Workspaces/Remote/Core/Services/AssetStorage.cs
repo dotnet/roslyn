@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static readonly AssetStorage Default = new AssetStorage();
 
-        private const int CleanupInterval = 3; // 3 minutes
-        private const int PurgeAfter = 30; // 30 minutes
+        private const int CleanupInterval = 1; // 1 minutes
+        private const int PurgeAfter = 3; // 3 minutes
 
         private static readonly TimeSpan s_purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
         private static readonly TimeSpan s_cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis
             return _lazyChecksums.TryGetValue(out stateChecksums);
         }
 
+        public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
+        {
+            return _lazyChecksums.GetValueAsync(cancellationToken);
+        }
+
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
             var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
