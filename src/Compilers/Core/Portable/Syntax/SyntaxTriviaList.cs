@@ -237,6 +237,25 @@ namespace Microsoft.CodeAnalysis
             return InsertRange(index, new[] { trivia });
         }
 
+        private static readonly ObjectPool<SyntaxTriviaListBuilder> s_builderPool =
+            new ObjectPool<SyntaxTriviaListBuilder>(() => SyntaxTriviaListBuilder.Create());
+
+        private static SyntaxTriviaListBuilder GetBuilder()
+            => s_builderPool.Allocate();
+
+        private static void ClearAndFreeBuilder(SyntaxTriviaListBuilder builder)
+        {
+            // It's possible someone might create a list with a huge amount of trivia
+            // in it.  We don't want to hold onto such items forever.  So only cache
+            // reasonably sized lists.
+            const int MaxBuilderCount = 16;
+            if (builder.Count <= MaxBuilderCount)
+            {
+                builder.Clear();
+                s_builderPool.Free(builder);
+            }
+        }
+
         /// <summary>
         /// Creates a new <see cref="SyntaxTriviaList"/> with the specified trivia inserted at the index.
         /// </summary>
@@ -262,21 +281,27 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var builder = SyntaxTriviaListBuilder.Create();
-
-            for (int i = 0; i < index; i++)
+            var builder = GetBuilder();
+            try
             {
-                builder.Add(this[i]);
+                for (int i = 0; i < index; i++)
+                {
+                    builder.Add(this[i]);
+                }
+
+                builder.AddRange(trivia);
+
+                for (int i = index; i < thisCount; i++)
+                {
+                    builder.Add(this[i]);
+                }
+
+                return builder.ToList();
             }
-
-            builder.AddRange(trivia);
-
-            for (int i = index; i < thisCount; i++)
+            finally
             {
-                builder.Add(this[i]);
+                ClearAndFreeBuilder(builder);
             }
-
-            return builder.ToList();
         }
 
         /// <summary>
