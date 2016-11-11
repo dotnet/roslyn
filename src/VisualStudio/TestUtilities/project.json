@@ -9,7 +9,7 @@
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Setup.Configuration.Interop": {
-      "version": "1.1.142-preview4-29265",
+      "version": "1.2.304-preview5",
       "suppressParent": "all"
     }
   },

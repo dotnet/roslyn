@@ -1,59 +1,60 @@
 ﻿{
-    "dependencies": {
-        "BasicUndo": "0.9.3",
-        "Microsoft.VisualStudio.InteractiveWindow": {
-            "version": "2.0.0-beta5-60820-04",
-            "suppressParent": "all"
-        },
-        "Microsoft.VisualStudio.RemoteControl": {
-            "version": "14.0.249-master2E2DC10C",
-            "suppressParent": "all"
-        },
-        "Microsoft.VisualStudio.Shell.15.0": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "Microsoft.VisualStudio.Editor": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "Microsoft.VisualStudio.Language.Intellisense": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.VisualStudio.Text.Internal" : {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
-            "version": "14.3.25407",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.VisualStudio.Progression": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
-        "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-            "version": "15.0.25726-Preview5",
-            "suppressParent": "all"
-        },
+  "dependencies": {
+    "BasicUndo": "0.9.3",
+    "Microsoft.VisualStudio.InteractiveWindow": {
+      "version": "2.0.0-beta5-61025-01",
+      "suppressParent": "all"
     },
-    "frameworks": {
-        "net46": { }
+    "Microsoft.VisualStudio.RemoteControl": {
+      "version": "14.0.249-master2E2DC10C",
+      "suppressParent": "all"
     },
-    "runtimes": {
-        "win7": { }
-    }
+    "Microsoft.VisualStudio.Shell.15.0": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Editor": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Language.Intellisense": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Language.StandardClassification": "15.0.25726-Preview5",
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Progression": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": {}
+  }
 }

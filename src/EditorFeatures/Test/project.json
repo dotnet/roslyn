@@ -2,6 +2,7 @@
   "dependencies": {
     "BasicUndo": "0.9.3",
     "Microsoft.VisualStudio.Composition": "15.0.30-pre",
+    "System.Threading.Tasks.Dataflow": "4.5.25",
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "15.0.25726-Preview5",
     "Microsoft.VisualStudio.InteractiveWindow": {
       "version": "2.0.0-beta5-61025-01",

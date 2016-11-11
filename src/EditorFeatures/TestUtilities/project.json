@@ -9,11 +9,11 @@
       "version": "0.9.3",
       "suppressParent": "all"
     },
-    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "15.0.25726-Preview5",
     "Microsoft.VisualStudio.Composition": {
       "version": "15.0.30-pre",
       "suppressParent": "all"
     },
+    "System.Threading.Tasks.Dataflow": "4.5.25",
     "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
@@ -22,7 +22,7 @@
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
-    "Microsoft.VisualStudio.Language.StandardClassification" : {
+    "Microsoft.VisualStudio.Language.StandardClassification": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },

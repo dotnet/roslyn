@@ -6,6 +6,7 @@
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Composition": "15.0.30-pre",
+    "System.Threading.Tasks.Dataflow": "4.5.25",
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "15.0.25726-Preview5",
     "Microsoft.VisualStudio.Language.Intellisense": {
       "version": "15.0.25726-Preview5",
@@ -34,7 +35,7 @@
     "Microsoft.VisualStudio.Text.UI.Wpf": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
-    },
+    }
   },
   "frameworks": {
     "net46": {}
