@@ -244,7 +244,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="trivia">The trivia to insert.</param>
         public SyntaxTriviaList InsertRange(int index, IEnumerable<SyntaxTrivia> trivia)
         {
-            if (index < 0 || index > this.Count)
+            var thisCount = this.Count;
+            if (index < 0 || index > thisCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
@@ -254,23 +255,26 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(trivia));
             }
 
+            // Handle common case where we're passed an empty array.
+            var triviaList = trivia as IList<SyntaxTrivia>;
+            if (triviaList.Count == 0)
+            {
+                return this;
+            }
+
             var builder = SyntaxTriviaListBuilder.Create();
 
             var current = 0;
-            foreach (var thisTrivia in this)
+            for (; current < index; current++)
             {
-                if (current == index)
-                {
-                    builder.AddRange(trivia);
-                }
-
-                builder.Add(thisTrivia);
-                current++;
+                builder.Add(this[current]);
             }
 
-            if (current == index)
+            builder.AddRange(trivia);
+
+            for (; current < thisCount; current++)
             {
-                builder.AddRange(trivia);
+                builder.Add(this[current]);
             }
 
             return builder.ToList();
