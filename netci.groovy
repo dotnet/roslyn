@@ -10,18 +10,6 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
-// vs. polling
-static void addBuildEventWebHook(def myJob) {
-  myJob.with {
-    notifications {
-      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
-        event('all')
-      }
-    }
-  }   
-}
-
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -58,8 +46,6 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     // TODO: Add once external email sending is available again
     // addEmailPublisher(myJob)
   }
-
-  addBuildEventWebHook(myJob)
 }
 
 // True when this is a PR job, false for commit.  On feature branches we do PR jobs only. 
