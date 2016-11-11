@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 references.AddRange(renameLocations.Select(
                     ds => new InlineRenameLocation(ds.Document, ds.TextSpan)));
 
-                return new InlineRenameLocationSet(_renameInfo, _document.Project.Solution,
+                return new InlineRenameLocationSet(
+                    _renameInfo, _document.Project.Solution,
                     references.ToImmutableArray());
             }
 
