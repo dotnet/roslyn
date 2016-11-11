@@ -30,11 +30,22 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         public bool HasExistingImport(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
         {
+            var containers = GetContainers(root, contextLocation);
+            return HasExistingImport(import, containers);
+        }
+
+        private static SyntaxNode[] GetContainers(SyntaxNode root, SyntaxNode contextLocation)
+        {
             contextLocation = contextLocation ?? root;
 
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var containers = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToArray();
 
+            return containers;
+        }
+
+        private bool HasExistingImport(SyntaxNode import, SyntaxNode[] containers)
+        {
             foreach (var node in containers)
             {
                 if (GetUsingsAndAliases(node).Any(u => u.IsEquivalentTo(import, topLevel: false)))
@@ -73,14 +84,16 @@ namespace Microsoft.CodeAnalysis.AddImports
             bool placeSystemNamespaceFirst)
         {
             contextLocation = contextLocation ?? root;
-            GetContainers(root, contextLocation,
-                out var externContainer, out var usingContainer, out var aliasContainer);
 
-            var filteredImports = newImports.Where(i => !HasExistingImport(root, contextLocation, i)).ToArray();
+            var containers = GetContainers(root, contextLocation);
+            var filteredImports = newImports.Where(i => !HasExistingImport(i, containers)).ToArray();
 
             var externAliases = filteredImports.OfType<TExternSyntax>().ToArray();
             var usingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
+
+            GetContainers(root, contextLocation,
+                out var externContainer, out var usingContainer, out var aliasContainer);
 
             var newRoot = Rewrite(
                 externAliases, usingDirectives, aliasDirectives,
