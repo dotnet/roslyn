@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _tupleElementIndex = (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
             _isImplicitlyDeclared = isImplicitlyDeclared;
 
-            Debug.Assert(correspondingDefaultFieldOpt != null || this.IsDefaultTupleElement);
+            Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
             Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
 
             _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
@@ -123,6 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _isImplicitlyDeclared;
+            }
+        }
+
+        public override FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return _correspondingDefaultField;
             }
         }
 

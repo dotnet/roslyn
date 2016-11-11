@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _isImplicitlyDeclared = isImplicitlyDeclared;
 
-            Debug.Assert(correspondingDefaultFieldOpt != null || this.IsDefaultTupleElement);
+            Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
             Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
 
             _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;

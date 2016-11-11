@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._tupleElementIndex = If(correspondingDefaultFieldOpt Is Nothing, tupleElementIndex << 1, (tupleElementIndex << 1) + 1)
             Me._isImplicitlyDeclared = isImplicitlyDeclared
 
-            Debug.Assert(correspondingDefaultFieldOpt IsNot Nothing OrElse Me.IsDefaultTupleElement)
+            Debug.Assert(correspondingDefaultFieldOpt Is Nothing = Me.IsDefaultTupleElement)
             Debug.Assert(correspondingDefaultFieldOpt Is Nothing OrElse correspondingDefaultFieldOpt.IsDefaultTupleElement)
 
             _correspondingDefaultField = If(correspondingDefaultFieldOpt, Me)
@@ -104,6 +104,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return _isImplicitlyDeclared
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property CorrespondingTupleField As FieldSymbol
+            Get
+                Return _correspondingDefaultField
             End Get
         End Property
 

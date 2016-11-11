@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(symbol.IsTupleType);
                 visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
 
-                var frieldlyNames = ArrayBuilder<String>.GetInstance();
+                var friendlyNames = ArrayBuilder<String>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
 
-                foreach(var element in symbol.TupleElements)
+                foreach (var element in symbol.TupleElements)
                 {
-                    frieldlyNames.Add(element.IsImplicitlyDeclared? null: element.Name);
+                    friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
                     locations.Add(element.Locations.FirstOrDefault());
                 }
 
-                visitor.WriteStringArray(frieldlyNames.ToImmutableAndFree());
+                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
                 visitor.WriteLocationArray(locations.ToImmutableAndFree());
             }
 

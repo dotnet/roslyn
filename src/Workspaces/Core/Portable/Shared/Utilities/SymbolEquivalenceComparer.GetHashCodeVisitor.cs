@@ -189,12 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (x.IsTupleType)
                 {
-                    foreach(var element in x.TupleElements)
-                    {
-                        currentHash = Hash.Combine(element.Type, currentHash);
-                    }
-
-                    return currentHash;
+                    return Hash.Combine(currentHash, Hash.CombineValues(x.TupleElements));
                 }
 
                 // If we want object and dynamic to be the same, and this is 'object', then return

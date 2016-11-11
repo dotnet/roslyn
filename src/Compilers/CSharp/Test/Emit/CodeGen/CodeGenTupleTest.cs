@@ -4843,7 +4843,7 @@ class C
                 return default(ImmutableArray<string>);
             }
 
-            return elements.SelectAsArray(e => e.IsImplicitlyDeclared?  null: e.Name);
+            return elements.SelectAsArray(e => e.ProvidedTupleElementNameOrNull());
         }
 
         [Fact]
@@ -5116,10 +5116,11 @@ class C
 
             NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
+            var vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, intType, intType);
 
-            // illegal C# identifiers and blank
-            var tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", " "));
-            Assert.Equal(new[] { "123", " " }, GetTupleElementNames(tuple2));
+            // illegal C# identifiers, space and null
+            var tuple2 = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create("123", " ", null));
+            Assert.Equal(new[] { "123", " ", null }, GetTupleElementNames(tuple2));
 
             // reserved identifiers
             var tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"));
@@ -5134,6 +5135,28 @@ class C
             catch (ArgumentException e)
             {
                 Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, e.Message);
+            }
+        }
+
+        [Fact]
+        public void CreateTupleTypeSymbol_EmptyNames()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+
+            NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
+
+            // not tuple-compatible underlying type
+            try
+            {
+                // illegal C# identifiers and blank
+                var tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""));
+                Assert.True(false);
+            }
+            catch (ArgumentException e)
+            {
+                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
+                Assert.Contains("1", e.Message);
             }
         }
 

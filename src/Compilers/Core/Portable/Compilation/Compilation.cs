@@ -878,6 +878,14 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
                 }
 
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if (elementNames[i] == "")
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
+                    }
+                }
+
                 if (elementNames.All(n => n == null))
                 {
                     return default(ImmutableArray<string>);

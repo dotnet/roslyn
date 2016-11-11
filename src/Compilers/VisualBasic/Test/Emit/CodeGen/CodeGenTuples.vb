@@ -6496,10 +6496,11 @@ End Class
 
             Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+            Dim vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, intType, intType)
 
-            ' Illegal VB identifier and blank
-            Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", " "))
-            Assert.Equal({"123", " "}, GetTupleElementNames(tuple2))
+            ' Illegal VB identifier, space and null
+            Dim tuple2 = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create("123", " ", Nothing))
+            Assert.Equal({"123", " ", Nothing}, GetTupleElementNames(tuple2))
 
             ' Reserved keywords
             Dim tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"))
@@ -6510,6 +6511,25 @@ End Class
                 Assert.True(False)
             Catch ex As ArgumentException
                 Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
+            End Try
+
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_EmptyNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+
+            Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+
+            Try
+                ' Illegal VB identifier and empty
+                Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
+                Assert.Contains("1", ex.Message)
             End Try
 
         End Sub
@@ -6787,7 +6807,7 @@ End Class
                 Return Nothing
             End If
 
-            Return elements.SelectAsArray(Function(e) If(e.IsImplicitlyDeclared, Nothing, e.Name))
+            Return elements.SelectAsArray(Function(e) e.ProvidedTupleElementNameOrNull)
         End Function
 
         <Fact>

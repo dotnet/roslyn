@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function HasNonDefaultTupleElements(tupleSymbol As INamedTypeSymbol) As Boolean
-            Return tupleSymbol.TupleElements.Any(Function(e) e IsNot e.CorrespondingTupleField)
+            Return tupleSymbol.TupleElements.Any(Function(e) Not e.IsDefaultTupleElement)
         End Function
 
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)

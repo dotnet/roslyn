@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-           return tupleSymbol.TupleElements.Any(e=>(object)e != e.CorrespondingTupleField);
+            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
