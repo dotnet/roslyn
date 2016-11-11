@@ -90,7 +90,6 @@
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="Structure\Providers\BlockSyntaxStructureProvider.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
@@ -112,7 +111,6 @@
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
     <Compile Include="QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\NamingStyles\CSharpNamingStyleCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -123,8 +121,6 @@
     <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.InitializerRewriter.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.cs" />
