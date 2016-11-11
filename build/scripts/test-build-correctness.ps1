@@ -25,8 +25,10 @@ function Get-PackagesPath {
     return $packagesPath
 }
 
+pushd $sourcePath
 try
 {
+
     # TODO: RepoUtil needs to generate a powershell file that can be imported for 
     # values like this.
     $structuredLoggerVersion = "1.0.58"
@@ -35,14 +37,40 @@ try
     write-host "Building Roslyn.sln with logging support"
 
     $structuredLoggerPath = join-path $packagesPath "Microsoft.Build.Logging.StructuredLogger\$structuredLoggerVersion\lib\net46\StructuredLogger.dll"
-    $roslynSlnPath = join-path $sourcePath "Roslyn.sln"
     $logPath = join-path $binariesPath "build.xml"
 
-    & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath $roslynSlnPath 
+    & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath Roslyn.sln
+    if (-not $?) {
+        exit 1
+    }
+    write-host ""
 
+    # Verify the state of our various build artifacts
+    write-host "Running BuildBoss"
+    $buildBossPath = join-path $binariesPath "Exes\BuildBoss\BuildBoss.exe"
+    & $buildBossPath Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln "build\Targets" $logPath
+    if (-not $?) {
+        exit 1
+    }
+    write-host ""
+
+    # Verify the state of our project.jsons
+    write-host "Running RepoUtil"
+    $repoUtilPath = join-path $binariesPath "Exes\RepoUtil\RepoUtil.exe"
+    & $repoUtilPath verify
+    if (-not $?) {
+        exit 1
+    }
+    write-host ""
+
+    exit 0
 }
 catch [exception]
 {
     write-host $_.Exception
     exit -1
+}
+finally
+{
+    popd
 }

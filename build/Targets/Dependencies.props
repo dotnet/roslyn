@@ -4,6 +4,7 @@
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicrosoftBuildVersion>14.3.0</MicrosoftBuildVersion>
+    <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
     <MicrosoftBuildTasksCoreVersion>14.3.0</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
