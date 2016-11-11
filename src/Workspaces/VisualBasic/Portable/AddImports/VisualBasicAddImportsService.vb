@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
 
         Protected Overrides Function GetAlias(usingOrAlias As ImportsStatementSyntax) As SyntaxNode
             Return usingOrAlias.ImportsClauses.OfType(Of SimpleImportsClauseSyntax).
+                                               Where(Function(c) c.Alias IsNot Nothing).
                                                FirstOrDefault()?.Alias
         End Function
 
