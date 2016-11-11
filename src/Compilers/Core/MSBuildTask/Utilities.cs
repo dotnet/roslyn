@@ -154,7 +154,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string GenerateFullPathToMSBuildRoslynTool(string toolName)
         {
-            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion);
+            // The Roslyn folder is a subfolder of the MSBuildToolsPath, but isn't duplicated
+            // in the amd64 MSBuild folder, so specify the parent (32-bit) folder.
+            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion,
+                DotNetFrameworkArchitecture.Bitness32);
 
             if (null != pathToBuildTools)
             {
