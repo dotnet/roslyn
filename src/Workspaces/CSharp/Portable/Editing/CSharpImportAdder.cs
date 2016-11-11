@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editing
@@ -17,6 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
     internal class CSharpImportAdder : ImportAdderService
     {
+        // C# doesn't have global imports.
+        protected override ISet<SyntaxNode> GetGlobalImports(SyntaxGenerator generator, Compilation compilation)
+            => SpecializedCollections.EmptySet<SyntaxNode>();
+
         protected override INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
         {
             var name = node as QualifiedNameSyntax;

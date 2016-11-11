@@ -39,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Editing
             namespacesToAdd.AddRange(nodesWithExplicitNamespaces.Select(
                 n => GetExplicitNamespaceSymbol(n, model)));
 
-            var gen = SyntaxGenerator.GetGenerator(document);
-
-            var imports = namespacesToAdd.Select(ns => gen.NamespaceImportDeclaration(ns.ToDisplayString()).WithAdditionalAnnotations(Simplifier.Annotation))
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var globalImports = GetGlobalImports(generator, model.Compilation);
+            var imports = namespacesToAdd.Select(ns => generator.NamespaceImportDeclaration(ns.ToDisplayString()).WithAdditionalAnnotations(Simplifier.Annotation))
+                                         .Where(n1 => !globalImports.Any(n2 => n1.IsEquivalentTo(n2, topLevel: false)))
                                          .ToArray();
 
             // annotate these nodes so they get simplified later
@@ -56,91 +57,8 @@ namespace Microsoft.CodeAnalysis.Editing
             return document.WithSyntaxRoot(finalRoot);
         }
 
-        //private async Task<SyntaxNode> AddNamespaceImportsAsync(
-        //    Document document,
-        //    SemanticModel model,
-        //    OptionSet options,
-        //    IEnumerable<INamespaceSymbol> namespaces,
-        //    CancellationToken cancellationToken)
-        //{
-        //    var existingNamespaces = new HashSet<INamespaceSymbol>();
-        //    await this.GetExistingImportedNamespacesAsync(document, model, existingNamespaces, cancellationToken).ConfigureAwait(false);
+        protected abstract ISet<SyntaxNode> GetGlobalImports(SyntaxGenerator generator, Compilation compilation);
 
-        //    var namespacesToAdd = new HashSet<INamespaceSymbol>(namespaces, NamespaceEqualityComparer.Singleton);
-        //    namespacesToAdd.RemoveAll(existingNamespaces);
-
-        //    var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        //    if (namespacesToAdd.Count == 0)
-        //    {
-        //        return root;
-        //    }
-
-        //    var gen = SyntaxGenerator.GetGenerator(document);
-
-        //    var newRoot = root;
-        //    foreach (var import in namespacesToAdd.Select(ns => gen.NamespaceImportDeclaration(ns.ToDisplayString()).WithAdditionalAnnotations(Simplifier.Annotation)))
-        //    {
-        //        newRoot = this.InsertNamespaceImport(newRoot, gen, import, options);
-        //    }
-
-        //    return newRoot;
-        //}
-
-        //protected virtual async Task GetExistingImportedNamespacesAsync(
-        //    Document document,
-        //    SemanticModel model,
-        //    HashSet<INamespaceSymbol> namespaces,
-        //    CancellationToken cancellationToken)
-        //{
-        //    // only consider top level imports
-        //    var gen = SyntaxGenerator.GetGenerator(document);
-        //    var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        //    var imports = gen.GetNamespaceImports(root);
-
-        //    var symbols = imports.Select(imp => GetImportedNamespaceSymbol(imp, model))
-        //               .OfType<INamespaceSymbol>()
-        //               .Select(ns => model.Compilation.GetCompilationNamespace(ns))
-        //               .ToList();
-
-        //    namespaces.AddRange(symbols);
-        //}
-
-        // protected abstract INamespaceSymbol GetImportedNamespaceSymbol(SyntaxNode import, SemanticModel model);
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
-        // protected abstract SyntaxNode InsertNamespaceImport(SyntaxNode root, SyntaxGenerator gen, SyntaxNode import, OptionSet options);
-
-        //private sealed class NamespaceEqualityComparer : IEqualityComparer<INamespaceSymbol>
-        //{
-        //    public static readonly NamespaceEqualityComparer Singleton = new NamespaceEqualityComparer();
-
-        //    private NamespaceEqualityComparer()
-        //    {
-        //    }
-
-        //    public bool Equals(INamespaceSymbol x, INamespaceSymbol y)
-        //    {
-        //        if (object.ReferenceEquals(x, y))
-        //        {
-        //            return true;
-        //        }
-        //        if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
-        //        {
-        //            return false;
-        //        }
-
-        //        return x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ==
-        //               y.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        //    }
-
-        //    public int GetHashCode(INamespaceSymbol obj)
-        //    {
-        //        if (object.ReferenceEquals(obj, null))
-        //        {
-        //            return 0;
-        //        }
-
-        //        return obj.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).GetHashCode();
-        //    }
-        //}
     }
 }
