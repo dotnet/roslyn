@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddImport;
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         }
 
         protected override string TryGetDescription(
+            Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             SyntaxNode contextNode,
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             }
 
             var usingDirective = TryGetUsingDirective(
-                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             if (usingDirective != null)
             {
@@ -465,63 +467,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var firstContainingNamespaceWithUsings = GetFirstContainingNamespaceWithUsings(contextNode);
-            var namespaceToUpdate = firstContainingNamespaceWithUsings;
-
             var externAliasDirective = TryGetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode,
                 checkForExistingExternAlias: true);
 
             var usingDirective = TryGetUsingDirective(
-                namespaceOrTypeSymbol, semanticModel, root, contextNode);
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
-            if (externAliasDirective != null)
+            var newImports = ArrayBuilder<SyntaxNode>.GetInstance();
+            try
             {
-                AddExterns(ref root, ref namespaceToUpdate, externAliasDirective);
-            }
+                if (externAliasDirective != null)
+                {
+                    newImports.Add(externAliasDirective);
+                }
 
-            if (usingDirective != null)
-            {
-                AddUsingDirective(ref root, ref namespaceToUpdate,
-                    placeSystemNamespaceFirst, usingDirective);
-            }
+                if (usingDirective != null)
+                {
+                    newImports.Add(usingDirective);
+                }
 
-            return firstContainingNamespaceWithUsings != null
-                ? root.ReplaceNode(firstContainingNamespaceWithUsings, namespaceToUpdate)
-                : root;
-        }
-
-        private void AddUsingDirective(
-            ref CompilationUnitSyntax root,
-            ref NamespaceDeclarationSyntax namespaceToUpdate,
-            bool placeSystemNamespaceFirst,
-            UsingDirectiveSyntax usingDirective)
-        {
-            IList<UsingDirectiveSyntax> directives = new[] { usingDirective };
-            if (namespaceToUpdate != null)
-            {
-                namespaceToUpdate = namespaceToUpdate.AddUsingDirectives(
-                    directives, placeSystemNamespaceFirst);
+                var addImportService = document.GetLanguageService<IAddImportService>();
+                var newRoot = addImportService.AddImports(root, contextNode, newImports, placeSystemNamespaceFirst);
+                return (CompilationUnitSyntax)newRoot;
             }
-            else
+            finally
             {
-                root = root.AddUsingDirectives(
-                    directives, placeSystemNamespaceFirst);
-            }
-        }
-
-        private void AddExterns(
-            ref CompilationUnitSyntax root,
-            ref NamespaceDeclarationSyntax namespaceToUpdate,
-            ExternAliasDirectiveSyntax externAliasDirective)
-        {
-            if (namespaceToUpdate != null)
-            {
-                namespaceToUpdate = namespaceToUpdate.AddExterns(externAliasDirective);
-            }
-            else
-            {
-                root = root.AddExterns(externAliasDirective);
+                newImports.Free();
             }
         }
 
@@ -581,15 +553,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         }
 
         private UsingDirectiveSyntax TryGetUsingDirective(
+            Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
             CompilationUnitSyntax root,
             SyntaxNode contextNode)
         {
-            var namespaceToAddTo = GetFirstContainingNamespaceWithUsings(contextNode);
-            var usingDirectives = namespaceToAddTo?.Usings ?? root.Usings;
+            var addImportService = document.GetLanguageService<IAddImportService>();
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
+            var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
+
+            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
+            var namespaceToAddTo = container as NamespaceDeclarationSyntax;
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked
             // up off of an extern alias.
@@ -692,19 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             var aliasName = nameSyntax as AliasQualifiedNameSyntax;
             return aliasName.WithAlias(alias);
-        }
-
-        private NamespaceDeclarationSyntax GetFirstContainingNamespaceWithUsings(SyntaxNode contextNode)
-        {
-            var usingDirective = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if (usingDirective != null)
-            {
-                contextNode = usingDirective.Parent;
-            }
-
-            return contextNode.GetAncestors<NamespaceDeclarationSyntax>()
-                              .Where(n => n.Usings.Count > 0)
-                              .FirstOrDefault();
         }
 
         private static bool TryGetExternAliasString(

@@ -248,6 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         End Function
 
         Protected Overrides Function TryGetDescription(
+                document As Document,
                 namespaceSymbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
@@ -313,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function
 
-        Protected Overloads Overrides Async Function AddImportAsync(
+        Protected Overloads Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
@@ -322,9 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
             Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
 
-            Return Await AddImportsAsync(
+            Return AddImportsAsync(
                 contextNode, document, placeSystemNamespaceFirst, nameSyntax,
-                additionalAnnotation:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+                additionalAnnotation:=Nothing, cancellationToken:=cancellationToken)
         End Function
 
         Private Shared Async Function AddImportsAsync(
