@@ -10,7 +10,15 @@
         "Microsoft.VisualStudio.Text.UI.Wpf": [ "14.3.25407", "15.0.25604-Preview4" ],
         "Microsoft.VisualStudio.Text.Logic": [ "14.3.25407", "15.0.25604-Preview4" ],
         "Microsoft.VisualStudio.Text.Data": [ "14.3.25407", "15.0.25604-Preview4" ],
-        "Microsoft.VisualStudio.Text.UI": "14.3.25407"
+        "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+        "Microsoft.Build": {
+          "generateName": "Microsoft.Build.14",
+          "version": "14.3.0"
+        },
+        "Microsoft.Build.Tasks.Core": {
+          "generateName": "Microsoft.Build.Tasks.Core.14",
+          "version": "14.3.0"
+        }
     },
 
     "toolsetPackages": [
@@ -29,7 +37,7 @@
                 "ManagedEsent",
                 "xunit",
                 "RoslynTools.*",
-                "^Microsoft.Build.*"
+                "^Microsoft.?Build.*"
             ]
         }
     },
