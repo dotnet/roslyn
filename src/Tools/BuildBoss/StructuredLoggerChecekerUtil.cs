@@ -112,6 +112,8 @@ namespace BuildBoss
         /// <summary>
         /// Presently our build has a series of bad double writes.  Until we have completely fixed these 
         /// scenarios we will suppress the error.
+        ///
+        /// https://github.com/dotnet/roslyn/issues/15163
         /// </summary>
         private static bool IgnoreDestinationTemporarily(string destinationPath)
         {
