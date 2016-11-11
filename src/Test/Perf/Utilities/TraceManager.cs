@@ -124,10 +124,10 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class WallClockTraceManager : ITraceManager
     {
-        private List<long> durations = new List<long>();
-        private string testName = "";
+        private readonly List<long> _durations = new List<long>();
+        private string _testName = "";
 
-        private Stopwatch stopwatch;
+        private Stopwatch _stopwatch;
 
         public WallClockTraceManager()
         {
@@ -143,11 +143,11 @@ namespace Roslyn.Test.Performance.Utilities
         // need to worry about other tests showing up
         public void Cleanup()
         {
-            var totalDuration = durations.Sum(v => v);
-            var average = totalDuration / durations.Count;
-            var allString = string.Join(",", durations);
+            var totalDuration = _durations.Sum(v => v);
+            var average = totalDuration / _durations.Count;
+            var allString = string.Join(",", _durations);
 
-            Log($"Wallclock times for {testName}");
+            Log($"Wallclock times for {_testName}");
             Log($"ALL: [{allString}]");
             Log($"AVERAGE: {average}");
         }
@@ -158,8 +158,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
-            stopwatch.Stop();
-            durations.Add(stopwatch.ElapsedMilliseconds);
+            _stopwatch.Stop();
+            _durations.Add(_stopwatch.ElapsedMilliseconds);
         }
 
         public void EndScenarios()
@@ -188,8 +188,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void StartScenario(string scenarioName, string processName)
         {
-            testName = scenarioName;
-            stopwatch = Stopwatch.StartNew();
+            _testName = scenarioName;
+            _stopwatch = Stopwatch.StartNew();
         }
 
         public void Stop()
