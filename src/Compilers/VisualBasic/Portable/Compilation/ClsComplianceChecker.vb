@@ -558,6 +558,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub ReportNonCompliantTypeArguments(type As NamedTypeSymbol, context As NamedTypeSymbol, diagnosticSymbol As Symbol)
+            If type.IsTupleType Then
+                type = type.TupleUnderlyingType
+            End If
+
             For Each typeArg In type.TypeArgumentsNoUseSiteDiagnostics
                 If Not IsCompliantType(typeArg, context) Then
                     Me.AddDiagnostic(diagnosticSymbol, ERRID.WRN_TypeNotCLSCompliant1, typeArg)
@@ -593,6 +597,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not IsTrue(GetDeclaredOrInheritedCompliance(type.OriginalDefinition)) Then
                 Return False
+            End If
+
+            If type.IsTupleType Then
+                Return IsCompliantType(type.TupleUnderlyingType)
             End If
 
             ' NOTE: Type arguments are checked separately (see HasNonCompliantTypeArguments)

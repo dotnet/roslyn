@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             UnregisterFindResultsLibraryManager();
 
-            DisposeVisualStudioDocumentTrackingService();
+            DisposeVisualStudioServices();
 
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
@@ -213,12 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void DisposeVisualStudioDocumentTrackingService()
+        private void DisposeVisualStudioServices()
         {
             if (_workspace != null)
             {
                 var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
                 documentTrackingService.Dispose();
+
+                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 
