@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Rename
                     case CandidateReason.NotAnEvent:
                     case CandidateReason.NotAWithEventsMember:
                         // it's unlikely that someone would be referencing a non-event in an 
-                        // event context.  Likely this location should be included.
+                        // event context.  Likely this location should not be included.
                         return false;
 
                     case CandidateReason.NotAnAttributeType:
-                        // It's feasible that someon was referencing some type in an attribute
+                        // It's feasible that someone was referencing some type in an attribute
                         // location before making that type itself descend from System.Attribute.
                         // Still allow this type to be renamed.
                         return true;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         // isn't a delegate type.  This may be because the user intends to give 
                         // this value a delegate type, but hasn't done so yet.  We should still allow
                         // renaming this reference for now.
-                        return false;
+                        return true;
 
                     case CandidateReason.StaticInstanceMismatch:
                         // Similar to 'Inaccessible', the code is currently broken, but it's fairly
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         return false;
 
                     case CandidateReason.Ambiguous:
-                        // we shoudl not touch amgiguous code.  We have no way to feel confident that
+                        // We should not touch ambiguous code.  We have no way to feel confident that
                         // this really is a location that we should be updating.
                         return false;
 
