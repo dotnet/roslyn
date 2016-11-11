@@ -153,10 +153,4 @@ if %ERRORLEVEL% == 1 exit /b 1
 taskkill /F /IM msbuild.exe > nul
 if %ERRORLEVEL% == 1 exit /b 1
 
-taskkill /F /IM csc.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
-
-taskkill /F /IM vbc.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
-
 exit /b 0
