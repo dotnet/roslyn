@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
         private readonly SourcePropertyAccessorSymbol _getMethod;
         private readonly SourcePropertyAccessorSymbol _setMethod;
         private readonly SynthesizedBackingFieldSymbol _backingField;
@@ -192,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PropertySymbol explicitlyImplementedProperty = null;
             _typeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _countOfCustomModifiersPrecedingByRef = 0;
 
             // The runtime will not treat the accessors of this property as overrides or implementations
             // of those of another property unless both the signatures and the custom modifiers match.
@@ -237,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)overriddenOrImplementedProperty != null)
                 {
                     _typeCustomModifiers = overriddenOrImplementedProperty.TypeCustomModifiers;
+                    _countOfCustomModifiersPrecedingByRef = _refKind != RefKind.None ? overriddenOrImplementedProperty.CountOfCustomModifiersPrecedingByRef : (ushort)0;
 
                     TypeSymbol overriddenPropertyType = overriddenOrImplementedProperty.Type;
 
@@ -609,6 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
             get { return _typeCustomModifiers; }
+        }
+
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get { return _countOfCustomModifiersPrecedingByRef; }
         }
 
         public override Accessibility DeclaredAccessibility

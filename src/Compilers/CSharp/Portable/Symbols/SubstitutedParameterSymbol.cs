@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 type = substituted.Type;
 
-                if (substituted.CustomModifiers.IsDefaultOrEmpty)
+                if (substituted.CustomModifiers.IsDefaultOrEmpty && this._underlyingParameter.CustomModifiers.IsDefaultOrEmpty)
                 {
                     _mapOrType = type;
                 }

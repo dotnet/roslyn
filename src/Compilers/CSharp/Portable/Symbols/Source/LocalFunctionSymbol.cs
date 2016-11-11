@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef => 0;
+
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;

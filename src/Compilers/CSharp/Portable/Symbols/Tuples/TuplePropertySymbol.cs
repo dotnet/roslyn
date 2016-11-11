@@ -52,6 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return _underlyingProperty.CountOfCustomModifiersPrecedingByRef;
+            }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get

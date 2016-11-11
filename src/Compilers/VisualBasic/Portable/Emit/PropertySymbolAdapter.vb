@@ -82,9 +82,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <Conditional("DEBUG")>
+        Protected Friend Sub CheckDefinitionInvariantAllowEmbedded()
+            ' can't be generic instantiation
+            Debug.Assert(Me.IsDefinition)
+
+            ' must be declared in the module we are building
+            Debug.Assert(TypeOf Me.ContainingModule Is SourceModuleSymbol OrElse Me.ContainingAssembly.IsLinked)
+        End Sub
+
         Private ReadOnly Property ISignatureCallingConvention As CallingConvention Implements ISignature.CallingConvention
             Get
-                CheckDefinitionInvariant()
+                CheckDefinitionInvariantAllowEmbedded()
                 Return Me.CallingConvention
             End Get
         End Property
@@ -103,20 +112,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
             Get
-                CheckDefinitionInvariant()
+                CheckDefinitionInvariantAllowEmbedded()
                 Return Me.TypeCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
+        Private ReadOnly Property ISignatureCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+            Get
+                CheckDefinitionInvariantAllowEmbedded()
+                Return 0
             End Get
         End Property
 
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements ISignature.ReturnValueIsByRef
             Get
-                CheckDefinitionInvariant()
+                CheckDefinitionInvariantAllowEmbedded()
                 Return False
             End Get
         End Property
 
         Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
-            CheckDefinitionInvariant()
+            CheckDefinitionInvariantAllowEmbedded()
             Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
