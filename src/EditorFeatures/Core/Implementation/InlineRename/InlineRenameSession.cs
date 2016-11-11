@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public IInlineRenameUndoManager UndoManager { get; }
 
-        public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
+        public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
         public event EventHandler ReplacementTextChanged;
 
@@ -341,14 +342,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void RaiseSessionSpansUpdated(IList<InlineRenameLocation> locations)
+        private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
-        private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
+        private void SetReferenceLocations(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
 
