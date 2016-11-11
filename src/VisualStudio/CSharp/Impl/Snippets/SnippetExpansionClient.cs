@@ -159,10 +159,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             return newUsings.ToImmutableAndFree();
         }
-
-        private static string GetAliasName(UsingDirectiveSyntax usingDirective)
-        {
-            return (usingDirective.Alias == null || usingDirective.Alias.Name == null) ? null : usingDirective.Alias.Name.ToString();
-        }
     }
 }
