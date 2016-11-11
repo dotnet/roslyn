@@ -28,7 +28,6 @@ namespace BuildBoss
         private static readonly string s_creatingHardLink = "Creating hard link to copy \"";
         private static readonly string s_didNotCopy = "Did not copy from file \"";
         private static readonly string s_to = "\" to \"";
-        private static readonly string s_toFile = "\" to file \"";
 
         private readonly XDocument _document;
         private readonly Dictionary<string, List<string>> _copyMap = new Dictionary<string, List<string>>(FilePathComparer);
@@ -60,6 +59,7 @@ namespace BuildBoss
                         textWriter.WriteLine($"\t{item}");
 
                     }
+                    textWriter.WriteLine("");
 
                     allGood = false;
                 }
@@ -93,6 +93,11 @@ namespace BuildBoss
             var source = text.Substring(prefixLength, split - prefixLength);
             var destination = text.Substring(split + toLength, text.Length - 2 - split - toLength);
 
+            if (IgnoreDestinationTemporarily(destination))
+            {
+                return;
+            }
+
             List<string> list;
             if (!_copyMap.TryGetValue(destination, out list))
             {
@@ -101,6 +106,40 @@ namespace BuildBoss
             }
 
             list.Add(source);
+        }
+
+        /// <summary>
+        /// Presently our build has a series of bad double writes.  Until we have completely fixed these 
+        /// scenarios we will suppress the error.
+        /// </summary>
+        private static bool IgnoreDestinationTemporarily(string destinationPath)
+        {
+            var fileName = Path.GetFileName(destinationPath);
+            var parentDirName = Path.GetFileName(Path.GetDirectoryName(destinationPath));
+            if (FilePathComparer.Equals(parentDirName, "VisualStudioTest.Next"))
+            {
+                return
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.CoreUtility.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Language.Intellisense.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.Data.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.Logic.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.UI.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.UI.Wpf.dll");
+            }
+
+            if (FilePathComparer.Equals(parentDirName, "VisualStudioSetup.Next"))
+            {
+                return
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.CoreUtility.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Shell.15.0.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Shell.Framework.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.Data.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.Logic.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.UI.dll") ||
+                    FilePathComparer.Equals(fileName, "Microsoft.VisualStudio.Text.UI.Wpf.dll");
+            }
+
+            return false;
         }
     }
 }
