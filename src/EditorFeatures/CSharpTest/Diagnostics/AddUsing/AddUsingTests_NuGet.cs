@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 return FlattenActions(actions);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestSearchPackageSingleName()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -81,7 +81,7 @@ class C
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestSearchPackageMultipleNames()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -110,7 +110,7 @@ class C
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestMissingIfPackageAlreadyInstalled()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -133,7 +133,7 @@ class C
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestOptionsOffered()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -178,7 +178,7 @@ index: 2,
 fixProviderData: data);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestInstallGetsCalledNoVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
@@ -206,7 +206,7 @@ class C
                 installerServiceMock.Verify();
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestInstallGetsCalledWithVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
@@ -236,7 +236,7 @@ class C
             }
 
             [WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestFailedInstallRollsBackFile()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);

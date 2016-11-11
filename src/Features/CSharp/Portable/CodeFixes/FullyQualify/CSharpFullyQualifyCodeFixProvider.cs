@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FullyQualify), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddUsingOrImport)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
     internal class CSharpFullyQualifyCodeFixProvider : AbstractFullyQualifyCodeFixProvider
     {
         /// <summary>

@@ -81,7 +81,7 @@
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
-    <Compile Include="CodeFixes\AddImport\VisualBasicAddImportCodeFixProvider.vb" />
+    <Compile Include="AddImport\VisualBasicAddImportCodeFixProvider.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -14,8 +15,8 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddUsingOrImport), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider(Of SimpleNameSyntax)
 
@@ -249,12 +250,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
         Protected Overrides Function TryGetDescription(
                 document As Document,
-                namespaceSymbol As INamespaceOrTypeSymbol,
+                symbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
                 checkForExistingImport As Boolean,
                 cancellationToken As CancellationToken) As String
-            Return $"Imports {namespaceSymbol.ToDisplayString()}"
+
+            Dim importsStatement = GetImportsStatement(symbol)
+
+            Dim addImportService = document.GetLanguageService(Of IAddImportsService)
+            If addImportService.HasExistingImport(root, root, importsStatement) Then
+                Return Nothing
+            End If
+
+            Return $"Imports {symbol.ToDisplayString()}"
+        End Function
+
+        Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
+            Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
+            Return GetImportsStatement(nameSyntax)
+        End Function
+
+        Private Function GetImportsStatement(nameSyntax As NameSyntax) As ImportsStatementSyntax
+            nameSyntax = nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation)
+
+            Dim memberImportsClause = SyntaxFactory.SimpleImportsClause(nameSyntax)
+            Dim newImport = SyntaxFactory.ImportsStatement(
+                importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
+
+            Return newImport
         End Function
 
         Protected Overrides Function GetImportNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
@@ -314,56 +338,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function
 
-        Protected Overloads Overrides Function AddImportAsync(
+        Protected Overloads Overrides Async Function AddImportAsync(
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
+            Dim importsStatement = GetImportsStatement(symbol)
 
-            Return AddImportsAsync(
-                contextNode, document, placeSystemNamespaceFirst, nameSyntax,
-                additionalAnnotation:=Nothing, cancellationToken:=cancellationToken)
+            Return Await AddImportAsync(
+                contextNode, document, placeSystemNamespaceFirst,
+                importsStatement, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function AddImportsAsync(
+        Private Overloads Shared Async Function AddImportAsync(
+                contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean,
+                importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim importService = document.GetLanguageService(Of IAddImportsService)
+
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim newRoot = importService.AddImport(root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
+            Dim newDocument = document.WithSyntaxRoot(newRoot)
+
+            Return newDocument
+        End Function
+
+        Protected Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
-                document As Document,
+                nameSpaceParts As IReadOnlyList(Of String),
+                Document As Document,
                 placeSystemNamespaceFirst As Boolean,
-                nameSyntax As NameSyntax,
-                additionalAnnotation As SyntaxAnnotation,
                 cancellationToken As CancellationToken) As Task(Of Document)
-            Dim root = DirectCast(Await contextNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False), CompilationUnitSyntax)
-
-            Dim memberImportsClause =
-                SyntaxFactory.SimpleImportsClause(name:=nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation))
-            Dim newImport = SyntaxFactory.ImportsStatement(
-                importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
-
-            If additionalAnnotation IsNot Nothing Then
-                newImport = newImport.WithAdditionalAnnotations(additionalAnnotation)
-            End If
-
-            ' Don't add the import if an eqiuvalent one is already there.
-            If root.Imports.Any(Function(i) i.IsEquivalentTo(newImport, topLevel:=False)) Then
-                Return document
-            End If
-
-            Dim syntaxTree = contextNode.SyntaxTree
-            Return document.WithSyntaxRoot(
-                root.AddImportsStatement(newImport, placeSystemNamespaceFirst, CaseCorrector.Annotation, Formatter.Annotation))
-        End Function
-
-        Protected Overrides Function AddImportAsync(contextNode As SyntaxNode, nameSpaceParts As IReadOnlyList(Of String), document As Document, specialCaseSystem As Boolean, cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
+            Dim importsStatement = GetImportsStatement(nameSyntax)
 
             ' Suppress diagnostics on the import we create.  Because we only get here when we are 
             ' adding a nuget package, it is certainly the case that in the preview this will not
             ' bind properly.  It will look silly to show such an error, so we just suppress things.
-            Return AddImportsAsync(contextNode, document, specialCaseSystem, nameSyntax,
-                                   SuppressDiagnosticsAnnotation.Create(), cancellationToken)
+            importsStatement = importsStatement.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create())
+
+            Return AddImportAsync(
+                contextNode, Document, placeSystemNamespaceFirst,
+                importsStatement, cancellationToken)
         End Function
 
         Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax

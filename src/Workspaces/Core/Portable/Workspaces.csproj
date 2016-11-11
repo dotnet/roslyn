@@ -294,7 +294,8 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Include="AddImport\IAddImportService.cs" />
+    <Compile Include="AddImports\AbstractAddImportsService.cs" />
+    <Compile Include="AddImports\IAddImportsService.cs" />
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />

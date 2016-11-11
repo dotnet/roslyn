@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var addImportService = document.GetLanguageService<IAddImportService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
             var newRoot = addImportService.AddImports(root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
 
             var newDocument = document.WithSyntaxRoot(newRoot);

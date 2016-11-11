@@ -55,17 +55,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected virtual Solution GetUpdatedSolution(Document newDocument)
                 => newDocument.Project.Solution;
 
-            private async Task<Document> UpdateDocumentAsync(
+            private Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 ReplaceNameNode(ref contextNode, ref document, cancellationToken);
 
                 // Defer to the language to add the actual import/using.
-                var newDocument = await provider.AddImportAsync(contextNode,
+                return provider.AddImportAsync(contextNode,
                     this.SymbolResult.Symbol, document,
-                    placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-                return newDocument;
+                    placeSystemNamespaceFirst, cancellationToken);
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(
