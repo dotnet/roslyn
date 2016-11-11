@@ -130,6 +130,11 @@
   </Choose>
 
   <!-- Settings for strong name signing -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+      <!-- Strong name signing is not supported on non-Windows platforms -->
+      <PublicSign>true</PublicSign>
+  </PropertyGroup>
+
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -149,7 +154,6 @@
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
             <DelaySign>false</DelaySign>
-            <PublicSign>true</PublicSign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
           </PropertyGroup>

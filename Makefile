@@ -10,10 +10,11 @@ RESTORE_SEMAPHORE_PATH = $(BINARIES_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
+DOTNET_VERSION = 1.0.0-preview2-002911
 NUGET_VERSION = 3.5.0-beta2
 NUGET_EXE = $(shell pwd)/nuget.exe
 
-MSBUILD_ADDITIONALARGS := /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
+MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
@@ -73,6 +74,16 @@ clean_toolset:
 
 toolset: $(TOOLSET_PATH)
 
-$(TOOLSET_PATH):
+$(TOOLSET_PATH): $(BINARIES_PATH)/dotnet-cli
 	pushd $(TOOLSET_SRC_PATH) ; \
-	dotnet publish -o $(TOOLSET_PATH)
+	$(BINARIES_PATH)/dotnet-cli/dotnet restore && \
+	$(BINARIES_PATH)/dotnet-cli/dotnet publish -o $(TOOLSET_PATH) && \
+	sed -i -e 's/Microsoft.CSharp.Targets/Microsoft.CSharp.targets/g' $(TOOLSET_PATH)/Extensions/Microsoft/Portable/v5.0/Microsoft.Portable.CSharp.targets
+# https://github.com/dotnet/roslyn/issues/9641
+
+$(BINARIES_PATH)/dotnet-cli:
+	@mkdir -p $(BINARIES_PATH) ; \
+	pushd $(BINARIES_PATH) ; \
+	curl -O https://dotnetcli.blob.core.windows.net/dotnet/preview/Binaries/$(DOTNET_VERSION)/dotnet-dev-$(DOTNET_PLATFORM).$(DOTNET_VERSION).tar.gz && \
+	mkdir -p $(BINARIES_PATH)/dotnet-cli && \
+	tar -xzf dotnet-dev-$(DOTNET_PLATFORM).$(DOTNET_VERSION).tar.gz -C dotnet-cli
