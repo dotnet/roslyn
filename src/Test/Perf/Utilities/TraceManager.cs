@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using Roslyn.Test.Performance.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
@@ -120,17 +121,11 @@ namespace Roslyn.Test.Performance.Utilities
         }
     }
 
-    struct WallClockRecord
-    {
-        public string name;
-        public int duration;
-    }
-
     public class WallClockTraceManager : ITraceManager
     {
-        private List<WallClockRecord> records = new List<WallClockRecord>();
+        private List<int> durations = new List<int>();
+        private string testName = "";
 
-        private string currentName;
         private int currentStartTime;
 
         public WallClockTraceManager()
@@ -143,33 +138,17 @@ namespace Roslyn.Test.Performance.Utilities
         {
         }
 
+        // We have one WallClockTraceManager per test, so we don't
+        // need to worry about other tests showing up
         public void Cleanup()
         {
-            string curName = null;
-            var totalDuration = 0;
-            var numRuns = 0;
-            foreach (var record in records) {
-                if (record.name == curName)
-                {
-                    totalDuration += record.duration;
-                    numRuns += 1;
-                }
-                else
-                {
-                    if (curName != null)
-                    {
-                        Log($"{curName}: {totalDuration / numRuns}");
-                    }
-                    curName = record.name;
-                    totalDuration = record.duration;
-                    numRuns = 1;
-                }
-            }
+            var totalDuration = durations.Aggregate(0, (t, v) => t + v);
+            var average = totalDuration / durations.Count;
+            var allString = string.Join(",", durations);
 
-            if (curName != null)
-            {
-                Log($"{curName}: {totalDuration / numRuns}");
-            }
+            Log($"Wallclock times for {testName}");
+            Log($"ALL: [{allString}]");
+            Log($"AVERAGE: {average}");
         }
 
         public void EndEvent()
@@ -178,10 +157,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
-            records.Add(new WallClockRecord() {
-                name = currentName,
-                duration = System.Environment.TickCount - currentStartTime,
-            });
+            durations.Add(System.Environment.TickCount - currentStartTime);
         }
 
         public void EndScenarios()
@@ -210,7 +186,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void StartScenario(string scenarioName, string processName)
         {
-            currentName = scenarioName;
+            testName = scenarioName;
             currentStartTime = System.Environment.TickCount;
         }
 
