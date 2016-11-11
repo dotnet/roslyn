@@ -149,6 +149,7 @@
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Strong Name Keys\RoslynInternalKey.Private.snk</AssemblyOriginatorKeyFile>
             <DelaySign>false</DelaySign>
+            <PublicSign>true</PublicSign>
             <PublicKey>$(RoslynInternalKey)</PublicKey>
             <PublicKeyToken>fc793a00266884fb</PublicKeyToken>
           </PropertyGroup>
@@ -200,11 +201,16 @@
 
   <Import Project="$(MSBuildTargetsFilePath)" />
 
-  <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
+  <!-- On *nix the NuGet targets aren't imported by default, so we do that here -->
+  <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
+
+  <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
+  <Import Project="DisableStandardFrameworkResolution.targets"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
 
   <Choose>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'">
+
       <!-- Treat portable exes as CoreClr-targeting-exes -->
       <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
         <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
