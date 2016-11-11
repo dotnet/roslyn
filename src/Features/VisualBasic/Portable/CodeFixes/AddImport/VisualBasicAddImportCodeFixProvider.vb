@@ -278,8 +278,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Dim newImport = SyntaxFactory.ImportsStatement(
                 importsClauses:=SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(memberImportsClause))
 
-            newImport = newImport.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
-
             Return newImport
         End Function
 
@@ -361,6 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim newRoot = importService.AddImport(root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
             Return newDocument
