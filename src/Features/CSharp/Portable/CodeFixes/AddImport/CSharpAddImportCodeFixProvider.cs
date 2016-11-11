@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             // We need to create our using in two passes.  This is because we need a using
             // directive so we can figure out where to put it.  Then, once we figure out
-            // where to put it, we might need to change it a bit (i.e. removing 'global' 
+            // where to put it, we might need to change it a bit (e.g. removing 'global' 
             // from it if necessary).  So we first create a dummy using directive just to
             // determine which container we're going in.  Then we'll use the container to
             // help create the final using.
