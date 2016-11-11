@@ -255,8 +255,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(trivia));
             }
 
-            // Handle common case where we're passed an empty array.
-            var triviaList = trivia as IList<SyntaxTrivia>;
+            // Just return ourselves if we're not being asked to add anything.
+            var triviaList = trivia as ICollection;
             if (triviaList.Count == 0)
             {
                 return this;
