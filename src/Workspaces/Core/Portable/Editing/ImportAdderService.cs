@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 n => GetExplicitNamespaceSymbol(n, model)));
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var globalImports = GetGlobalImports(generator, model.Compilation);
             var imports = namespacesToAdd.Select(ns => generator.NamespaceImportDeclaration(ns.ToDisplayString()).WithAdditionalAnnotations(Simplifier.Annotation))
-                                         .Where(n1 => !globalImports.Any(n2 => n1.IsEquivalentTo(n2, topLevel: false)))
                                          .ToArray();
 
             // annotate these nodes so they get simplified later
@@ -52,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var addImportsService = document.GetLanguageService<IAddImportsService>();
-            var finalRoot = addImportsService.AddImports(newRoot, newRoot, imports, placeSystemNamespaceFirst);
+            var finalRoot = addImportsService.AddImports(
+                model.Compilation, newRoot, newRoot, imports, placeSystemNamespaceFirst);
 
             return document.WithSyntaxRoot(finalRoot);
         }
-
-        protected abstract ISet<SyntaxNode> GetGlobalImports(SyntaxGenerator generator, Compilation compilation);
 
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
     }

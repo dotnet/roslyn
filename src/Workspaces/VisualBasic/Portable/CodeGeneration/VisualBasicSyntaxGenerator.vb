@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicSyntaxGenerator
         Inherits SyntaxGenerator
 
+        Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode
