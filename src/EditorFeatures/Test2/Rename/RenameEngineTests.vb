@@ -249,7 +249,7 @@ class C
     void M()
     {
         var [|v|] = "";
-        {|unresolved:v|}();
+        {|unresolved:$$v|}();
     }
 }                             </Document>
                        </Project>
