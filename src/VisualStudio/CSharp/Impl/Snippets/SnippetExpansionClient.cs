@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var addImportService = document.GetLanguageService<IAddImportService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
             var newRoot = addImportService.AddImports(root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
 
             var newDocument = document.WithSyntaxRoot(newRoot);

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddImport;
@@ -430,24 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return null;
         }
 
-        private bool HasExistingUsingDirective(
-            CompilationUnitSyntax root,
-            NamespaceDeclarationSyntax namespaceToAddTo,
-            UsingDirectiveSyntax usingDirective)
-        {
-            var usings = namespaceToAddTo?.Usings ?? root.Usings;
-
-            foreach (var existingUsing in usings)
-            {
-                if (SyntaxFactory.AreEquivalent(usingDirective, existingUsing))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
@@ -487,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     newImports.Add(usingDirective);
                 }
 
-                var addImportService = document.GetLanguageService<IAddImportService>();
+                var addImportService = document.GetLanguageService<IAddImportsService>();
                 var newRoot = addImportService.AddImports(root, contextNode, newImports, placeSystemNamespaceFirst);
                 return (CompilationUnitSyntax)newRoot;
             }
@@ -505,19 +487,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             // Suppress diagnostics on the import we create.  Because we only get here when we are 
             // adding a nuget package, it is certainly the case that in the preview this will not
             // bind properly.  It will look silly to show such an error, so we just suppress things.
-            var simpleUsingDirective = SyntaxFactory.UsingDirective(
+            var usingDirective = SyntaxFactory.UsingDirective(
                 CreateNameSyntax(namespaceParts, namespaceParts.Count - 1)).WithAdditionalAnnotations(
                     SuppressDiagnosticsAnnotation.Create());
 
-            // If we have an existing using with this name then don't bother adding this new using.
-            if (root.Usings.Any(u => u.IsEquivalentTo(simpleUsingDirective, topLevel: false)))
-            {
-                return Task.FromResult(document);
-            }
-
-            var newRoot = root.AddUsingDirective(
-                simpleUsingDirective, contextNode, placeSystemNamespaceFirst,
-                Formatter.Annotation);
+            var service = document.GetLanguageService<IAddImportsService>();
+            var newRoot = service.AddImport(root, contextNode, usingDirective, placeSystemNamespaceFirst);
 
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
@@ -559,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             CompilationUnitSyntax root,
             SyntaxNode contextNode)
         {
-            var addImportService = document.GetLanguageService<IAddImportService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
 
@@ -602,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var usingDirective = SyntaxFactory.UsingDirective(nameSyntax)
                                               .WithAdditionalAnnotations(Formatter.Annotation);
 
-            if (HasExistingUsingDirective(root, namespaceToAddTo, usingDirective))
+            if (addImportService.HasExistingImport(root, contextNode, usingDirective))
             {
                 return null;
             }

@@ -55,6 +55,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddImports\VisualBasicAddImportsService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.Rewriter.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />

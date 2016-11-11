@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImports
 {
-    internal interface IAddImportService : ILanguageService
+    internal interface IAddImportsService : ILanguageService
     {
         SyntaxNode AddImports(
             SyntaxNode root, SyntaxNode contextLocation, 
@@ -17,12 +17,14 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// that <paramref name="import"/> should be added to.
         /// </summary>
         SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
+
+        bool HasExistingImport(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
     }
 
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
-            this IAddImportService service, SyntaxNode root, SyntaxNode contextLocation, 
+            this IAddImportsService service, SyntaxNode root, SyntaxNode contextLocation, 
             SyntaxNode newImport, bool placeSystemNamespaceFirst)
         {
             return service.AddImports(root, contextLocation,
