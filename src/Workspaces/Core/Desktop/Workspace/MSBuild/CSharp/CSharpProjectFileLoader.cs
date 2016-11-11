@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return LanguageNames.CSharp; }
         }
 
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
+        protected override ProjectFile CreateProjectFile(LoadedProjectInfo info)
         {
-            return new CSharpProjectFile(this, loadedProject);
+            return new CSharpProjectFile(this, info.Project, info.ErrorMessage);
         }
     }
 }
