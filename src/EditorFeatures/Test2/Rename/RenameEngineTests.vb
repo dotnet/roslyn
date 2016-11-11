@@ -88,6 +88,214 @@ class D
             End Using
         End Sub
 
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|$$NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|$$NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|$$List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|$$List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|$$A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|$$A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|$$v|] = "";
+        [|v|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|v|] = "";
+        [|$$v|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|$$N|];
+    }
+
+    int [|N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|N|];
+    }
+
+    int [|$$N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
         <WorkItem(813409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813409")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeDoesNotRenameGeneratedConstructorCalls()

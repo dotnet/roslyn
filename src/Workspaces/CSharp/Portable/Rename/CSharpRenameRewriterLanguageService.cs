@@ -560,7 +560,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 if (isAttributeName)
                 {
-                    Debug.Assert(_renamedSymbol.IsAttribute() || _aliasSymbol.Target.IsAttribute());
                     if (oldIdentifier != _renamedSymbol.Name)
                     {
                         string withoutSuffix;

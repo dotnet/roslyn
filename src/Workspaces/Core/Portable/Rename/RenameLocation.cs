@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly TextSpan ContainingLocationForStringOrComment;
         public readonly bool IsWrittenTo;
 
-        public bool IsRenameInStringOrComment { get { return ContainingLocationForStringOrComment != default(TextSpan); } }
+        public bool IsRenameInStringOrComment => ContainingLocationForStringOrComment != default(TextSpan);
 
         public RenameLocation(
             Location location,
