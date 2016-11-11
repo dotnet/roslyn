@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
@@ -95,9 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var contextLocation = root.FindToken(position).Parent;
 
-            var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode, cancellationToken);
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+
+            var newUsingDirectives = 
+                this.GetUsingDirectivesToAdd(snippetNode, importsNode, cancellationToken)
+                    .WhereAsArray(u => !addImportService.HasExistingImport(compilation, root, contextLocation, u));
+                                        
             if (!newUsingDirectives.Any())
             {
                 return document;
@@ -110,8 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var newRoot = addImportService.AddImports(root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
+            var newRoot = addImportService.AddImports(
+                compilation, root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 
@@ -121,12 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return formattedDocument;
         }
 
-        private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
-            SyntaxNode contextLocation, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+        private ImmutableArray<UsingDirectiveSyntax> GetUsingDirectivesToAdd(
+            XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var existingUsings = contextLocation.GetEnclosingUsingDirectives();
-            var newUsings = new List<UsingDirectiveSyntax>();
+            var newUsings = ArrayBuilder<UsingDirectiveSyntax>.GetInstance();
 
             foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
             {
@@ -148,13 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     continue;
                 }
 
-                if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))
-                {
-                    newUsings.Add(candidateUsing.WithAdditionalAnnotations(Formatter.Annotation).WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
-                }
+                newUsings.Add(candidateUsing.WithAdditionalAnnotations(Formatter.Annotation).WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
             }
 
-            return newUsings;
+            return newUsings.ToImmutableAndFree();
         }
 
         private static string GetAliasName(UsingDirectiveSyntax usingDirective)
