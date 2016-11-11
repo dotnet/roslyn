@@ -105,7 +105,6 @@ if defined TestPerfRun (
         )
     )
 
-    echo Killing build processes because they take up CPU which would hurt perf
     call :TerminateBuildProcesses || goto :BuildFailed
 
     .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
@@ -149,6 +148,7 @@ exit /b 1
 @REM left some floating around).
 
 @REM An error-level of 1 means that the process was found, but could not be killed.
+echo Killing all build-related processes
 taskkill /F /IM msbuild.exe > nul
 if %ERRORLEVEL% == 1 exit /b 1
 
