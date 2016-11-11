@@ -538,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
-        private Document AddImports(
+        internal Document AddImports(
             Document document, int position, XElement snippetNode,
             bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
