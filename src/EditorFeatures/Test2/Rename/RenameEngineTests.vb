@@ -226,11 +226,14 @@ class C
     void M()
     {
         var [|$$v|] = "";
-        [|v|]();
+        {|unresolved:v|}();
     }
 }                             </Document>
                        </Project>
+
                    </Workspace>, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
@@ -246,11 +249,13 @@ class C
     void M()
     {
         var [|v|] = "";
-        [|$$v|]();
+        {|unresolved:v|}();
     }
 }                             </Document>
                        </Project>
                    </Workspace>, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
