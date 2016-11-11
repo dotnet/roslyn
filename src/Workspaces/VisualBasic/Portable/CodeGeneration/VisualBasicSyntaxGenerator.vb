@@ -14,6 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia
+            Get
+                Return SyntaxFactory.CarriageReturnLineFeed
+            End Get
+        End Property
+
 #Region "Expressions and Statements"
 
         Public Overrides Function AwaitExpression(expression As SyntaxNode) As SyntaxNode

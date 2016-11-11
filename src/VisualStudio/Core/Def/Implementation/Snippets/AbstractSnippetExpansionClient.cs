@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,15 +10,14 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
@@ -56,7 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc);
         protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
@@ -537,6 +536,81 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
+        }
+
+        private Document AddImports(
+            Document document, int position, XElement snippetNode,
+            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        {
+            var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
+            if (importsNode == null ||
+                !importsNode.HasElements)
+            {
+                return document;
+            }
+
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var contextLocation = root.FindToken(position).Parent;
+
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+
+            var newImports =
+                this.GetImportsToAdd(document, snippetNode, importsNode, cancellationToken)
+                    .WhereAsArray(u => !addImportService.HasExistingImport(compilation, root, contextLocation, u.Item2));
+
+            if (!newImports.Any())
+            {
+                return document;
+            }
+
+            // In Venus/Razor, inserting imports statements into the subject buffer does not work.
+            // Instead, we add the imports through the contained language host.
+            if (TryAddImportsToContainedDocument(document, newImports.Select(i => i.Item1)))
+            {
+                return document;
+            }
+
+            var newRoot = addImportService.AddImports(
+                compilation, root, contextLocation, newImports.Select(i => i.Item2), placeSystemNamespaceFirst);
+
+            var newDocument = document.WithSyntaxRoot(newRoot);
+
+            var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+
+            return formattedDocument;
+        }
+
+        private ImmutableArray<ValueTuple<string, SyntaxNode>> GetImportsToAdd(
+            Document document, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
+            var result = ArrayBuilder<ValueTuple<string, SyntaxNode>>.GetInstance();
+
+            foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))
+            {
+                var namespaceElement = import.Element(namespaceXmlName);
+                if (namespaceElement == null)
+                {
+                    continue;
+                }
+
+                var namespaceToImport = namespaceElement.Value.Trim();
+                if (string.IsNullOrEmpty(namespaceToImport))
+                {
+                    continue;
+                }
+
+                var candidateUsing = generator.NamespaceImportDeclaration(namespaceToImport);
+                candidateUsing = candidateUsing.WithAdditionalAnnotations(Formatter.Annotation)
+                                               .WithAppendedTrailingTrivia(generator.CarriageReturnLineFeed);
+
+                result.Add(ValueTuple.Create(namespaceToImport, candidateUsing));
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         private void AddReferences(Project originalProject, XElement snippetNode)
