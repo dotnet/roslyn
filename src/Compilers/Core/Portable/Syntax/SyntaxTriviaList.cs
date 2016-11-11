@@ -264,17 +264,16 @@ namespace Microsoft.CodeAnalysis
 
             var builder = SyntaxTriviaListBuilder.Create();
 
-            var current = 0;
-            for (; current < index; current++)
+            for (int i = 0; i < index; i++)
             {
-                builder.Add(this[current]);
+                builder.Add(this[i]);
             }
 
             builder.AddRange(trivia);
 
-            for (; current < thisCount; current++)
+            for (int i = index; i < thisCount; i++)
             {
-                builder.Add(this[current]);
+                builder.Add(this[i]);
             }
 
             return builder.ToList();
