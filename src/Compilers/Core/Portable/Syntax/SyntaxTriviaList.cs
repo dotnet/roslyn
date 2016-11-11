@@ -3,11 +3,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -248,21 +249,31 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var items = trivia.ToList();
-            if (items.Count == 0)
+            if (trivia == null)
             {
-                return this;
+                throw new ArgumentNullException(nameof(trivia));
             }
 
-            var list = this.ToList();
-            list.InsertRange(index, items);
+            var builder = SyntaxTriviaListBuilder.Create();
 
-            if (list.Count == 0)
+            var current = 0;
+            foreach (var thisTrivia in this)
             {
-                return this;
+                if (current == index)
+                {
+                    builder.AddRange(trivia);
+                }
+
+                builder.Add(thisTrivia);
+                current++;
             }
 
-            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            if (current == index)
+            {
+                builder.AddRange(trivia);
+            }
+
+            return builder.ToList();
         }
 
         /// <summary>
