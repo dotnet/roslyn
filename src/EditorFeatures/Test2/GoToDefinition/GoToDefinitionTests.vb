@@ -103,7 +103,7 @@ class Program
         Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
             Dim workspace =
 <Workspace>
-    <Project Language="VisualBasic" CommonReferences="true">
+    <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 public class MyClass
     public property [|Prop1|] as integer
