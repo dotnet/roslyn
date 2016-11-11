@@ -18,6 +18,7 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testBuildCorrectness" set TestBuildCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
@@ -45,12 +46,6 @@ if not "%BuildTimeLimit%" == "" (
     set RunProcessWatchdog=false
 )
 
-powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
-
-REM Output the commit that we're building, for reference in Jenkins logs
-echo Building this commit:
-git show --no-patch --pretty=raw HEAD
-
 REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
@@ -58,6 +53,18 @@ call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
 REM Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
 set bindir=%RoslynRoot%Binaries
 if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
+
+if defined testBuildCorrectness (
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-build-correctness.ps1" %RoslynRoot% "%bindir%\%BuildConfiguration%" || goto :BuildFailed
+    call :TerminateBuildProcesses
+    exit /b 0
+)
+
+powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
 
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
 msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset\Toolset.csproj" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed

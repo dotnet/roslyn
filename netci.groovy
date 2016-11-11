@@ -145,6 +145,25 @@ set TMP=%TEMP%
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// Build correctness tests
+commitPullList.each { isPr -> 
+  def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
+  def myJob = job(jobName) {
+    description('Build correctness tests')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testBuildCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = true
+  def triggerPhraseExtra = ""
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 // Perf Correctness
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)

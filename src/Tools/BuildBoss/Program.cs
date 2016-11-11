@@ -26,6 +26,10 @@ namespace BuildBoss
                 {
                     allGood &= ProcessSolution(arg);
                 }
+                else if (Path.GetExtension(arg) == ".xml")
+                {
+                    allGood &= ProcessStructuredLog(arg);
+                }
                 else
                 {
                     allGood &= ProcessTargets(arg);
@@ -35,71 +39,39 @@ namespace BuildBoss
             return allGood ? 0 : 1;
         }
 
-        private static bool ProcessSolution(string solutionFilePath)
+        private static bool CheckCore(ICheckerUtil util, string title)
         {
-            var solutionPath = Path.GetDirectoryName(solutionFilePath);
-            var projectDataList = SolutionUtil.ParseProjects(solutionFilePath);
-            var map = new Dictionary<ProjectKey, ProjectData>();
-            foreach (var projectEntry in projectDataList)
-            {
-                if (projectEntry.IsFolder)
-                {
-                    continue;
-                }
-
-                // TODO: temporary work around util a cross cutting change can be sync'd up.  
-                if (Path.GetFileName(projectEntry.RelativeFilePath) == "CompilerPerfTest.vbproj")
-                {
-                    continue;
-                }
-
-                var projectFilePath = Path.Combine(solutionPath, projectEntry.RelativeFilePath);
-                var projectData = new ProjectData(projectFilePath);
-                map.Add(projectData.Key, projectData);
-            }
-
-            var allGood = true;
-            var count = 0;
-            foreach (var projectData in map.Values.OrderBy(x => x.FileName))
-            {
-                allGood &= ProcessProject(solutionPath, projectData, map);
-                count++;
-            }
-
-            var result = allGood ? "passed" : "FAILED";
-            Console.WriteLine($"Processing {Path.GetFileName(solutionFilePath)} ... {result} ({count} projects processed)");
-            return allGood;
-        }
-
-        private static bool ProcessProject(string solutionPath, ProjectData projectData, Dictionary<ProjectKey, ProjectData> map)
-        {
-            var util = new ProjectCheckerUtil(projectData, map);
+            Console.Write($"Processing {title} ... ");
             var textWriter = new StringWriter();
-            if (!util.CheckAll(textWriter))
+            if (util.Check(textWriter))
             {
-                Console.WriteLine($"Checking {projectData.FilePath} failed");
+                Console.WriteLine("passed");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("FAILED");
                 Console.WriteLine(textWriter.ToString());
                 return false;
             }
+        }
 
-            return true;
+        private static bool ProcessSolution(string solutionFilePath)
+        {
+            var util = new SolutionCheckerUtil(solutionFilePath);
+            return CheckCore(util, $"Solution {solutionFilePath}");
         }
 
         private static bool ProcessTargets(string targets)
         {
             var checker = new TargetsCheckerUtil(targets);
-            var textWriter = new StringWriter();
-            if (checker.CheckAll(textWriter))
-            {
-                Console.WriteLine($"Processing {Path.GetFileName(targets)} passed");
-                return true;
-            }
-            else
-            {
-                Console.WriteLine($"Processing {Path.GetFileName(targets)} FAILED");
-                Console.WriteLine(textWriter.ToString());
-                return false;
-            }
+            return CheckCore(checker, $"Targets {targets}");
+        }
+
+        private static bool ProcessStructuredLog(string logFilePath)
+        {
+            var util = new StructuredLoggerChecekerUtil(XDocument.Load(logFilePath));
+            return CheckCore(util, $"Structured log {logFilePath}");
         }
 
         private static void Usage()
