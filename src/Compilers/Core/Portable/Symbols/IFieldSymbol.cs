@@ -71,7 +71,11 @@ namespace Microsoft.CodeAnalysis
         /// If this field represents a tuple element, returns a corresponding default element field.
         /// Otherwise returns null
         /// </summary>
+        /// <remarks>
+        /// A tuple type will always have default elements such as Item1, Item2, Item3...
+        /// This API allowes to match a field that represents a named element, such as "Alice" 
+        /// to the corrsponding default element field such as "Item1"
+        /// </remarks>
         IFieldSymbol CorrespondingTupleField { get; }
-
     }
 }
