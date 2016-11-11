@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Just return ourselves if we're not being asked to add anything.
-            var triviaList = trivia as IList<SyntaxTrivia>;
+            var triviaList = trivia as ICollection;
             if (triviaList.Count == 0)
             {
                 return this;
