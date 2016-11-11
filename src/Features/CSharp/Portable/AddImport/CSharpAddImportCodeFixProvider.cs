@@ -470,7 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 }
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
-                var newRoot = addImportService.AddImports(root, contextNode, newImports, placeSystemNamespaceFirst);
+                var newRoot = addImportService.AddImports(
+                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst);
                 return (CompilationUnitSyntax)newRoot;
             }
             finally
@@ -479,8 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             }
         }
 
-        protected override Task<Document> AddImportAsync(
-            SyntaxNode contextNode, IReadOnlyList<string> namespaceParts, Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        protected override async Task<Document> AddImportAsync(
+            SyntaxNode contextNode, IReadOnlyList<string> namespaceParts,
+            Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
@@ -491,10 +493,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CreateNameSyntax(namespaceParts, namespaceParts.Count - 1)).WithAdditionalAnnotations(
                     SuppressDiagnosticsAnnotation.Create());
 
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
-            var newRoot = service.AddImport(root, contextNode, usingDirective, placeSystemNamespaceFirst);
+            var newRoot = service.AddImport(
+                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst);
 
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
@@ -577,14 +581,16 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var usingDirective = SyntaxFactory.UsingDirective(nameSyntax)
                                               .WithAdditionalAnnotations(Formatter.Annotation);
 
-            if (addImportService.HasExistingImport(root, contextNode, usingDirective))
+            usingDirective = namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
+                ? usingDirective
+                : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+            if (addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective))
             {
                 return null;
             }
 
-            return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
-                ? usingDirective
-                : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            return usingDirective;
         }
 
         private NameSyntax RemoveGlobalAliasIfUnnecessary(
