@@ -7,9 +7,8 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Packaging
-Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SymbolSearch
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Moq
 Imports ProviderData = System.Tuple(Of Microsoft.CodeAnalysis.Packaging.IPackageInstallerService, Microsoft.CodeAnalysis.SymbolSearch.ISymbolSearchService)
 

@@ -20,9 +20,9 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport.AddImportDiagnosticIds;
+using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.CSharp.AddImport
 {
     internal static class AddImportDiagnosticIds
     {
