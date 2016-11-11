@@ -60,8 +60,6 @@ if defined testBuildCorrectness (
     exit /b 0
 )
 
-powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
-
 REM Output the commit that we're building, for reference in Jenkins logs
 echo Building this commit:
 git show --no-patch --pretty=raw HEAD
