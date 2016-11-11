@@ -121,14 +121,6 @@ powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\sc
 
 call :TerminateBuildProcesses
 
-REM Verify the state of our project.jsons
-echo Running RepoUtil
-.\Binaries\%BuildConfiguration%\Exes\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
-
-REM Verify the state of our project.jsons
-echo Running BuildBoss
-.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets || goto :BuildFailed
-
 REM Ensure caller sees successful exit.
 exit /b 0
 
