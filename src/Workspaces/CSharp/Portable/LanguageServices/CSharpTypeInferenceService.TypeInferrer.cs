@@ -2048,12 +2048,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (designation.IsKind(SyntaxKind.SingleVariableDesignation))
                 {
                     var singleVariable = (SingleVariableDesignationSyntax)designation;
-                    elementNamesBuilder.Add(singleVariable.Identifier.ValueText);
+                    var name = singleVariable.Identifier.ValueText;
+
+                    if (name != string.Empty)
+                    {
+                        elementNamesBuilder.Add(name);
+                        return;
+                    }
                 }
-                else
-                {
-                    elementNamesBuilder.Add(null);
-                }
+
+                elementNamesBuilder.Add(null);
             }
 
             private void AddTypeAndName(
