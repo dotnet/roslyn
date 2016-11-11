@@ -70,11 +70,11 @@ copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 REM Clean the previous build
 msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset/Toolset.csproj /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
-call :TerminateBuildProcesses
+call :TerminateBuildProcesses || goto :BuildFailed
 
 if defined TestDeterminism (
     powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
-    call :TerminateBuildProcesses
+    call :TerminateBuildProcesses || goto :BuildFailed
     exit /b 0
 )
 
@@ -113,7 +113,7 @@ if defined TestPerfRun (
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
-call :TerminateBuildProcesses
+call :TerminateBuildProcesses || goto :BuildFailed
 
 REM Verify the state of our project.jsons
 echo Running RepoUtil
@@ -146,16 +146,17 @@ exit /b 1
 @REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 @REM left some floating around).
 
+@REM An error-level of 1 means that the process was found, but could not be killed.
 taskkill /F /IM vbcscompiler.exe > nul
-if ERRORLEVEL 1 exit /b 1
+if %ERRORLEVEL% == 1 exit /b 1
 
 taskkill /F /IM msbuild.exe > nul
-if ERRORLEVEL 1 exit /b 1
+if %ERRORLEVEL% == 1 exit /b 1
 
 taskkill /F /IM csc.exe > nul
-if ERRORLEVEL 1 exit /b 1
+if %ERRORLEVEL% == 1 exit /b 1
 
 taskkill /F /IM vbc.exe > nul
-if ERRORLEVEL 1 exit /b 1
+if %ERRORLEVEL% == 1 exit /b 1
 
 exit /b 0
