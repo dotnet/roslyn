@@ -81,7 +81,8 @@ namespace BuildBoss
             }
             else if (text.StartsWith(s_didNotCopy))
             {
-                // TODO: decide to handle skipped copied files 
+                // Ignore files which were not copied.  This logic comes from the original 
+                // analysis.
             }
         }
 

@@ -15,7 +15,6 @@ Param(
 set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
 
-# TODO: unify with locate-vs.ps1
 function Get-PackagesPath {
     $packagesPath = $env:NUGET_PACKAGES
     if ($packagesPath -eq $null) {
@@ -28,10 +27,10 @@ function Get-PackagesPath {
 pushd $sourcePath
 try
 {
+    # Need to parse out the current NuGet package version of Structured Logger
+    [xml]$deps = get-content (join-path $sourcePath "build\Targets\Dependencies.props")
+    $structuredLoggerVersion = $deps.Project.PropertyGroup.MicrosoftBuildLoggingStructuredLoggerVersion
 
-    # TODO: RepoUtil needs to generate a powershell file that can be imported for 
-    # values like this.
-    $structuredLoggerVersion = "1.0.58"
     $packagesPath = Get-PackagesPath
 
     write-host "Building Roslyn.sln with logging support"
