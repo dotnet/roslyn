@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 if (declaration != null && updatedSolution.GetDocument(declaration.SyntaxTree)?.Id == documentId)
                 {
-                    result.Add(ValueTuple.Create(property, declaration));
+                    result.Add((property, declaration));
                 }
             }
 
