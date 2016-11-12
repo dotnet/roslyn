@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             // The bool indicates if this is the first time we are seeing the node.
             var candidates = new Stack<(Node node, bool firstTime)>();
-            candidates.Push(ValueTuple.Create(root, true));
+            candidates.Push((root, firstTime: true));
             while (candidates.Count != 0)
             {
                 var currentTuple = candidates.Pop();
