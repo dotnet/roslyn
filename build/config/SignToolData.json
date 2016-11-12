@@ -66,6 +66,7 @@
             "strongName": "MsSharedLib72",
             "values": [
                 "Dlls\\ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
+                "Dlls\\FunctionResolver\\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll",
                 "Dlls\\ResultProvider.Portable\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
                 "Dlls\\CSharpExpressionCompiler\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
                 "Dlls\\CSharpResultProvider.Portable\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
