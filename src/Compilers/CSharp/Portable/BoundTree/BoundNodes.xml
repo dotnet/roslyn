@@ -1592,7 +1592,7 @@
 
   <Node Name="BoundDiscardedExpression" Base="BoundExpression">
     <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
-         is null before type inference, and it is replaced by a BoundDiscardedValue with a non-null
+         is null before type inference, and it is replaced by a BoundDiscardedExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>

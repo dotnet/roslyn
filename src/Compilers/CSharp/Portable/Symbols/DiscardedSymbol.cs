@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsImplicitlyDeclared => true;
         public override bool IsOverride => false;
         public override bool IsSealed => false;
-        public override bool IsStatic => true;
+        public override bool IsStatic => false;
         public override bool IsVirtual => false;
         public override SymbolKind Kind => SymbolKind.Discarded;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;

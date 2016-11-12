@@ -1951,12 +1951,9 @@ namespace System
 }";
             // the duplicate reporting of CS8136 below is due to open issue https://github.com/dotnet/roslyn/issues/12905
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,14): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                //         int (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13)
                 );
         }
 
