@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             CancellationToken cancellationToken)
         {
             var tuple = GetIndentationRuleOfCurrentPosition(root, token, list, position);
-            var indentationLevel = tuple.Item1;
-            var operation = tuple.Item2;
+            var indentationLevel = tuple.indentation;
+            var operation = tuple.operation;
 
             if (operation == null)
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             throw ExceptionUtilities.Unreachable;
         }
 
-        private ValueTuple<int, IndentBlockOperation> GetIndentationRuleOfCurrentPosition(
+        private (int indentation, IndentBlockOperation operation) GetIndentationRuleOfCurrentPosition(
             SyntaxNode root, SyntaxToken token, List<IndentBlockOperation> list, int position)
         {
             var indentationLevel = 0;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentationLevel += operation.IndentationDeltaOrPosition;
             }
 
-            return new ValueTuple<int, IndentBlockOperation>(indentationLevel, null);
+            return (indentationLevel, null);
         }
 
         private List<IndentBlockOperation> GetParentIndentBlockOperations(SyntaxToken token)
