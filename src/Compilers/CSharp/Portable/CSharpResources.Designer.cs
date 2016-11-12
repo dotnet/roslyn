@@ -7460,6 +7460,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To cast a negative value, you must enclose the value in parentheses..
+        /// </summary>
+        internal static string ERR_PossibleBadNegCast {
+            get {
+                return ResourceManager.GetString("ERR_PossibleBadNegCast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot define/undefine preprocessor symbols after first token in file.
         /// </summary>
         internal static string ERR_PPDefFollowsToken {

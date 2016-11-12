@@ -435,6 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
+                if (node.OperatorToken.Kind() == SyntaxKind.MinusToken
+                    && !right.HasAnyErrors
+                    && left.Kind == BoundKind.BadExpression
+                    && left.Type.Kind == SymbolKind.NamedType)
+                {
+                    Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                }
+
                 // NOTE: no user-defined conversion candidates
                 return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Empty, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
