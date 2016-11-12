@@ -59,7 +59,15 @@ namespace RepoUtil
 
             var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoUtilDataPath);
             var command = func(repoConfig, parsedArgs.SourcesPath);
-            return command.Run(Console.Out, parsedArgs.RemainingArgs);
+            if (command.Run(Console.Out, parsedArgs.RemainingArgs))
+            {
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"RepoUtil config read from: {parsedArgs.RepoUtilDataPath}");
+                return false;
+            }
         }
 
         private static bool TryParseCommandLine(string[] args, out ParsedArgs parsedArgs, out CreateCommand func)
