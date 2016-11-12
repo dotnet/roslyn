@@ -10,6 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private class TextBufferDataEventsSink : IVsTextBufferDataEvents
         {
             private readonly DocumentKey _documentKey;
+            private readonly string _moniker;
             private readonly DocumentProvider _documentProvider;
             private readonly IVsTextBuffer _textBuffer;
 
@@ -25,11 +26,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 eventHandler._sink = ComEventSink.Advise<IVsTextBufferDataEvents>(textBuffer, eventHandler);
             }
 
+            public static void HookupHandler(DocumentProvider documentProvider, IVsTextBuffer textBuffer, string moniker)
+            {
+                var eventHandler = new TextBufferDataEventsSink(documentProvider, textBuffer, moniker);
+
+                eventHandler._sink = ComEventSink.Advise<IVsTextBufferDataEvents>(textBuffer, eventHandler);
+            }
+
             private TextBufferDataEventsSink(DocumentProvider documentProvider, IVsTextBuffer textBuffer, DocumentKey documentKey)
             {
                 _documentProvider = documentProvider;
                 _textBuffer = textBuffer;
                 _documentKey = documentKey;
+                _moniker = documentKey.Moniker;
+            }
+
+            private TextBufferDataEventsSink(DocumentProvider documentProvider, IVsTextBuffer textBuffer, string moniker)
+            {
+                _documentProvider = documentProvider;
+                _textBuffer = textBuffer;
+                _moniker = moniker;
             }
 
             public void OnFileChanged(uint grfChange, uint dwFileAttrs)
@@ -40,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _sink.Unadvise();
 
-                _documentProvider.DocumentLoadCompleted(_textBuffer, _documentKey);
+                _documentProvider.DocumentLoadCompleted(_textBuffer, _documentKey, _moniker);
 
                 return VSConstants.S_OK;
             }

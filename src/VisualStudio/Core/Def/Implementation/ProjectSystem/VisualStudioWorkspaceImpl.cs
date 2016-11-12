@@ -81,8 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectTracker = new VisualStudioProjectTracker(serviceProvider, this.Services);
 
             // Ensure the document tracking service is initialized on the UI thread
-            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
-            var documentProvider = new RoslynDocumentProvider(projectTracker, serviceProvider, documentTrackingService);
+            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
+            var documentProvider = new DocumentProvider(projectTracker, serviceProvider, documentTrackingService: documentTrackingService);
             var metadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
             var ruleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
             projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);

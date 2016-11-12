@@ -669,7 +669,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Progression\GraphNodeCreation.cs" />
-    <Compile Include="RoslynDocumentProvider.cs" />
     <Compile Include="Utilities\SpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

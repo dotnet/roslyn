@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 AggregateAsynchronousOperationListener.CreateEmptyListener())
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New RoslynDocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
+            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService:=documentTrackingService)
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
 

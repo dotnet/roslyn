@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -25,19 +26,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// in that they watch the running document table, tracking open/close events, and also file
     /// change events while the file is closed.
     /// </summary>
-    internal abstract partial class DocumentProvider : ForegroundThreadAffinitizedObject
+    internal partial class DocumentProvider : ForegroundThreadAffinitizedObject
     {
-        #region Immutable readonly fields that can be accessed from foreground or background threads - do not need locking for access.
+        #region Immutable readonly fields/properties that can be accessed from foreground or background threads - do not need locking for access.
         private readonly object _gate = new object();
         private readonly uint _runningDocumentTableEventCookie;
         private readonly IVisualStudioHostProjectContainer _projectContainer;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-        protected readonly IVsRunningDocumentTable4 RunningDocumentTable;
-        protected readonly bool IsRoslynPackageInstalled;
-        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-        protected readonly IContentTypeRegistryService ContentTypeRegistryService;
+        protected IVsRunningDocumentTable4 RunningDocumentTable { get; }
+        protected bool IsRoslynPackageInstalled { get; }
+        protected IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
+        protected IContentTypeRegistryService ContentTypeRegistryService { get; }
+        protected VisualStudioDocumentTrackingService DocumentTrackingService { get; }
         #endregion
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
@@ -46,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Dictionary<DocumentKey, StandardTextDocument> _documentMap = new Dictionary<DocumentKey, StandardTextDocument>();
         private readonly Dictionary<uint, List<DocumentKey>> _docCookiesToOpenDocumentKeys = new Dictionary<uint, List<DocumentKey>>();
+        private readonly Dictionary<uint, ITextBuffer> _docCookiesToNonRoslynDocumentBuffers = new Dictionary<uint, ITextBuffer>();
         private readonly Dictionary<string, DocumentId> _documentIdHints = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, TaskAndTokenSource> _pendingDocumentInitializationTasks = new Dictionary<DocumentId, TaskAndTokenSource>();
         #endregion
@@ -53,11 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider(
             IVisualStudioHostProjectContainer projectContainer,
             IServiceProvider serviceProvider,
-            bool signUpForFileChangeNotification)
+            bool signUpForFileChangeNotification = true,
+            VisualStudioDocumentTrackingService documentTrackingService = null)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             _projectContainer = projectContainer;
+            this.DocumentTrackingService = documentTrackingService;
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this.EditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
@@ -345,12 +350,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (shimTextBuffer != null)
             {
+                var hasAssociatedRoslynDocument = false;
                 foreach (var project in _projectContainer.GetProjects())
                 {
                     var documentKey = new DocumentKey(project, moniker);
 
                     if (_documentMap.ContainsKey(documentKey))
                     {
+                        hasAssociatedRoslynDocument = true;
                         var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
 
                         // If we already have an ITextBuffer for this document, then we can open it now.
@@ -382,6 +389,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
                 }
+
+                if (!hasAssociatedRoslynDocument && this.DocumentTrackingService != null && !_docCookiesToNonRoslynDocumentBuffers.ContainsKey(docCookie))
+                {
+                    // Non-Roslyn document opened.
+                    var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+                    if (textBuffer != null)
+                    {
+                        this.DocumentTrackingService.OnNonRoslynBufferOpened(textBuffer);
+                        _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
+                    }
+                    else
+                    {
+                        TextBufferDataEventsSink.HookupHandler(this, shimTextBuffer, moniker);
+                    }
+                }
             }
             else
             {
@@ -404,22 +426,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var ids = GetDocumentIdsFromDocCookie(docCookie);
             foreach (var id in ids)
             {
-                OnBeforeDocumentWindowShow(frame, id, firstShow);
+                this.DocumentTrackingService?.DocumentFrameShowing(frame, id, firstShow);
             }
-
-            if (ids.Count == 0)
-            {
-                // deal with non roslyn text file opened in the editor
-                OnBeforeNonRoslynDocumentWindowShow(frame, firstShow);
-            }
-        }
-
-        protected virtual void OnBeforeDocumentWindowShow(IVsWindowFrame frame, DocumentId id, bool firstShow)
-        {
-        }
-
-        protected virtual void OnBeforeNonRoslynDocumentWindowShow(IVsWindowFrame frame, bool firstShow)
-        {
         }
 
         private IList<DocumentId> GetDocumentIdsFromDocCookie(uint docCookie)
@@ -472,6 +480,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             List<DocumentKey> documentKeys;
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
             {
+                // Handle non-Roslyn document close.
+                if (this.DocumentTrackingService != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
+                {
+                    var moniker = RunningDocumentTable.GetDocumentMoniker(docCookie);
+                    if (!StringComparer.OrdinalIgnoreCase.Equals(moniker, monikerToKeep))
+                    {
+                        this.DocumentTrackingService.OnNonRoslynBufferClosed(textBuffer);
+                        _docCookiesToNonRoslynDocumentBuffers.Remove(docCookie);
+                    }
+                }
+
                 return;
             }
 
@@ -683,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void DocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKey)
+        private void DocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKey, string moniker)
         {
             AssertIsForeground();
 
@@ -691,7 +710,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // newly-created buffer.
 
             uint docCookie;
-            if (!RunningDocumentTable.TryGetCookieForInitializedDocument(documentKey.Moniker, out docCookie))
+            if (!RunningDocumentTable.TryGetCookieForInitializedDocument(moniker, out docCookie))
             {
                 return;
             }
@@ -702,7 +721,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new InvalidOperationException("The IVsTextBuffer has been populated but the underlying ITextBuffer does not exist!");
             }
 
-            NewBufferOpened(docCookie, textBuffer, documentKey, IsCurrentContext(docCookie, documentKey));
+            if (documentKey == null)
+            {
+                // Non-Roslyn document.
+                this.DocumentTrackingService.OnNonRoslynBufferOpened(textBuffer);
+                _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
+            }
+            else
+            {
+                NewBufferOpened(docCookie, textBuffer, documentKey, IsCurrentContext(docCookie, documentKey));
+            }
         }
 
         private bool IsCurrentContext(uint docCookie, DocumentKey documentKey)
