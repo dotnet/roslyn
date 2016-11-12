@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
+        internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
