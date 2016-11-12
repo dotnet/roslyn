@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
             var results = initialContextFinder.Do(startToken, endToken);
 
-            if (results.Item1 != null)
+            if (results.indentOperations != null)
             {
-                var indentationOperations = results.Item1;
+                var indentationOperations = results.indentOperations;
 
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
@@ -120,10 +120,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            if (results.Item2 != null)
-            {
-                results.Item2.Do(o => this.AddInitialSuppressOperation(o));
-            }
+            results.suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
         }
 
         public void AddIndentBlockOperations(
