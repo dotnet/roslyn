@@ -25,6 +25,7 @@ using Roslyn.VisualStudio.Setup;
 
 [assembly: ProvideRoslynBindingRedirection("System.Reflection.Metadata.dll")]
 [assembly: ProvideRoslynBindingRedirection("System.Collections.Immutable.dll")]
+[assembly: ProvideRoslynBindingRedirection("System.ValueTuple.dll")]
 [assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.dll")]
