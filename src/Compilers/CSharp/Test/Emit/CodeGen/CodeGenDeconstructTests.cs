@@ -3970,7 +3970,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
     IL_000d:  ldarg.0
     IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
     IL_0013:  ldflda     ""int x1""
-    IL_0018:  callvirt   ""(int, int) M(out int)""
+    IL_0018:  call       ""(int, int) M(out int)""
     IL_001d:  dup
     IL_001e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
     IL_0023:  stloc.2

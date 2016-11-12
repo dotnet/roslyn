@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly TypeSymbol _type;
+        private readonly bool _isThis;
 
         // -1 if the field doesn't represent a long-lived local or an awaiter.
         internal readonly int SlotIndex;
@@ -21,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly LocalSlotDebugInfo SlotDebugInfo;
 
         // Some fields need to be public since they are initialized directly by the kickoff method.
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic, bool isThis)
             : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
         {
+            _isThis = isThis;
         }
 
         public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, bool isPublic)
@@ -60,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
+        }
+
+        internal override bool IsCapturedFrame
+        {
+            get { return _isThis; }
         }
     }
 }
