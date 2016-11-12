@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -777,91 +776,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node != null ? node.Parent : null;
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetBraces(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode node)
         {
             var namespaceNode = node as NamespaceDeclarationSyntax;
             if (namespaceNode != null)
             {
-                return ValueTuple.Create(namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
+                return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
             }
 
             var baseTypeNode = node as BaseTypeDeclarationSyntax;
             if (baseTypeNode != null)
             {
-                return ValueTuple.Create(baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
+                return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
             }
 
             var accessorListNode = node as AccessorListSyntax;
             if (accessorListNode != null)
             {
-                return ValueTuple.Create(accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
+                return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
             }
 
             var blockNode = node as BlockSyntax;
             if (blockNode != null)
             {
-                return ValueTuple.Create(blockNode.OpenBraceToken, blockNode.CloseBraceToken);
+                return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
             }
 
             var switchStatementNode = node as SwitchStatementSyntax;
             if (switchStatementNode != null)
             {
-                return ValueTuple.Create(switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
+                return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
             }
 
             var anonymousObjectCreationExpression = node as AnonymousObjectCreationExpressionSyntax;
             if (anonymousObjectCreationExpression != null)
             {
-                return ValueTuple.Create(anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
+                return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
             }
 
             var initializeExpressionNode = node as InitializerExpressionSyntax;
             if (initializeExpressionNode != null)
             {
-                return ValueTuple.Create(initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
+                return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
-            return new ValueTuple<SyntaxToken, SyntaxToken>();
+            return default((SyntaxToken, SyntaxToken));
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetParentheses(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
         {
             return node.TypeSwitch(
-                (ParenthesizedExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (MakeRefExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (RefTypeExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (RefValueExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CheckedExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (DefaultExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (TypeOfExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SizeOfExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ArgumentListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CastExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (WhileStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (DoStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ForStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CommonForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (UsingStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (FixedStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (LockStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (IfStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SwitchStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CatchDeclarationSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (AttributeArgumentListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ConstructorConstraintSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ParameterListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SyntaxNode n) => default(ValueTuple<SyntaxToken, SyntaxToken>));
+                (ParenthesizedExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (MakeRefExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (RefTypeExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (RefValueExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (CheckedExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (DefaultExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (TypeOfExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (SizeOfExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (ArgumentListSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (CastExpressionSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (WhileStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (DoStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (ForStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (CommonForEachStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (UsingStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (FixedStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (LockStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (IfStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (SwitchStatementSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (CatchDeclarationSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (AttributeArgumentListSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (ConstructorConstraintSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (ParameterListSyntax n) => (n.OpenParenToken, n.CloseParenToken),
+                (SyntaxNode n) => default((SyntaxToken, SyntaxToken)));
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBrackets(this SyntaxNode node)
         {
             return node.TypeSwitch(
-                (ArrayRankSpecifierSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedArgumentListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (ImplicitArrayCreationExpressionSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (AttributeListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedParameterListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (SyntaxNode n) => default(ValueTuple<SyntaxToken, SyntaxToken>));
+                (ArrayRankSpecifierSyntax n) => (n.OpenBracketToken, n.CloseBracketToken),
+                (BracketedArgumentListSyntax n) => (n.OpenBracketToken, n.CloseBracketToken),
+                (ImplicitArrayCreationExpressionSyntax n) => (n.OpenBracketToken, n.CloseBracketToken),
+                (AttributeListSyntax n) => (n.OpenBracketToken, n.CloseBracketToken),
+                (BracketedParameterListSyntax n) => (n.OpenBracketToken, n.CloseBracketToken),
+                (SyntaxNode n) => default((SyntaxToken openBrace, SyntaxToken closeBrace)));
         }
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
