@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf (symbol.IsTupleType) Then
                 ' If top level tuple uses non-default names, there is no way to preserve them
                 ' unless we use tuple syntax for the type. So, we give them priority.
-                If HasNonDefaultTupleElementNames(symbol) OrElse CanUseTupleTypeName(symbol) Then
+                If HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol) Then
                     AddTupleTypeName(symbol)
                     Return
                 End If
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tupleSymbol = DirectCast(currentUnderlying.TypeArguments(TupleTypeSymbol.RestPosition - 1), INamedTypeSymbol)
                 Debug.Assert(tupleSymbol.IsTupleType)
 
-                If HasNonDefaultTupleElementNames(tupleSymbol) Then
+                If HasNonDefaultTupleElements(tupleSymbol) Then
                     Return False
                 End If
 
@@ -342,46 +342,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Shared Function HasNonDefaultTupleElementNames(tupleSymbol As INamedTypeSymbol) As Boolean
-            Dim elementNames = tupleSymbol.TupleElementNames
-
-            If Not elementNames.IsDefault Then
-                For i As Integer = 0 To elementNames.Length - 1
-                    If (elementNames(i) <> TupleTypeSymbol.TupleMemberName(i + 1)) Then
-                        Return True
-                    End If
-                Next
-            End If
-
-            Return False
+        Private Shared Function HasNonDefaultTupleElements(tupleSymbol As INamedTypeSymbol) As Boolean
+            Return tupleSymbol.TupleElements.Any(Function(e) Not e.IsDefaultTupleElement)
         End Function
 
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
 
-            Dim elementTypes As ImmutableArray(Of ITypeSymbol) = symbol.TupleElementTypes
-            Dim elementNames As ImmutableArray(Of String) = symbol.TupleElementNames
-            Dim hasNames As Boolean = Not elementNames.IsDefault
+            Dim elements As ImmutableArray(Of IFieldSymbol) = symbol.TupleElements
 
             AddPunctuation(SyntaxKind.OpenParenToken)
 
-            For i As Integer = 0 To elementTypes.Length - 1
+            For i As Integer = 0 To elements.Length - 1
+                Dim element = elements(i)
+
                 If i <> 0 Then
                     AddPunctuation(SyntaxKind.CommaToken)
                     AddSpace()
                 End If
 
-                If hasNames Then
-                    Dim name = elementNames(i)
-                    If name IsNot Nothing Then
-                        builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, name, noEscaping:=False))
-                        AddSpace()
-                        AddPunctuation(SyntaxKind.AsKeyword)
-                        AddSpace()
-                    End If
+                If Not element.IsImplicitlyDeclared Then
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
+                    AddSpace()
+                    AddPunctuation(SyntaxKind.AsKeyword)
+                    AddSpace()
                 End If
 
-                elementTypes(i).Accept(Me.NotFirstVisitor)
+                element.Type.Accept(Me.NotFirstVisitor)
             Next
 
             AddPunctuation(SyntaxKind.CloseParenToken)
