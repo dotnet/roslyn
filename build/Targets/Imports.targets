@@ -130,6 +130,11 @@
   </Choose>
 
   <!-- Settings for strong name signing -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+      <!-- Strong name signing is not supported on non-Windows platforms -->
+      <PublicSign>true</PublicSign>
+  </PropertyGroup>
+
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
@@ -200,11 +205,16 @@
 
   <Import Project="$(MSBuildTargetsFilePath)" />
 
-  <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
+  <!-- On *nix the NuGet targets aren't imported by default, so we do that here -->
+  <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
+
+  <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
+  <Import Project="DisableStandardFrameworkResolution.targets"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
 
   <Choose>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'">
+
       <!-- Treat portable exes as CoreClr-targeting-exes -->
       <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
         <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
