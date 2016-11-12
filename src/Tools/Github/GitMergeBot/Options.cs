@@ -11,6 +11,8 @@ namespace GitMergeBot
         public string RepositoryPath { get; set; }
         public RepositoryType SourceRepoType { get; set; }
         public string SourceRepoName { get; set; }
+        public string SourceProject { get; set; }
+        public string SourceUserId { get; set; }
         public string SourceUserName { get; set; }
         public string SourcePassword { get; set; }
         public string SourceRemoteName { get; set; }
@@ -26,6 +28,9 @@ namespace GitMergeBot
         private string _destinationPassword;
         private string _destinationRemoteName;
         private string _destinationBranchName;
+
+        public string DestinationProject { get; set; }
+        public string DestinationUserId { get; set; }
 
         public string PullRequestBranchSourceRemote
         {

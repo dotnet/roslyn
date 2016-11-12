@@ -26,7 +26,7 @@ namespace GitMergeBot
             return (await GetExistingMergePrsAsync(title)).Count == 0;
         }
 
-        public override async Task CreatePullRequestAsync(string title, string destinationOwner, string pullRequestBranch, string sourceBranch, string destinationBranch)
+        public override async Task CreatePullRequestAsync(string title, string destinationOwner, string pullRequestBranch, string prBranchSourceRemote, string sourceBranch, string destinationBranch)
         {
             var remoteName = $"{UserName}-{RepositoryName}";
             var prMessage = $@"
@@ -37,10 +37,10 @@ This is an automatically generated pull request from {sourceBranch} into {destin
 ``` bash
 git remote add {remoteName} ""https://github.com/{UserName}/{RepositoryName}.git""
 git fetch {remoteName}
-git fetch upstream
+git fetch {prBranchSourceRemote}
 git checkout {pullRequestBranch}
-git reset --hard upstream/{destinationBranch}
-git merge upstream/{sourceBranch}
+git reset --hard {prBranchSourceRemote}/{destinationBranch}
+git merge {prBranchSourceRemote}/{sourceBranch}
 # Fix merge conflicts
 git commit
 git push {remoteName} {pullRequestBranch} --force

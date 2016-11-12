@@ -21,30 +21,40 @@ namespace GitMergeBot
             Password = password;
         }
 
+        public virtual Task Initialize()
+        {
+            return Task.CompletedTask;
+        }
+
         public abstract Task<bool> ShouldMakePullRequestAsync(string title);
-        public abstract Task CreatePullRequestAsync(string title, string destinationOwner, string pullRequestBranch, string sourceBranch, string destinationBranch);
+        public abstract Task CreatePullRequestAsync(string title, string destinationOwner, string pullRequestBranch, string prBranchSourceRemote, string sourceBranch, string destinationBranch);
 
         protected void WriteDebugLine(string line)
         {
             Console.WriteLine("Debug: " + line);
         }
 
-        public void FetchAll()
+        public void Fetch(string remoteName)
         {
-            foreach (var remote in Repository.Network.Remotes)
+            var fetchOptions = new FetchOptions()
             {
-                Repository.Fetch(remote.Name);
-            }
+                CredentialsProvider = (url, usernameFromUrl, types) => new UsernamePasswordCredentials()
+                {
+                    Username = UserName,
+                    Password = Password
+                }
+            };
+            Repository.Fetch(remoteName, fetchOptions);
         }
 
-        public static RepositoryBase Create(RepositoryType type, string path, string repoName, string userName, string password)
+        public static RepositoryBase Create(RepositoryType type, string path, string repoName, string project, string userId, string userName, string password, string remoteName)
         {
             switch (type)
             {
                 case RepositoryType.GitHub:
                     return new GitHubRepository(path, repoName, userName, password);
                 case RepositoryType.VisualStudioOnline:
-                    return new VisualStudioOnlineRepository(path, repoName, userName, password);
+                    return new VisualStudioOnlineRepository(path, repoName, project, userId, userName, password, remoteName);
                 default:
                     throw new InvalidOperationException("Unknown repository type.");
             }

@@ -26,15 +26,19 @@ namespace GitMergeBot
                 { "repopath=", "The local path to the repository.", value => options.RepositoryPath = value },
                 { "sourcetype=", "The source repository type.  Valid values are 'GitHub' and 'VisualStudioOnline'.", value => options.SourceRepoType = (RepositoryType)Enum.Parse(typeof(RepositoryType), value) },
                 { "sourcereponame=", "The name of the source repository.", value => options.SourceRepoName = value },
+                { "sourceproject=", "The name of the source project.  Only needed for VisualStudioOnline repos.", value => options.SourceProject = value },
+                { "sourceuserid=", "The source user ID.  Only needed for VisualStudioOnline repos.", value => options.SourceUserId = value },
                 { "sourceuser=", "The source user name.", value => options.SourceUserName = value },
                 { "sourcepassword=", "The source password.", value => options.SourcePassword = value },
                 { "sourceremote=", "The source remote name.", value => options.SourceRemoteName = value },
                 { "sourcebranch=", "The source branch name.", value => options.SourceBranchName = value },
                 { "pushtodestination=", "If true the PR branch will be pushed to the destination repository; if false the PR branch will be pushed to the source.", value => options.PushBranchToDestination = value != null },
                 { "prbranchsourceremote=", "The name of the remote the PR should initiate from.  Defaults to `sourceremote` parameter.", value => options.PullRequestBranchSourceRemote = value },
-                { "destinationtype=", "The destination repository type.  Valid values are 'GitHub' and 'VisualStudioOnline'.  Defaults to `sourcetype` parameter.", value => options.SourceRepoType = (RepositoryType)Enum.Parse(typeof(RepositoryType), value) },
+                { "destinationtype=", "The destination repository type.  Valid values are 'GitHub' and 'VisualStudioOnline'.  Defaults to `sourcetype` parameter.", value => options.DestinationRepoType = (RepositoryType)Enum.Parse(typeof(RepositoryType), value) },
                 { "destinationrepoowner=", "", value => options.DestinationRepoOwner = value },
                 { "destinationreponame=", "The name of the destination repository.  Defaults to `sourcereponame` parameter.", value => options.DestinationRepoName = value },
+                { "destinationproject=", "The name of the destination project.  Only needed for VisualStudioOnline repos.", value => options.DestinationProject = value },
+                { "destinationuserid=", "The destination user ID.  Only needed for VisualStudioOnline repos.", value => options.DestinationUserId = value },
                 { "destinationuser=", "The destination user name.  Defaults to `sourceuser` parameter.", value => options.DestinationUserName = value },
                 { "destinationpassword=", "The destination password.  Defaults to `sourcepassword` parameter.", value => options.DestinationPassword = value },
                 { "destinationremote=", "The destination remote name.  Defaults to `sourceremote` parameter.", value => options.DestinationRemoteName = value },
@@ -53,8 +57,8 @@ namespace GitMergeBot
                     return options.IsValid ? 0 : 1;
                 }
 
-                var sourceRepository = RepositoryBase.Create(options.SourceRepoType, options.RepositoryPath, options.SourceRepoName, options.SourceUserName, options.SourcePassword);
-                var destRepository = RepositoryBase.Create(options.DestinationRepoType, options.RepositoryPath, options.DestinationRepoName, options.DestinationUserName, options.DestinationPassword);
+                var sourceRepository = RepositoryBase.Create(options.SourceRepoType, options.RepositoryPath, options.SourceRepoName, options.SourceProject, options.SourceUserId, options.SourceUserName, options.SourcePassword, options.SourceRemoteName);
+                var destRepository = RepositoryBase.Create(options.DestinationRepoType, options.RepositoryPath, options.DestinationRepoName, options.DestinationProject, options.DestinationUserId, options.DestinationUserName, options.DestinationPassword, options.DestinationRemoteName);
                 new Program(sourceRepository, destRepository, options).RunAsync().GetAwaiter().GetResult();
                 return 0;
             }
@@ -79,10 +83,12 @@ namespace GitMergeBot
 
         public async Task RunAsync()
         {
+            await _sourceRepo.Initialize();
+            await _destRepo.Initialize();
+
             // fetch latest sources
             WriteLine("Fetching.");
-            _sourceRepo.FetchAll();
-            _destRepo.FetchAll();
+            _sourceRepo.Fetch(_options.PullRequestBranchSourceRemote);
 
             var (prRepo, prRemoteName, prUserName, prPassword) = _options.PushBranchToDestination
                 ? (_destRepo, _options.DestinationRemoteName, _options.DestinationUserName, _options.DestinationPassword)
@@ -139,7 +145,7 @@ namespace GitMergeBot
             }
             else
             {
-                await _destRepo.CreatePullRequestAsync(title, _options.DestinationRepoOwner, prBranchName, _options.SourceBranchName, _options.DestinationBranchName);
+                await _destRepo.CreatePullRequestAsync(title, _options.DestinationRepoOwner, prBranchName, _options.PullRequestBranchSourceRemote, _options.SourceBranchName, _options.DestinationBranchName);
             }
         }
     }
