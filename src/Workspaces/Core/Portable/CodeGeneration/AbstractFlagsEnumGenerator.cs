@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     var field = (IFieldSymbol)member;
                     if (field.HasConstantValue)
                     {
-                        allFieldsAndValues.Add(ValueTuple.Create(field,
-                            EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType)));
+                        var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                        allFieldsAndValues.Add((field, value));
                     }
                 }
             }

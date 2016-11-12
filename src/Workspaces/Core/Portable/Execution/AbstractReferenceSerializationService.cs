@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // we use conditional weak table since we can't control metadata liftetime
             s_lifetimeMap.Add(metadata, lifeTimeObject);
 
-            return ValueTuple.Create(metadata, storage);
+            return (metadata, storage);
         }
 
         private void GetTemporaryStorage(
