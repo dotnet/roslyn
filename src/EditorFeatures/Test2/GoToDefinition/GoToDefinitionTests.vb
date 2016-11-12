@@ -105,12 +105,12 @@ class Program
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-public class MyClass
+public class MyClass1
     public property [|Prop1|] as integer
 end class
 class Program
     sub Main()
-        dim instance = new MyClass()
+        dim instance = new MyClass1()
 
         dim x as new With { instance.$$Prop1 }
     end sub
