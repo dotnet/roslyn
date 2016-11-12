@@ -17823,6 +17823,58 @@ val:   -2
 ]]>)
 
         End Sub
+
+        <Fact>
+        Public Sub UnusedTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        ' Warnings
+        Dim x2 As Integer
+        Const x3 As Integer = 1
+        Const x4 As String = "hello"
+        Dim x5 As (Integer, Integer)
+        Dim x6 As (String, String)
+
+        ' No warnings
+        Dim y10 As Integer = 1
+        Dim y11 As String = "hello"
+        Dim y12 As (Integer, Integer) = (1, 2)
+        Dim y13 As (String, String) = ("hello", "world")
+        Dim tuple As (String, String) = ("hello", "world")
+        Dim y14 As (String, String) = tuple
+    End Sub
+End Class
+
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC42024: Unused local variable: 'x2'.
+        Dim x2 As Integer
+            ~~
+BC42099: Unused local constant: 'x3'.
+        Const x3 As Integer = 1
+              ~~
+BC42099: Unused local constant: 'x4'.
+        Const x4 As String = "hello"
+              ~~
+BC42024: Unused local variable: 'x5'.
+        Dim x5 As (Integer, Integer)
+            ~~
+BC42024: Unused local variable: 'x6'.
+        Dim x6 As (String, String)
+            ~~
+</errors>)
+
+        End Sub
+
     End Class
 
 End Namespace

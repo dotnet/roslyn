@@ -2358,6 +2358,7 @@ class C
     {
         var x1 = (1, 2);
         var (x2, x3) = (1, 2);
+        System.Console.Write($""{x1} {x2} {x3}"");
     }
 }
 ";
