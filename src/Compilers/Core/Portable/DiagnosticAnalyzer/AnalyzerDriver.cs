@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
             if (IsDiagnosticAnalyzerSuppressed(analyzer, compilationOptions, analyzerManager, executor))
             {
-                return new AnalyzerActionCounts(null);
+                return AnalyzerActionCounts.Empty;
             }
 
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
