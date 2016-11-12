@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // Looks good!
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethods(context.Document, propertySymbol, c),
+                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
                 propertyName));
         }
 
-        private async Task<Solution> ReplacePropertyWithMethods(
+        private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
            CancellationToken cancellationToken)
