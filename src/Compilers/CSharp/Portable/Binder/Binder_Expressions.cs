@@ -6779,7 +6779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var accessType = access.Type;
 
             // access cannot have no type
-            if (accessType == null)
+            if ((object)accessType == null)
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
@@ -6946,7 +6946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             // Can't dot into the null literal or anything that has no type
-            if (receiverType == null)
+            if ((object)receiverType == null)
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiver.Display);
                 return BadExpression(receiverSyntax, receiver);
