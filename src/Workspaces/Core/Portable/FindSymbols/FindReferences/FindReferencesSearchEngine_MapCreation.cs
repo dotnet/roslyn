@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class FindReferencesSearchEngine
     {
-        private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateDocumentMapAsync(
-            ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> projectMap)
+        private async Task<ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> CreateDocumentMapAsync(
+            ConcurrentDictionary<Project, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> projectMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
             {
-                Func<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    d => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                Func<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> createQueue = 
+                    d => new ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-                var documentMap = new ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
+                var documentMap = new ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>();
 
 #if PARALLEL
             Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var symbolAndProjectId = symbolAndFinder.Item1;
+                        var symbolAndProjectId = symbolAndFinder.symbolAndProjectId;
                         var symbol = symbolAndProjectId.Symbol;
-                        var finder = symbolAndFinder.Item2;
+                        var finder = symbolAndFinder.finder;
 
                         var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
@@ -80,15 +80,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateProjectMapAsync(
+        private async Task<ConcurrentDictionary<Project, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> CreateProjectMapAsync(
             ConcurrentSet<SymbolAndProjectId> symbols)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, _cancellationToken))
             {
-                Func<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    p => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                Func<Project, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> createQueue = 
+                    p => new ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-                var projectMap = new ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
+                var projectMap = new ConcurrentDictionary<Project, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>();
 
 #if PARALLEL
             Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
