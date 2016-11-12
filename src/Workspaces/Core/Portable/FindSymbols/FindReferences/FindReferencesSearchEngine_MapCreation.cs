@@ -108,18 +108,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #else
 
                 var scope = _documents != null ? _documents.Select(d => d.Project).ToImmutableHashSet() : null;
-                foreach (var s in symbols)
+                foreach (var symbolAndProjectId in symbols)
                 {
-                    foreach (var f in _finders)
+                    foreach (var finder in _finders)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var projects = await f.DetermineProjectsToSearchAsync(s.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
+                        var projects = await finder.DetermineProjectsToSearchAsync(symbolAndProjectId.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
                         foreach (var project in projects.Distinct().WhereNotNull())
                         {
                             if (scope == null || scope.Contains(project))
                             {
-                                projectMap.GetOrAdd(project, createQueue).Enqueue(ValueTuple.Create(s, f));
+                                projectMap.GetOrAdd(project, createQueue).Enqueue((symbolAndProjectId, finder));
                             }
                         }
                     }
