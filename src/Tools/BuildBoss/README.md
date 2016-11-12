@@ -44,10 +44,3 @@ These are log files produced by the MSBuild Structured Logger Tool:
 The log files produced by this tool contain much of the content of a diagnostic log but in well structured XML.  This makes it easy for tools to analyze.
 
 BuildBoss makes use of this log to ensure our build doesn't have any double writes.  That is the build does not write to the same output path twice.  Doing so means our build is incorrect and subject to flaws such as race conditions and incorrect deployments.
-
-
-
-
-
-
-

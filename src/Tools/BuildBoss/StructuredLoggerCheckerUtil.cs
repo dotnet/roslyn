@@ -21,7 +21,7 @@ namespace BuildBoss
     /// 
     ///     https://github.com/KirillOsenkov/MSBuildStructuredLog/issues/42
     /// </summary>
-    internal sealed class StructuredLoggerChecekerUtil : ICheckerUtil
+    internal sealed class StructuredLoggerCheckerUtil : ICheckerUtil
     {
         internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
         private static readonly string s_copyingFileFrom = "Copying file from \"";
@@ -32,7 +32,7 @@ namespace BuildBoss
         private readonly XDocument _document;
         private readonly Dictionary<string, List<string>> _copyMap = new Dictionary<string, List<string>>(FilePathComparer);
 
-        internal StructuredLoggerChecekerUtil(XDocument document)
+        internal StructuredLoggerCheckerUtil(XDocument document)
         {
             _document = document;
         }
