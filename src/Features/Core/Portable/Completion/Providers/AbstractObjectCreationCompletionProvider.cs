@@ -123,12 +123,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(ImmutableArray.Create((ISymbol)type));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+        protected override(string displayText, string insertionText) GetDisplayAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return ValueTuple.Create(displayString, displayString);
+            return (displayString, displayString);
         }
     }
 }
