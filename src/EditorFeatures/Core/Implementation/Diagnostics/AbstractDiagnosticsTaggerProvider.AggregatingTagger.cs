@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             /// </summary>
             private DocumentId _currentDocumentId;
 
-            private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
+            private readonly Dictionary<object, (TaggerProvider provider, IAccurateTagger<TTag> tagger)> _idToProviderAndTagger = new Dictionary<object, (TaggerProvider provider, IAccurateTagger<TTag> tagger)>();
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
@@ -106,11 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // we only reach here if there is the document
                 var document = solution.GetDocument(args.DocumentId);
                 Contract.ThrowIfNull(document);
-
                 // if there is no source text for this document, we don't populate the initial tags. this behavior is equivalent of existing
                 // behavior in OnDiagnosticsUpdated.
-                SourceText text;
-                if (!document.TryGetText(out text))
+                if (!document.TryGetText(out var text))
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 foreach (var kvp in _idToProviderAndTagger)
                 {
-                    var tagger = kvp.Value.Item2;
+                    var tagger = kvp.Value.tagger;
 
                     DisconnectFromTagger(tagger);
                 }
@@ -340,15 +338,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // diagnostic source ID and notify any listeners that 
 
                 var id = e.Id;
-                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
-                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // Wasn't a diagnostic source we care about.
                     return;
                 }
 
                 _idToProviderAndTagger.Remove(id);
-                DisconnectFromTagger(providerAndTagger.Item2);
+                DisconnectFromTagger(providerAndTagger.tagger);
 
                 OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
@@ -370,8 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // Find the appropriate async tagger for this diagnostics id, and let it know that
                 // there were new diagnostics produced for it.
                 var id = e.Id;
-                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
-                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
+                if (!_idToProviderAndTagger.TryGetValue(id, out var providerAndTagger))
                 {
                     // We didn't have an existing tagger for this diagnostic id.  If there are no actual 
                     // diagnostics being reported, then don't bother actually doing anything.  This saves
@@ -397,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // Let the provider know that there are new diagnostics.  It will then
                 // handle all the async processing of those diagnostics.
-                providerAndTagger.Item1.OnDiagnosticsUpdated(e, sourceText, editorSnapshot);
+                providerAndTagger.provider.OnDiagnosticsUpdated(e, sourceText, editorSnapshot);
             }
 
             private void OnUnderlyingTaggerTagsChanged(object sender, SnapshotSpanEventArgs args)
@@ -414,13 +410,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancel)
             {
                 this.AssertIsForeground();
-                return _idToProviderAndTagger.Values.SelectMany(t => t.Item2.GetAllTags(spans, cancel)).ToList();
+                return _idToProviderAndTagger.Values.SelectMany(t => t.tagger.GetAllTags(spans, cancel)).ToList();
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 this.AssertIsForeground();
-                return _idToProviderAndTagger.Values.SelectMany(t => t.Item2.GetTags(spans)).ToList();
+                return _idToProviderAndTagger.Values.SelectMany(t => t.tagger.GetTags(spans)).ToList();
             }
         }
     }
