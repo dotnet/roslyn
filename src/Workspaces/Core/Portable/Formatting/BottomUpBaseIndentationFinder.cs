@@ -186,17 +186,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
                 {
-                    return ValueTuple.Create(operation.IndentationDeltaOrPosition + _indentationSize * indentationLevel, operation);
+                    return (operation.IndentationDeltaOrPosition + _indentationSize * indentationLevel, operation);
                 }
 
                 if (operation.Option == IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
                 {
-                    return ValueTuple.Create(indentationLevel, operation);
+                    return (indentationLevel, operation);
                 }
 
                 if (operation.IsRelativeIndentation)
                 {
-                    return ValueTuple.Create(indentationLevel, operation);
+                    return (indentationLevel, operation);
                 }
 
                 // move up to its containing operation

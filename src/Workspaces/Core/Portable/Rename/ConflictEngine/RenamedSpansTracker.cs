@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _documentToModifiedSpansMap[documentId] = spans;
             }
 
-            spans.Add(ValueTuple.Create(oldSpan, newSpan));
+            spans.Add((oldSpan, newSpan));
         }
 
         internal void AddComplexifiedSpan(DocumentId documentId, TextSpan oldSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         foreach (var annotationAndToken in annotationAndTokens2)
                         {
                             modifiedTokensInComplexifiedStatements.Add(annotationAndToken.Item2);
-                            modifiedSubSpans.Add(ValueTuple.Create(annotationAndToken.Item1.OriginalTextSpan, annotationAndToken.Item2.Span));
+                            modifiedSubSpans.Add((annotationAndToken.Item1.OriginalTextSpan, annotationAndToken.Item2.Span));
                         }
 
                         AddComplexifiedSpan(documentId, oldSpan, node.Span, modifiedSubSpans);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
             {
-                return _documentToComplexifiedSpansMap[documentId].Select(c => ValueTuple.Create(c.OriginalSpan, c.NewSpan));
+                return _documentToComplexifiedSpansMap[documentId].Select(c => (c.OriginalSpan, c.NewSpan));
             }
 
             return SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();

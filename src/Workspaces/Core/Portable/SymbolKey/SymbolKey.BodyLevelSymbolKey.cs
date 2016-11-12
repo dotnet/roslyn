@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                             symbol.Kind == kind &&
                             SymbolKey.Equals(compilation, symbol.Name, localName))
                         {
-                            yield return ValueTuple.Create(symbol, ordinal++);
+                            yield return (symbol, ordinal++);
                         }
                     }
                 }
