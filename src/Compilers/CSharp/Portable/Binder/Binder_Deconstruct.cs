@@ -648,7 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DeclarationExpression:
                     {
                         var component = (DeclarationExpressionSyntax)node;
-
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
@@ -660,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
-                        return BindDeconstructionVariables(declType, component.Type, component.Designation, diagnostics);
+                        return BindDeconstructionDeclarationVariables(declType, component.Designation, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -686,9 +685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DeconstructionVariable BindDeconstructionVariables(
+        private DeconstructionVariable BindDeconstructionDeclarationVariables(
             TypeSymbol declType,
-            TypeSyntax typeSyntax,
             VariableDesignationSyntax node,
             DiagnosticBag diagnostics)
         {
@@ -697,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionVariable(declType, typeSyntax, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
                     }
                 case SyntaxKind.DiscardedDesignation:
                     {
@@ -707,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardedDesignation:
                     {
                         var discarded = (DiscardedDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardedExpression(discarded, type, diagnostics), node);
+                        return new DeconstructionVariable(BindDiscardedExpression(discarded, declType, diagnostics), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -715,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionVariables(declType, typeSyntax, n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationVariables(declType, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -724,28 +722,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindDiscardedExpression(
+        private BoundDiscardedExpression BindDiscardedExpression(
             DiscardedDesignationSyntax designation,
-            TypeSyntax typeSyntax,
+            TypeSymbol declType,
             DiagnosticBag diagnostics)
         {
-            bool hasErrors = false;
-            bool isVar;
-            bool isConst = false;
-            AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-
-            if (!isVar)
-            {
-                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
-                {
-                    // An explicit type can only be provided next to the wildcard
-                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
-                    hasErrors = true;
-                }
-            }
-
-            return new BoundDiscardedExpression(designation, isVar ? null : declType, hasErrors);
+            return new BoundDiscardedExpression(designation, declType);
         }
 
         /// <summary>
@@ -753,9 +735,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In global statements, returns a BoundFieldAccess when the type was explicit.
         /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
-        private BoundExpression BindDeconstructionVariable(
+        private BoundExpression BindDeconstructionDeclarationVariable(
             TypeSymbol declType,
-            TypeSyntax typeSyntax,
             SingleVariableDesignationSyntax designation,
             DiagnosticBag diagnostics)
         {
