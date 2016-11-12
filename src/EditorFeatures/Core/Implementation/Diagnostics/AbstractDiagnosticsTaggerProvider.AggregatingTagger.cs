@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     // and cache it so we can use it in the future.
                     var taggerProvider = new TaggerProvider(_owner);
                     var tagger = taggerProvider.CreateTagger<TTag>(_subjectBuffer);
-                    providerAndTagger = ValueTuple.Create(taggerProvider, tagger);
+                    providerAndTagger = (taggerProvider, tagger);
 
                     _idToProviderAndTagger[id] = providerAndTagger;
 
