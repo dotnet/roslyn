@@ -267,6 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetReturnParam)
         {
+            if (candidateMethod.ReturnsByRef != targetReturnParam.IsByRef || candidateMethod.CountOfCustomModifiersPrecedingByRef != targetReturnParam.CountOfCustomModifiersPrecedingByRef)
+            {
+                return false;
+            }
+
             TypeSymbol candidateReturnType = candidateMethod.ReturnType;
             TypeSymbol targetReturnType = targetReturnParam.Type;
 

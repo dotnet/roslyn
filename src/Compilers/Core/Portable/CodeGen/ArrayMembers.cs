@@ -339,6 +339,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
             => ImmutableArray<Cci.ICustomModifier>.Empty;
 
+        public ushort CountOfCustomModifiersPrecedingByRef => 0;
+
         public Cci.ITypeReference GetContainingType(EmitContext context)
         {
             // We are not translating arrayType. 
