@@ -165,15 +165,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple.cs">
-      <Link>InternalUtilities\ValueTuple.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`2.cs">
-      <Link>InternalUtilities\ValueTuple`2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`3.cs">
-      <Link>InternalUtilities\ValueTuple`3.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
       <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
     </Compile>
