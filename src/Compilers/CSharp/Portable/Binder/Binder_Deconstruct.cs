@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < matchCount; i++)
             {
                 var variable = variables[i];
-                if (!variable.HasNestedVariables && variable.Single.Kind == BoundKind.DeconstructionVariablePendingInference)
+                if (!variable.HasNestedVariables)
                 {
                     switch (variable.Single.Kind)
                     {
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var pending = (BoundDiscardedExpression)variable.Single;
                             if ((object)pending.Type == null)
                             {
-                                Binder.Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, variable.Single.Syntax, "_");
+                                Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
                                 variables[i] = new DeconstructionVariable(pending.Update(CreateErrorType("var")), pending.Syntax);
                             }
                             break;
@@ -693,7 +693,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DeclarationExpression:
                     {
                         var component = (DeclarationExpressionSyntax)node;
-                        return BindDeconstructionDeclarationVariables(component.Type, component.Designation, diagnostics);
+                        bool isVar;
+                        bool isConst = false;
+                        AliasSymbol alias;
+                        TypeSymbol declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
+                        Debug.Assert(isVar == ((object)declType == null));
+                        if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
+                        {
+                            // An explicit is not allowed with a parenthesized designation
+                            Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
+                        }
+
+                        return BindDeconstructionDeclarationVariables(declType, component.Designation, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -703,6 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             builder.Add(BindDeconstructionDeclarationVariables(arg.Expression, diagnostics));
                         }
+
                         return new DeconstructionVariable(builder, node);
                     }
                 default:
@@ -711,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private DeconstructionVariable BindDeconstructionDeclarationVariables(
-            TypeSyntax type,
+            TypeSymbol declType,
             VariableDesignationSyntax node,
             DiagnosticBag diagnostics)
         {
@@ -720,12 +732,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionDeclarationVariable(type, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionDeclarationVariable(declType, single, diagnostics), node);
                     }
                 case SyntaxKind.DiscardedDesignation:
                     {
                         var discarded = (DiscardedDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardedExpression(discarded, type, diagnostics), node);
+                        return new DeconstructionVariable(BindDiscardedExpression(discarded, declType, diagnostics), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -733,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationVariables(type, n, diagnostics));
+                            builder.Add(BindDeconstructionDeclarationVariables(declType, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -742,28 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindDiscardedExpression(
+        private BoundDiscardedExpression BindDiscardedExpression(
             DiscardedDesignationSyntax designation,
-            TypeSyntax typeSyntax,
+            TypeSymbol declType,
             DiagnosticBag diagnostics)
         {
-            bool hasErrors = false;
-            bool isVar;
-            bool isConst = false;
-            AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-
-            if (!isVar)
-            {
-                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
-                {
-                    // An explicit type can only be provided next to the wildcard
-                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
-                    hasErrors = true;
-                }
-            }
-
-            return new BoundDiscardedExpression(designation, isVar ? null : declType, hasErrors);
+            return new BoundDiscardedExpression(designation, declType);
         }
 
         /// <summary>
@@ -772,37 +768,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
         private BoundExpression BindDeconstructionDeclarationVariable(
-            TypeSyntax typeSyntax,
+            TypeSymbol declType,
             SingleVariableDesignationSyntax designation,
             DiagnosticBag diagnostics)
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
 
-            bool hasErrors = false;
-            bool isVar;
-            bool isConst = false;
-            AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-
-            if (!isVar)
-            {
-                if (designation.Parent.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
-                {
-                    // An explicit type can only be provided next to the variable
-                    Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, designation);
-                    hasErrors = true;
-                }
-            }
-
             // is this a local?
-            if (localSymbol != null)
+            if ((object)localSymbol != null)
             {
                 // Check for variable declaration errors.
                 // Use the binder that owns the scope for the local because this (the current) binder
                 // might own nested scope.
-                hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if (!isVar)
+                if ((object)declType != null)
                 {
                     return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
@@ -822,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
                                             wasCompilerGenerated: true);
 
-            if (!isVar)
+            if ((object)declType != null)
             {
                 TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
                 return new BoundFieldAccess(designation,
@@ -830,8 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             field,
                                             constantValueOpt: null,
                                             resultKind: LookupResultKind.Viable,
-                                            type: fieldType,
-                                            hasErrors: hasErrors);
+                                            type: fieldType);
             }
 
             return new DeconstructionVariablePendingInference(designation, field, receiver);
