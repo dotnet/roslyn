@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _cancellationToken = cancellationToken;
 
             _compilationData = new CompilationData(_compilation);
-            _analysisState = new AnalysisState(analyzers, _compilationData);
+            _analysisState = new AnalysisState(analyzers, _compilationData, _compilation.Options);
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers);
             _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
                 foreach (var analyzer in analyzers)
                 {
-                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, compilation.Options, cancellationToken).ConfigureAwait(false);
                     analyzerActionCounts.Add(analyzer, actionCounts);
                 }
                 Func<DiagnosticAnalyzer, AnalyzerActionCounts> getAnalyzerActionCounts = analyzer => analyzerActionCounts[analyzer];

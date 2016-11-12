@@ -1298,9 +1298,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
 
-        internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, CancellationToken cancellationToken)
         {
             var executor = analyzerExecutor.WithCancellationToken(cancellationToken);
+            if (IsDiagnosticAnalyzerSuppressed(analyzer, compilationOptions, analyzerManager, executor))
+            {
+                return new AnalyzerActionCounts(null);
+            }
+
             var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
             return new AnalyzerActionCounts(analyzerActions);
         }
