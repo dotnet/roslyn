@@ -106,7 +106,7 @@ namespace RepoUtil
             var packages = ProjectJsonUtil
                 .GetProjectJsonFiles(_sourcesPath)
                 .SelectMany(x => ProjectJsonUtil.GetDependencies(x));
-            var set = new HashSet<NuGetPackage>(packages);
+            var set = new HashSet<NuGetPackage>(packages, default(Constants.IgnoreGenerateNameComparer));
             var allGood = true;
 
             foreach (var package in _repoConfig.FixedPackages)
