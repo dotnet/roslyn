@@ -210,23 +210,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
+            return content =>
             {
                 var documentationCommentContent = ((QuickInfoDisplayDeferredContent)content).Documentation;
-                documentationCommentContent.TypeSwitch(
-                    (DocumentationCommentDeferredContent docComment) =>
-                    {
-                        var documentationCommentBlock = (TextBlock)docComment.Create();
-                        var actualText = documentationCommentBlock.Text;
+                switch (documentationCommentContent)
+                {
+                    case DocumentationCommentDeferredContent docComment:
+                        {
+                            var documentationCommentBlock = (TextBlock)docComment.Create();
+                            var actualText = documentationCommentBlock.Text;
 
-                        Assert.Equal(expectedText, actualText);
-                    },
-                    (ClassifiableDeferredContent classifiable) =>
-                    {
-                        var actualContent = classifiable.ClassifiableContent;
-                        Assert.Equal(expectedText, actualContent.GetFullText());
-                        ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                    });
+                            Assert.Equal(expectedText, actualText);
+                        }
+                        break;
+
+                    case ClassifiableDeferredContent classifiable:
+                        {
+                            var actualContent = classifiable.ClassifiableContent;
+                            Assert.Equal(expectedText, actualContent.GetFullText());
+                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                        }
+                        break;
+                }
             };
         }
 
