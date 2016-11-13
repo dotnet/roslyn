@@ -222,6 +222,14 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
+
+            WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferCollectionInitializer, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferExplicitTupleNames, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferNullPropagation, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
         }
 
         protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
