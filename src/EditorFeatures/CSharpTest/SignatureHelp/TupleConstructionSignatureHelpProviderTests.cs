@@ -200,5 +200,35 @@ class Program
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
+
+        [WorkItem(14793, "https://github.com/dotnet/roslyn/issues/14793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task DoNotCrashInLinkedFile()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if FOO
+    void bar()
+    {
+    }
+#endif
+    void foo()
+    {
+        (int, string) x = ($$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+            var expectedDescription = new SignatureHelpTestItem($"(int, string)", currentParameterIndex: 0);
+            await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        }
     }
 }

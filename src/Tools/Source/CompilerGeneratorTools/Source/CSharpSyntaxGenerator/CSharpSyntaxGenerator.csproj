@@ -6,7 +6,6 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2D}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
     <AssemblyName>CSharpSyntaxGenerator</AssemblyName>
     <Nonshipping>true</Nonshipping>
@@ -18,7 +17,7 @@
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
     <NonShipping>true</NonShipping>
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
-    <RoslynProjectType>CompilerGeneratorTool</RoslynProjectType>
+    <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>

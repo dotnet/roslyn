@@ -29,8 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim autoCollapse = options.GetOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
-                spans.AddIfNotNull(CreateRegion(
-                    TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End),
+                Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
+                spans.AddIfNotNull(CreateBlockSpan(
+                    span, span,
                     GetBannerText(regionDirective),
                     autoCollapse:=autoCollapse,
                     isDefaultCollapsed:=True,

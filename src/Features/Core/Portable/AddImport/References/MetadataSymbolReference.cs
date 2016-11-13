@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -22,11 +23,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override string TryGetDescription(
-                Project project, SyntaxNode node, SemanticModel semanticModel)
+                Document document, SyntaxNode node, 
+                SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 // If 'TryGetDescription' returns 'null' then that means that we don't actually want to add a reference
                 // in this case.  As such, just continue to return the 'null' outwards.
-                var description = base.TryGetDescription(project, node, semanticModel);
+                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;

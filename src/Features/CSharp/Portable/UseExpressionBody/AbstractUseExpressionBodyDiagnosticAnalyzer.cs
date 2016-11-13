@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     {
                         var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                         return Diagnostic.Create(
-                            CreateDescriptor(this.DescriptorId, _expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
+                            CreateDescriptorWithTitle(_expressionBodyTitle, preferExpressionBodiedOption.Notification.Value),
                             GetBody(declaration).Statements[0].GetLocation(),
                             additionalLocations: additionalLocations);
                     }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 {
                     var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                     return Diagnostic.Create(
-                        CreateDescriptor(this.DescriptorId, _blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
+                        CreateDescriptorWithTitle(_blockBodyTitle, preferExpressionBodiedOption.Notification.Value),
                         expressionBody.GetLocation(),
                         additionalLocations: additionalLocations);
                 }

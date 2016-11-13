@@ -77,11 +77,11 @@ namespace RepoUtil
             var set = new HashSet<NuGetPackage>(packages);
             var allGood = true;
 
-            foreach (var package in _repoConfig.FixedPackages)
+            foreach (var fixedPackage in _repoConfig.FixedPackages)
             {
-                if (!set.Contains(package))
+                if (!set.Contains(fixedPackage))
                 {
-                    writer.WriteLine($"Error: Fixed package {package.Name} - {package.Version} is not used anywhere");
+                    writer.WriteLine($"Error: Fixed package {fixedPackage.Name} - {fixedPackage.Version} is not used anywhere");
                     allGood = false;
                 }
             }

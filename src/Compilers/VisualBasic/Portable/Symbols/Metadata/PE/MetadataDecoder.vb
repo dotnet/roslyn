@@ -204,6 +204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     End If
 
                     Do
+                        If symbol.IsTupleType Then
+                            Return IsOrClosedOverATypeFromAssemblies(symbol.TupleUnderlyingType, assemblies)
+                        End If
+
                         For Each typeArgument In symbol.TypeArgumentsNoUseSiteDiagnostics
                             If IsOrClosedOverATypeFromAssemblies(typeArgument, assemblies) Then
                                 Return True

@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" InitialTargets="RestoreToolsetCheck" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
 
   <Import Project="Versions.props"/>
 
@@ -10,6 +10,7 @@
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
@@ -39,8 +40,12 @@
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
-    <CompilerGeneratorToolsDir>$(OutDir)CompilerGeneratorTools\</CompilerGeneratorToolsDir>
+    <CompilerGeneratorToolsDir>$(OutDir)Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
+
+    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir 
+         (see https://github.com/Microsoft/msbuild/issues/1307) -->
+    <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -64,14 +69,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- Point to the reference assemblies on unix -->
     <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
-
-    <!-- The /publicsign argument is required for the compiler, but the current MSBuild
-         build task can't be redirected and even if it could the new build task is not
-         built against the xplat MSBuild references so it can't be loaded properly. Providing
-         a response file works around the problem by directly adding the public sign argument
-         to all unix compilations. This shouldn't present a problem as it's impossible to
-         fully sign on unix at the moment anyway. Tracked by #7756. -->
-    <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
 
     <DebugType>portable</DebugType>
   </PropertyGroup>
@@ -246,28 +243,6 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
-    <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
+    <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
-
-  <Target Name="RestoreToolsetCheck"
-      Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
-             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-  </Target>
-
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
-  </Target>
-
-  <!-- 
-    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
-    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
-    by our test scripts
-  -->
-  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
-    <Copy
-        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
-        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
-        DestinationFolder="$(OutDir)" />
-  </Target>
 </Project>

@@ -87,7 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
 
                 var variable = variableDeclaration.Variables.Single();
-                if (AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (AssignmentSupportsStylePreference(
+                        variable.Identifier, typeName, variable.Initializer.Value,
+                        semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
@@ -110,7 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         /// false, if implicit typing cannot be used.
         /// true, otherwise.
         /// </returns>
-        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool AssignmentSupportsStylePreference(
+            SyntaxToken identifier,
+            TypeSyntax typeName,
+            ExpressionSyntax initializer,
+            SemanticModel semanticModel,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
         {
             var expression = GetInitializerExpression(initializer);
 

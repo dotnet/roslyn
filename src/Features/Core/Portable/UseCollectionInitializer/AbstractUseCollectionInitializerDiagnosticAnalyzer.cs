@@ -33,22 +33,23 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_collection_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Collection_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override void Initialize(AnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(OnCompilationStart);
+
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationContext =>
+            var ienumerableType = context.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
+            if (ienumerableType != null)
             {
-                var ienumerableType = compilationContext.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable") as INamedTypeSymbol;
-                if (ienumerableType != null)
-                {
-                    context.RegisterSyntaxNodeAction(
-                        nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                        GetObjectCreationSyntaxKind());
-                }
-            });
+                context.RegisterSyntaxNodeAction(
+                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                    GetObjectCreationSyntaxKind());
+            }
         }
 
         protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var severity = option.Notification.Value;
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(DescriptorId, severity),
+                CreateDescriptorWithSeverity(severity),
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Dim block = TryCast(constructorDeclaration.Parent, ConstructorBlockSyntax)
             If Not block?.EndBlockStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     block, bannerNode:=constructorDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Member, isCollapsible:=True))
             End If

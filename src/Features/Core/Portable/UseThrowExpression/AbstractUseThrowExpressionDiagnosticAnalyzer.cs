@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,11 +32,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// Note: this analyzer can be udpated to run on VB once VB supports 'throw' 
     /// expressions as well.
     /// </summary>
-    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_throw_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -52,14 +55,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected abstract bool IsSupported(ParseOptions options);
 
-        public override void Initialize(AnalysisContext context)
-        {
-            s_registerOperationActionInfo.Invoke(context, new object[]
-            {
-                new Action<OperationAnalysisContext>(AnalyzeOperation),
-                ImmutableArray.Create(OperationKind.ThrowStatement)
-            });
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => s_registerOperationActionInfo.Invoke(context, new object[]
+               {
+                   new Action<OperationAnalysisContext>(AnalyzeOperation),
+                   ImmutableArray.Create(OperationKind.ThrowStatement)
+               });
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
@@ -101,38 +102,46 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            ISymbol localOrParameter;
-            if (!TryDecomposeIfCondition(ifOperation, out localOrParameter))
+            if (!TryDecomposeIfCondition(ifOperation, out var localOrParameter))
             {
                 return;
             }
 
-            IExpressionStatement expressionStatement;
-            IAssignmentExpression assignmentExpression;
             if (!TryFindAssignmentExpression(containingBlock, ifOperation, localOrParameter,
-                out expressionStatement, out assignmentExpression))
+                out var expressionStatement, out var assignmentExpression))
             {
                 return;
             }
 
             // We found an assignment using this local/parameter.  Now, just make sure there
-            // were no intervening writes between the check and the assignement.
-            var dataFlow = semanticModel.AnalyzeDataFlow(
-                ifOperation.Syntax, expressionStatement.Syntax);
+            // were no intervening accesses between the check and the assignment.
+            var statements = containingBlock.Statements;
+            var ifOperationIndex = statements.IndexOf(ifOperation);
+            var expressionStatementIndex = statements.IndexOf(expressionStatement);
 
-            if (dataFlow.WrittenInside.Contains(localOrParameter))
+            if (expressionStatementIndex > ifOperationIndex + 1)
             {
-                return;
+                // There are intermediary statements between the check and the assignment.
+                // Make sure they don't try to access the local.
+                var dataFlow = semanticModel.AnalyzeDataFlow(
+                    statements[ifOperationIndex + 1].Syntax,
+                    statements[expressionStatementIndex - 1].Syntax);
+
+                if (dataFlow.ReadInside.Contains(localOrParameter) ||
+                    dataFlow.WrittenInside.Contains(localOrParameter))
+                {
+                    return;
+                }
             }
 
-            // Ok, there were no intervening writes.  This check+assignment can be simplified.
+            // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptor(DescriptorId, option.Notification.Value);
+            var descriptor = CreateDescriptorWithSeverity(option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
@@ -159,6 +168,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
         }
 
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+
         private bool TryFindAssignmentExpression(
             IBlockStatement containingBlock, IIfStatement ifOperation, ISymbol localOrParameter,
             out IExpressionStatement expressionStatement, out IAssignmentExpression assignmentExpression)
@@ -181,8 +192,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     continue;
                 }
 
-                ISymbol assignmentValue;
-                if (!TryGetLocalOrParameterSymbol(assignmentExpression.Value, out assignmentValue))
+                if (!TryGetLocalOrParameterSymbol(assignmentExpression.Value, out var assignmentValue))
                 {
                     continue;
                 }

@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case SyntaxKind.ForEachStatement:
                     return ((ForEachStatementSyntax)forEachStatement).Type.IsTypeInferred(semanticModel);
-                case SyntaxKind.ForEachComponentStatement:
-                    return (((ForEachComponentStatementSyntax)forEachStatement).VariableComponent as TypedVariableComponentSyntax)?.Type.IsTypeInferred(semanticModel) == true;
+                case SyntaxKind.ForEachVariableStatement:
+                    return (((ForEachVariableStatementSyntax)forEachStatement).Variable as DeclarationExpressionSyntax)?.Type
+                        .IsTypeInferred(semanticModel) == true;
                 default:
                     return false;
             }

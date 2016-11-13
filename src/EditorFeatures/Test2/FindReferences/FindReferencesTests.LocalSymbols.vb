@@ -24,6 +24,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
+        <WorkItem(10714, "https://github.com/dotnet/roslyn/issues/10714")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLocalInAutoPropInitializer() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class Program
+{
+    public Action&lt;object&gt; Test { get; set; } = test =>
+    {
+        var $${|Definition:foo|} = 1;
+        [|foo|] = 3;
+    };
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalInFieldInitializerLambda1() As Task
             Dim input =
@@ -185,8 +208,8 @@ End Module
             Await TestAPIAndFeature(input)
         End Function
 
-
 #Region "FAR on collection initializers"
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocal_CSharpNamedIdentifiersUsedInNestedColInit() As Task
             Dim input =
@@ -267,5 +290,6 @@ End Module
             Await TestAPIAndFeature(input)
         End Function
 #End Region
+
     End Class
 End Namespace

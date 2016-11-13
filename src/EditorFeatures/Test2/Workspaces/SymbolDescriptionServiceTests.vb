@@ -30,7 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync()
-            Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=True, cancellationToken:=CancellationToken.None).AsImmutable()
+            Dim symbol = semanticModel.GetSemanticInfo(commonSyntaxToken, document.Project.Solution.Workspace, CancellationToken.None).
+                                       GetSymbols(includeType:=True).
+                                       AsImmutable()
+
             Dim symbolDescriptionService = languageServiceProvider.GetService(Of ISymbolDisplayService)()
 
             Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(workspace, semanticModel, cursorPosition, symbol)

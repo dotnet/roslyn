@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             return currentToken.Kind() == SyntaxKind.OpenParenToken &&
                 currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
-                currentToken.Parent.Parent is TypedVariableComponentSyntax;
+                currentToken.Parent.Parent is DeclarationExpressionSyntax;
         }
     }
 }

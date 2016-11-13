@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
-            var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.VariableComponent.Span);
+            var forEachSyntax = (ForEachVariableStatementSyntax)original.Syntax;
+            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.Variable.Span);
         }
 
         public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
@@ -247,10 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
                         break;
                     }
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     {
-                        var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
-                        iterationVarDeclSpan = forEachSyntax.VariableComponent.Span;
+                        var forEachSyntax = (ForEachVariableStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = forEachSyntax.Variable.Span;
                         break;
                     }
                 default:

@@ -11,21 +11,18 @@ namespace BuildBoss
     {
         Dll,
         Exe,
-        ExeCoreClr,
+        ExeNonDeployment,
         UnitTest,
-        UnitTestFixed,
-        UnitTestNext,
-        CompilerGeneratorTool,
-        DeploymentCompilerGeneratorTools,
-        Deployment,
+        UnitTestDesktop,
+        UnitTestPortable,
+        DeploymentTest,
         Vsix,
         Depedency,
         Custom
     }
-    
+
     internal static class RoslynProjectKindUtil
     {
-
         /// <summary>
         /// Convert a declared kind into the correspending enum value.
         /// </summary>
@@ -33,20 +30,16 @@ namespace BuildBoss
         {
             switch (value)
             {
-                case "ExeCoreClr":
-                    return RoslynProjectKind.Exe;
-                case "UnitTestFixed":
-                    return RoslynProjectKind.UnitTestFixed;
+                case "ExeNonDeployment":
+                    return RoslynProjectKind.ExeNonDeployment;
+                case "UnitTestPortable":
+                    return RoslynProjectKind.UnitTestPortable;
+                case "UnitTestDesktop":
+                    return RoslynProjectKind.UnitTestDesktop;
                 case "UnitTest":
                     return RoslynProjectKind.UnitTest;
-                case "UnitTestNext":
-                    return RoslynProjectKind.UnitTestNext;
-                case "CompilerGeneratorTool":
-                    return RoslynProjectKind.CompilerGeneratorTool;
-                case "DeploymentCompilerGeneratorTools":
-                    return RoslynProjectKind.DeploymentCompilerGeneratorTools;
-                case "Deployment":
-                    return RoslynProjectKind.Deployment;
+                case "DeploymentTest":
+                    return RoslynProjectKind.DeploymentTest;
                 case "Vsix":
                     return RoslynProjectKind.Vsix;
                 case "Dependency":
@@ -62,15 +55,16 @@ namespace BuildBoss
         {
             return
                 kind == RoslynProjectKind.UnitTest ||
-                kind == RoslynProjectKind.UnitTestFixed ||
-                kind == RoslynProjectKind.UnitTestNext;
+                kind == RoslynProjectKind.UnitTestDesktop ||
+                kind == RoslynProjectKind.UnitTestPortable;
         }
 
         internal static bool IsDeploymentProject(RoslynProjectKind kind)
         {
             return
                 kind == RoslynProjectKind.Exe ||
-                kind == RoslynProjectKind.UnitTestFixed;
+                kind == RoslynProjectKind.DeploymentTest ||
+                IsAnyUnitTest(kind);
         }
     }
 

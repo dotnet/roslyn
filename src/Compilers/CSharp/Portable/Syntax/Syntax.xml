@@ -1131,13 +1131,14 @@
   </Node>
   <Node Name="DeclarationExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DeclarationExpression"/>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax">
+    <Field Name="Type" Type="TypeSyntax"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax">
       <PropertyComment>
-        <summary>Declaration representing the variable declared in an out parameter.</summary>
+        <summary>Declaration representing the variable declared in an out parameter or deconstruction.</summary>
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents the syntax node for the variable declaration in an out var declaration.</summary>
+      <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates a DeclarationExpression node.</summary>
@@ -1841,32 +1842,6 @@
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
 
-  <AbstractNode Name="VariableComponentSyntax" Base="CSharpSyntaxNode">
-  </AbstractNode>
-  <Node Name="TypedVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="TypedVariableComponent"/>
-    <Field Name="Type" Type="TypeSyntax"/>
-    <Field Name="Designation" Type="VariableDesignationSyntax"/>
-  </Node>
-  <Node Name="ParenthesizedVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="ParenthesizedVariableComponent"/>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
-      <Kind Name="OpenParenToken"/>
-    </Field>
-    <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableComponentSyntax&gt;"/>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
-      <Kind Name="CloseParenToken"/>
-    </Field>
-  </Node>
-  <!--
-  <Node Name="WildcardVariableComponentSyntax" Base="VariableComponentSyntax">
-    <Kind Name="WildcardVariableComponent"/>
-    <Field Name="AsteriskToken" Type="SyntaxToken">
-      <Kind Name="AsteriskToken"/>
-    </Field>
-  </Node>
-  -->
-
   <AbstractNode Name="VariableDesignationSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <Node Name="SingleVariableDesignationSyntax" Base="VariableDesignationSyntax">
@@ -1884,31 +1859,6 @@
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
     </Field>
-  </Node>
-  <!--
-  <Node Name="WildcardVariableDesignationSyntax" Base="VariableDesignationSyntax">
-    <Kind Name="WildcardVariableDesignation"/>
-    <Field Name="AsteriskToken" Type="SyntaxToken">
-      <Kind Name="AsteriskToken"/>
-    </Field>
-  </Node>
-  -->
-
-  <Node Name="DeconstructionDeclarationStatementSyntax" Base="StatementSyntax">
-    <Kind Name="DeconstructionDeclarationStatement"/>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
-    <Field Name="Assignment" Type="VariableComponentAssignmentSyntax"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken">
-      <Kind Name="SemicolonToken"/>
-    </Field>
-  </Node>
-  <Node Name="VariableComponentAssignmentSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="VariableComponentAssignment"/>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
-    <Field Name="EqualsToken" Type="SyntaxToken">
-      <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
 
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
@@ -2089,8 +2039,7 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <!-- Deconstruction, Declaration, and Initializers are mutually exclusive. -->
-    <Field Name="Deconstruction" Type="VariableComponentAssignmentSyntax" Optional="true"/>
+    <!-- Declaration and Initializers are mutually exclusive. -->
     <Field Name="Declaration" Type="VariableDeclarationSyntax" Optional="true"/>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="FirstSemicolonToken" Type="SyntaxToken">
@@ -2153,15 +2102,18 @@
   <!-- We name this "DeclarationForEachStatementSyntax" because it can express existing foreach
        loops. We may elect to represent all foreach loops using this node and deprecate (stop parsing
        into) the old one. -->
-  <Node Name="ForEachComponentStatementSyntax" Base="CommonForEachStatementSyntax">
-    <Kind Name="ForEachComponentStatement"/>
+  <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
+    <Kind Name="ForEachVariableStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="VariableComponent" Type="VariableComponentSyntax"/>
+    <Field Name="Variable" Type="ExpressionSyntax">
+      <Kind Name="DeclarationExpression"/>
+      <Kind Name="TupleExpression"/>
+    </Field>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>
     </Field>

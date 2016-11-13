@@ -133,7 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
         }

@@ -78,7 +78,7 @@
     <Compile Include="BraceMatching\VisualBasicDirectiveTriviaBraceMatcher.vb" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.vb" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.vb" />
-    <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
+    <Compile Include="ChangeSignature\VisualBasicChangeSignatureCommandHandler.vb" />
     <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />

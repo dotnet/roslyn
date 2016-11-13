@@ -2012,6 +2012,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Null check can be simplified.
+        /// </summary>
+        internal static string Null_check_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Null_check_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Object initialization can be simplified.
         /// </summary>
         internal static string Object_initialization_can_be_simplified {
@@ -2413,6 +2422,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify collection initialization.
+        /// </summary>
+        internal static string Simplify_collection_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string Simplify_Member_Access {
@@ -2427,6 +2445,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify object initialization.
+        /// </summary>
+        internal static string Simplify_object_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
             }
         }
         
@@ -3161,6 +3188,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be inlined.
+        /// </summary>
+        internal static string Variable_declaration_can_be_inlined {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_inlined", resourceCulture);
             }
         }
         

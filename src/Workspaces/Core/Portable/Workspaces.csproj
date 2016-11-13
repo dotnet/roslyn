@@ -165,15 +165,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple.cs">
-      <Link>InternalUtilities\ValueTuple.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`2.cs">
-      <Link>InternalUtilities\ValueTuple`2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`3.cs">
-      <Link>InternalUtilities\ValueTuple`3.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
       <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
     </Compile>
@@ -189,14 +180,26 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectData.cs">
-      <Link>Serialization\ObjectData.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
       <Link>Serialization\ObjectReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderData.cs">
+      <Link>Serialization\ObjectReaderData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderWriterBase.cs">
+      <Link>Serialization\ObjectReaderWriterBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
       <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriterData.cs">
+      <Link>Serialization\ObjectWriterData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
+      <Link>Serialization\RecordingObjectBinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
+      <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
       <Link>InternalUtilities\FileUtilities.cs</Link>
@@ -279,18 +282,11 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
-      <Link>Serialization\TypeKey.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
+    <Compile Include="AddImports\AbstractAddImportsService.cs" />
+    <Compile Include="AddImports\IAddImportsService.cs" />
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -1087,7 +1083,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json">
-      <SubType></SubType>
+      <SubType>
+      </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />

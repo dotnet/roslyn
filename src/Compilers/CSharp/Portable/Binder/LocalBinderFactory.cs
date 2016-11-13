@@ -223,21 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
-                Binder addToMap;
-                if (match.IsGenericMethod)
-                {
-                    addToMap = new WithMethodTypeParametersBinder(match, _enclosing);
-                }
-                else
-                {
-                    addToMap = _enclosing;
-                }
-
-                AddToMap(node, addToMap);
 
                 if (body != null)
                 {
-                    Visit(body, new InMethodBinder(match, addToMap));
+                    Binder binder = match.IsGenericMethod
+                        ? new WithMethodTypeParametersBinder(match, _enclosing)
+                        : _enclosing;
+
+                    Visit(body, new InMethodBinder(match, binder));
                 }
 
                 _containingMemberOrLambda = oldMethod;
@@ -441,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCommonForEachStatement(node);
         }
 
-        public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+        public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
         }
@@ -662,11 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Initializer?.Value);
         }
 
-        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
-        {
-            Visit(node.Assignment.Value, _enclosing);
-        }
-
         public override void VisitReturnStatement(ReturnStatementSyntax node)
         {
             if (node.Expression != null)
@@ -746,7 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind())
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
                 // It is an error to have a declaration or a label in an embedded statement,

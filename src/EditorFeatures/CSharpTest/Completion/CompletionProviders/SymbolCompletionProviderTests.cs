@@ -8898,10 +8898,7 @@ class C
             await VerifyItemIsAbsentAsync(markup, "Item1");
             await VerifyItemIsAbsentAsync(markup, "Item9");
             await VerifyItemIsAbsentAsync(markup, "Rest");
-
-            // TODO fix once we have a good public API for tuple elements
-            // See https://github.com/dotnet/roslyn/issues/13229
-            await VerifyItemExistsAsync(markup, "Item3");
+            await VerifyItemIsAbsentAsync(markup, "Item3");
         }
 
         [WorkItem(14546, "https://github.com/dotnet/roslyn/issues/14546")]

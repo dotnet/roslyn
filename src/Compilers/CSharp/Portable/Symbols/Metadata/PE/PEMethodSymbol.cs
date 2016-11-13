@@ -501,6 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef => Signature.ReturnParam.CountOfCustomModifiersPrecedingByRef;
+
         /// <summary>
         /// Associate the method with a particular property. Returns
         /// false if the method is already associated with a property or event.

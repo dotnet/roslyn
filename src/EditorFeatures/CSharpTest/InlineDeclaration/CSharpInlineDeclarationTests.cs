@@ -48,6 +48,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineInNestedCall()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (Foo(int.TryParse(v, out i)))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (Foo(int.TryParse(v, out int i)))
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariableWithConstructor1()
         {
             await TestAsync(

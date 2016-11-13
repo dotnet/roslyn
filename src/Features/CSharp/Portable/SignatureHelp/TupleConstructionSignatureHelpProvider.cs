@@ -152,31 +152,43 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private SignatureHelpItems CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts, 
             SyntaxNode targetExpression, SemanticModel semanticModel, IEnumerable<INamedTypeSymbol> tupleTypes, CancellationToken cancellationToken)
         {
-            var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "("));
-            var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
-            var separatorParts = GetSeparatorParts();
+            var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "(")).ToTaggedText();
+            var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")")).ToTaggedText();
+            var separatorParts = GetSeparatorParts().ToTaggedText();
 
-            var items = tupleTypes.Select(t =>
-                new SignatureHelpItem(isVariadic: false,
+            var items = tupleTypes.Select(tupleType => Convert(
+                tupleType, prefixParts, suffixParts, separatorParts, semanticModel, position))
+                .ToList();
+
+            var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
+            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+        }
+
+        SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
+            ImmutableArray<TaggedText> separatorParts, SemanticModel semanticModel, int position)
+        {
+            return new SymbolKeySignatureHelpItem(
+                    symbol: tupleType,
+                    isVariadic: false,
                     documentationFactory: null,
                     prefixParts: prefixParts,
                     separatorParts: separatorParts,
                     suffixParts: suffixParts,
-                    parameters: ConvertTupleMembers(t, semanticModel, position),
-                    descriptionParts: null)).ToList();
-
-            var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
-            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+                    parameters: ConvertTupleMembers(tupleType, semanticModel, position),
+                    descriptionParts: null);
         }
 
         private IEnumerable<SignatureHelpParameter> ConvertTupleMembers(INamedTypeSymbol tupleType, SemanticModel semanticModel, int position)
         {
             var spacePart = Space();
             var result = new List<SignatureHelpParameter>();
-            for (int i = 0; i < tupleType.TupleElementTypes.Length; i++)
+            foreach (var element in tupleType.TupleElements)
             {
-                var type = tupleType.TupleElementTypes[i];
-                var elementName = GetElementName(tupleType.TupleElementNames, i);
+                var type = element.Type;
+
+                // The display name for each element. 
+                // Empty strings for elements not explicitly declared
+                var elementName = element.IsImplicitlyDeclared? string.Empty: element.Name;
 
                 var typeParts = type.ToMinimalDisplayParts(semanticModel, position).ToList();
                 if (!string.IsNullOrEmpty(elementName))
@@ -189,18 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             return result;
-        }
-
-        // The display name for each parameter. Empty strings are allowed for
-        // parameters without names.
-        private string GetElementName(ImmutableArray<string> tupleElementNames, int i)
-        {
-            if (tupleElementNames == default(ImmutableArray<string>))
-            {
-                return string.Empty;
-            }
-
-            return tupleElementNames[i] ?? string.Empty;
         }
 
         private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position, 

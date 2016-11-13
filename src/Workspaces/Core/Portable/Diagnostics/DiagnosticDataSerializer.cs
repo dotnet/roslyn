@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public async Task<bool> SerializeAsync(object documentOrProject, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(writer, items, cancellationToken);
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     return null;
                 }
 
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = new ObjectReader(stream))
                 {
                     // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
                     // when returning default(value type)

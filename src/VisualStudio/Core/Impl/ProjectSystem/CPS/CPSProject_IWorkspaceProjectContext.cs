@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                SetBinOutputPathAndRelatedData(value);
+                NormalizeAndSetBinOutputPathAndRelatedData(value);
             }
         }
 

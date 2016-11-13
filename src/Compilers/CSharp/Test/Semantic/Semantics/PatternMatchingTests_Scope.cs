@@ -16,6 +16,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests_Scope : PatternMatchingTestBase
     {
         [Fact]
+        [WorkItem(13029, "https://github.com/dotnet/roslyn/issues/13029")]
+        public void ScopeOfLocalFunction()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) { return true; }
+
+    void Test14(int val)
+    {
+        switch (val)
+        {
+            case 1 when TakeOutParam(true, out var x14):
+                void x14() {return;};
+                break;
+            case 2:
+                x14();
+                break;
+        }
+
+        switch (val)
+        {
+            case 1 when Dummy(1 is var x14):
+                void x14() {return;};
+                break;
+            case 2:
+                x14();
+                break;
+        }
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (14,52): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case 1 when TakeOutParam(true, out var x14):
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(14, 52),
+                // (24,40): error CS0136: A local or parameter named 'x14' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case 1 when Dummy(1 is var x14):
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x14").WithArguments("x14").WithLocation(24, 40));
+        }
+
+        [Fact]
         public void ScopeOfPatternVariables_ExpressionStatement_01()
         {
             var source =
@@ -6714,7 +6769,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var statement = (DeconstructionDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"
+            var statement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement(@"
 var (y1, dd) = ((123 is var x1), x1);
 ");
 

@@ -365,6 +365,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' If this field represents a tuple element, returns a corresponding default element field.
+        ''' Otherwise returns Nothing
+        ''' </summary>
+        Public Overridable ReadOnly Property CorrespondingTupleField As FieldSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+
+        ''' <summary>
         ''' If this is a field representing a tuple element,
         ''' returns the index of the element (zero-based).
         ''' Otherwise returns -1
@@ -428,6 +439,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_OriginalDefinition As IFieldSymbol Implements IFieldSymbol.OriginalDefinition
             Get
                 Return Me.OriginalDefinition
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_CorrespondingTupleField As IFieldSymbol Implements IFieldSymbol.CorrespondingTupleField
+            Get
+                Return Me.CorrespondingTupleField
             End Get
         End Property
 

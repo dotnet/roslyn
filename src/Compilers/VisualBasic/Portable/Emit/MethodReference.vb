@@ -73,6 +73,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Private ReadOnly Property ISignatureCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+            Get
+                Return 0
+            End Get
+        End Property
+
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
                 Return False

@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   using ((x))            -> using (x)
             //   catch when ((x))       -> catch when (x)
             if ((node.IsParentKind(SyntaxKind.EqualsValueClause) && ((EqualsValueClauseSyntax)node.Parent).Value == node) ||
-                (node.IsParentKind(SyntaxKind.VariableComponentAssignment) && ((VariableComponentAssignmentSyntax)node.Parent).Value == node) ||
                 (node.IsParentKind(SyntaxKind.IfStatement) && ((IfStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.ReturnStatement) && ((ReturnStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.YieldReturnStatement) && ((YieldStatementSyntax)node.Parent).Expression == node) ||
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (node.IsParentKind(SyntaxKind.WhileStatement) && ((WhileStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.DoStatement) && ((DoStatementSyntax)node.Parent).Condition == node) ||
                 (node.IsParentKind(SyntaxKind.ForStatement) && ((ForStatementSyntax)node.Parent).Condition == node) ||
-                (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachComponentStatement) && ((CommonForEachStatementSyntax)node.Parent).Expression == node) ||
+                (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement) && ((CommonForEachStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.LockStatement) && ((LockStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.UsingStatement) && ((UsingStatementSyntax)node.Parent).Expression == node) ||
                 (node.IsParentKind(SyntaxKind.CatchFilterClause) && ((CatchFilterClauseSyntax)node.Parent).FilterExpression == node))

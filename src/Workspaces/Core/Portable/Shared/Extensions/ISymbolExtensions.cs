@@ -375,9 +375,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsThisParameter(this ISymbol symbol)
-        {
-            return symbol != null && symbol.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
-        }
+            => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
 
         public static ISymbol ConvertThisParameterToType(this ISymbol symbol)
         {

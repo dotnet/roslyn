@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
             private JET_DBID OpenExistingDatabase(JET_SESID session, string databaseFile)
             {
-                JET_DBID databaseId;
-                Api.JetOpenDatabase(SessionId, databaseFile, null, out databaseId, OpenDatabaseGrbit.None);
+                Api.JetOpenDatabase(SessionId, databaseFile, null, out var databaseId, OpenDatabaseGrbit.None);
 
                 return databaseId;
             }

@@ -51,6 +51,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddImports\CSharpAddImportsService.cs" />
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
     <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
+    <Compile Include="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />

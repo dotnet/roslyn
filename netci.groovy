@@ -10,31 +10,6 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Email the results of aborted / failed jobs to our infrastructure alias
-static void addEmailPublisher(def myJob) {
-  myJob.with {
-    publishers {
-      extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        // trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
-      }
-    }
-  }
-}
-
-// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
-// vs. polling
-static void addBuildEventWebHook(def myJob) {
-  myJob.with {
-    notifications {
-      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
-        event('all')
-      }
-    }
-  }   
-}
-
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -68,10 +43,9 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
-    addEmailPublisher(myJob)
+    // TODO: Add once external email sending is available again
+    // addEmailPublisher(myJob)
   }
-
-  addBuildEventWebHook(myJob)
 }
 
 // True when this is a PR job, false for commit.  On feature branches we do PR jobs only. 
@@ -153,6 +127,25 @@ set TMP=%TEMP%
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Build correctness tests
+commitPullList.each { isPr -> 
+  def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
+  def myJob = job(jobName) {
+    description('Build correctness tests')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testBuildCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = ""
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

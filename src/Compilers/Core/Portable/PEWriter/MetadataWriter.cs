@@ -3225,31 +3225,40 @@ namespace Microsoft.Cci
         private void SerializeParameterInformation(ParameterTypeEncoder encoder, IParameterTypeInformation parameterTypeInformation)
         {
             var modifiers = parameterTypeInformation.CustomModifiers;
-            ushort numberOfModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
-            int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
-
-            Debug.Assert(numberOfModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
-
-            if (numberOfModifiersPrecedingByRef > 0)
-            {
-                SerializeCustomModifiers(encoder.CustomModifiers(), modifiers, 0, numberOfModifiersPrecedingByRef);
-            }
-
             var type = parameterTypeInformation.GetType(Context);
+
             if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!parameterTypeInformation.IsByReference);
+
+                if (modifiers.Length > 0)
+                {
+                    SerializeCustomModifiers(encoder.CustomModifiers(), modifiers);
+                }
+
                 encoder.TypedReference();
-                return;
             }
-
-            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
-
-            if (numberOfRemainingModifiers > 0)
+            else
             {
-                SerializeCustomModifiers(typeEncoder.CustomModifiers(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
-            }
+                ushort numberOfModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+                int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
 
-            SerializeTypeReference(typeEncoder, type);
+                Debug.Assert(numberOfModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
+
+                if (numberOfModifiersPrecedingByRef > 0)
+                {
+                    SerializeCustomModifiers(encoder.CustomModifiers(), modifiers, 0, numberOfModifiersPrecedingByRef);
+                }
+
+                var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
+
+                if (numberOfRemainingModifiers > 0)
+                {
+                    SerializeCustomModifiers(typeEncoder.CustomModifiers(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
+                }
+
+                SerializeTypeReference(typeEncoder, type);
+            }
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
@@ -3589,22 +3598,48 @@ namespace Microsoft.Cci
             ParametersEncoder parametersEncoder;
 
             encoder.Parameters(declaredParameters.Length + varargParameters.Length, out returnTypeEncoder, out parametersEncoder);
-            if (signature.ReturnValueCustomModifiers.Length > 0)
-            {
-                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
-            }
+
+            var modifiers = signature.ReturnValueCustomModifiers;
 
             if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                if (modifiers.Length > 0)
+                {
+                    SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), modifiers);
+                }
+
                 returnTypeEncoder.TypedReference();
             }
             else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                if (modifiers.Length > 0)
+                {
+                    SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), modifiers);
+                }
+
                 returnTypeEncoder.Void();
             }
             else
             {
-                SerializeTypeReference(returnTypeEncoder.Type(signature.ReturnValueIsByRef), returnType);
+                ushort numberOfModifiersPrecedingByRef = signature.CountOfCustomModifiersPrecedingByRef;
+                int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
+                Debug.Assert(numberOfModifiersPrecedingByRef == 0 || signature.ReturnValueIsByRef);
+
+                if (numberOfModifiersPrecedingByRef > 0)
+                {
+                    SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), modifiers, 0, numberOfModifiersPrecedingByRef);
+                }
+
+                var typeEncoder = returnTypeEncoder.Type(signature.ReturnValueIsByRef);
+
+                if (numberOfRemainingModifiers > 0)
+                {
+                    SerializeCustomModifiers(typeEncoder.CustomModifiers(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
+                }
+
+                SerializeTypeReference(typeEncoder, returnType);
             }
 
             foreach (IParameterTypeInformation parameter in declaredParameters)

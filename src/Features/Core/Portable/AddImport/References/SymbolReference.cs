@@ -55,24 +55,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected virtual Solution GetUpdatedSolution(Document newDocument)
                 => newDocument.Project.Solution;
 
-            private async Task<Document> UpdateDocumentAsync(
+            private Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 ReplaceNameNode(ref contextNode, ref document, cancellationToken);
 
                 // Defer to the language to add the actual import/using.
-                var newDocument = await provider.AddImportAsync(contextNode,
+                return provider.AddImportAsync(contextNode,
                     this.SymbolResult.Symbol, document,
-                    placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-                return newDocument;
+                    placeSystemNamespaceFirst, cancellationToken);
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node,
+                bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                string description = TryGetDescription(document.Project, node, semanticModel);
+                string description = TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -103,9 +102,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected virtual string TryGetDescription(
-                Project project, SyntaxNode node, SemanticModel semanticModel)
+                Document document, SyntaxNode node, 
+                SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                return provider.TryGetDescription(SymbolResult.Symbol, semanticModel, node, this.CheckForExistingImport(project));
+                return provider.TryGetDescription(
+                    document, SymbolResult.Symbol, semanticModel, node, 
+                    this.CheckForExistingImport(document.Project), cancellationToken);
             }
         }
     }

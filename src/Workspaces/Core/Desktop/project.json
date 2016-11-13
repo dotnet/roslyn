@@ -1,7 +1,8 @@
 {
     "dependencies": {
         "ManagedEsent": "1.9.4",
-        "Roslyn.Microsoft.Build": "0.0.2",
+        "Microsoft.Build": "14.3.0",
+        "Microsoft.Build.Tasks.Core": "14.3.0",
         "Microsoft.CodeAnalysis.Elfie": {
             "version": "0.10.6-rc2",
             "suppressParent": "all"

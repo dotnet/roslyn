@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "Microsoft.Build.Logging.StructuredLogger": "1.0.58",
     "MicroBuild.Core.Sentinel": "1.0.0",
     "MicroBuild.Core": "0.2.0",
     "MicroBuild.Plugins.SwixBuild": "1.0.71",

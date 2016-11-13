@@ -346,6 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
         }
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get { return _reducedFrom.CountOfCustomModifiersPrecedingByRef; }
+        }
+
         internal override int ParameterCount
         {
             get { return _reducedFrom.ParameterCount - 1; }

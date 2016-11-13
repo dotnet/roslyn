@@ -69,6 +69,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Await TestAsync(workspace)
         End Function
 
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class MyClass
+{
+    public string [|Prop1|] { get; set; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instance = new MyClass();
+
+        var x = new
+        {
+            instance.$$Prop1
+        };
+    }
+}        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+public class MyClass1
+    public property [|Prop1|] as integer
+end class
+class Program
+    sub Main()
+        dim instance = new MyClass1()
+
+        dim x as new With { instance.$$Prop1 }
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGoToDefinitionSameClass() As Task
             Dim workspace =

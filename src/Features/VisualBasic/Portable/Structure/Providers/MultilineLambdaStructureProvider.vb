@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
             If Not lambdaExpression.EndSubOrFunctionStatement.IsMissing Then
-                spans.AddIfNotNull(CreateRegionFromBlock(
+                spans.AddIfNotNull(CreateBlockSpanFromBlock(
                     lambdaExpression, bannerNode:=lambdaExpression.SubOrFunctionHeader, autoCollapse:=False,
                     type:=BlockTypes.Expression, isCollapsible:=True))
             End If

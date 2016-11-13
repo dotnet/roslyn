@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 whenPartToKeep.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptor(this.DescriptorId, option.Notification.Value),
+                this.CreateDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

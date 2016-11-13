@@ -318,5 +318,20 @@
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadTasks.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_MsbuildError.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadElement.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

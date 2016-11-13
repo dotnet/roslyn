@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             _nameOfLocalizableResource = reader.ReadString();
             _resourceManager = new ResourceManager(_resourceSource);
 
-            var length = reader.ReadInt32();
+            var length = (int)reader.ReadCompressedUInt();
             if (length == 0)
             {
                 _formatArguments = Array.Empty<string>();
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis
         {
             writer.WriteValue(_resourceSource);
             writer.WriteString(_nameOfLocalizableResource);
-            var length = _formatArguments.Length;
-            writer.WriteInt32(length);
+            var length = (uint)_formatArguments.Length;
+            writer.WriteCompressedUInt(length);
             for (int i = 0; i < length; i++)
             {
                 writer.WriteString(_formatArguments[i]);
