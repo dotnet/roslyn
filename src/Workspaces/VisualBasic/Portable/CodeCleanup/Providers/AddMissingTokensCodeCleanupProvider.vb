@@ -616,11 +616,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Function ProcessMissingToken(originalToken As SyntaxToken, token As SyntaxToken) As SyntaxToken
                 ' auto insert missing "Of" keyword in type argument list
-                If originalToken.Parent.TypeSwitch(Function(p As TypeArgumentListSyntax) p.OfKeyword = originalToken) Then
+                If TryCast(originalToken.Parent, TypeArgumentListSyntax)?.OfKeyword = originalToken Then
                     Return CreateMissingToken(token)
-                ElseIf originalToken.Parent.TypeSwitch(Function(p As TypeParameterListSyntax) p.OfKeyword = originalToken) Then
+                ElseIf TryCast(originalToken.Parent, TypeParameterListSyntax)?.OfKeyword = originalToken Then
                     Return CreateMissingToken(token)
-                ElseIf originalToken.Parent.TypeSwitch(Function(p As ContinueStatementSyntax) p.BlockKeyword = originalToken) Then
+                ElseIf TryCast(originalToken.Parent, ContinueStatementSyntax)?.BlockKeyword = originalToken Then
                     Return CreateMissingToken(token)
                 End If
 
