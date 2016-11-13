@@ -593,8 +593,10 @@ result.ReadOutside().Any(Function(s) s Is local) Then
                 Return False
             End If
 
-            If Not container.TypeSwitch(Function(m As MethodBlockBaseSyntax) m.EndBlockStatement.EndKeyword = nextToken,
-                                        Function(m As MultiLineLambdaExpressionSyntax) m.EndSubOrFunctionStatement.EndKeyword = nextToken) Then
+            Dim match = (TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken) OrElse
+                        (TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken)
+
+            If Not match Then
                 Return False
             End If
 
