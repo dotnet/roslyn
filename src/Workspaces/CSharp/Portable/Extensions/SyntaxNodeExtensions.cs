@@ -857,13 +857,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetBrackets(this SyntaxNode node)
         {
-            return node.TypeSwitch(
-                (ArrayRankSpecifierSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedArgumentListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (ImplicitArrayCreationExpressionSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (AttributeListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedParameterListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (SyntaxNode n) => default(ValueTuple<SyntaxToken, SyntaxToken>));
+            switch (node)
+            {
+                case ArrayRankSpecifierSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case BracketedArgumentListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case ImplicitArrayCreationExpressionSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case AttributeListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case BracketedParameterListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                default: return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            }
         }
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
