@@ -147,12 +147,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
         private static bool MatchesName(INamespaceOrTypeSymbol typeOrNamespace, NameAndArity nameAndArity, IEqualityComparer<string> comparer)
         {
-            return typeOrNamespace.TypeSwitch(
-                (INamespaceSymbol namespaceSymbol) =>
-                    comparer.Equals(namespaceSymbol.Name, nameAndArity.Name) && nameAndArity.Arity == 0,
-                (INamedTypeSymbol typeSymbol) =>
-                    comparer.Equals(typeSymbol.Name, nameAndArity.Name) &&
-                    (nameAndArity.Arity == 0 || nameAndArity.Arity == typeSymbol.TypeArguments.Length));
+            switch (typeOrNamespace)
+            {
+                case INamespaceSymbol namespaceSymbol:
+                    return comparer.Equals(namespaceSymbol.Name, nameAndArity.Name) && nameAndArity.Arity == 0;
+                case INamedTypeSymbol typeSymbol:
+                    return comparer.Equals(typeSymbol.Name, nameAndArity.Name) &&
+                        (nameAndArity.Arity == 0 || nameAndArity.Arity == typeSymbol.TypeArguments.Length);
+                default:
+                    return false;
+            }
         }
 
         private static bool MatchesNames(INamedTypeSymbol type, NameAndArity[] names, IEqualityComparer<string> comparer)
@@ -267,11 +271,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
         private static IEnumerable<INamedTypeSymbol> GetTypeMembersRecursive(INamespaceOrTypeSymbol container)
         {
-            return container.TypeSwitch(
-                (INamespaceSymbol namespaceSymbol) =>
-                    namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n)),
-                (INamedTypeSymbol typeSymbol) =>
-                    typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol));
+            switch (container)
+            {
+                case INamespaceSymbol namespaceSymbol:
+                    return namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n));
+                case INamedTypeSymbol typeSymbol:
+                    return typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol);
+                default:
+                    return null;
+            }
         }
     }
 }
