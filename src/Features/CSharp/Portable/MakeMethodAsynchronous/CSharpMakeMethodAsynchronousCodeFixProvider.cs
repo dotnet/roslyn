@@ -42,12 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType)
         {
-            return node.TypeSwitch(
-                (MethodDeclarationSyntax method) => FixMethod(keepVoid, methodSymbolOpt, method, taskType, taskOfTType),
-                (AnonymousMethodExpressionSyntax method) => FixAnonymousMethod(method),
-                (ParenthesizedLambdaExpressionSyntax lambda) => FixParenthesizedLambda(lambda),
-                (SimpleLambdaExpressionSyntax lambda) => FixSimpleLambda(lambda),
-                _ => node);
+            switch (node)
+            {
+                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, taskType, taskOfTType);
+                case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
+                case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
+                case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
+                default: return node;
+            }
         }
 
         private SyntaxNode FixMethod(
