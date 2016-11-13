@@ -244,9 +244,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             // of parameters (but we don't actually validate the type or name of the supplied parameters).
             if (parameterCount != null)
             {
-                if (methodOrProperty.TypeSwitch(
-                        (IMethodSymbol method) => method.Parameters.Length != parameterCount,
-                        (IPropertySymbol property) => property.Parameters.Length != parameterCount))
+                var mismatch = false;
+                switch (methodOrProperty)
+                {
+                    case IMethodSymbol method: mismatch = method.Parameters.Length != parameterCount; break;
+                    case IPropertySymbol property: mismatch = property.Parameters.Length != parameterCount; break; 
+                }
+
+                if (mismatch)
                 {
                     return false;
                 }
