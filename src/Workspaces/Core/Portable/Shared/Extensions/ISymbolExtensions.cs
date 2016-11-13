@@ -397,10 +397,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol nt) => nt.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.Parameters;
+                case IPropertySymbol nt: return nt.Parameters;
+                default: return ImmutableArray.Create<IParameterSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
