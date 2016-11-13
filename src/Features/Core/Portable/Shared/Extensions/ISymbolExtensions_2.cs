@@ -170,12 +170,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            var documentation = symbol.TypeSwitch(
-                    (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
-                    (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
-                    (IMethodSymbol method) => GetMethodDocumentation(method),
-                    (IAliasSymbol alias) => alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
-                    _ => symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText);
+            var documentation = (string)null;
+            switch (symbol)
+            {
+                case IParameterSymbol parameter: documentation = parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name); break;
+                case ITypeParameterSymbol typeParam: documentation = typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name); break;
+                case IMethodSymbol method: documentation = GetMethodDocumentation(method); break;
+                case IAliasSymbol alias: documentation = alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText; break;
+                default: documentation = symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText; break;
+            }
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)

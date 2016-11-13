@@ -176,9 +176,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var target = ((IAliasSymbol)originalSymbol).Target;
 
-                    return target.TypeSwitch(
-                        (INamedTypeSymbol nt) => nt.ConstructedFrom.Equals(referencedSymbol),
-                        (INamespaceOrTypeSymbol s) => s.Equals(referencedSymbol));
+                    switch (target)
+                    {
+                        case INamedTypeSymbol nt: return nt.ConstructedFrom.Equals(referencedSymbol);
+                        case INamespaceOrTypeSymbol s: return s.Equals(referencedSymbol);
+                        default: return false;
+                    }
                 }
 
                 // cascade from property accessor to property (someone in C# renames base.get_X, or the accessor override)
