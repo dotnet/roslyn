@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // check whether using has contents
-            if (owningNode.TypeSwitch((UsingDirectiveSyntax u) => u.Name == null || u.Name.IsMissing))
+            if (owningNode is UsingDirectiveSyntax u &&
+                (u.Name == null || u.Name.IsMissing))
             {
                 return false;
             }
