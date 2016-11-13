@@ -185,19 +185,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
+            return content =>
             {
-                content.TypeSwitch(
-                        (QuickInfoDisplayDeferredContent qiContent) =>
+                switch (content)
+                {
+                    case QuickInfoDisplayDeferredContent qiContent:
                         {
                             var actualContent = qiContent.MainDescription.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        },
-                        (ClassifiableDeferredContent classifiable) =>
+                        }
+                        break;
+
+                    case ClassifiableDeferredContent classifiable:
                         {
                             var actualContent = classifiable.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        });
+                        }
+                        break;
+                }
             };
         }
 
