@@ -190,52 +190,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var parent = token.Parent;
 
-                return parent.TypeSwitch(
-                    (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator, token),
-                    (ArgumentListSyntax argument) => InferTypeInArgumentList(argument, token),
-                    (ArgumentSyntax argument) => InferTypeInArgument(argument, token),
-                    (ArrayCreationExpressionSyntax arrayCreationExpression) => InferTypeInArrayCreationExpression(arrayCreationExpression, token),
-                    (ArrayRankSpecifierSyntax arrayRankSpecifier) => InferTypeInArrayRankSpecifier(arrayRankSpecifier, token),
-                    (ArrayTypeSyntax arrayType) => InferTypeInArrayType(arrayType, token),
-                    (ArrowExpressionClauseSyntax arrowClause) => InferTypeInArrowExpressionClause(arrowClause),
-                    (AssignmentExpressionSyntax assignmentExpression) => InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, previousToken: token),
-                    (AttributeArgumentListSyntax attributeArgumentList) => InferTypeInAttributeArgumentList(attributeArgumentList, token),
-                    (AttributeArgumentSyntax argument) => InferTypeInAttributeArgument(argument, token),
-                    (AttributeListSyntax attributeDeclaration) => InferTypeInAttributeDeclaration(attributeDeclaration, token),
-                    (AttributeTargetSpecifierSyntax attributeTargetSpecifier) => InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token),
-                    (AwaitExpressionSyntax awaitExpression) => InferTypeInAwaitExpression(awaitExpression, token),
-                    (BinaryExpressionSyntax binaryExpression) => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token),
-                    (BracketedArgumentListSyntax bracketedArgumentList) => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
-                    (CastExpressionSyntax castExpression) => InferTypeInCastExpression(castExpression, previousToken: token),
-                    (CatchDeclarationSyntax catchDeclaration) => InferTypeInCatchDeclaration(catchDeclaration, token),
-                    (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause, token),
-                    (CheckedExpressionSyntax checkedExpression) => InferTypes(checkedExpression),
-                    (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, previousToken: token),
-                    (DefaultExpressionSyntax defaultExpression) => InferTypeInDefaultExpression(defaultExpression),
-                    (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement, token),
-                    (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue, token),
-                    (ExpressionStatementSyntax expressionStatement) => InferTypeInExpressionStatement(expressionStatement, token),
-                    (ForEachStatementSyntax forEachStatement) => InferTypeInForEachStatement(forEachStatement, previousToken: token),
-                    (ForStatementSyntax forStatement) => InferTypeInForStatement(forStatement, previousToken: token),
-                    (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement, token),
-                    (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, previousToken: token),
-                    (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
-                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token),
-                    (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
-                    (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
-                    (ObjectCreationExpressionSyntax objectCreation) => InferTypeInObjectCreationExpression(objectCreation, token),
-                    (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
-                    (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
-                    (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
-                    (ReturnStatementSyntax returnStatement) => InferTypeForReturnStatement(returnStatement, token),
-                    (SimpleLambdaExpressionSyntax simpleLambdaExpression) => InferTypeInSimpleLambdaExpression(simpleLambdaExpression, token),
-                    (SwitchLabelSyntax switchLabel) => InferTypeInSwitchLabel(switchLabel, token),
-                    (SwitchStatementSyntax switchStatement) => InferTypeInSwitchStatement(switchStatement, token),
-                    (ThrowStatementSyntax throwStatement) => InferTypeInThrowStatement(throwStatement, token),
-                    (UsingStatementSyntax usingStatement) => InferTypeInUsingStatement(usingStatement, token),
-                    (WhileStatementSyntax whileStatement) => InferTypeInWhileStatement(whileStatement, token),
-                    (YieldStatementSyntax yieldStatement) => InferTypeInYieldStatement(yieldStatement, token),
-                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>());
+                switch (parent)
+                {
+                    case AnonymousObjectMemberDeclaratorSyntax memberDeclarator: return InferTypeInMemberDeclarator(memberDeclarator, token);
+                    case ArgumentListSyntax argument: return InferTypeInArgumentList(argument, token);
+                    case ArgumentSyntax argument: return InferTypeInArgument(argument, token);
+                    case ArrayCreationExpressionSyntax arrayCreationExpression: return InferTypeInArrayCreationExpression(arrayCreationExpression, token);
+                    case ArrayRankSpecifierSyntax arrayRankSpecifier: return InferTypeInArrayRankSpecifier(arrayRankSpecifier, token);
+                    case ArrayTypeSyntax arrayType: return InferTypeInArrayType(arrayType, token);
+                    case ArrowExpressionClauseSyntax arrowClause: return InferTypeInArrowExpressionClause(arrowClause);
+                    case AssignmentExpressionSyntax assignmentExpression: return InferTypeInBinaryOrAssignmentExpression(assignmentExpression, assignmentExpression.OperatorToken, assignmentExpression.Left, assignmentExpression.Right, previousToken: token);
+                    case AttributeArgumentListSyntax attributeArgumentList: return InferTypeInAttributeArgumentList(attributeArgumentList, token);
+                    case AttributeArgumentSyntax argument: return InferTypeInAttributeArgument(argument, token);
+                    case AttributeListSyntax attributeDeclaration: return InferTypeInAttributeDeclaration(attributeDeclaration, token);
+                    case AttributeTargetSpecifierSyntax attributeTargetSpecifier: return InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token);
+                    case AwaitExpressionSyntax awaitExpression: return InferTypeInAwaitExpression(awaitExpression, token);
+                    case BinaryExpressionSyntax binaryExpression: return InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token);
+                    case BracketedArgumentListSyntax bracketedArgumentList: return InferTypeInBracketedArgumentList(bracketedArgumentList, token);
+                    case CastExpressionSyntax castExpression: return InferTypeInCastExpression(castExpression, previousToken: token);
+                    case CatchDeclarationSyntax catchDeclaration: return InferTypeInCatchDeclaration(catchDeclaration, token);
+                    case CatchFilterClauseSyntax catchFilterClause: return InferTypeInCatchFilterClause(catchFilterClause, token);
+                    case CheckedExpressionSyntax checkedExpression: return InferTypes(checkedExpression);
+                    case ConditionalExpressionSyntax conditionalExpression: return InferTypeInConditionalExpression(conditionalExpression, previousToken: token);
+                    case DefaultExpressionSyntax defaultExpression: return InferTypeInDefaultExpression(defaultExpression);
+                    case DoStatementSyntax doStatement: return InferTypeInDoStatement(doStatement, token);
+                    case EqualsValueClauseSyntax equalsValue: return InferTypeInEqualsValueClause(equalsValue, token);
+                    case ExpressionStatementSyntax expressionStatement: return InferTypeInExpressionStatement(expressionStatement, token);
+                    case ForEachStatementSyntax forEachStatement: return InferTypeInForEachStatement(forEachStatement, previousToken: token);
+                    case ForStatementSyntax forStatement: return InferTypeInForStatement(forStatement, previousToken: token);
+                    case IfStatementSyntax ifStatement: return InferTypeInIfStatement(ifStatement, token);
+                    case InitializerExpressionSyntax initializerExpression: return InferTypeInInitializerExpression(initializerExpression, previousToken: token);
+                    case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement, token);
+                    case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token);
+                    case NameColonSyntax nameColon: return InferTypeInNameColon(nameColon, token);
+                    case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals, token);
+                    case ObjectCreationExpressionSyntax objectCreation: return InferTypeInObjectCreationExpression(objectCreation, token);
+                    case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token);
+                    case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary, token);
+                    case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary, token);
+                    case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement, token);
+                    case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression, token);
+                    case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel, token);
+                    case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement, token);
+                    case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement, token);
+                    case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement, token);
+                    case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement, token);
+                    case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement, token);
+                    default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
