@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var node = this.GetContainingScope();
                 var semanticModel = this.SemanticDocument.SemanticModel;
 
-                return node.TypeSwitch(
-                    (AccessorDeclarationSyntax access) =>
-                    {
+                switch (node)
+                {
+                    case AccessorDeclarationSyntax access:
                         // property case
                         if (access.Parent == null || access.Parent.Parent == null)
                         {
@@ -78,11 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
 
                         return ((IPropertySymbol)semanticModel.GetDeclaredSymbol(access.Parent.Parent)).Type;
-                    },
-                    (MethodDeclarationSyntax method) => semanticModel.GetDeclaredSymbol(method).ReturnType,
-                    (ParenthesizedLambdaExpressionSyntax lambda) => semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda),
-                    (SimpleLambdaExpressionSyntax lambda) => semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda),
-                    (AnonymousMethodExpressionSyntax anonymous) => semanticModel.GetLambdaOrAnonymousMethodReturnType(anonymous));
+
+                    case MethodDeclarationSyntax method:
+                        return semanticModel.GetDeclaredSymbol(method).ReturnType;
+
+                    case ParenthesizedLambdaExpressionSyntax lambda:
+                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
+
+                    case SimpleLambdaExpressionSyntax lambda:
+                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
+
+                    case AnonymousMethodExpressionSyntax anonymous:
+                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(anonymous);
+
+                    default:
+                        return null;
+                }
             }
         }
     }

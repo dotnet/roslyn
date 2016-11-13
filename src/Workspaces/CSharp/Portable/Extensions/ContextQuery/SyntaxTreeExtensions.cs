@@ -924,9 +924,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: SyntaxFacts.IsInNamespaceOrTypeContext(name), cancellationToken: cancellationToken);
             return symbols.Any(s =>
-                s.TypeSwitch(
-                    (INamedTypeSymbol nt) => nt.Arity > 0,
-                    (IMethodSymbol m) => m.Arity > 0));
+            {
+                switch (s)
+                {
+                    case INamedTypeSymbol nt: return nt.Arity > 0;
+                    case IMethodSymbol m: return m.Arity > 0;
+                    default: return false;
+                }
+            });
         }
 
         public static bool IsParameterModifierContext(
