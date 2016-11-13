@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly Property [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
+        Public Shared ReadOnly Property [Default] As New VisualBasicCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Friend Shared ReadOnly Property ScriptRunner As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isScriptRunner:=True)
+        Friend Shared ReadOnly Property ScriptRunner As New VisualBasicCommandLineParser(isScriptRunner:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -44,21 +44,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the standard Visual Basic source file extension
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic source file extension.</returns>
-        Protected Overrides ReadOnly Property RegularFileExtension As String
-            Get
-                Return ".vb"
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property RegularFileExtension As String = ".vb"
+
 
         ''' <summary>
         ''' Gets the standard Visual Basic script file extension.
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic script file extension.</returns>
-        Protected Overrides ReadOnly Property ScriptFileExtension As String
-            Get
-                Return ".vbx"
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property ScriptFileExtension As String = ".vbx"
 
         Friend NotOverridable Overrides Function CommonParse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectoryOpt As String, additionalReferenceDirectories As String) As CommandLineArguments
             Return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories)
