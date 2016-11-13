@@ -136,12 +136,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var textToParse = owningNode.NormalizeWhitespace().ToFullString() + semicolon;
 
                 // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
-                var node = owningNode.TypeSwitch(
-                    (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                    (BaseMethodDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                    (BasePropertyDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                    (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
-                    (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options));
+                var node = (SyntaxNode)null;
+                switch (owningNode)
+                {
+                    case BaseFieldDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
+                    case BaseMethodDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
+                    case BasePropertyDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
+                    case StatementSyntax n: node = SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options); break;
+                    case UsingDirectiveSyntax n: node = SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options); break;
+                }
 
                 // Insert line ender if we didn't introduce any diagnostics, if not try the next owning node.
                 if (node != null && !node.ContainsDiagnostics)
