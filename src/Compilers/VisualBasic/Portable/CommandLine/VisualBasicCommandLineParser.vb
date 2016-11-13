@@ -72,13 +72,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim flattenedArgs As List(Of String) = New List(Of String)()
             Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
 
+            'Dim sdkPaths As New List(Of String)()
+            'Dim libPaths As New List(Of String)()
+            'Dim sourcePaths As New List(Of String)()
+            'Dim keyFileSearchPaths = New List(Of String)()
+            Dim Paths = (SDK:=New List(Of String),
+                       [LIB]:=New List(Of String),
+                      Source:=New List(Of String),
+               KeyFileSearch:=New List(Of String),
+                    Response:=New List(Of String))
             ' normalized paths to directories containing response files:
-            Dim responsePaths As New List(Of String)
-            FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
 
-            Dim displayLogo As Boolean = True
-            Dim displayHelp As Boolean = False
-            Dim displayVersion As Boolean = False
+            FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, Paths.Response)
+
+            Dim display = (Logo:=True, Help:=False, Version:=False)
+
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -112,10 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
-            Dim sdkPaths As New List(Of String)()
-            Dim libPaths As New List(Of String)()
-            Dim sourcePaths As New List(Of String)()
-            Dim keyFileSearchPaths = New List(Of String)()
+
             Dim globalImports = New List(Of GlobalImport)
             Dim rootNamespace As String = ""
             Dim optionStrict As OptionStrict = OptionStrict.Off
@@ -186,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Exit Select
                         End If
 
-                        displayHelp = True
+                        display.Help = True
                         Continue For
 
                     Case "version"
@@ -194,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Exit Select
                         End If
 
-                        displayVersion = True
+                        display.Version = True
                         Continue For
 
                     Case "r", "reference"
@@ -397,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
                         End If
 
-                        libPaths.AddRange(ParseSeparatedPaths(value))
+                        Paths.LIB.AddRange(ParseSeparatedPaths(value))
                         Continue For
 
 #If DEBUG Then
@@ -428,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            sourcePaths.AddRange(ParseSeparatedPaths(value))
+                            Paths.Source.AddRange(ParseSeparatedPaths(value))
                             Continue For
                     End Select
                 Else
@@ -542,8 +547,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Continue For
                             End If
 
-                            sdkPaths.Clear()
-                            sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Paths.SDK.Clear()
+                            Paths.SDK.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "instrument"
@@ -921,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            displayLogo = False
+                            display.Logo = False
                             Continue For
 
                         Case "nologo-"
@@ -929,7 +934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            displayLogo = True
+                            display.Logo = True
                             Continue For
 
                         Case "quiet+"
@@ -1192,22 +1197,22 @@ lVbRuntimePlus:
                 If flattenedArgs.Any Then
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
                 Else
-                    displayHelp = True
+                    display.Help = True
                 End If
             End If
 
             ' Prepare SDK PATH
-            If sdkDirectory IsNot Nothing AndAlso sdkPaths.Count = 0 Then
-                sdkPaths.Add(sdkDirectory)
+            If sdkDirectory IsNot Nothing AndAlso (Paths.SDK.Count = 0) Then
+                Paths.SDK.Add(sdkDirectory)
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
-            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
+            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(Paths.SDK, baseDirectory)
 
             ' If /nostdlib is not specified, load System.dll
             ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
             If Not noStdLib Then
-                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory)
+                Dim systemDllPath As String = FindFileInSdkPath(Paths.SDK, "System.dll", baseDirectory)
                 If systemDllPath Is Nothing Then
                     AddDiagnostic(diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
                 Else
@@ -1220,7 +1225,7 @@ lVbRuntimePlus:
             ' Add reference to 'Microsoft.VisualBasic.dll' if needed
             If includeVbRuntimeReference Then
                 If vbRuntimePath Is Nothing Then
-                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
+                    Dim msVbDllPath As String = FindFileInSdkPath(Paths.SDK, "Microsoft.VisualBasic.dll", baseDirectory)
                     If msVbDllPath Is Nothing Then
                         AddDiagnostic(diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
                     Else
@@ -1234,11 +1239,11 @@ lVbRuntimePlus:
 
             ' add additional reference paths if specified
             If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
-                libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
+                Paths.LIB.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
             ' Build search path
-            Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
+            Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, Paths.SDK, Paths.Response, Paths.LIB)
 
             ' Public sign doesn't use legacy search path settings
             If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
@@ -1278,9 +1283,9 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
+            Paths.KeyFileSearch.Add(baseDirectory)
             If baseDirectory <> outputDirectory Then
-                keyFileSearchPaths.Add(outputDirectory)
+                Paths.KeyFileSearch.Add(outputDirectory)
             End If
 
             Dim parsedFeatures = ParseFeatures(features)
@@ -1380,15 +1385,15 @@ lVbRuntimePlus:
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
                 .ReferencePaths = searchPaths,
-                .SourcePaths = sourcePaths.AsImmutable(),
-                .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
+                .SourcePaths = Paths.Source.AsImmutable(),
+                .KeyFileSearchPaths = Paths.KeyFileSearch.AsImmutable(),
                 .Win32ResourceFile = win32ResourceFile,
                 .Win32Icon = win32IconFile,
                 .Win32Manifest = win32ManifestFile,
                 .NoWin32Manifest = noWin32Manifest,
-                .DisplayLogo = displayLogo,
-                .DisplayHelp = displayHelp,
-                .DisplayVersion = displayVersion,
+                .DisplayLogo = display.Logo,
+                .DisplayHelp = display.Help,
+                .DisplayVersion = display.Version,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
