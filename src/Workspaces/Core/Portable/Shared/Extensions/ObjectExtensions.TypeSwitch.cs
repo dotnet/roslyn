@@ -6,8 +6,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ObjectExtensions
     {
-        #region TypeSwitch on Func<T>
-
         public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TBaseType, TResult> defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
@@ -653,7 +651,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return default(TResult);
             }
         }
-
-        #endregion
     }
 }
