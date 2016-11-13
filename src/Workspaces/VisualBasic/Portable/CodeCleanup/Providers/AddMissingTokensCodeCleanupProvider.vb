@@ -521,9 +521,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
                 ' multiline if statement with missing then keyword case
-                If parent.TypeSwitch(Function(p As IfStatementSyntax) Exist(p.Condition) AndAlso p.ThenKeyword = originalToken) Then
-                    Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
-                ElseIf TryCast(parent, IfDirectiveTriviaSyntax)?.ThenKeyword = originalToken Then
+                If TypeOf parent Is IfStatementSyntax Then
+                    Dim ifStatement = DirectCast(parent, IfStatementSyntax)
+                    If Exist(ifStatement.Condition) AndAlso ifStatement.ThenKeyword = originalToken Then
+                        Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
+                    End If
+                End If
+
+                If TryCast(parent, IfDirectiveTriviaSyntax)?.ThenKeyword = originalToken Then
                     Return CreateOmittedToken(token, SyntaxKind.ThenKeyword)
                 ElseIf TryCast(parent, ElseIfStatementSyntax)?.ThenKeyword = originalToken Then
                     Return If(parent.GetAncestor(Of ElseIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
