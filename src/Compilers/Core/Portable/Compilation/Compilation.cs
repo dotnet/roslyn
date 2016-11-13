@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation

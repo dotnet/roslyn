@@ -91,11 +91,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IEventSymbol @event) => @event.ExplicitInterfaceImplementations.As<ISymbol>(),
-                (IMethodSymbol method) => method.ExplicitInterfaceImplementations.As<ISymbol>(),
-                (IPropertySymbol property) => property.ExplicitInterfaceImplementations.As<ISymbol>(),
-                _ => ImmutableArray.Create<ISymbol>());
+            switch (symbol)
+            {
+                case IEventSymbol @event: return ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations);
+                case IMethodSymbol method: return ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations);
+                case IPropertySymbol property: return ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations);
+                default: return ImmutableArray.Create<ISymbol>();
+            }
         }
 
         public static bool IsOverridable(this ISymbol symbol)
@@ -395,26 +397,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol nt) => nt.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.Parameters;
+                case IPropertySymbol nt: return nt.Parameters;
+                default: return ImmutableArray.Create<IParameterSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.TypeParameters,
-                (INamedTypeSymbol nt) => nt.TypeParameters,
-                _ => ImmutableArray.Create<ITypeParameterSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.TypeParameters;
+                case INamedTypeSymbol nt: return nt.TypeParameters;
+                default: return ImmutableArray.Create<ITypeParameterSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.TypeArguments,
-                (INamedTypeSymbol nt) => nt.TypeArguments,
-                _ => ImmutableArray.Create<ITypeSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.TypeArguments;
+                case INamedTypeSymbol nt: return nt.TypeArguments;
+                default: return ImmutableArray.Create<ITypeSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)

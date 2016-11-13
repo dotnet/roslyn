@@ -231,14 +231,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 foreach (var member in filteredMembers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    currentDestination = member.TypeSwitch(
-                        (IEventSymbol @event) => this.AddEvent(currentDestination, @event, options, availableIndices),
-                        (IFieldSymbol field) => this.AddField(currentDestination, field, options, availableIndices),
-                        (IPropertySymbol property) => this.AddProperty(currentDestination, property, options, availableIndices),
-                        (IMethodSymbol method) => this.AddMethod(currentDestination, method, options, availableIndices),
-                        (INamedTypeSymbol namedType) => this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken),
-                        (INamespaceSymbol @namespace) => this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken),
-                        _ => currentDestination);
+                    switch (member)
+                    {
+                        case IEventSymbol @event: currentDestination = this.AddEvent(currentDestination, @event, options, availableIndices); break;
+                        case IFieldSymbol field: currentDestination = this.AddField(currentDestination, field, options, availableIndices); break;
+                        case IPropertySymbol property: currentDestination = this.AddProperty(currentDestination, property, options, availableIndices); break;
+                        case IMethodSymbol method: currentDestination = this.AddMethod(currentDestination, method, options, availableIndices); break;
+                        case INamedTypeSymbol namedType: currentDestination = this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken); break;
+                        case INamespaceSymbol @namespace: currentDestination = this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken); break;
+                    }
                 }
             }
             else
@@ -248,14 +249,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 foreach (var member in filteredMembers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var newMember = member.TypeSwitch(
-                        (IEventSymbol @event) => this.CreateEventDeclaration(@event, codeGenerationDestination, options),
-                        (IFieldSymbol field) => this.CreateFieldDeclaration(field, codeGenerationDestination, options),
-                        (IPropertySymbol property) => this.CreatePropertyDeclaration(property, codeGenerationDestination, options),
-                        (IMethodSymbol method) => this.CreateMethodDeclaration(method, codeGenerationDestination, options),
-                        (INamedTypeSymbol namedType) => this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken),
-                        (INamespaceSymbol @namespace) => this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken),
-                        _ => null);
+                    var newMember = (SyntaxNode)null;
+                    switch (member)
+                    {
+                        case IEventSymbol @event: newMember = this.CreateEventDeclaration(@event, codeGenerationDestination, options); break;
+                        case IFieldSymbol field: newMember = this.CreateFieldDeclaration(field, codeGenerationDestination, options); break;
+                        case IPropertySymbol property: newMember = this.CreatePropertyDeclaration(property, codeGenerationDestination, options); break;
+                        case IMethodSymbol method: newMember = this.CreateMethodDeclaration(method, codeGenerationDestination, options); break;
+                        case INamedTypeSymbol namedType: newMember = this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken); break;
+                        case INamespaceSymbol @namespace: newMember = this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken); break;
+                    }
 
                     if (newMember != null)
                     {

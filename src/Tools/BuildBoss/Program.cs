@@ -70,7 +70,7 @@ namespace BuildBoss
 
         private static bool ProcessStructuredLog(string logFilePath)
         {
-            var util = new StructuredLoggerChecekerUtil(XDocument.Load(logFilePath));
+            var util = new StructuredLoggerCheckerUtil(XDocument.Load(logFilePath));
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 
