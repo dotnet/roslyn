@@ -529,11 +529,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType(this ITypeSymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IArrayTypeSymbol a) => ContainsAnonymousType(a.ElementType),
-                (IPointerTypeSymbol p) => ContainsAnonymousType(p.PointedAtType),
-                (INamedTypeSymbol n) => ContainsAnonymousType(n),
-                _ => false);
+            switch (symbol)
+            {
+                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
+                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
+                case INamedTypeSymbol n: return ContainsAnonymousType(n);
+                default: return false;
+            }
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
