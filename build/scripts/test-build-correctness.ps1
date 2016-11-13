@@ -42,7 +42,7 @@ try
     $logPath = join-path $binariesPath "build.xml"
 
     write-host "Building Roslyn.sln with logging support"
-    & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath Roslyn.sln
+    & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath /nodeReuse:false /p:DeployExtension=false Roslyn.sln
     if (-not $?) {
         exit 1
     }
