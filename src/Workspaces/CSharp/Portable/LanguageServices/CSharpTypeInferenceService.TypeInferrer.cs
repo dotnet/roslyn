@@ -1366,9 +1366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
             {
-                return pattern.TypeSwitch(
-                    (DeclarationPatternSyntax declarationPattern) => GetTypes(declarationPattern.Type),
-                    (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression));
+                switch (pattern)
+                {
+                    case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
+                    case ConstantPatternSyntax constantPattern: return GetTypes(constantPattern.Expression);
+                    default: return null;
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
@@ -1740,9 +1743,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
-                var memberType = memberSymbol.TypeSwitch(
-                        (IMethodSymbol method) => method.ReturnType,
-                        (IPropertySymbol property) => property.Type);
+                var memberType = (ITypeSymbol)null;
+                switch (memberSymbol)
+                {
+                    case IMethodSymbol method: memberType = method.ReturnType; break;
+                    case IPropertySymbol property: memberType = property.Type; break;
+                }
 
                 if (memberType is INamedTypeSymbol)
                 {
