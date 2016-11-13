@@ -118,7 +118,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 Dim symbols = Me._model.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
-                Return symbols.Any() AndAlso symbols.All(Function(s) s.TypeSwitch(Function(m As IMethodSymbol) m.MethodKind = MethodKind.Ordinary))
+                Return symbols.Any() AndAlso symbols.All(
+                    Function(s) (TryCast(s, IMethodSymbol)?.MethodKind).GetValueOrDefault() = MethodKind.Ordinary)
             End Function
 
             Private Function IsDelegateType(expression As ExpressionSyntax) As Boolean
@@ -546,11 +547,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' multiline if statement with missing then keyword case
                 If parent.TypeSwitch(Function(p As IfStatementSyntax) Exist(p.Condition) AndAlso p.ThenKeyword = originalToken) Then
                     Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
-                ElseIf parent.TypeSwitch(Function(p As IfDirectiveTriviaSyntax) p.ThenKeyword = originalToken) Then
+                ElseIf TryCast(parent, IfDirectiveTriviaSyntax)?.ThenKeyword = originalToken Then
                     Return CreateOmittedToken(token, SyntaxKind.ThenKeyword)
-                ElseIf parent.TypeSwitch(Function(p As ElseIfStatementSyntax) p.ThenKeyword = originalToken) Then
+                ElseIf TryCast(parent, ElseIfStatementSyntax)?.ThenKeyword = originalToken Then
                     Return If(parent.GetAncestor(Of ElseIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
-                ElseIf parent.TypeSwitch(Function(p As OptionStatementSyntax) p.ValueKeyword = originalToken) Then
+                ElseIf TryCast(parent, OptionStatementSyntax)?.ValueKeyword = originalToken Then
                     Return CreateOmittedToken(token, SyntaxKind.OnKeyword)
                 End If
 
