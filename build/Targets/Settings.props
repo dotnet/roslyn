@@ -51,7 +51,7 @@
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
