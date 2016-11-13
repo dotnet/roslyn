@@ -152,30 +152,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         node, newNode, Function(n) n.Expression.Span.Length > 0, Function(n) n.ArgumentList, Function(n) n.WithArgumentList(SyntaxFactory.ArgumentList()), semanticChecker)
             End Function
 
-            Public Overrides Function VisitObjectCreationExpression(node As ObjectCreationExpressionSyntax) As SyntaxNode
-                Dim newNode = MyBase.VisitObjectCreationExpression(node)
-
-                If node.CheckParent(Of AsNewClauseSyntax)(Function(p) p.NewExpression Is node) Then
-                    Return newNode
-                End If
-
-                If node.Type Is Nothing OrElse
-                   node.Type.TypeSwitch(Function(n As GenericNameSyntax)
-                                            Return n.TypeArgumentList Is Nothing OrElse
-                                                   n.TypeArgumentList.CloseParenToken.IsMissing OrElse
-                                                   n.TypeArgumentList.CloseParenToken.Kind = SyntaxKind.None
-                                        End Function) Then
-                    Return newNode
-                End If
-
-                ' we have two different bugs - bug # 12388 and bug # 12588 - that want two distinct and contradicting behaviors for this case.
-                ' for now, I will make it to follow dev11 behavior.
-                ' commented out to stop auto inserting behavior
-                ' Return AddParenthesesTransform(node, newNode, Function(n) n.ArgumentList, Function(n) n.WithArgumentList(Syntax.ArgumentList()))
-
-                Return newNode
-            End Function
-
             Public Overrides Function VisitRaiseEventStatement(node As RaiseEventStatementSyntax) As SyntaxNode
                 Return AddParenthesesTransform(
                     node, MyBase.VisitRaiseEventStatement(node), Function(n) Not n.Name.IsMissing, Function(n) n.ArgumentList, Function(n) n.WithArgumentList(SyntaxFactory.ArgumentList()))
