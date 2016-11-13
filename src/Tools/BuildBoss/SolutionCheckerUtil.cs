@@ -43,6 +43,7 @@ namespace BuildBoss
             var count = 0;
             foreach (var projectData in map.Values.OrderBy(x => x.FileName))
             {
+                textWriter.WriteLine($"Processing {projectData.Key.FileName}");
                 var util = new ProjectCheckerUtil(projectData, map);
                 allGood &= util.Check(textWriter);
                 count++;

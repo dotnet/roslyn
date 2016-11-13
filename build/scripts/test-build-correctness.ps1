@@ -27,6 +27,13 @@ function Get-PackagesPath {
 pushd $sourcePath
 try
 {
+    write-host "Checking for bad branch data"
+    [string]$output = & git branch --contains 29a0db828359046e61542c4b62fa72743a905a40
+    if ($output.Length -ne 0) {
+        write-host "Error!!! Branch still contains something we got rid of in a force push."
+        exit 1
+    }
+
     # Need to parse out the current NuGet package version of Structured Logger
     [xml]$deps = get-content (join-path $sourcePath "build\Targets\Dependencies.props")
     $structuredLoggerVersion = $deps.Project.PropertyGroup.MicrosoftBuildLoggingStructuredLoggerVersion
@@ -35,7 +42,6 @@ try
     $logPath = join-path $binariesPath "build.xml"
 
     write-host "Building Roslyn.sln with logging support"
-
     & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath Roslyn.sln
     if (-not $?) {
         exit 1

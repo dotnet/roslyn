@@ -120,7 +120,6 @@ namespace RunTests.Cache
             if (data.IsJenkins)
             {
                 // Add the core git information
-                data.CommitSha = Environment.GetEnvironmentVariable("ghprbActualCommit");
                 data.MergeCommitSha = Environment.GetEnvironmentVariable("GIT_COMMIT");
                 data.Repository = Environment.GetEnvironmentVariable("ghprbGhRepository");
 
@@ -133,7 +132,12 @@ namespace RunTests.Cache
                     data.IsPullRequest = true;
                     data.PullRequestId = id;
                     data.PullRequestUserName = Environment.GetEnvironmentVariable("ghprbPullAuthorLogin");
-                } 
+                    data.CommitSha = Environment.GetEnvironmentVariable("ghprbActualCommit");
+                }
+                else
+                {
+                    data.CommitSha = data.MergeCommitSha;
+                }
             }
 
             return data;
