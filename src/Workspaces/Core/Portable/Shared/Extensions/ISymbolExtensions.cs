@@ -417,10 +417,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.TypeArguments,
-                (INamedTypeSymbol nt) => nt.TypeArguments,
-                _ => ImmutableArray.Create<ITypeSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.TypeArguments;
+                case INamedTypeSymbol nt: return nt.TypeArguments;
+                default: return ImmutableArray.Create<ITypeSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
