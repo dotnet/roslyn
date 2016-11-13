@@ -35,6 +35,31 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
+        Public Async Function TestInArgument() As Task
+            Await TestAsync(
+"
+class C
+    Sub M()
+        dim v1 as (i as integer, s as string)
+        Foo(v1.[|Item1|])
+    end sub
+
+    Sub Foo(i as integer)
+    end sub
+end class",
+"
+class C
+    Sub M()
+        dim v1 as (i as integer, s as string)
+        Foo(v1.i)
+    end sub
+
+    Sub Foo(i as integer)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple2() As Task
             Await TestAsync(
 "
