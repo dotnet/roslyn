@@ -251,7 +251,6 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
 
-
             return options;
         }
 
