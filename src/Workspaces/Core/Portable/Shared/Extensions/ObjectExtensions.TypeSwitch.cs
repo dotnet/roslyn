@@ -283,63 +283,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TBaseType, TResult> defaultFunc = null)
-            where TDerivedType1 : TBaseType
-            where TDerivedType2 : TBaseType
-            where TDerivedType3 : TBaseType
-            where TDerivedType4 : TBaseType
-            where TDerivedType5 : TBaseType
-            where TDerivedType6 : TBaseType
-            where TDerivedType7 : TBaseType
-            where TDerivedType8 : TBaseType
-            where TDerivedType9 : TBaseType
-        {
-            if (obj is TDerivedType1)
-            {
-                return matchFunc1((TDerivedType1)obj);
-            }
-            else if (obj is TDerivedType2)
-            {
-                return matchFunc2((TDerivedType2)obj);
-            }
-            else if (obj is TDerivedType3)
-            {
-                return matchFunc3((TDerivedType3)obj);
-            }
-            else if (obj is TDerivedType4)
-            {
-                return matchFunc4((TDerivedType4)obj);
-            }
-            else if (obj is TDerivedType5)
-            {
-                return matchFunc5((TDerivedType5)obj);
-            }
-            else if (obj is TDerivedType6)
-            {
-                return matchFunc6((TDerivedType6)obj);
-            }
-            else if (obj is TDerivedType7)
-            {
-                return matchFunc7((TDerivedType7)obj);
-            }
-            else if (obj is TDerivedType8)
-            {
-                return matchFunc8((TDerivedType8)obj);
-            }
-            else if (obj is TDerivedType9)
-            {
-                return matchFunc9((TDerivedType9)obj);
-            }
-            else if (defaultFunc != null)
-            {
-                return defaultFunc(obj);
-            }
-            else
-            {
-                return default(TResult);
-            }
-        }
-
         public static TResult TypeSwitch<TBaseType, TDerivedType1, TDerivedType2, TDerivedType3, TDerivedType4, TDerivedType5, TDerivedType6, TDerivedType7, TDerivedType8, TDerivedType9, TDerivedType10, TResult>(this TBaseType obj, Func<TDerivedType1, TResult> matchFunc1, Func<TDerivedType2, TResult> matchFunc2, Func<TDerivedType3, TResult> matchFunc3, Func<TDerivedType4, TResult> matchFunc4, Func<TDerivedType5, TResult> matchFunc5, Func<TDerivedType6, TResult> matchFunc6, Func<TDerivedType7, TResult> matchFunc7, Func<TDerivedType8, TResult> matchFunc8, Func<TDerivedType9, TResult> matchFunc9, Func<TDerivedType10, TResult> matchFunc10, Func<TBaseType, TResult> defaultFunc = null)
             where TDerivedType1 : TBaseType
             where TDerivedType2 : TBaseType
