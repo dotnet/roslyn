@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             switch (args[1].Trim())
             {
-                case "none": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
+                case "silent": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.None);
                 case "suggestion": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Suggestion);
                 case "warning": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Warning);
                 case "error": return new CodeStyleOption<bool>(value: isEnabled, notification: NotificationOption.Error);

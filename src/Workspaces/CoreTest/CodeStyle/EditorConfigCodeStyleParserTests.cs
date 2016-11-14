@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
     public class EditorConfigCodeStyleParserTests
     {
         [Theory]
-        [InlineData("true:none", true, DiagnosticSeverity.Hidden)]
+        [InlineData("true:silent", true, DiagnosticSeverity.Hidden)]
         [InlineData("true:suggestion", true, DiagnosticSeverity.Info)]
         [InlineData("true:warning", true, DiagnosticSeverity.Warning)]
         [InlineData("true:error", true, DiagnosticSeverity.Error)]
-        [InlineData("false:none", false, DiagnosticSeverity.Hidden)]
+        [InlineData("false:silent", false, DiagnosticSeverity.Hidden)]
         [InlineData("false:suggestion", false, DiagnosticSeverity.Info)]
         [InlineData("false:warning", false, DiagnosticSeverity.Warning)]
         [InlineData("false:error", false, DiagnosticSeverity.Error)]
