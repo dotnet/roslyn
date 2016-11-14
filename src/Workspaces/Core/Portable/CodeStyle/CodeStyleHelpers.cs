@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isEnabled = false;
             if (args.Length != 2)
             {
-                if (arg.Length == 1)
+                if (args.Length == 1)
                 {
                     if (bool.TryParse(args[0].Trim(), out isEnabled) && !isEnabled)
                     {

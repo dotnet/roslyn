@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(QualifyFieldAccess), defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_qualification_for_field", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_qualification_for_field"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyFieldAccess")});
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyPropertyAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(QualifyPropertyAccess), defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_qualification_for_property", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_qualification_for_property"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyPropertyAccess")});
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyMethodAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(QualifyMethodAccess), defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_qualification_for_method", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_qualification_for_method"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyMethodAccess")});
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyEventAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(QualifyEventAccess), defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_qualification_for_event", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_qualification_for_event"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyEventAccess")});
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInDeclaration), defaultValue: TrueWithNoneEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_predefined_type_for_locals_parameters_members", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_predefined_type_for_locals_parameters_members"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInDeclaration")});
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess), defaultValue: TrueWithNoneEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_predefined_type_for_member_access", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_predefined_type_for_member_access"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferThrowExpression = new PerLanguageOption<CodeStyleOption<bool>>(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferThrowExpression),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("csharp_style_throw_expression", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("csharp_style_throw_expression"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferObjectInitializer = new PerLanguageOption<CodeStyleOption<bool>>(
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferObjectInitializer),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_object_initializer", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_object_initializer"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCollectionInitializer = new PerLanguageOption<CodeStyleOption<bool>>(
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferCollectionInitializer),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_collection_initializer", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_collection_initializer"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer")});
 
         internal static readonly PerLanguageOption<bool> PreferObjectInitializer_FadeOutCode = new PerLanguageOption<bool>(
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferCoalesceExpression),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_coalesce_expression", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_coalesce_expression"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCoalesceExpression") });
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferNullPropagation = new PerLanguageOption<CodeStyleOption<bool>>(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferNullPropagation),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("dotnet_style_null_propagation", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("dotnet_style_null_propagation"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferNullPropagation") });
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferInlinedVariableDeclaration),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation("csharp_style_inlined_variable_declaration", ParseEditorConfigCodeStyleOption),
+                new EditorConfigStorageLocation("csharp_style_inlined_variable_declaration"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration") });
     }
 }
