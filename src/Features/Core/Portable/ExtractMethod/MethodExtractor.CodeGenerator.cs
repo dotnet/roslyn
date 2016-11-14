@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return null;
                 }
 
-                variables.Sort(VariableInfo.Compare);
+                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
                 return variables[0];
             }
 
