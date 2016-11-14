@@ -4,8 +4,10 @@
 # User-specific files
 *.suo
 *.user
+*.userprefs
 *.sln.docstates
 .vs/
+.vscode/
 
 # Build results
 [Bb]inaries/
