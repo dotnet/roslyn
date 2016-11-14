@@ -41,7 +41,7 @@
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-      "version": "14.3.25420",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {

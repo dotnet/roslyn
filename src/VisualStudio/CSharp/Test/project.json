@@ -20,7 +20,7 @@
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
-    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "15.0.25726-preview5",
+    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "15.0.25726-Preview5",
     "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
