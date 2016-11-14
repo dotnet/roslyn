@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Composition;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -28,6 +29,10 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private sealed class Service : AbstractReferenceSerializationService
         {
+            // cache for encoding. 
+            // typical low number, high volumn data cache.
+            private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
+
             public Service(ITemporaryStorageService service) : base(service)
             {
             }
@@ -44,13 +49,24 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 writer.WriteByte(EncodingSerialization);
 
-                var formatter = new BinaryFormatter();
-                using (var stream = SerializableBytes.CreateWritableStream())
+                byte[] value;
+                if (!s_encodingCache.TryGetValue(encoding, out value))
                 {
-                    // unfortunately, this is only way to properly clone encoding
-                    formatter.Serialize(stream, encoding);
-                    writer.WriteValue(stream.ToArray());
+                    // we don't have cache, cache it
+                    var formatter = new BinaryFormatter();
+                    using (var stream = SerializableBytes.CreateWritableStream())
+                    {
+                        // unfortunately, this is only way to properly clone encoding
+                        formatter.Serialize(stream, encoding);
+                        value = stream.ToArray();
+
+                        // add if not already exist. otherwise, noop
+                        s_encodingCache.TryAdd(encoding, value);
+                    }
                 }
+
+                // write data out
+                writer.WriteValue(value);
             }
 
             public override Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
