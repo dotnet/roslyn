@@ -642,5 +642,51 @@ $$");
         {
             await VerifyAbsenceAsync(@"class c { async async $$ }");
         }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    void M()
+    {
+        $$
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction2()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    void M()
+    {
+        async $$
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction3()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    void M()
+    {
+        async async $$
+    }
+}");
+        }
     }
 }

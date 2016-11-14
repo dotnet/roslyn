@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return !context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword)
-                && InMemberDeclarationContext(position, context, cancellationToken);
+                && (InMemberDeclarationContext(position, context, cancellationToken)
+                    || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken));
         }
 
         private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)

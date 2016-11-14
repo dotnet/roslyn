@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class AsyncKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -128,6 +129,66 @@ namespace Foo
 class Foo
 {
     partial $$
+}");
+        }
+
+        [Fact]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction()
+        {
+            await VerifyKeywordAsync(@"
+class Foo
+{
+    public void M()
+    {
+        $$
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction2()
+        {
+            await VerifyKeywordAsync(@"
+class Foo
+{
+    public void M()
+    {
+        unsafe $$
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction3()
+        {
+            await VerifyKeywordAsync(@"
+class Foo
+{
+    public void M()
+    {
+        unsafe $$ void L() { }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction4()
+        {
+            await VerifyKeywordAsync(@"
+class Foo
+{
+    public void M()
+    {
+        $$ void L() { }
+    }
 }");
         }
     }

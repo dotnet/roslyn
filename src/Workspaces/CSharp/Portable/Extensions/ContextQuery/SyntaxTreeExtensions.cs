@@ -292,6 +292,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLocalFunctionDeclarationContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // Local functions are always valid in a stmt context
+            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
+            {
+                return true;
+            }
+
+            // Also valid after certain modifiers
+            var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
+
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(
+                position, token, cancellationToken);
+
+            if (modifierTokens.IsSubsetOf(validModifiers))
+            {
+                if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    // second appearance of "async" not followed by modifier: treat as type
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token, cancellationToken)
+                        .Any(x => x == SyntaxKind.AsyncKeyword))
+                    {
+                        return false;
+                    }
+
+                    // rule out async lambda
+                    if (token.GetAncestor<ExpressionSyntax>() != null)
+                    {
+                        return false;
+                    }
+                }
+
+                // The root cause of https://github.com/dotnet/roslyn/issues/14525
+                // prevents bare modifiers from being considered as the start of a
+                // local function right now (so it ends up being a LocalDeclaration)
+                return token.Parent is LocalFunctionStatementSyntax;
+            }
+
+            return false;
+        }
+
         public static bool IsTypeDeclarationContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
