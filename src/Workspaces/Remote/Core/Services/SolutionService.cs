@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -15,16 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
-        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
-
+        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
         private static readonly RemoteWorkspace s_primaryWorkspace = new RemoteWorkspace();
+
+        private readonly AssetService _assetService;
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
-        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        private static ValueTuple<Checksum, Solution> s_lastSolution;
-
-        private readonly AssetService _assetService;
+        private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
         public SolutionService(AssetService assetService)
         {
@@ -33,6 +31,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            var currentSolution = s_primaryWorkspace.CurrentSolution;
+
+            var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (primarySolutionChecksum == solutionChecksum)
+            {
+                // nothing changed
+                return currentSolution;
+            }
+
             if (s_lastSolution.Item1 == solutionChecksum)
             {
                 return s_lastSolution.Item2;
@@ -46,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     return s_lastSolution.Item2;
                 }
 
-                var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
             }
@@ -55,16 +62,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            // since option belong to workspace, we can't share solution
+            // get solution
+            var baseSolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // create new solution
-            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // since options belong to workspace, we can't share solution
+            // create temporary workspace
+            var tempWorkspace = new TemporaryWorkspace(baseSolution);
 
             // set merged options
-            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
+            tempWorkspace.Options = MergeOptions(tempWorkspace.Options, optionSet);
 
             // return new solution
-            return solution;
+            return tempWorkspace.CurrentSolution;
         }
 
         public async Task UpdatePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
@@ -108,24 +117,21 @@ namespace Microsoft.CodeAnalysis.Remote
             return newOptions;
         }
 
-        private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
         {
-            // synchronize whole solution first
+            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
+
+            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+            {
+                // solution has updated
+                return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+            }
+
+            // new solution. bulk sync all asset for the solution
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            var workspace = CreateRemoteWorkspace();
-
-            var updater = new SolutionCreator(_assetService, s_primaryWorkspace.CurrentSolution, cancellationToken);
-            var solutionInfo = await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
-            return workspace.AddSolution(solutionInfo);
-        }
-
-        private static AdhocWorkspace CreateRemoteWorkspace()
-        {
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
-
-            return workspace;
+            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            return workspace.CurrentSolution;
         }
     }
 }

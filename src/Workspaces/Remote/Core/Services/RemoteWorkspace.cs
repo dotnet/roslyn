@@ -2,24 +2,30 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// this let us have isolated workspace services between solutions such as option services
+    /// primary workspace for remote host. no one except solution service can update this workspace
     /// </summary>
     internal class RemoteWorkspace : Workspace
     {
+        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
+
         public RemoteWorkspace()
-            : base(RoslynServices.HostServices, workspaceKind: SolutionService.WorkspaceKind_RemoteWorkspace)
+            : base(RoslynServices.HostServices, workspaceKind: RemoteWorkspace.WorkspaceKind_RemoteWorkspace)
         {
+            PrimaryWorkspace.Register(this);
+
+            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
-            // all kinds supported.
-            return true;
+            // apply change is not allowed
+            return false;
         }
 
         public override bool CanOpenDocuments
@@ -68,7 +74,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var oldSolution = this.CurrentSolution;
             Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 
-            // TODO: under serialization lock ?
+            // this is not under serialization lock for events. but apply changes are not allowed. so no conflict.
+            // no one except this method can update primary workspace. they can still freely fork solution. just
+            // can't update current solution of workspace.
             var newSolution = this.SetCurrentSolution(solution);
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 

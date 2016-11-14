@@ -76,6 +76,7 @@
     <Compile Include="Services\SolutionCreator.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Services\RemoteWorkspace.cs" />
+    <Compile Include="Services\TemporaryWorkspace.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
