@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private SyntaxToken _methodName;
 
-            public static async Task<GeneratedCode> GenerateAsync(
+            public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CancellationToken cancellationToken)
             {
                 var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult);
-                return await codeGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false);
+                return codeGenerator.GenerateAsync(cancellationToken);
             }
 
             private static CSharpCodeGenerator Create(
