@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class ProjectInfo
     {
+        internal const string InvalidAssemblyNamePrefix = "__InvalidAssembly_";
+
         internal ProjectAttributes Attributes { get; }
 
         /// <summary>
@@ -387,7 +389,7 @@ namespace Microsoft.CodeAnalysis
                 // Empty assembly names are not allowed.  For now just default to an unused assembly
                 // name.
                 AssemblyName = string.IsNullOrWhiteSpace(assemblyName)
-                    ? "__InvalidAssembly_" + Interlocked.Increment(ref s_nextInvalidAssemblySuffix)
+                    ? InvalidAssemblyNamePrefix + Interlocked.Increment(ref s_nextInvalidAssemblySuffix)
                     : assemblyName;
 
                 Version = version;
