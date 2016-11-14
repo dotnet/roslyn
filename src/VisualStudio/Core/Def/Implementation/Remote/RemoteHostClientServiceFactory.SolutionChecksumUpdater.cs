@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return;
                 }
 
-                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizeAssets, ShutdownCancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, ShutdownCancellationToken))
                 {
                     var solution = _service.Workspace.CurrentSolution;
                     using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
