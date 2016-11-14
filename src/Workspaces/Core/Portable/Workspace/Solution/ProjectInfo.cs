@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -319,6 +320,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal class ProjectAttributes : IChecksummedObject, IObjectWritable
         {
+            private static int s_nextInvalidAssemblySuffix = 0;
+
             /// <summary>
             /// The unique Id of the project.
             /// </summary>
@@ -380,7 +383,15 @@ namespace Microsoft.CodeAnalysis
                 Id = id ?? throw new ArgumentNullException(nameof(id));
                 Name = name ?? throw new ArgumentNullException(nameof(name));
                 Language = language ?? throw new ArgumentNullException(nameof(language));
-                AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+
+                // Empty assembly names are not allowed.  For now just default to an unused assembly
+                // name.
+                if (string.IsNullOrWhiteSpace(assemblyName))
+                {
+                    assemblyName = "__InvalidAssembly_" + Interlocked.Increment(ref s_nextInvalidAssemblySuffix);
+                }
+
+                AssemblyName = assemblyName;
 
                 Version = version;
                 FilePath = filePath;
