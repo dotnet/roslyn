@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesComplex(ExpressionSyntax expression)
             {
-                SyntaxToken operatorToken;
-                ExpressionSyntax left, right;
-                if (DecomposeBinaryOrAssignmentExpression(expression, out operatorToken, out left, out right))
+                if (DecomposeBinaryOrAssignmentExpression(expression,
+                        out var operatorToken, out var left, out var right))
                 {
                     var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(IsUsableTypeFunc);
                     if (types.IsEmpty())
@@ -1764,10 +1763,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {
-                bool isAsync;
-                IEnumerable<TypeInferenceInfo> types;
-
-                InferTypeForReturnStatement(returnStatement, previousToken, out isAsync, out types);
+                InferTypeForReturnStatement(returnStatement, previousToken,
+                    out var isAsync, out var types);
 
                 if (!isAsync)
                 {
@@ -1994,10 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ITypeSymbol GetTupleType(
                 TupleExpressionSyntax tuple)
             {
-                ImmutableArray<ITypeSymbol> elementTypes;
-                ImmutableArray<string> elementNames;
-
-                if (!TryGetTupleTypesAndNames(tuple.Arguments, out elementTypes, out elementNames))
+                if (!TryGetTupleTypesAndNames(tuple.Arguments, out var elementTypes, out var elementNames))
                 {
                     return null;
                 }
