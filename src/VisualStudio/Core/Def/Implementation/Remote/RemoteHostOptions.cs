@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RemoteHost)));
 
         [ExportOption]
-        public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 10000,
+        public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 4000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
         [ExportOption]
