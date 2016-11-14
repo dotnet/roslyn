@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // this only works when caller wants to get same kind of assets at once
 
             // bulk synchronize checksums first
-            await SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            var syncer = new ChecksumSynchronizer(this);
+            await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
             var list = new List<ValueTuple<Checksum, T>>();
             foreach (var checksum in checksums)
@@ -66,14 +67,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return list;
-        }
-
-        public async Task SynchronizeAssetsAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            // if caller wants to get different kind of assets at once, he needs to first sync asserts and use
-            // GetAssetAsync to get those.
-            var syncer = new ChecksumSynchronizer(this);
-            await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -121,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetStorage.TryGetAsset(checksum, out unused);
         }
 
-        private async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
