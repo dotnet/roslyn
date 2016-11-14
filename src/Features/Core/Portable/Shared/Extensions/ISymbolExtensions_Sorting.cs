@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static INamedTypeSymbol GetNamedType(ITypeSymbol type)
         {
-            return type.TypeSwitch(
-                (INamedTypeSymbol namedType) => namedType,
-                (IArrayTypeSymbol arrayType) => GetNamedType(arrayType.ElementType),
-                (IPointerTypeSymbol pointerType) => GetNamedType(pointerType.PointedAtType));
+            switch (type)
+            {
+                case INamedTypeSymbol namedType: return namedType;
+                case IArrayTypeSymbol arrayType: return GetNamedType(arrayType.ElementType);
+                case IPointerTypeSymbol pointerType: return GetNamedType(pointerType.PointedAtType);
+                default: return null;
+            }
         }
 
         private static int CompareParameters(

@@ -88,10 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
-            Dim symbolType = symbol.TypeSwitch(Function(f As IFieldSymbol) f.Type,
-                    Function(l As ILocalSymbol) l.Type,
-                    Function(p As IParameterSymbol) p.Type,
-                    Function(pr As IPropertySymbol) pr.Type)
+            Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
+                             If(TryCast(symbol, ILocalSymbol)?.Type,
+                             If(TryCast(symbol, IParameterSymbol)?.Type,
+                                TryCast(symbol, IPropertySymbol)?.Type)))
             Return symbolType
         End Function
 

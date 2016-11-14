@@ -138,10 +138,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
                     var node = nodesToVisit.Pop();
 
-                    var type = node.TypeSwitch(
-                        (BaseTypeDeclarationSyntax t) => semanticModel.GetDeclaredSymbol(t, cancellationToken),
-                        (EnumDeclarationSyntax e) => semanticModel.GetDeclaredSymbol(e, cancellationToken),
-                        (DelegateDeclarationSyntax d) => semanticModel.GetDeclaredSymbol(d, cancellationToken));
+                    var type = (ISymbol)null;
+                    switch (node)
+                    {
+                        case BaseTypeDeclarationSyntax t: type = semanticModel.GetDeclaredSymbol(t, cancellationToken); break;
+                        case DelegateDeclarationSyntax d: type = semanticModel.GetDeclaredSymbol(d, cancellationToken); break;
+                    }
 
                     if (type != null)
                     {
