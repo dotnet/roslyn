@@ -13,9 +13,9 @@
     - In the resulting window, press the 'Modify' button
     - Check the "Visual Studio Extensibility Tools Update 3" item and press the 'Next' button
     - Press the 'Update' button
-3. Install an insider VSIX from our [nightly MyGet feed](https://dotnet.myget.org/feed/roslyn/package/vsix/eb2680f2-4e63-44a8-adf6-2e667d9f689c). Note that these builds are uploaded without validation, so you may need to try to find one that works for you.
+3. Install the [RC insider VSIX](https://dotnet.myget.org/F/roslyn/vsix/eb2680f2-4e63-44a8-adf6-2e667d9f689c-2.0.0.6110410.vsix).
 
-  - If you need to uninstall this or a previous version of this VSIX, you must:
+  - If you need to uninstall this or another version of this VSIX, you must:
     
     - Close all instances of VS
     -	delete %LocalAppdata%\Microsoft\VisualStudio\14.0\ (Note, this will delete all your extensions, not just the Roslyn VSIX)
