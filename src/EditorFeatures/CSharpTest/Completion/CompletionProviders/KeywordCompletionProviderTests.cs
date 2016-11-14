@@ -317,19 +317,5 @@ $$
 }";
             await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "return");
         }
-
-        [Fact]
-        public async Task RecommendAsyncToStartStatement()
-        {
-            var markup = @"
-class C
-{
-    public void M()
-    {
-        $$
-    }
-}";
-            await VerifyItemExistsAsync(markup, "async");
-        }
     }
 }

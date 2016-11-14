@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(
-                position, token, cancellationToken);
+                position, token, out int beforeModifiersPosition);
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {
@@ -322,18 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         return false;
                     }
-
-                    // rule out async lambda
-                    if (token.GetAncestor<ExpressionSyntax>() != null)
-                    {
-                        return false;
-                    }
                 }
 
-                // The root cause of https://github.com/dotnet/roslyn/issues/14525
-                // prevents bare modifiers from being considered as the start of a
-                // local function right now (so it ends up being a LocalDeclaration)
-                return token.Parent is LocalFunctionStatementSyntax;
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
             }
 
             return false;

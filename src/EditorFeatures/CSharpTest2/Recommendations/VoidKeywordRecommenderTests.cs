@@ -84,13 +84,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"$$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInTypeOf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -658,7 +651,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [Fact]
         [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
@@ -685,6 +678,71 @@ class C
     void M()
     {
         async async $$
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction4()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    void M()
+    {
+        var async $$
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction5()
+        {
+            await VerifyAbsenceAsync(@"
+using System;
+class C
+{
+    void M(Action<int> a)
+    {
+        M(async $$ () => 
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction6()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    void M()
+    {
+        unsafe async $$
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8617, "https://github.com/dotnet/roslyn/issues/8617")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction7()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+class C
+{
+    void M(Action<int> a)
+    {
+        M(async () =>
+        {
+            async $$
+        })
     }
 }");
         }

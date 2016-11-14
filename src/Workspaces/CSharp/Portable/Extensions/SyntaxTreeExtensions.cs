@@ -16,7 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class SyntaxTreeExtensions
     {
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken) =>
+            syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var ignore);
+
+        public static ISet<SyntaxKind> GetPrecedingModifiers(
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, out int newPosition)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -58,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
+            newPosition = token.FullSpan.End;
             return result;
         }
 

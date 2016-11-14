@@ -147,7 +147,7 @@ class Foo
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [Fact]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction2()
@@ -162,7 +162,7 @@ class Foo
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
+        [Fact]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction3()
@@ -188,6 +188,54 @@ class Foo
     public void M()
     {
         $$ void L() { }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction5()
+        {
+            await VerifyKeywordAsync(@"
+class Foo
+{
+    public void M(Action<int> a)
+    {
+        M(async () =>
+        {
+            $$
+        });
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction6()
+        {
+            await VerifyAbsenceAsync(@"
+class Foo
+{
+    public void M()
+    {
+        int $$
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction7()
+        {
+            await VerifyAbsenceAsync(@"
+class Foo
+{
+    public void M()
+    {
+        static $$
     }
 }");
         }
