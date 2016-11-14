@@ -54,15 +54,12 @@
     <DebugType>pdbonly</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
-         Basically, we check for a registry key that will only exist in legacy VS installs, and assume
-         we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy 
+         in the Dev15 environment.  -->
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
+    <DeployExtension Condition="'$(IsDev15RC)' != 'true' or '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <VisualStudioBuildToolsVersion>15.0.25907-RC2</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <!-- Unix specific settings -->
@@ -178,30 +175,6 @@
         <PlatformToolset>v$(VisualStudioReferenceMajorVersion)0</PlatformToolset>
       </PropertyGroup>
     </When>
-  </Choose>
-
-  <!-- Visual Studio specific properties -->
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsVSBeforeDev15Preview4)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsDev15RC)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25825-RC</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25604-Preview4</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>14.3.25420</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </Otherwise>
   </Choose>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
