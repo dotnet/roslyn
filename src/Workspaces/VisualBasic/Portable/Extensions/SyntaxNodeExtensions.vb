@@ -232,25 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                    lambda.Kind = SyntaxKind.MultiLineFunctionLambdaExpression
         End Function
 
-        <Extension()>
-        Friend Function WithPrependedLeadingTrivia(Of T As SyntaxNode)(node As T, ParamArray trivia As SyntaxTrivia()) As T
-            Return node.WithPrependedLeadingTrivia(DirectCast(trivia, IEnumerable(Of SyntaxTrivia)))
-        End Function
-
-        <Extension()>
-        Friend Function WithPrependedLeadingTrivia(Of T As SyntaxNode)(node As T, trivia As IEnumerable(Of SyntaxTrivia)) As T
-            Return DirectCast(node.WithLeadingTrivia(trivia.Concat(node.GetLeadingTrivia())), T)
-        End Function
-
-        <Extension()>
-        Friend Function WithAppendedTrailingTrivia(Of T As SyntaxNode)(node As T, ParamArray trivia As SyntaxTrivia()) As T
-            Return node.WithAppendedTrailingTrivia(DirectCast(trivia, IEnumerable(Of SyntaxTrivia)))
-        End Function
-
-        <Extension()>
-        Friend Function WithAppendedTrailingTrivia(Of T As SyntaxNode)(node As T, trivia As IEnumerable(Of SyntaxTrivia)) As T
-            Return DirectCast(node.WithTrailingTrivia(node.GetTrailingTrivia().Concat(trivia)), T)
-        End Function
 
         <Extension()>
         Friend Function GetTypeCharacterString(type As TypeCharacter) As String

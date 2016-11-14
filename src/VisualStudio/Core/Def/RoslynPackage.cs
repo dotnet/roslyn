@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -69,11 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             componentModel.GetExtensions<IOptionPersister>();
 
-            var telemetrySetupExtensions = componentModel.GetExtensions<IRoslynTelemetrySetup>();
-            foreach (var telemetrySetup in telemetrySetupExtensions)
-            {
-                telemetrySetup.Initialize(this);
-            }
+            RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
             _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
@@ -162,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             UnregisterFindResultsLibraryManager();
 
-            DisposeVisualStudioDocumentTrackingService();
+            DisposeVisualStudioServices();
 
             UnregisterAnalyzerTracker();
             UnregisterRuleSetEventHandler();
@@ -216,12 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void DisposeVisualStudioDocumentTrackingService()
+        private void DisposeVisualStudioServices()
         {
             if (_workspace != null)
             {
                 var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
                 documentTrackingService.Dispose();
+
+                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 

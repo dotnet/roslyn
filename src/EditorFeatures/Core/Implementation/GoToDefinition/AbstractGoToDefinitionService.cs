@@ -37,7 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var workspace = document.Project.Solution.Workspace;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
+
+            // prefer references to declarations.  It's more likely that the user is attempting to 
+            // go to a definition at some other location, rather than the definition they're on.  
+            // This can happen when a token is at a location that is both a reference and a definition.
+            // For example, on an anonymous type member declaration.
+            var symbol = semanticInfo.AliasSymbol ??
+                         semanticInfo.ReferencedSymbols.FirstOrDefault() ??
+                         semanticInfo.DeclaredSymbol ??
+                         semanticInfo.Type;
 
             return FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation);
         }

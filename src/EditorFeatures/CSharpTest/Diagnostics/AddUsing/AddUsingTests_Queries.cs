@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
     public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimpleQuery()
         {
             await TestAsync(
@@ -35,7 +35,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimpleWhere()
         {
             await TestAsync(

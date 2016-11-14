@@ -194,6 +194,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     TypeKind.Enum,
                     TypeKind.Delegate
 
+                    If type.IsTupleType Then
+                        type = type.TupleUnderlyingType
+                    End If
+
                     If type.ContainingType IsNot Nothing Then
                         ' We do not support nesting for embedded types.
                         ' ERRID.ERR_InvalidInteropType/ERR_NoPIANestedType

@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(F.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
+            bodyBuilder.Add(CacheThisIfNeeded());
 
             var exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception));
             bodyBuilder.Add(
@@ -194,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
+            if ((object)cachedThis != null)
+            {
+                locals.Add(cachedThis);
+            }
+
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
@@ -242,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression expr = (BoundExpression)this.Visit(node.Expression);
-            return (expr != null) ? node.Update(expr) : (BoundStatement)F.Block();
+            return (expr != null) ? node.Update(expr) : (BoundStatement)F.StatementList();
         }
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)

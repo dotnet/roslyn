@@ -10,6 +10,7 @@
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
@@ -68,14 +69,6 @@
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- Point to the reference assemblies on unix -->
     <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
-
-    <!-- The /publicsign argument is required for the compiler, but the current MSBuild
-         build task can't be redirected and even if it could the new build task is not
-         built against the xplat MSBuild references so it can't be loaded properly. Providing
-         a response file works around the problem by directly adding the public sign argument
-         to all unix compilations. This shouldn't present a problem as it's impossible to
-         fully sign on unix at the moment anyway. Tracked by #7756. -->
-    <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
 
     <DebugType>portable</DebugType>
   </PropertyGroup>
@@ -250,6 +243,6 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
-    <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
+    <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
 </Project>

@@ -362,5 +362,132 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
 compareTokens:=False)
         End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestFixAll() As Task
+            Await TestAsync(
+<Text>
+Class C
+    Inherits [||]B
+
+    Public Sub New(y As Boolean)
+    End Sub
+End Class
+
+Class B
+    Friend Sub New(x As Integer)
+    End Sub
+
+    Protected Sub New(x As String)
+    End Sub
+
+    Public Sub New(x As Boolean)
+    End Sub
+
+    Public Sub New(x As Long)
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>
+Class C
+    Inherits B
+
+    Friend Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+
+    Protected Sub New(x As String)
+        MyBase.New(x)
+    End Sub
+
+    Public Sub New(x As Long)
+        MyBase.New(x)
+    End Sub
+
+    Public Sub New(y As Boolean)
+    End Sub
+End Class
+
+Class B
+    Friend Sub New(x As Integer)
+    End Sub
+
+    Protected Sub New(x As String)
+    End Sub
+
+    Public Sub New(x As Boolean)
+    End Sub
+
+    Public Sub New(x As Long)
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+index:=2,
+compareTokens:=False)
+            Throw New Exception() ' (Skip:="https://github.com/dotnet/roslyn/issues/15005")
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestFixAll_WithTuples() As Task
+            Await TestAsync(
+<Text>
+Class C
+    Inherits [||]B
+
+    Public Sub New(y As (Boolean, Boolean))
+    End Sub
+End Class
+
+Class B
+    Friend Sub New(x As (Integer, Integer))
+    End Sub
+
+    Protected Sub New(x As (String, String))
+    End Sub
+
+    Public Sub New(x As (Boolean, Boolean))
+    End Sub
+
+    Public Sub New(x As (Long, Long))
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>
+Class C
+    Inherits B
+
+    Friend Sub New(x As (Integer, Integer))
+        MyBase.New(x)
+    End Sub
+
+    Protected Sub New(x As (String, String))
+        MyBase.New(x)
+    End Sub
+
+    Public Sub New(x As (Long, Long))
+        MyBase.New(x)
+    End Sub
+
+    Public Sub New(y As (Boolean, Boolean))
+    End Sub
+End Class
+
+Class B
+    Friend Sub New(x As (Integer, Integer))
+    End Sub
+
+    Protected Sub New(x As (String, String))
+    End Sub
+
+    Public Sub New(x As (Boolean, Boolean))
+    End Sub
+
+    Public Sub New(x As (Long, Long))
+    End Sub
+End Class
+</Text>.Value.Replace(vbLf, vbCrLf),
+index:=2,
+compareTokens:=False)
+        End Function
     End Class
 End Namespace

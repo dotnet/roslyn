@@ -167,6 +167,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
+    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />

@@ -28,7 +28,7 @@ namespace Roslyn.Test.Utilities
             SpansAndKindsAndIds = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
         }
 
-        private static IEnumerable<ValueTuple<TextSpan, int, int>> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
+        private static IEnumerable<(TextSpan, int, int)> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
         {
             foreach (var match in s_markerPattern.Matches(markedSource).ToEnumerable())
             {
@@ -38,7 +38,7 @@ namespace Roslyn.Test.Utilities
                 var parsedKind = string.IsNullOrEmpty(syntaxKindOpt) ? 0 : getSyntaxKind(syntaxKindOpt);
                 int absoluteOffset = offset + markedSyntax.Index;
 
-                yield return ValueTuple.Create(new TextSpan(absoluteOffset, markedSyntax.Length), parsedKind, id);
+                yield return (new TextSpan(absoluteOffset, markedSyntax.Length), parsedKind, id);
 
                 foreach (var nestedSpan in GetSpansRecursive(markedSyntax.Value, absoluteOffset, getSyntaxKind))
                 {

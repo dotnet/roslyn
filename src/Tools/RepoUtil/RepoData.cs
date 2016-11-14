@@ -37,7 +37,10 @@ namespace RepoUtil
             FloatingPackages = floatingPackages
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
-            AllPackages = Combine(FloatingBuildPackages, FloatingToolsetPackages, FixedPackages);
+            AllPackages = Combine(
+                FloatingBuildPackages,
+                FloatingToolsetPackages,
+                FixedPackages.Select(x => x).ToImmutableArray());
         }
 
         private static ImmutableArray<NuGetPackage> Combine(params ImmutableArray<NuGetPackage>[] args)
@@ -76,7 +79,7 @@ namespace RepoUtil
 
             conflicts = null;
 
-            var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages);
+            var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages, default(Constants.IgnoreGenerateNameComparer));
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
             {

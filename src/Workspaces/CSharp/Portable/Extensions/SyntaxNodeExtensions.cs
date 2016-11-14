@@ -326,76 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return tokens.SpansPreprocessorDirective();
         }
 
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            params SyntaxTrivia[] trivia) where T : SyntaxNode
-        {
-            if (trivia.Length == 0)
-            {
-                return node;
-            }
-
-            return node.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            SyntaxTriviaList trivia) where T : SyntaxNode
-        {
-            if (trivia.Count == 0)
-            {
-                return node;
-            }
-
-            return node.WithLeadingTrivia(trivia.Concat(node.GetLeadingTrivia()));
-        }
-
-        public static T WithPrependedLeadingTrivia<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
-        {
-            return node.WithPrependedLeadingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            params SyntaxTrivia[] trivia) where T : SyntaxNode
-        {
-            if (trivia.Length == 0)
-            {
-                return node;
-            }
-
-            return node.WithAppendedTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            SyntaxTriviaList trivia) where T : SyntaxNode
-        {
-            if (trivia.Count == 0)
-            {
-                return node;
-            }
-
-            return node.WithTrailingTrivia(node.GetTrailingTrivia().Concat(trivia));
-        }
-
-        public static T WithAppendedTrailingTrivia<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> trivia) where T : SyntaxNode
-        {
-            return node.WithAppendedTrailingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static T With<T>(
-            this T node,
-            IEnumerable<SyntaxTrivia> leadingTrivia,
-            IEnumerable<SyntaxTrivia> trailingTrivia) where T : SyntaxNode
-        {
-            return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
-        }
-
         public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
@@ -896,42 +826,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetParentheses(this SyntaxNode node)
         {
-            return node.TypeSwitch(
-                (ParenthesizedExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (MakeRefExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (RefTypeExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (RefValueExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CheckedExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (DefaultExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (TypeOfExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SizeOfExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ArgumentListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CastExpressionSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (WhileStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (DoStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ForStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CommonForEachStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (UsingStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (FixedStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (LockStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (IfStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SwitchStatementSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (CatchDeclarationSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (AttributeArgumentListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ConstructorConstraintSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (ParameterListSyntax n) => ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                (SyntaxNode n) => default(ValueTuple<SyntaxToken, SyntaxToken>));
+            switch (node)
+            {
+                case ParenthesizedExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case MakeRefExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case RefTypeExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case RefValueExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case CheckedExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case DefaultExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case TypeOfExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case SizeOfExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case ArgumentListSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case CastExpressionSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case WhileStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case DoStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case ForStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case CommonForEachStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case UsingStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case FixedStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case LockStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case IfStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case SwitchStatementSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case CatchDeclarationSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case AttributeArgumentListSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case ConstructorConstraintSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                case ParameterListSyntax n: return ValueTuple.Create(n.OpenParenToken, n.CloseParenToken);
+                default: return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            }
         }
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetBrackets(this SyntaxNode node)
         {
-            return node.TypeSwitch(
-                (ArrayRankSpecifierSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedArgumentListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (ImplicitArrayCreationExpressionSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (AttributeListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (BracketedParameterListSyntax n) => ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken),
-                (SyntaxNode n) => default(ValueTuple<SyntaxToken, SyntaxToken>));
+            switch (node)
+            {
+                case ArrayRankSpecifierSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case BracketedArgumentListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case ImplicitArrayCreationExpressionSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case AttributeListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                case BracketedParameterListSyntax n: return ValueTuple.Create(n.OpenBracketToken, n.CloseBracketToken);
+                default: return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            }
         }
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
@@ -951,18 +885,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
-            return node.TypeSwitch(
-                (DoStatementSyntax n) => n.Statement,
-                (ElseClauseSyntax n) => n.Statement,
-                (FixedStatementSyntax n) => n.Statement,
-                (CommonForEachStatementSyntax n) => n.Statement,
-                (ForStatementSyntax n) => n.Statement,
-                (IfStatementSyntax n) => n.Statement,
-                (LabeledStatementSyntax n) => n.Statement,
-                (LockStatementSyntax n) => n.Statement,
-                (UsingStatementSyntax n) => n.Statement,
-                (WhileStatementSyntax n) => n.Statement,
-                (SyntaxNode n) => null);
+            switch (node)
+            { 
+                case DoStatementSyntax n: return n.Statement;
+                case ElseClauseSyntax n: return n.Statement;
+                case FixedStatementSyntax n: return n.Statement;
+                case CommonForEachStatementSyntax n: return n.Statement;
+                case ForStatementSyntax n: return n.Statement;
+                case IfStatementSyntax n: return n.Statement;
+                case LabeledStatementSyntax n: return n.Statement;
+                case LockStatementSyntax n: return n.Statement;
+                case UsingStatementSyntax n: return n.Statement;
+                case WhileStatementSyntax n: return n.Statement;
+                default: return null;
+            }
         }
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode member)

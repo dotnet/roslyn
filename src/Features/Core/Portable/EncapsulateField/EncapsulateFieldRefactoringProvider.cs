@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.EncapsulateField
+namespace Microsoft.CodeAnalysis.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.EncapsulateField), Shared]
+    internal class EncapsulateFieldRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

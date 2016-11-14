@@ -576,6 +576,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             Loop
 
+            If exposedNamedType.IsTupleType Then
+                exposedNamedType = exposedNamedType.TupleUnderlyingType
+            End If
+
             ' For a generic type, verify exposure of each of the type arguments.
             Dim possiblyGeneric As NamedTypeSymbol = exposedNamedType
 

@@ -101,6 +101,8 @@
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -451,11 +453,9 @@
     <Compile Include="EditAndContinue\RudeEditKind.cs" />
     <Compile Include="EditAndContinue\RudeEditDiagnosticDescriptors.cs" />
     <Compile Include="EditAndContinue\SessionReadOnlyReason.cs" />
-    <Compile Include="EncapsulateField\AbstractEncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="EncapsulateField\AbstractEncapsulateFieldService.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldCodeAction.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldResult.cs" />
-    <Compile Include="ExtractInterface\AbstractExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\AbstractExtractInterfaceService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeAction.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceOptionsResult.cs" />

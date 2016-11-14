@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
@@ -78,7 +77,12 @@ namespace Microsoft.CodeAnalysis
             return Empty;
         }
 
-        private static readonly ConditionalWeakTable<MetadataReference, Stream> s_lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
+        /// <summary>
+        /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
+        /// as the metadata is alive.
+        /// </summary>
+        private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime 
+            = new ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess>();
 
         public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
         {
@@ -90,36 +94,32 @@ namespace Microsoft.CodeAnalysis
             // first see whether we can use native memory directly.
             var stream = _storage.ReadStream();
             var supportNativeMemory = stream as ISupportDirectMemoryAccess;
+            AssemblyMetadata metadata;
+
             if (supportNativeMemory != null)
             {
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then
                 // give them pointer to the native memory. also we need to handle lifetime ourselves.
-                var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
+                metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(supportNativeMemory.GetPointer(), (int)stream.Length));
 
-                var referenceWithNativeMemory = metadata.GetReference(
-                    documentation: documentationProvider,
-                    aliases: aliases,
-                    embedInteropTypes: embedInteropTypes,
-                    display: _assemblyName);
+                // Tie lifetime of stream to metadata we created. It is important to tie this to the Metadata and not the
+                // metadata reference, as PE symbols hold onto just the Metadata. We can use Add here since we created
+                // a brand new object in AssemblyMetadata.Create above.
+                s_lifetime.Add(metadata, supportNativeMemory);
+            }
+            else
+            { 
+                // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
+                // internally copy it to native memory again. since compiler owns lifetime of stream,
+                // it would be great if compiler can be little bit smarter on how it deals with stream.
 
-                // tie lifetime of stream to metadata reference we created. native memory's lifetime is tied to
-                // stream internally and stream is shared between same temporary storage. so here, we should be 
-                // sharing same native memory for all skeleton assemblies from same project snapshot.
-                s_lifetime.GetValue(referenceWithNativeMemory, _ => stream);
-
-                return referenceWithNativeMemory;
+                // We don't deterministically release the resulting metadata since we don't know 
+                // when we should. So we leave it up to the GC to collect it and release all the associated resources.
+                metadata = AssemblyMetadata.CreateFromStream(stream);
             }
 
-            // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
-            // internally copy it to native memory again. since compiler owns lifetime of stream,
-            // it would be great if compiler can be little bit smarter on how it deals with stream.
-
-            // We don't deterministically release the resulting metadata since we don't know 
-            // when we should. So we leave it up to the GC to collect it and release all the associated resources.
-            var metadataFromStream = AssemblyMetadata.CreateFromStream(stream);
-
-            return metadataFromStream.GetReference(
+            return metadata.GetReference(
                 documentation: documentationProvider,
                 aliases: aliases,
                 embedInteropTypes: embedInteropTypes,
