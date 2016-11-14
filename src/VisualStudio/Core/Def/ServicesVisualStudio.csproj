@@ -165,7 +165,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />

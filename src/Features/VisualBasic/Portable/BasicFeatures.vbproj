@@ -78,7 +78,6 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
-    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
@@ -111,7 +110,6 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
@@ -128,8 +126,6 @@
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
     <Compile Include="ConvertToInterpolatedString\VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="ConvertToInterpolatedString\VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.vb" />

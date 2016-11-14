@@ -787,6 +787,7 @@
     <Compile Include="Syntax\SyntaxExtensions.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
     <Compile Include="Syntax\LambdaUtilities.cs" />
+    <Compile Include="Syntax\SyntaxKindExtensions.cs" />
     <Compile Include="Syntax\SyntaxNormalizer.cs" />
     <Compile Include="Syntax\SyntaxKind.cs" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
