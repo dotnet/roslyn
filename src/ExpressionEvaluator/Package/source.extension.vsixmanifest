@@ -17,6 +17,7 @@
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" />
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" />
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" />
+      <Action Type="Ngen" Path="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" />
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" />
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" />
       <Action Type="Ngen" Path="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" />
@@ -30,6 +31,7 @@
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicResultProvider.Portable" Path="|BasicResultProvider.Portable;VsdConfigOutputGroup|" />
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpExpressionCompiler" Path="|CSharpExpressionCompiler;VsdConfigOutputGroup|" />
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider.Portable" Path="|CSharpResultProvider.Portable;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="FunctionResolver" Path="|FunctionResolver;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
   <Prerequisites>
