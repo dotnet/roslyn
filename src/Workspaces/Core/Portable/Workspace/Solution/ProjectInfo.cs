@@ -386,12 +386,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Empty assembly names are not allowed.  For now just default to an unused assembly
                 // name.
-                if (string.IsNullOrWhiteSpace(assemblyName))
-                {
-                    assemblyName = "__InvalidAssembly_" + Interlocked.Increment(ref s_nextInvalidAssemblySuffix);
-                }
-
-                AssemblyName = assemblyName;
+                AssemblyName = string.IsNullOrWhiteSpace(assemblyName)
+                    ? "__InvalidAssembly_" + Interlocked.Increment(ref s_nextInvalidAssemblySuffix)
+                    : assemblyName;
 
                 Version = version;
                 FilePath = filePath;
