@@ -5,12 +5,12 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 {
     [DkmReportNonFatalWatsonException(ExcludeExceptionType = typeof(NotImplementedException)), DkmContinueCorruptingException]
-    internal sealed class CSharpFunctionResolver : FunctionResolver
+    internal sealed class VisualBasicFunctionResolver : FunctionResolver
     {
-        public CSharpFunctionResolver()
+        public VisualBasicFunctionResolver()
         {
         }
 
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return MemberSignatureParser.Parse(request.FunctionName);
         }
 
-        internal override bool IgnoreCase => false;
+        internal override bool IgnoreCase => true;
 
-        internal override Guid LanguageId => DkmLanguageId.CSharp;
+        internal override Guid LanguageId => DkmLanguageId.VB;
     }
 }

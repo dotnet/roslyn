@@ -4,7 +4,7 @@ using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 {
     internal sealed partial class MemberSignatureParser
     {
@@ -12,14 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             OpenParen = '(',
             CloseParen = ')',
-            OpenBracket = '[',
-            CloseBracket = ']',
             Dot = '.',
             Comma = ',',
-            Asterisk = '*',
             QuestionMark = '?',
-            LessThan = '<',
-            GreaterThan = '>',
 
             Start = char.MaxValue + 1,
             End,
@@ -92,42 +87,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return new Token(TokenKind.End);
                 }
 
-                var c = _text[_offset++];
-                if (UnicodeCharacterUtilities.IsIdentifierStartCharacter(c))
+                int n = ScanIdentifier();
+                if (n > 0)
                 {
-                    return ScanIdentifierAfterStartCharacter(verbatim: false);
+                    var text = _text.Substring(_offset, n);
+                    _offset += n;
+                    if (Keywords.Contains(text))
+                    {
+                        var keywordKind = SyntaxKind.None;
+                        KeywordKinds.TryGetValue(text, out keywordKind);
+                        return new Token(TokenKind.Keyword, text, keywordKind);
+                    }
+                    return new Token(TokenKind.Identifier, text);
                 }
-                else if (c == '@' && _offset < length && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
+
+                var c = _text[_offset++];
+                if (c == '[')
                 {
-                    _offset++;
-                    return ScanIdentifierAfterStartCharacter(verbatim: true);
+                    n = ScanIdentifier();
+                    if (n > 0 && _offset + n < length && _text[_offset + n] == ']')
+                    {
+                        // A verbatim identifier. Treat the '[' and ']' as part
+                        // of the token, but not part of the text.
+                        var text = _text.Substring(_offset, n);
+                        _offset += n + 1;
+                        return new Token(TokenKind.Identifier, text);
+                    }
                 }
 
                 return new Token((TokenKind)c);
             }
 
-            private Token ScanIdentifierAfterStartCharacter(bool verbatim)
+            // Returns the number of characters in the
+            // identifier starting at the current offset.
+            private int ScanIdentifier()
             {
-                // Assert the offset is immediately following the start character.
-                Debug.Assert(_offset > 0);
-                Debug.Assert(UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset - 1]));
-                Debug.Assert(_offset == 1 || !UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset - 2]));
-
-                int length = _text.Length;
-                int start = _offset - 1;
-                while ((_offset < length) && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset]))
+                int length = _text.Length - _offset;
+                if (length > 0 && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
                 {
-                    _offset++;
+                    int n = 1;
+                    while (n < length && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset + n]))
+                    {
+                        n++;
+                    }
+                    return n;
                 }
-                var text = _text.Substring(start, _offset - start);
-                var keywordKind = verbatim ?
-                    SyntaxKind.None :
-                    SyntaxFacts.GetKeywordKind(text);
-                if (keywordKind == SyntaxKind.None)
-                {
-                    return new Token(TokenKind.Identifier, text);
-                }
-                return new Token(TokenKind.Keyword, text, keywordKind);
+                return 0;
             }
         }
     }

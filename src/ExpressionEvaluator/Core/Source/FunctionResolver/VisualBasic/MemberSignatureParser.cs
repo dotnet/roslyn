@@ -5,10 +5,14 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 {
     internal sealed partial class MemberSignatureParser
     {
+        internal static readonly StringComparer StringComparer = StringComparer.OrdinalIgnoreCase;
+        internal static readonly ImmutableHashSet<string> Keywords = GetKeywords(StringComparer);
+        internal static readonly ImmutableDictionary<string, SyntaxKind> KeywordKinds = GetKeywordKinds(StringComparer);
+
         internal static RequestSignature Parse(string signature)
         {
             var scanner = new Scanner(signature);
@@ -42,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private Token CurrentToken => _tokens[_tokenIndex];
 
+        private Token PeekToken(int offset)
+        {
+            return _tokens[_tokenIndex + offset];
+        }
+
         private Token EatToken()
         {
             var token = CurrentToken;
@@ -70,13 +79,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Name signature = null;
             while (true)
             {
-                if (CurrentToken.Kind != TokenKind.Identifier)
+                switch (CurrentToken.Kind)
                 {
-                    throw InvalidSignature();
+                    case TokenKind.Identifier:
+                        break;
+                    case TokenKind.Keyword:
+                        if (signature == null)
+                        {
+                            throw InvalidSignature();
+                        }
+                        break;
+                    default:
+                        throw InvalidSignature();
                 }
                 var name = EatToken().Text;
                 signature = new QualifiedName(signature, name);
-                if (CurrentToken.Kind == TokenKind.LessThan)
+                if (IsStartOfTypeArguments())
                 {
                     var typeParameters = ParseTypeParameters();
                     signature = new GenericName((QualifiedName)signature, typeParameters);
@@ -91,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ImmutableArray<string> ParseTypeParameters()
         {
-            Debug.Assert(CurrentToken.Kind == TokenKind.LessThan);
+            Debug.Assert(IsStartOfTypeArguments());
+            EatToken();
             EatToken();
             var builder = ImmutableArray.CreateBuilder<string>();
             while (true)
@@ -104,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.Add(name);
                 switch (CurrentToken.Kind)
                 {
-                    case TokenKind.GreaterThan:
+                    case TokenKind.CloseParen:
                         EatToken();
                         return builder.ToImmutable();
                     case TokenKind.Comma:
@@ -133,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     case TokenKind.Keyword:
                         if (signature == null)
                         {
-                            // Expand special type keywords (object, int, etc.) to qualified names.
+                            // Expand special type keywords (Object, Integer, etc.) to qualified names.
                             // This is only done for the first identifier in a qualified name.
                             var specialType = GetSpecialType(CurrentToken.KeywordKind);
                             if (specialType != SpecialType.None)
@@ -142,16 +161,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 signature = specialType.GetTypeSignature();
                                 Debug.Assert(signature != null);
                             }
-                            if (signature != null)
+                            if (signature == null)
                             {
-                                break;
+                                throw InvalidSignature();
                             }
                         }
-                        throw InvalidSignature();
+                        else
+                        {
+                            var token = EatToken();
+                            var name = token.Text;
+                            signature = new QualifiedTypeSignature(signature, name);
+                        }
+                        break;
                     default:
                         throw InvalidSignature();
                 }
-                if (CurrentToken.Kind == TokenKind.LessThan)
+                if (IsStartOfTypeArguments())
                 {
                     var typeArguments = ParseTypeArguments();
                     signature = new GenericTypeSignature((QualifiedTypeSignature)signature, typeArguments);
@@ -166,7 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ImmutableArray<TypeSignature> ParseTypeArguments()
         {
-            Debug.Assert(CurrentToken.Kind == TokenKind.LessThan);
+            Debug.Assert(IsStartOfTypeArguments());
+            EatToken();
             EatToken();
             var builder = ImmutableArray.CreateBuilder<TypeSignature>();
             while (true)
@@ -175,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.Add(name);
                 switch (CurrentToken.Kind)
                 {
-                    case TokenKind.GreaterThan:
+                    case TokenKind.CloseParen:
                         EatToken();
                         return builder.ToImmutable();
                     case TokenKind.Comma:
@@ -194,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 switch (CurrentToken.Kind)
                 {
-                    case TokenKind.OpenBracket:
+                    case TokenKind.OpenParen:
                         EatToken();
                         int rank = 1;
                         while (CurrentToken.Kind == TokenKind.Comma)
@@ -202,16 +228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             EatToken();
                             rank++;
                         }
-                        if (CurrentToken.Kind != TokenKind.CloseBracket)
+                        if (CurrentToken.Kind != TokenKind.CloseParen)
                         {
                             throw InvalidSignature();
                         }
                         EatToken();
                         type = new ArrayTypeSignature(type, rank);
-                        break;
-                    case TokenKind.Asterisk:
-                        EatToken();
-                        type = new PointerTypeSignature(type);
                         break;
                     case TokenKind.QuestionMark:
                         EatToken();
@@ -225,26 +247,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        // Returns true if the parameter is by reference.
-        private bool ParseParameterModifiers()
+        private bool IsStartOfTypeArguments()
         {
-            bool isByRef = false;
+            return CurrentToken.Kind == TokenKind.OpenParen &&
+                PeekToken(1).KeywordKind == SyntaxKind.OfKeyword;
+        }
+
+        private enum ParameterModifier
+        {
+            None,
+            ByVal,
+            ByRef,
+        }
+
+        private ParameterModifier ParseParameterModifier()
+        {
+            var modifier = ParameterModifier.None;
             while (true)
             {
-                var kind = CurrentToken.KeywordKind;
-                if (kind != SyntaxKind.RefKeyword && kind != SyntaxKind.OutKeyword)
+                var m = ParameterModifier.None;
+                switch (CurrentToken.KeywordKind)
                 {
-                    break;
+                    case SyntaxKind.ByValKeyword:
+                        m = ParameterModifier.ByVal;
+                        break;
+                    case SyntaxKind.ByRefKeyword:
+                        m = ParameterModifier.ByRef;
+                        break;
+                    default:
+                        return modifier;
                 }
-                if (isByRef)
+                if (modifier != ParameterModifier.None)
                 {
                     // Duplicate modifiers.
                     throw InvalidSignature();
                 }
-                isByRef = true;
+                modifier = m;
                 EatToken();
             }
-            return isByRef;
         }
 
         private ImmutableArray<ParameterSignature> ParseParameters()
@@ -259,9 +299,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var builder = ImmutableArray.CreateBuilder<ParameterSignature>();
             while (true)
             {
-                bool isByRef = ParseParameterModifiers();
+                var modifier = ParseParameterModifier();
                 var parameterType = ParseType();
-                builder.Add(new ParameterSignature(parameterType, isByRef));
+                builder.Add(new ParameterSignature(parameterType, isByRef: modifier == ParameterModifier.ByRef));
                 switch (CurrentToken.Kind)
                 {
                     case TokenKind.CloseParen:
@@ -280,9 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             switch (kind)
             {
-                case SyntaxKind.VoidKeyword:
-                    return SpecialType.System_Void;
-                case SyntaxKind.BoolKeyword:
+                case SyntaxKind.BooleanKeyword:
                     return SpecialType.System_Boolean;
                 case SyntaxKind.CharKeyword:
                     return SpecialType.System_Char;
@@ -294,15 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return SpecialType.System_Int16;
                 case SyntaxKind.UShortKeyword:
                     return SpecialType.System_UInt16;
-                case SyntaxKind.IntKeyword:
+                case SyntaxKind.IntegerKeyword:
                     return SpecialType.System_Int32;
-                case SyntaxKind.UIntKeyword:
+                case SyntaxKind.UIntegerKeyword:
                     return SpecialType.System_UInt32;
                 case SyntaxKind.LongKeyword:
                     return SpecialType.System_Int64;
                 case SyntaxKind.ULongKeyword:
                     return SpecialType.System_UInt64;
-                case SyntaxKind.FloatKeyword:
+                case SyntaxKind.SingleKeyword:
                     return SpecialType.System_Single;
                 case SyntaxKind.DoubleKeyword:
                     return SpecialType.System_Double;
@@ -312,6 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return SpecialType.System_Object;
                 case SyntaxKind.DecimalKeyword:
                     return SpecialType.System_Decimal;
+                case SyntaxKind.DateKeyword:
+                    return SpecialType.System_DateTime;
                 default:
                     return SpecialType.None;
             }
