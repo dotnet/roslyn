@@ -154,7 +154,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string GenerateFullPathToMSBuildRoslynTool(string toolName)
         {
-            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion);
+            // Roslyn always deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
+            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
 
             if (null != pathToBuildTools)
             {
