@@ -182,13 +182,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = (ISymbol)null;
-                        switch (constructedInterfaceMember)
-                        {
-                            case IEventSymbol eventSymbol: result = FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations); break;
-                            case IMethodSymbol methodSymbol: result = FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations); break;
-                            case IPropertySymbol propertySymbol: result = FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations); break;
-                        }
+                        var result = FindImplementations(workspace, constructedInterfaceMember, currentType);
 
                         if (result != null)
                         {
@@ -198,6 +192,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
             }
+        }
+
+        private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
+        {
+            switch (constructedInterfaceMember)
+            {
+                case IEventSymbol eventSymbol: return FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations);
+                case IMethodSymbol methodSymbol: return FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations);
+                case IPropertySymbol propertySymbol: return FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations);
+            }
+
+            return null;
         }
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
