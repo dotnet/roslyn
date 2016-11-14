@@ -16,8 +16,9 @@
 3. Install an insider VSIX from our [nightly MyGet feed](https://dotnet.myget.org/feed/roslyn/package/vsix/eb2680f2-4e63-44a8-adf6-2e667d9f689c). Note that these builds are uploaded without validation, so you may need to try to find one that works for you.
 
   - If you need to uninstall this or a previous version of this VSIX, you must:
-  
-    -	delete %LocalAppdata%\Microsoft\VisualStudio\14.0\
+    
+    - Close all instances of VS
+    -	delete %LocalAppdata%\Microsoft\VisualStudio\14.0\ (Note, this will delete all your extensions, not just the Roslyn VSIX)
     - run `devenv /updateconfiguration` from a developer command prompt
 
 
