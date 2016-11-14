@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return currentSolution;
             }
 
-            if (s_lastSolution.Item1 == solutionChecksum)
+            if (s_lastSolution?.Item1 == solutionChecksum)
             {
                 return s_lastSolution.Item2;
             }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // make sure there is always only one that creates a new solution
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (s_lastSolution.Item1 == solutionChecksum)
+                if (s_lastSolution?.Item1 == solutionChecksum)
                 {
                     return s_lastSolution.Item2;
                 }
