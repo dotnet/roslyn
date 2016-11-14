@@ -58,6 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
+        ''' In order to avoid breaking interop scenarios, we need to support signatures
+        ''' with modifiers preceding ByRef.
+        ''' Should be 0 for non-ref returns.
+        ''' </summary>
+        Friend MustOverride ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+
+        ''' <summary>
         ''' Gets the parameters of this property. If this property has no parameters, returns
         ''' an empty list.
         ''' </summary>

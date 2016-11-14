@@ -946,6 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      method.ReturnsByRef,
                                                                      translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                                      translator.RetargetModifiers(method.ReturnTypeCustomModifiers, modifiersHaveChanged),
+                                                                     method.CountOfCustomModifiersPrecedingByRef,
                                                                      ImmutableArray(Of MethodSymbol).Empty)
 
                     For Each retargetedMember As Symbol In retargetedType.GetMembers(method.Name)
@@ -1050,7 +1051,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      targetParamsBuilder.ToImmutableAndFree(),
                                                                      [property].ReturnsByRef,
                                                                      Retarget([property].Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged))
+                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged),
+                                                                     [property].CountOfCustomModifiersPrecedingByRef)
 
                 For Each retargetedMember As Symbol In retargetedType.GetMembers([property].Name)
                     If retargetedMember.Kind = SymbolKind.Property Then
