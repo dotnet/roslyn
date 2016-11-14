@@ -140,62 +140,12 @@ namespace Roslyn.Utilities
 
         public static Action<T> WithCurrentUICulture<T>(Action<T> action)
         {
-            if (s_setCurrentUICulture == null)
-            {
-                return action;
-            }
-
-            var savedCulture = CultureInfo.CurrentUICulture;
-            return param =>
-            {
-                var currentCulture = CultureInfo.CurrentUICulture;
-                if (currentCulture != savedCulture)
-                {
-                    s_setCurrentUICulture(savedCulture);
-                    try
-                    {
-                        action(param);
-                    }
-                    finally
-                    {
-                        s_setCurrentUICulture(currentCulture);
-                    }
-                }
-                else
-                {
-                    action(param);
-                }
-            };
+            return action;
         }
 
         public static Func<T> WithCurrentUICulture<T>(Func<T> func)
         {
-            if (s_setCurrentUICulture == null)
-            {
-                return func;
-            }
-
-            var savedCulture = CultureInfo.CurrentUICulture;
-            return () =>
-            {
-                var currentCulture = CultureInfo.CurrentUICulture;
-                if (currentCulture != savedCulture)
-                {
-                    s_setCurrentUICulture(savedCulture);
-                    try
-                    {
-                        return func();
-                    }
-                    finally
-                    {
-                        s_setCurrentUICulture(currentCulture);
-                    }
-                }
-                else
-                {
-                    return func();
-                }
-            };
+            return func;
         }
     }
 }
