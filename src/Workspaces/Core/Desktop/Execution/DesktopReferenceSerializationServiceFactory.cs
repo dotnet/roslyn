@@ -1,9 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -24,6 +30,43 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             public Service(ITemporaryStorageService service) : base(service)
             {
+            }
+
+            public override void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+            {
+                if (encoding == null)
+                {
+                    base.WriteTo(encoding, writer, cancellationToken);
+                    return;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                writer.WriteByte(EncodingSerialization);
+
+                var formatter = new BinaryFormatter();
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    // unfortunately, this is only way to properly clone encoding
+                    formatter.Serialize(stream, encoding);
+                    writer.WriteValue(stream.ToArray());
+                }
+            }
+
+            public override Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var serialized = reader.ReadByte();
+                if (serialized == EncodingSerialization)
+                {
+                    var array = (byte[])reader.ReadValue();
+                    var formatter = new BinaryFormatter();
+
+                    return (Encoding)formatter.Deserialize(new MemoryStream(array));
+                }
+
+                return ReadEncodingFrom(serialized, reader, cancellationToken);
             }
 
             protected override string GetAnalyzerAssemblyPath(AnalyzerFileReference reference)

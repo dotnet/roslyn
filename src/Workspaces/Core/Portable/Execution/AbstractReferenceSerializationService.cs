@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -21,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private const int MetadataFailed = int.MaxValue;
 
+        protected const byte NoEncodingSerialization = 0;
+        protected const byte EncodingSerialization = 1;
+
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
         private readonly ITemporaryStorageService _storageService;
@@ -28,6 +32,38 @@ namespace Microsoft.CodeAnalysis.Execution
         protected AbstractReferenceSerializationService(ITemporaryStorageService storageService)
         {
             _storageService = storageService;
+        }
+
+        public virtual void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            writer.WriteByte(NoEncodingSerialization);
+            writer.WriteString(encoding?.WebName);
+        }
+
+        public virtual Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var serialized = reader.ReadByte();
+
+            // portable layer doesn't support serialization
+            Contract.ThrowIfFalse(serialized == NoEncodingSerialization);
+            return ReadEncodingFrom(serialized, reader, cancellationToken);
+        }
+
+        protected Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (serialized != NoEncodingSerialization)
+            {
+                return null;
+            }
+
+            var webName = reader.ReadString();
+            return webName == null ? null : Encoding.GetEncoding(webName);
         }
 
         protected abstract string GetAnalyzerAssemblyPath(AnalyzerFileReference reference);
