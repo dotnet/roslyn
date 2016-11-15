@@ -14,7 +14,12 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
+
+    <!-- This VSIX must be compiled with the Dev15 SDK due to the specific 
+         set of references it uses.  Yet when doing so it can't link in all
+         of the Dev14 VSIX that we are creating.  Hence when building specifically
+         for Dev14 do not build this as a VSIX.  -->
+    <ImportVSSDKTargets Condition="'$(IsDev14VsiBuild)' != 'true'">true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
