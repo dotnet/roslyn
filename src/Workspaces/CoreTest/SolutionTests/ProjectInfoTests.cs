@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestNullOrWhitespaceAssemblyNameAllowed(ProjectId pid)
+        public void TestNullOrWhitespaceAssemblyNameAllowed()
         {
+            var pid = ProjectId.CreateNewId();
             var info = ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: null, language: "C#");
             Assert.True(info.AssemblyName.StartsWith(ProjectInfo.InvalidAssemblyNamePrefix));
 
