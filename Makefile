@@ -75,6 +75,7 @@ clean_toolset:
 toolset: $(TOOLSET_PATH)
 
 $(TOOLSET_PATH): $(BINARIES_PATH)/dotnet-cli
+	export HOME=$(HOME_DIR) ; \
 	pushd $(TOOLSET_SRC_PATH) ; \
 	$(BINARIES_PATH)/dotnet-cli/dotnet restore && \
 	$(BINARIES_PATH)/dotnet-cli/dotnet publish -o $(TOOLSET_PATH) && \

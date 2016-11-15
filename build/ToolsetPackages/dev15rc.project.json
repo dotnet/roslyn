@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "Microsoft.VSSDK.BuildTools": "15.0.25825-RC"
+        "Microsoft.VSSDK.BuildTools": "15.0.25907-RC2"
     },
     "frameworks": {
         "net46": {}

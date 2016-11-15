@@ -90,14 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
             SignatureHeader callingConvention;
             BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx, allowByRefReturn: true);
+            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
             SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
-            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx, allowByRefReturn: true);
+            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
             BadImageFormatException setEx = null;
-            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx, allowByRefReturn: false);
+            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
             // use the parameter names from one of the indexers

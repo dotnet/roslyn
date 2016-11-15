@@ -354,13 +354,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
-                boundArguments.Add(boundArgument)
-
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType, hasErrors)
+
                 If elementType Is Nothing Then
                     hasInferredType = False
                 End If
 
+                If boundArgument.Type IsNot Nothing Then
+                    boundArgument = MakeRValue(boundArgument, diagnostics)
+                End If
+
+                boundArguments.Add(boundArgument)
                 elementTypes.Add(elementType)
             Next
 

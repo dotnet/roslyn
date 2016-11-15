@@ -45,8 +45,24 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public ITypeSymbol OriginalType { get; }
 
-            public static int Compare(VariableSymbol left, VariableSymbol right)
+            public static int Compare(
+                VariableSymbol left, 
+                VariableSymbol right,
+                INamedTypeSymbol cancellationTokenType)
             {
+                // CancellationTokens always go at the end of method signature.
+                var leftIsCancellationToken = left.OriginalType.Equals(cancellationTokenType);
+                var rightIsCancellationToken = right.OriginalType.Equals(cancellationTokenType);
+
+                if (leftIsCancellationToken && !rightIsCancellationToken)
+                {
+                    return 1;
+                }
+                else if (!leftIsCancellationToken && rightIsCancellationToken)
+                {
+                    return -1;
+                }
+
                 if (left.DisplayOrder == right.DisplayOrder)
                 {
                     return left.CompareTo(right);
@@ -97,10 +113,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _parameterSymbol = parameterSymbol;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 0; }
-            }
+            public override int DisplayOrder => 0;
 
             protected override int CompareTo(VariableSymbol right)
             {
@@ -191,10 +204,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _nonNoisySet = nonNoisySet;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 1; }
-            }
+            public override int DisplayOrder => 1;
 
             protected override int CompareTo(VariableSymbol right)
             {
@@ -310,10 +320,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _symbol = symbol;
             }
 
-            public override int DisplayOrder
-            {
-                get { return 2; }
-            }
+            public override int DisplayOrder => 2;
 
             protected override int CompareTo(VariableSymbol right)
             {

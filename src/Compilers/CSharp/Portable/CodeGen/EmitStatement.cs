@@ -726,13 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        var returnType = expressionOpt.Type;
-                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
-                        if ((object)byRefType != null)
-                        {
-                            returnType = byRefType.ReferencedType;
-                        }
-                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
