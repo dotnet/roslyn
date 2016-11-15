@@ -182,10 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             var spacePart = Space();
             var result = new List<SignatureHelpParameter>();
-            for (int i = 0; i < tupleType.TupleElementTypes.Length; i++)
+            foreach (var element in tupleType.TupleElements)
             {
-                var type = tupleType.TupleElementTypes[i];
-                var elementName = GetElementName(tupleType.TupleElementNames, i);
+                var type = element.Type;
+
+                // The display name for each element. 
+                // Empty strings for elements not explicitly declared
+                var elementName = element.IsImplicitlyDeclared? string.Empty: element.Name;
 
                 var typeParts = type.ToMinimalDisplayParts(semanticModel, position).ToList();
                 if (!string.IsNullOrEmpty(elementName))
@@ -198,18 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             return result;
-        }
-
-        // The display name for each parameter. Empty strings are allowed for
-        // parameters without names.
-        private string GetElementName(ImmutableArray<string> tupleElementNames, int i)
-        {
-            if (tupleElementNames == default(ImmutableArray<string>))
-            {
-                return string.Empty;
-            }
-
-            return tupleElementNames[i] ?? string.Empty;
         }
 
         private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position, 

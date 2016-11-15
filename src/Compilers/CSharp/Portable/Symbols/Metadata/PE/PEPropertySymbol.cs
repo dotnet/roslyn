@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private Tuple<CultureInfo, string> _lazyDocComment;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
@@ -89,14 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
             SignatureHeader callingConvention;
             BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx, allowByRefReturn: true);
+            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
             SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
-            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx, allowByRefReturn: true);
+            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
             BadImageFormatException setEx = null;
-            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx, allowByRefReturn: false);
+            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
             // use the parameter names from one of the indexers
@@ -109,12 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
-            _typeCustomModifiers = CSharpCustomModifier.Convert(propertyParams[0].CustomModifiers);
-
-            _refKind = propertyParams[0].IsByRef ? RefKind.Ref : RefKind.None;
+            var returnInfo = propertyParams[0];
+            _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
+            _countOfCustomModifiersPrecedingByRef = returnInfo.CountOfCustomModifiersPrecedingByRef;
+            _refKind = returnInfo.IsByRef ? RefKind.Ref : RefKind.None;
 
             // CONSIDER: Can we make parameter type computation lazy?
-            TypeSymbol originalPropertyType = propertyParams[0].Type;
+            TypeSymbol originalPropertyType = returnInfo.Type;
             _propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, _typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
 
             // Dynamify object type if necessary
@@ -440,6 +442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
             get { return _typeCustomModifiers; }
+        }
+
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get { return _countOfCustomModifiersPrecedingByRef; }
         }
 
         public override MethodSymbol GetMethod

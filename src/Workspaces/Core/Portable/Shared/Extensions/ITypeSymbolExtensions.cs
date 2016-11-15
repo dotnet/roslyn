@@ -182,10 +182,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = constructedInterfaceMember.TypeSwitch(
-                            (IEventSymbol eventSymbol) => FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations),
-                            (IMethodSymbol methodSymbol) => FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations),
-                            (IPropertySymbol propertySymbol) => FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations));
+                        var result = (ISymbol)null;
+                        switch (constructedInterfaceMember)
+                        {
+                            case IEventSymbol eventSymbol: result = FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations); break;
+                            case IMethodSymbol methodSymbol: result = FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations); break;
+                            case IPropertySymbol propertySymbol: result = FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations); break;
+                        }
 
                         if (result != null)
                         {
@@ -526,11 +529,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType(this ITypeSymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IArrayTypeSymbol a) => ContainsAnonymousType(a.ElementType),
-                (IPointerTypeSymbol p) => ContainsAnonymousType(p.PointedAtType),
-                (INamedTypeSymbol n) => ContainsAnonymousType(n),
-                _ => false);
+            switch (symbol)
+            {
+                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
+                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
+                case INamedTypeSymbol n: return ContainsAnonymousType(n);
+                default: return false;
+            }
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)

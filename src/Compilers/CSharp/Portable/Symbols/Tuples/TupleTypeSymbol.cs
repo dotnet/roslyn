@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the default fields for the tuple's elements (in order and cached).
         /// </summary>
-        public override ImmutableArray<FieldSymbol> TupleDefaultElementFields
+        public override ImmutableArray<FieldSymbol> TupleElements
         {
             get
             {
@@ -730,13 +730,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                var field = (FieldSymbol)member;
+                var candidate = (FieldSymbol)member;
+                var index = candidate.TupleElementIndex;
 
-                if (field.IsDefaultTupleElement)
+                if (index >= 0)
                 {
-                    var index = field.TupleElementIndex;
-                    Debug.Assert((object)builder[index] == null);
-                    builder[index] = field;
+                    if (builder[index]?.IsDefaultTupleElement != false)
+                    {
+                        builder[index] = candidate;
+                    }
+                    else
+                    {
+                        // there is a better field in the slot
+                        // that can only happen if the candidate is default.
+                        Debug.Assert(candidate.IsDefaultTupleElement);
+                    }
                 }
             }
 
@@ -811,28 +819,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var fieldSymbol = field.AsMember(currentUnderlying);
 
                                 // Add a field with default name. It should be present regardless.
+                                TupleElementFieldSymbol defaultTupleField;
                                 if (currentNestingLevel != 0)
                                 {
                                     // This is a matching field, but it is in the extension tuple
                                     // Make it virtual since we are not at the top level
-                                    // tupleFieldIndex << 1 because this is a default element
-                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, defaultName, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
+                                    defaultTupleField = new TupleVirtualElementFieldSymbol(this,
+                                                                                            fieldSymbol,
+                                                                                            defaultName,
+                                                                                            tupleFieldIndex,
+                                                                                            location,
+                                                                                            isImplicitlyDeclared: defaultImplicitlyDeclared,
+                                                                                            correspondingDefaultFieldOpt: null);
                                 }
                                 else
                                 {
                                     Debug.Assert(fieldSymbol.Name == defaultName, "top level underlying field must match default name");
 
                                     // Add the underlying field as an element. It should have the default name.
-                                    // tupleFieldIndex << 1 because this is a default element
-                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex << 1, location, defaultImplicitlyDeclared));
+                                    defaultTupleField = new TupleElementFieldSymbol(this,
+                                                                                    fieldSymbol,
+                                                                                    tupleFieldIndex,
+                                                                                    location,
+                                                                                    isImplicitlyDeclared: defaultImplicitlyDeclared,
+                                                                                    correspondingDefaultFieldOpt: null);
                                 }
 
-                                if (defaultImplicitlyDeclared && providedName != null)
+                                members.Add(defaultTupleField);
+
+                                if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
                                 {
                                     // The name given doesn't match the default name Item8, etc.
                                     // Add a virtual field with the given name
-                                    // tupleFieldIndex << 1 + 1, because this is not a default element
-                                    members.Add(new TupleVirtualElementFieldSymbol(this, fieldSymbol, providedName, (tupleFieldIndex << 1) + 1, location, isImplicitlyDeclared: false));
+                                    members.Add(new TupleVirtualElementFieldSymbol(this,
+                                                                                    fieldSymbol,
+                                                                                    providedName,
+                                                                                    tupleFieldIndex,
+                                                                                    location,
+                                                                                    isImplicitlyDeclared: false,
+                                                                                    correspondingDefaultFieldOpt: defaultTupleField));
                                 }
 
                                 elementsMatchedByFields[tupleFieldIndex] = true; // mark as handled
@@ -919,16 +944,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // then default element is declared implicitly
                     var defaultImplicitlyDeclared = providedName != defaultName;
 
-                    // Add default element field. 
-                    // i << 1 because this is a default element
-                    members.Add(new TupleErrorFieldSymbol(this, defaultName, i << 1, defaultImplicitlyDeclared ? null : location, _elementTypes[i], diagnosticInfo, defaultImplicitlyDeclared));
+                    // Add a field with default name. It should be present regardless.
+                    TupleErrorFieldSymbol defaultTupleField = new TupleErrorFieldSymbol(this, 
+                                                                                        defaultName, 
+                                                                                        i, 
+                                                                                        defaultImplicitlyDeclared ? null : location, 
+                                                                                        _elementTypes[i], 
+                                                                                        diagnosticInfo, 
+                                                                                        defaultImplicitlyDeclared,
+                                                                                        correspondingDefaultFieldOpt: null);
 
+                    members.Add(defaultTupleField);
 
-                    if (defaultImplicitlyDeclared && providedName != null)
+                    if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
                     {
                         // Add friendly named element field. 
-                        // (i << 1) + 1, because this is not a default element
-                        members.Add(new TupleErrorFieldSymbol(this, providedName, (i << 1) + 1, location, _elementTypes[i], diagnosticInfo, isImplicitlyDeclared: false));
+                        members.Add(new TupleErrorFieldSymbol(this, 
+                                                              providedName, 
+                                                              i, 
+                                                              location, 
+                                                              _elementTypes[i], 
+                                                              diagnosticInfo, 
+                                                              isImplicitlyDeclared: false,
+                                                              correspondingDefaultFieldOpt: defaultTupleField));
                     }
                 }
             }

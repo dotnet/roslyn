@@ -1797,8 +1797,6 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, renameTo:="N")
-
-
             End Using
         End Sub
 
@@ -2449,7 +2447,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, renameTo:="Baz")
-
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "BazEventHandler", RelatedLocationType.NoConflict)
             End Using

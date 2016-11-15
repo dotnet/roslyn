@@ -34,7 +34,7 @@
     <Compile Include="ProjectEntry.cs" />
     <Compile Include="SolutionCheckerUtil.cs" />
     <Compile Include="SolutionUtil.cs" />
-    <Compile Include="StructuredLoggerChecekerUtil.cs" />
+    <Compile Include="StructuredLoggerCheckerUtil.cs" />
     <Compile Include="TargetsCheckerUtil.cs" />
   </ItemGroup>
   <ItemGroup>

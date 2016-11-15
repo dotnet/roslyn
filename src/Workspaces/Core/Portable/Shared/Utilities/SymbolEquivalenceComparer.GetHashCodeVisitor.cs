@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (x.IsTupleType)
                 {
-                    return CombineHashCodes(x.TupleElementTypes, currentHash, _symbolAggregator);
+                    return Hash.Combine(currentHash, Hash.CombineValues(x.TupleElements));
                 }
 
                 // If we want object and dynamic to be the same, and this is 'object', then return

@@ -31,6 +31,21 @@ namespace BuildBoss
 
         internal RoslynProjectData GetRoslynProjectData()
         {
+            RoslynProjectData data;
+            string error;
+            if (!TryGetRoslynProjectData(out data, out error))
+            {
+                throw new Exception(error);
+            }
+
+            return data;
+        }
+
+        internal bool TryGetRoslynProjectData(out RoslynProjectData data, out string error)
+        {
+            data = default(RoslynProjectData);
+            error = null;
+
             var typeElement = FindSingleProperty("RoslynProjectType");
             if (typeElement != null)
             {
@@ -38,10 +53,12 @@ namespace BuildBoss
                 var kind = RoslynProjectKindUtil.GetRoslynProjectKind(value);
                 if (kind == null)
                 {
-                    throw new Exception($"Unrecognized RoslynProjectKind value {value}");
+                    error = $"The value {value} is illegal for element <RoslynProjectType>";
+                    return false;
                 }
 
-                return new RoslynProjectData(kind.Value, kind.Value, value);
+                data = new RoslynProjectData(kind.Value, kind.Value, value);
+                return true;
             }
             else
             { 
@@ -50,11 +67,14 @@ namespace BuildBoss
                 {
                     case "Exe":
                     case "WinExe":
-                        return new RoslynProjectData(RoslynProjectKind.Exe);
+                        data = new RoslynProjectData(RoslynProjectKind.Exe);
+                        return true;
                     case "Library":
-                        return new RoslynProjectData(RoslynProjectKind.Dll);
+                        data = new RoslynProjectData(RoslynProjectKind.Dll);
+                        return true;
                     default:
-                        throw new Exception($"Unrecognized OutputType value {outputType?.Value.Trim()}");
+                        error = $"The value {outputType?.Value.Trim()} is not a recognized value of OutputType";
+                        return false;
                 }
             }
         }

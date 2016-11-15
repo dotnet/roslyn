@@ -1170,5 +1170,48 @@ compareTokens: false);
     }
 }");
         }
-     }
+
+        [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestCancellationTokenGoesLast()
+        {
+            await TestAsync(
+@"using System;
+using System.Threading;
+
+class C
+{
+    void M(CancellationToken ct)
+    {
+        var v = 0;
+
+        [|if (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            Console.WriteLine(v);
+        }|]
+    }
+}",
+@"using System;
+using System.Threading;
+
+class C
+{
+    void M(CancellationToken ct)
+    {
+        var v = 0;
+        {|Rename:NewMethod|}(v, ct);
+    }
+
+    private static void NewMethod(int v, CancellationToken ct)
+    {
+        if (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            Console.WriteLine(v);
+        }
+    }
+}");
+        }
+    }
 }

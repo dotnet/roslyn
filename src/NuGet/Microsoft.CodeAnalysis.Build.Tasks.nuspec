@@ -10,8 +10,8 @@
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.CSharp"                      version="[$version$]" />
-        <dependency id="Microsoft.Build"                                    version="$MicrosoftBuildVersion$" />
-        <dependency id="Microsoft.Build.Tasks.Core"                         version="$MicrosoftBuildTasksCoreVersion$" />
+        <dependency id="Microsoft.Build"                                    version="$MicrosoftBuild14Version$" />
+        <dependency id="Microsoft.Build.Tasks.Core"                         version="$MicrosoftBuildTasksCore14Version$" />
 
         <dependency id="System.AppContext"                                  version="$SystemAppContextVersion$" />
         <dependency id="System.Console"                                     version="$SystemConsoleVersion$" />
