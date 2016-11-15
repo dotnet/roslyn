@@ -1742,12 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
-                var memberType = (ITypeSymbol)null;
-                switch (memberSymbol)
-                {
-                    case IMethodSymbol method: memberType = method.ReturnType; break;
-                    case IPropertySymbol property: memberType = property.Type; break;
-                }
+                var memberType = GetMemberType(memberSymbol);
 
                 if (memberType is INamedTypeSymbol)
                 {
@@ -1759,6 +1754,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private static ITypeSymbol GetMemberType(ISymbol memberSymbol)
+            {
+                switch (memberSymbol)
+                {
+                    case IMethodSymbol method: return method.ReturnType; 
+                    case IPropertySymbol property: return property.Type; 
+                }
+
+                return null;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)

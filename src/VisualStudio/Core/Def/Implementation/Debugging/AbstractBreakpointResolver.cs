@@ -244,12 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             // of parameters (but we don't actually validate the type or name of the supplied parameters).
             if (parameterCount != null)
             {
-                var mismatch = false;
-                switch (methodOrProperty)
-                {
-                    case IMethodSymbol method: mismatch = method.Parameters.Length != parameterCount; break;
-                    case IPropertySymbol property: mismatch = property.Parameters.Length != parameterCount; break; 
-                }
+                var mismatch = IsMismatch(methodOrProperty, parameterCount);
 
                 if (mismatch)
                 {
@@ -269,6 +264,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
                 // Non-abstract properties are always applicable, because you can set a breakpoint on the
                 // accessor methods (get and/or set).
                 return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsMismatch(ISymbol methodOrProperty, int? parameterCount)
+        {
+            switch (methodOrProperty)
+            {
+                case IMethodSymbol method: return method.Parameters.Length != parameterCount;
+                case IPropertySymbol property: return property.Parameters.Length != parameterCount;
             }
 
             return false;
