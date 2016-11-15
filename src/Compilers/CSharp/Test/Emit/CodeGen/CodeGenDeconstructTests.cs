@@ -4156,6 +4156,40 @@ int (x, y) = (1, 2);
         }
 
         [Fact]
+        public void InvalidDeconstructionInScript_2()
+        {
+            var source =
+@"
+(int (x, y), int z) = ((1, 2), 3);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // (int (x, y), int z) = ((1, 2), 3);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
+                );
+
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Int32", yType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void NameConflictInDeconstructionInScript()
         {
             var source =

@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            // Since the purpose is to bind any unbound argumnts, we return early if there are none.
+            // Since the purpose is to bind any unbound arguments, we return early if there are none.
             if (!analyzedArguments.Arguments.Any(e => (object)e.Type == null))
             {
                 return analyzedArguments.Arguments.ToImmutable();

@@ -2014,6 +2014,7 @@ namespace System
                 );
         }
 
+        [Fact]
         public void NoDeconstructionAsLvalue()
         {
             var source =
