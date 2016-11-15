@@ -1965,7 +1965,7 @@ class Program
     static void Main(string[] args)
     {
         E e;
-        e =
+        e = $$
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
