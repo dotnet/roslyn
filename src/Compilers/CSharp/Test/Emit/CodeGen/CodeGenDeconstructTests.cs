@@ -1188,6 +1188,15 @@ class C
         a = default(ArgIterator);
         b = 2;
     }
+
+    public void M3()
+    {
+        (int x, var (err1, y)) = (0, new C());
+        (ArgIterator err2, var err3) = M2();
+        foreach ((ArgIterator err4, var err5) in new[] { M2() })
+        {
+        }
+    }
 }
 ";
 
