@@ -40,6 +40,14 @@ try
     $count = 0
 
     foreach ($relativePath in $signToolData.sign | %{ $_.values }) {
+
+        # This is a DLL we sign but do not produce.  Hence it doesn't have a PDB
+        # to be source linked.
+        $name = split-path -leaf $relativePath
+        if ($name -eq "Microsoft.DiaSymReader.PortablePdb.dll") {
+            continue;
+        }
+
         $ext = [IO.Path]::GetExtension($relativePath)
         if (($ext -ne ".exe") -and ($ext -ne ".dll")) {
             continue
