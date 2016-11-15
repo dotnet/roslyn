@@ -354,13 +354,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
-                boundArguments.Add(boundArgument)
-
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType, hasErrors)
+
                 If elementType Is Nothing Then
                     hasInferredType = False
                 End If
 
+                If boundArgument.Type IsNot Nothing Then
+                    boundArgument = MakeRValue(boundArgument, diagnostics)
+                End If
+
+                boundArguments.Add(boundArgument)
                 elementTypes.Add(elementType)
             Next
 
@@ -1242,28 +1246,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim enclosed = MakeRValue(memberAccess.MemberAccess, diagnostics)
                 Return memberAccess.Update(enclosed)
 
-            ElseIf expr.Kind = BoundKind.TupleLiteral AndAlso expr.Type IsNot Nothing Then
-                Dim tupleLiteral = DirectCast(expr, BoundTupleLiteral)
-                Dim args = tupleLiteral.Arguments
-                Dim rvalues As ArrayBuilder(Of BoundExpression) = Nothing
+                'ElseIf expr.Kind = BoundKind.TupleLiteral AndAlso expr.Type IsNot Nothing Then
+                '    Dim tupleLiteral = DirectCast(expr, BoundTupleLiteral)
+                '    Dim args = tupleLiteral.Arguments
+                '    Dim rvalues As ArrayBuilder(Of BoundExpression) = Nothing
 
-                For i As Integer = 0 To args.Length - 1
-                    Dim arg = args(i)
-                    Dim rvalue = MakeRValue(arg, diagnostics)
+                '    For i As Integer = 0 To args.Length - 1
+                '        Dim arg = args(i)
+                '        Dim rvalue = MakeRValue(arg, diagnostics)
 
-                    If arg IsNot rvalue AndAlso rvalues Is Nothing Then
-                        rvalues = ArrayBuilder(Of BoundExpression).GetInstance
-                        rvalues.AddRange(args, i)
-                    End If
+                '        If arg IsNot rvalue AndAlso rvalues Is Nothing Then
+                '            rvalues = ArrayBuilder(Of BoundExpression).GetInstance
+                '            rvalues.AddRange(args, i)
+                '        End If
 
-                    rvalues?.Add(rvalue)
-                Next
+                '        rvalues?.Add(rvalue)
+                '    Next
 
-                If rvalues Is Nothing Then
-                    Return expr
-                End If
+                '    If rvalues Is Nothing Then
+                '        Return expr
+                '    End If
 
-                Return tupleLiteral.Update(tupleLiteral.InferredType, tupleLiteral.ArgumentNamesOpt, rvalues.ToImmutableAndFree(), tupleLiteral.Type)
+                '    Return tupleLiteral.Update(tupleLiteral.InferredType, tupleLiteral.ArgumentNamesOpt, rvalues.ToImmutableAndFree(), tupleLiteral.Type)
             End If
 
             expr = MakeValue(expr, diagnostics)

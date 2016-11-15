@@ -3654,6 +3654,70 @@ System.String
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+
+Imports System
+        Module C
+            Sub Main()
+                Dim q = "q"
+                Dim a As Object = "a"
+
+                System.Console.WriteLine(Test((q, a)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+
+                System.Console.WriteLine(Test((Ps, Po)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+            End Sub
+
+            Function Test(Of T)(ByRef x As (T, T)) As (T, T)
+                Console.WriteLine(GetType(T))
+
+                x.Item1 = x.Item2
+
+                Return x
+            End Function
+
+            Public Property Ps As String
+                Get
+                    Return "q"
+                End Get
+                Set(value As String)
+                    System.Console.WriteLine("written1 !!!")
+                End Set
+            End Property
+
+            Public Property Po As Object
+                Get
+                    Return "a"
+                End Get
+                Set(value As Object)
+                    System.Console.WriteLine("written2 !!!")
+                End Set
+            End Property
+        End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.Object
+(a, a)
+q
+a
+System.Object
+(a, a)
+q
+a
+            ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInference004a()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
 Imports System
 Module C
     Sub Main()
@@ -3696,7 +3760,9 @@ Module C
         Dim q = "q"
         Dim a as object = "a"
 
-        System.Console.WriteLine(Test((q, a)))
+        Dim t = (q, a)
+
+        System.Console.WriteLine(Test(t))
 
         System.Console.WriteLine(q)
         System.Console.WriteLine(a)
@@ -3716,7 +3782,7 @@ End Module
             comp.AssertTheseDiagnostics(
 <errors>
 BC36651: Data type(s) of the type parameter(s) in method 'Public Function Test(Of T)(ByRef x As (T, T)) As (T, T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
-        System.Console.WriteLine(Test((q, a)))
+        System.Console.WriteLine(Test(t))
                                  ~~~~
 </errors>)
 
@@ -17951,6 +18017,36 @@ Public Class C
     Shared Sub Main()
         dim inst = new C
         dim f As IComparable(of (Integer, Integer)) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs003()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst as Object = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
         System.Console.WriteLine(f)
     End Sub
 
