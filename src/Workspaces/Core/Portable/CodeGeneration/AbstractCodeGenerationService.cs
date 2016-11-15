@@ -231,15 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 foreach (var member in filteredMembers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    switch (member)
-                    {
-                        case IEventSymbol @event: currentDestination = this.AddEvent(currentDestination, @event, options, availableIndices); break;
-                        case IFieldSymbol field: currentDestination = this.AddField(currentDestination, field, options, availableIndices); break;
-                        case IPropertySymbol property: currentDestination = this.AddProperty(currentDestination, property, options, availableIndices); break;
-                        case IMethodSymbol method: currentDestination = this.AddMethod(currentDestination, method, options, availableIndices); break;
-                        case INamedTypeSymbol namedType: currentDestination = this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken); break;
-                        case INamespaceSymbol @namespace: currentDestination = this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken); break;
-                    }
+                    currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, cancellationToken);
                 }
             }
             else
@@ -275,6 +267,26 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
 
                 currentDestination = this.AddMembers(currentDestination, newMembers);
+            }
+
+            return currentDestination;
+        }
+
+        private TDeclarationNode UpdateDestination<TDeclarationNode>(
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            TDeclarationNode currentDestination,
+            ISymbol member,
+            CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
+        {
+            switch (member)
+            {
+                case IEventSymbol @event: return this.AddEvent(currentDestination, @event, options, availableIndices);
+                case IFieldSymbol field: return this.AddField(currentDestination, field, options, availableIndices);
+                case IPropertySymbol property: return this.AddProperty(currentDestination, property, options, availableIndices);
+                case IMethodSymbol method: return this.AddMethod(currentDestination, method, options, availableIndices);
+                case INamedTypeSymbol namedType: return this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken);
+                case INamespaceSymbol @namespace: return this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken);
             }
 
             return currentDestination;

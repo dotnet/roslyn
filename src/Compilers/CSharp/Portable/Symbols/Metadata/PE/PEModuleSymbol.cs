@@ -651,36 +651,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </remarks>
         internal AssemblySymbol GetAssemblyForForwardedType(ref MetadataTypeName fullName)
         {
-            try
-            {
-                string matchedName;
-                AssemblyReferenceHandle assemblyRef = Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
-                return assemblyRef.IsNil ? null : this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)];
-            }
-            catch (BadImageFormatException)
-            {
-                return null;
-            }
+            string matchedName;
+            AssemblyReferenceHandle assemblyRef = Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
+            return assemblyRef.IsNil ? null : this.GetReferencedAssemblySymbol(assemblyRef);
         }
 
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
             foreach (KeyValuePair<string, AssemblyReferenceHandle> forwarder in Module.GetForwardedTypes())
             {
-                var name = MetadataTypeName.FromFullName(forwarder.Key);
-                AssemblySymbol assemblySymbol;
-
-                try
-                {
-                    assemblySymbol = this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value)];
-                }
-                catch (BadImageFormatException)
+                var assemblySymbol = this.GetReferencedAssemblySymbol(forwarder.Value);
+                if ((object)assemblySymbol == null)
                 {
                     continue;
                 }
-
+                var name = MetadataTypeName.FromFullName(forwarder.Key);
                 yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
             }
+        }
+
+        private AssemblySymbol GetReferencedAssemblySymbol(AssemblyReferenceHandle assemblyRef)
+        {
+            int referencedAssemblyIndex;
+            try
+            {
+                referencedAssemblyIndex = Module.GetAssemblyReferenceIndexOrThrow(assemblyRef);
+            }
+            catch (BadImageFormatException)
+            {
+                return null;
+            }
+            return this.GetReferencedAssemblySymbol(referencedAssemblyIndex);
         }
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();

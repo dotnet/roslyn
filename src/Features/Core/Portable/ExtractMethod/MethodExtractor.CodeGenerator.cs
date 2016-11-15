@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
 
-                var codeGenerationService = this.SemanticDocument.Document.Project.LanguageServices.GetService<ICodeGenerationService>();
+                var codeGenerationService = this.SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
                 var result = this.GenerateMethodDefinition(cancellationToken);
                 var newContainer = codeGenerationService.AddMethod(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return null;
                 }
 
-                variables.Sort(VariableInfo.Compare);
+                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
                 return variables[0];
             }
 

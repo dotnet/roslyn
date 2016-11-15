@@ -38,6 +38,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             get { return _runtimeInstance; }
         }
 
+        public DkmProcess Process => _runtimeInstance.Process;
+
         public DkmClrType ResolveTypeName(string typeName, ReadOnlyCollection<DkmClrType> typeArguments)
         {
             var type = this.Assembly.GetType(typeName);
