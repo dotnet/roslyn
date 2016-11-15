@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(VisualBasic.MessageProvider.Instance, isScriptRunner)
         End Sub
 
-        Private Const s_win32Manifest As String = "win32manifest"
-        Private Const s_win32Icon As String = "win32icon"
-        Private Const s_win32Res As String = "win32resource"
+        'Private Const s_win32Manifest As String = "win32manifest"
+        'Private Const s_win32Icon As String = "win32icon"
+        'Private Const s_win32Res As String = "win32resource"
 
         ''' <summary>
         ''' Gets the standard Visual Basic source file extension
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Gets the standard Visual Basic script file extension.
+        ''' Gets the standard Visual Basic script fiSle extension.
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic script file extension.</returns>
         Protected Overrides ReadOnly Property ScriptFileExtension As String = ".vbx"
@@ -57,28 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories)
         End Function
 
-        Protected Friend Function Parse_Help(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                display.Help = True
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
 
-        Protected Friend Function Parser_Version(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                display.Version = True
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
 
-        Protected Friend Enum FlagParse
-            Valid_ContinueFor
-            Invalid_ExitSelect
-        End Enum
 
         ''' <summary>
         ''' Parses a command line.
@@ -203,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each arg In flattenedArgs
                 Debug.Assert(Not arg.StartsWith("@", StringComparison.Ordinal))
-                Dim result As FlagParse = FlagParse.Invalid_ExitSelect
+                Dim result As Flags.Validation = Flags.Validation.Failure
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
@@ -214,66 +194,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case name
                     Case "?", "help"
-                        result = Parse_Help(value, display)
+                        result = Flags.Help(value, display)
 
                     Case "version"
-                        result = Parser_Version(value, display)
+                        result = Flags.Version(value, display)
 
                     Case "r", "reference"
-                        result = Parse_Reference(diagnostics, metadataReferences, name, value)
+                        result = Flags.Reference(diagnostics, metadataReferences, name, value)
 
                     Case "a", "analyzer"
-                        result = Parse_Analyzer(diagnostics, analyzers, name, value)
+                        result = Flags.Analyzer(diagnostics, analyzers, name, value)
 
                     Case "d", "define"
-                        result = Parse_Define(diagnostics, defines, name, value)
+                        result = Flags.Define(diagnostics, defines, name, value)
 
                     Case "imports", "import"
-                        result = Parse_Imports(diagnostics, globalImports, name, value)
+                        result = Flags.Imports(diagnostics, globalImports, name, value)
 
                     Case "optionstrict"
-                        result = Parse_Option_Strict(diagnostics, _option, value)
+                        result = Flags.Option_Strict(diagnostics, _option, value)
 
                     Case "optionstrict+", "optionstrict-"
-                        result = Parse_Option_Strict(diagnostics, _option, name, value)
+                        result = Flags.Option_Strict(diagnostics, _option, name, value)
 
                     Case "optioncompare"
-                        result = Parse_Option_Compare(diagnostics, _option, value)
+                        result = Flags.Option_Compare(diagnostics, _option, value)
 
                     Case "optionexplicit", "optionexplicit+", "optionexplicit-"
-                        result = Parse_Option_Explicit(diagnostics, _option, name, value)
+                        result = Flags.Option_Explicit(diagnostics, _option, name, value)
 
                     Case "optioninfer", "optioninfer+", "optioninfer-"
-                        result = Parse_Option_Infer(diagnostics, _option, name, value)
+                        result = Flags.Option_Infer(diagnostics, _option, name, value)
 
                     Case "codepage"
-                        result = Parse_CodePage(diagnostics, codepage, name, value)
+                        result = Flags.CodePage(diagnostics, codepage, name, value)
 
                     Case "checksumalgorithm"
-                        result = Parse_ChecksumAlgorithm(diagnostics, checksumAlgorithm, value)
+                        result = Flags.ChecksumAlgorithm(diagnostics, checksumAlgorithm, value)
 
                     Case "removeintchecks", "removeintchecks+", "removeintchecks-"
-                        result = Parse_RemoveIntChecks(diagnostics, checkOverflow, name, value)
+                        result = Flags.RemoveIntChecks(diagnostics, checkOverflow, name, value)
 
                     Case "sqmsessionguid"
-                        result = Parse_SQMSessionGuid(diagnostics, name, value)
+                        result = Flags.SQMSessionGuid(diagnostics, name, value)
 
                     Case "preferreduilang"
-                        result = Parse_PreferredUILang(diagnostics, preferredUILang, name, value)
+                        result = Flags.PreferredUILang(diagnostics, preferredUILang, name, value)
 
                     Case "lib", "libpath", "libpaths"
-                        result = Parse_LibPath(diagnostics, Paths, name, value)
+                        result = Flags.LibPath(diagnostics, Paths, name, value)
 
 #If DEBUG Then
                     Case "attachdebugger"
                         Debugger.Launch()
-                        result = FlagParse.Valid_ContinueFor
+                        result = Flags.Validation.Success
 #End If
                 End Select
                 Select Case result
-                    Case FlagParse.Valid_ContinueFor
+                    Case Flags.Validation.Success
                         Continue For
-                    Case FlagParse.Invalid_ExitSelect
+                    Case Flags.Validation.Failure
                     Case Else
                         Throw New Exception
                 End Select
@@ -281,10 +261,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsScriptRunner Then
                     Select Case name
                         Case "i", "i+", "i-"
-                            result = Parse_interactive(diagnostics, interactiveMode, name, value)
+                            result = Flags.Interactive(diagnostics, interactiveMode, name, value)
 
                         Case "loadpath", "loadpaths"
-                            result = Parse_LoadPaths(diagnostics, Paths, name, value)
+                            result = Flags.LoadPaths(diagnostics, Paths, name, value)
 
                     End Select
 
@@ -295,13 +275,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Parse_Out(baseDirectory, diagnostics, Output, name, value)
 
                         Case "t", "target"
-                            result = Parse_Target(diagnostics, Output, name, value)
+                            result = Flags.Target(diagnostics, Output, name, value)
 
                         Case "moduleassemblyname"
-                            result = Parse_ModuleAssemblyName(diagnostics, moduleAssemblyName, arg, value)
+                            result = Flags.ModuleAssemblyName(diagnostics, moduleAssemblyName, arg, value)
 
                         Case "rootnamespace"
-                            result = Parse_RootNamespace(diagnostics, rootNamespace, value)
+                            result = Flags.RootNamespace(diagnostics, rootNamespace, value)
 
                         Case "doc"
                             result = Parse_Doc(baseDirectory, GenerateFileNameForDocComment, diagnostics, _Documentation, value)
@@ -314,167 +294,165 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "netcf"
                             ' Do nothing as we no longer have any use for implementing this switch and  want to avoid failing with any warnings/errors
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "sdkpath"
-                            result = Parse_SDKPath(diagnostics, Paths, value)
+                            result = Flags.SDKPath(diagnostics, Paths, value)
 
                         Case "instrument"
-                            result = Parse_Instrument(diagnostics, instrumentationKinds, value)
+                            result = Flags.Instrument(diagnostics, instrumentationKinds, value)
 
                         Case "recurse"
                             result = Parse_Recurse(baseDirectory, diagnostics, sourceFiles, hasSourceFiles, value)
 
                         Case "addmodule"
-                            result = Parse_AddModule(diagnostics, metadataReferences, value)
+                            result = Flags.AddModule(diagnostics, metadataReferences, value)
 
                         Case "l", "link"
-                            result = Parse_Link(diagnostics, metadataReferences, result, name, value)
+                            result = Flags.Link(diagnostics, metadataReferences, name, value)
 
                         Case "win32resource"
-                            result = Parse_Win32_Resource(diagnostics, win32ResourceFile, value)
+                            result = Flags.Win32.Resource(diagnostics, win32ResourceFile, value)
 
                         Case "win32icon"
-                            result = Parse_Win32_Icon(diagnostics, win32IconFile, value)
+                            result = Flags.Win32.Icon(diagnostics, win32IconFile, value)
 
                         Case "win32manifest"
-                            result = Parse_Win32_Manifest(diagnostics, win32ManifestFile, value)
+                            result = Flags.Win32.Manifest(diagnostics, win32ManifestFile, value)
 
                         Case "nowin32manifest"
-                            result = Parse_NoWin32_Manifest(noWin32Manifest, value)
+                            result = Flags.Win32.NoManifest(noWin32Manifest, value)
 
                         Case "res", "resource"
-                            result = Parse_Resource(baseDirectory, diagnostics, managedResources, name, value)
+                            result = Flags.Resource(baseDirectory, diagnostics, managedResources, name, value)
 
                         Case "linkres", "linkresource"
-                            result = Parse_LinkResource(baseDirectory, diagnostics, managedResources, name, value)
+                            result = Flags.LinkResource(baseDirectory, diagnostics, managedResources, name, value)
 
                         Case "sourcelink"
                             result = Parse_SourceLink(baseDirectory, diagnostics, sourceLink, value)
 
                         Case "debug"
-                            result = Parse_Debug(diagnostics, emitPdb, debugInformationFormat, value)
+                            result = Flags.Debug(diagnostics, emitPdb, debugInformationFormat, value)
 
                         Case "debug+", "debug-"
-                            result = Parse_Debug(diagnostics, emitPdb, name, value)
+                            result = Flags.Debug(diagnostics, emitPdb, name, value)
 
                         Case "optimize", "optimize+", "optimize-"
-                            result = Parse_Optimize(diagnostics, optimize, name, value)
+                            result = Flags.Optimize(diagnostics, optimize, name, value)
 
                         Case "parallel", "p", "parallel+", "p+", "parallel-", "p-"
-                            result = Parse_Parallel(diagnostics, concurrentBuild, name, value)
+                            result = Flags.Parallel(diagnostics, concurrentBuild, name, value)
 
                         Case "deterministic", "deterministic+", "deterministic-"
-                            result = Parse_Deterministic(diagnostics, deterministic, name, value)
+                            result = Flags.Deterministic(diagnostics, deterministic, name, value)
 
                         Case "warnaserror", "warnaserror+"
-                            result = Parse_WarnAsError(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromSpecificArguments, value)
+                            result = Flags.WarnAsError(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromSpecificArguments, value)
 
                         Case "warnaserror-"
-                            result = Parse_WarnAsError_Minus(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromSpecificArguments, value)
+                            result = Flags.WarnAsError_Minus(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromSpecificArguments, value)
 
                         Case "nowarn"
-                            result = Parse_NoWarn(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromNoWarnArguments, value)
+                            result = Flags.NoWarn(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromNoWarnArguments, value)
 
                         Case "langversion"
-                            result = Parse_LangVersion(diagnostics, languageVersion, value)
+                            result = Flags.LangVersion(diagnostics, languageVersion, value)
 
                         Case "delaysign", "delaysign+", "delaysign-"
-                            result = Parse_DelaySign(diagnostics, delaySignSetting, name, value)
+                            result = Flags.DelaySign(diagnostics, delaySignSetting, name, value)
 
                         Case "publicsign", "publicsign+", "publicsign-"
-                            result = Parse_PublicSign(diagnostics, publicSign, name, value)
+                            result = Flags.PublicSign(diagnostics, publicSign, name, value)
 
                         Case "keycontainer"
-                            result = Parse_KeyContainer(diagnostics, keyFileSetting, keyContainerSetting, name, value)
+                            result = Flags.KeyContainer(diagnostics, keyFileSetting, keyContainerSetting, name, value)
 
                         Case "keyfile"
-                            result = Parse_KeyFile(diagnostics, keyFileSetting, keyContainerSetting, name, value)
+                            result = Flags.KeyFile(diagnostics, keyFileSetting, keyContainerSetting, name, value)
 
                         Case "highentropyva", "highentropyva+", "highentropyva-"
-                            result = Parse_HighEntropyVA(highEntropyVA, name, value)
+                            result = Flags.HighEntropyVA(highEntropyVA, name, value)
 
                         Case "nologo", "nologo+", "nologo-"
-                            result = Parse_NoLogo(display, name, value)
+                            result = Flags.NoLogo(display, name, value)
 
                         Case "quiet", "verbose"
-                            result = Parse_OutputLevel(outputLevel, name, value)
+                            result = Flags.OutputLevel(outputLevel, name, value)
 
                         Case "quiet+", "quiet-"
-                            result = Parse_Quiet(diagnostics, outputLevel, name, value)
+                            result = Flags.Quiet(diagnostics, outputLevel, name, value)
 
                         Case "verbose-", "verbose+"
-                            result = Parse_Verbose(diagnostics, outputLevel, name, value)
+                            result = Flags.Verbose(diagnostics, outputLevel, name, value)
 
                         Case "utf8output", "utf8output+", "utf8output-"
-                            result = Parse_UTF8_Output(diagnostics, Output, name, value)
+                            result = Flags.UTF8_Output(diagnostics, Output, name, value)
 
                         Case "noconfig"
                             ' It is already handled (see CommonCommandLineCompiler.cs).
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "bugreport"
                             ' Do nothing as we no longer have any use for implementing this switch and  want to avoid failing with any warnings/errors
                             ' We do no further checking as to a value provided or not and this will cause no diagnostics for invalid values.
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "errorreport"
                             ' Allows any value to be entered and will just silently do nothing
                             ' previously we would validate value for prompt, send Or Queue
                             ' This will cause no diagnostics for invalid values.
-
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "novbruntimeref"
                             ' The switch is no longer supported and for backwards compat ignored.
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "m", "main"
-                            result = Parse_Main(diagnostics, mainTypeName, name, value)
+                            result = Flags.Main(diagnostics, mainTypeName, name, value)
 
                         Case "subsystemversion"
-                            result = Parse_SubSystemVersion(diagnostics, ssVersion, name, value)
+                            result = Flags.SubSystemVersion(diagnostics, ssVersion, name, value)
 
                         Case "touchedfiles"
-                            result = Parse_TouchedFiles(diagnostics, touchedFilesPath, name, value)
+                            result = Flags.TouchedFiles(diagnostics, touchedFilesPath, name, value)
 
                         Case "fullpaths", "errorendlocation"
                             UnimplementedSwitch(diagnostics, name)
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "pathmap"
                             result = Parse_PathMap(diagnostics, pathMap, value)
 
                         Case "reportanalyzer"
                             reportAnalyzer = True
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "nostdlib"
-                            result = Parse_NoSTDLib(noStdLib, value)
+                            result = Flags.NoSTDLib(noStdLib, value)
 
                         Case "vbruntime"
-                            result = Parse_VBRuntime(_VBRuntime, value)
+                            result = Flags.VBRuntime(_VBRuntime, value)
 
                         Case "vbruntime+", "vbruntime-", "vbruntime*"
-                            result = Parse_VBRuntime(_VBRuntime, name, value)
+                            result = Flags.VBRuntime(_VBRuntime, name, value)
 
                         Case "platform"
-                            result = Parse_Platform(diagnostics, platform, name, value)
+                            result = Flags.Platform(diagnostics, platform, name, value)
 
                         Case "filealign"
                             fileAlignment = ParseFileAlignment(name, RemoveQuotesAndSlashes(value), diagnostics)
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "baseaddress"
                             baseAddress = ParseBaseAddress(name, RemoveQuotesAndSlashes(value), diagnostics)
-                            result = FlagParse.Valid_ContinueFor
+                            result = Flags.Validation.Success
 
                         Case "ruleset"
                             '  The ruleset arg has already been processed in a separate pass above.
-                            result = FlagParse.Valid_ContinueFor
-
+                            result = Flags.Validation.Success
                         Case "features"
-                            result = Parse_Features(features, value)
+                            result = Flags.Features(features, value)
 
                         Case "additionalfile"
                             result = Parse_AdditionalFile(baseDirectory, diagnostics, additionalFiles, name, value)
@@ -486,10 +464,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Select Case result
-                    Case FlagParse.Valid_ContinueFor
-                    Case FlagParse.Invalid_ExitSelect
+                    Case Flags.Validation.Success
+                    Case Flags.Validation.Failure
                         AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
-
                 End Select
             Next
 
@@ -725,524 +702,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             }
         End Function
 
-        Private Shared Function Parse_NoWarn(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromNoWarnArguments As Dictionary(Of String, ReportDiagnostic), value As String) As FlagParse
-            If value Is Nothing Then
-                generalDiagnosticOption = ReportDiagnostic.Suppress
-
-                specificDiagnosticOptionsFromGeneralArguments.Clear()
-                For Each pair In specificDiagnosticOptionsFromRuleSet
-                    If pair.Value <> ReportDiagnostic.Error Then
-                        specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Suppress)
-                    End If
-                Next
-            Else
-                AddWarnings(specificDiagnosticOptionsFromNoWarnArguments, ReportDiagnostic.Suppress, ParseWarnings(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_WarnAsError_Minus(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), ByRef specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic), value As String) As FlagParse
-            If value Is Nothing Then
-                If generalDiagnosticOption <> ReportDiagnostic.Suppress Then
-                    generalDiagnosticOption = ReportDiagnostic.Default
-                End If
-                specificDiagnosticOptionsFromGeneralArguments.Clear()
-            Else
-                For Each id In ParseWarnings(value)
-                    Dim ruleSetValue As ReportDiagnostic
-                    If specificDiagnosticOptionsFromRuleSet.TryGetValue(id, ruleSetValue) Then
-                        specificDiagnosticOptionsFromSpecificArguments(id) = ruleSetValue
-                    Else
-                        specificDiagnosticOptionsFromSpecificArguments(id) = ReportDiagnostic.Default
-                    End If
-                Next
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_WarnAsError(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic), value As String) As FlagParse
-            If value Is Nothing Then
-                generalDiagnosticOption = ReportDiagnostic.Error
-
-                specificDiagnosticOptionsFromGeneralArguments.Clear()
-                For Each pair In specificDiagnosticOptionsFromRuleSet
-                    If pair.Value = ReportDiagnostic.Warn Then
-                        specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Error)
-                    End If
-                Next
-            Else
-                AddWarnings(specificDiagnosticOptionsFromSpecificArguments, ReportDiagnostic.Error, ParseWarnings(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_OutputLevel(ByRef outputLevel As OutputLevel, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                Dim ch = name(0)
-                Select Case ch
-                    Case "q"c : outputLevel = VisualBasic.OutputLevel.Quiet
-                    Case "v"c : outputLevel = VisualBasic.OutputLevel.Verbose
-                End Select
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_Quiet(diagnostics As List(Of Diagnostic), ByRef outputLevel As OutputLevel, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "quiet")
-            Else
-                Dim param = name.Last
-                Select Case param
-                    Case "+"c : outputLevel = VisualBasic.OutputLevel.Quiet
-                    Case "-"c : outputLevel = VisualBasic.OutputLevel.Normal
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Verbose(diagnostics As List(Of Diagnostic), ByRef outputLevel As OutputLevel, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "-"c : outputLevel = VisualBasic.OutputLevel.Normal
-                    Case "+"c : outputLevel = VisualBasic.OutputLevel.Verbose
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_HighEntropyVA(ByRef highEntropyVA As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "a"c,
-                         "+"c : highEntropyVA = True
-                    Case "-"c : highEntropyVA = False
-                End Select
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_KeyFile(diagnostics As List(Of Diagnostic), ByRef keyFileSetting As String, ByRef keyContainerSetting As String, name As String, value As String) As FlagParse
-            Return Parse_Key_(diagnostics, keyFileSetting, keyContainerSetting, name, value, ":<file>")
-        End Function
-
-        Private Shared Function Parse_KeyContainer(diagnostics As List(Of Diagnostic), ByRef keyFileSetting As String, ByRef keyContainerSetting As String, name As String, value As String) As FlagParse
-            Return Parse_Key_(diagnostics, keyFileSetting, keyContainerSetting, name, value, ":<string>")
-        End Function
-
-        Private Shared Function Parse_Key_(diagnostics As List(Of Diagnostic),
-                                           ByRef keyFileSetting As String,
-                                           ByRef keyContainerSetting As String,
-                                           name As String,
-                                           value As String, arg As String) As FlagParse
-
-            ' NOTE: despite what MSDN says, Dev11 resets '/keycontainer' in this case:
-            '
-            ' MSDN: In case both /keyfile and /keycontainer are specified (either by command-line 
-            ' MSDN: option or by custom attribute) in the same compilation, the compiler first tries 
-            ' MSDN: the key container. If that succeeds, then the assembly is signed with the 
-            ' MSDN: information in the key container. If the compiler does not find the key container, 
-            ' MSDN: it tries the file specified with /keyfile. If this succeeds, the assembly is 
-            ' MSDN: signed with the information in the key file, and the key information is installed 
-            ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
-            ' MSDN: the key container will be valid.
-            value = RemoveQuotesAndSlashes(value)
-            keyContainerSetting = Nothing
+        Private Function Parse_Out(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), name As String, value As String) As Flags.Validation
             If String.IsNullOrWhiteSpace(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, arg)
+                ' When the value has " " (e.g., "/out: ")
+                ' the Roslyn VB compiler reports "BC 2006 : option 'out' requires ':<file>',
+                ' While the Dev11 VB compiler reports "BC2012 : can't open ' ' for writing,
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
             Else
-                keyFileSetting = RemoveQuotesAndSlashes(value)
+                ' Even when value is neither null or whitespace, the output file name still could be invalid. (e.g., "/out:sub\ ")
+                ' While the Dev11 VB compiler reports "BC2012: can't open 'sub\ ' for writing,
+                ' the Roslyn VB compiler reports "BC2032: File name 'sub\ ' is empty, contains invalid characters, ..."
+                ' which is generated by the following ParseOutputFile.
+                ParseOutputFile(value, diagnostics, baseDirectory, Output.FileName, Output.Directory)
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-
-        Private Shared Function Parse_PublicSign(diagnostics As List(Of Diagnostic), ByRef publicSign As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "n"c,
-                         "+"c : publicSign = True
-                    Case "-"c : publicSign = False
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Deterministic(diagnostics As List(Of Diagnostic), ByRef deterministic As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "c"c,
-                         "+"c : deterministic = True
-                    Case "-"c : deterministic = False
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_NoLogo(ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "o"c,
-                         "+"c : display.Logo = False
-                    Case "-"c : display.Logo = True
-                End Select
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_UTF8_Output(diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
-            End If
-            Dim ch = name.Last
-            Select Case ch
-                Case "t"c,
-                     "+"c : Output.UTF8 = True
-                Case "-"c : Output.UTF8 = False
-            End Select
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_DelaySign(diagnostics As List(Of Diagnostic), ByRef delaySignSetting As Boolean?, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "n"c,
-                         "+"c : delaySignSetting = True
-                    Case "-"c : delaySignSetting = False
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_LangVersion(diagnostics As List(Of Diagnostic), ByRef languageVersion As LanguageVersion, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If value Is Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
-            Else
-                If String.IsNullOrEmpty(value) Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
-                Else
-                    Select Case value.ToLowerInvariant()
-                        Case "9", "9.0"
-                            languageVersion = LanguageVersion.VisualBasic9
-                        Case "10", "10.0"
-                            languageVersion = LanguageVersion.VisualBasic10
-                        Case "11", "11.0"
-                            languageVersion = LanguageVersion.VisualBasic11
-                        Case "12", "12.0"
-                            languageVersion = LanguageVersion.VisualBasic12
-                        Case "14", "14.0"
-                            languageVersion = LanguageVersion.VisualBasic14
-                        Case "15", "15.0"
-                            languageVersion = LanguageVersion.VisualBasic15
-                        Case "default"
-                            languageVersion = LanguageVersion.Default
-                        Case "latest"
-                            languageVersion = LanguageVersion.Latest
-                        Case Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
-                    End Select
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Parallel(diagnostics As List(Of Diagnostic), ByRef concurrentBuild As Boolean, name As String, value As String) As FlagParse
-            Dim x = name.Length
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, If((x = 1 OrElse x = 8), name, name.Substring(0, name.Length - 1)))
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "l"c,
-                         "p"c,
-                         "+"c : concurrentBuild = True
-                    Case "-"c : concurrentBuild = False
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Main(diagnostics As List(Of Diagnostic), ByRef mainTypeName As String, name As String, ByRef value As String) As FlagParse
-            ' MSBuild can result in maintypename being passed in quoted when Cyrillic namespace was being used resulting
-            ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
-            ' valid character in typename.
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<class>")
-            Else
-                mainTypeName = value
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Features(features As List(Of String), value As String) As FlagParse
-            If value Is Nothing Then
-                features.Clear()
-            Else
-                features.Add(RemoveQuotesAndSlashes(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_AdditionalFile(baseDirectory As String, diagnostics As List(Of Diagnostic), additionalFiles As List(Of CommandLineSourceFile), name As String, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
-            Else
-                additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_Embed(baseDirectory As String, diagnostics As List(Of Diagnostic), embeddedFiles As List(Of CommandLineSourceFile), ByRef embedAllSourceFiles As Boolean, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                embedAllSourceFiles = True
-            Else
-                embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_PathMap(diagnostics As List(Of Diagnostic), ByRef pathMap As ImmutableArray(Of KeyValuePair(Of String, String)), value As String) As FlagParse
-            ' "/pathmap:K1=V1,K2=V2..."
-            If value = Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_SubSystemVersion(diagnostics As List(Of Diagnostic), ByRef ssVersion As SubsystemVersion, name As String, ByRef value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<version>")
-            Else
-                Dim version As SubsystemVersion = Nothing
-                If SubsystemVersion.TryParse(value, version) Then
-                    ssVersion = version
-                Else
-                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSubsystemVersion, value)
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_TouchedFiles(diagnostics As List(Of Diagnostic), ByRef touchedFilesPath As String, name As String, value As String) As FlagParse
-            Dim unquoted = RemoveQuotesAndSlashes(value)
-            If (String.IsNullOrEmpty(unquoted)) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<touchedfiles>")
-            Else
-                touchedFilesPath = unquoted
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_NoSTDLib(ByRef noStdLib As Boolean, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                noStdLib = True
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_Platform(diagnostics As List(Of Diagnostic), ByRef platform As Platform, name As String, ByRef value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If value IsNot Nothing Then
-                platform = ParsePlatform(name, value, diagnostics)
-            Else
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "platform", ":<string>")
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Optimize(diagnostics As List(Of Diagnostic), ByRef optimize As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "e"c,
-                         "+"c : optimize = True
-                    Case "-"c : optimize = False
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Debug(diagnostics As List(Of Diagnostic), ByRef emitPdb As Boolean, ByRef debugInformationFormat As DebugInformationFormat, value As String) As FlagParse
-            ' parse only for backwards compat
-            value = RemoveQuotesAndSlashes(value)
-            If value IsNot Nothing Then
-                Select Case value.ToLower()
-                    Case "full", "pdbonly"
-                        debugInformationFormat = If(PathUtilities.IsUnixLikePlatform, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb)
-                    Case "portable"
-                        debugInformationFormat = DebugInformationFormat.PortablePdb
-                    Case "embedded"
-                        debugInformationFormat = DebugInformationFormat.Embedded
-                    Case Else
-                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
-                End Select
-            End If
-
-            emitPdb = True
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Debug(diagnostics As List(Of Diagnostic), ByRef emitPdb As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
-            End If
-            Dim ch = name.Last
-            Select Case ch
-                Case "+"c : emitPdb = True
-                Case "-"c : emitPdb = False
-
-            End Select
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_SourceLink(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef sourceLink As String, value As String) As FlagParse
+        Private Function Parse_SourceLink(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef sourceLink As String, value As String) As Flags.Validation
             value = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(value) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sourcelink", ":<file>")
             Else
                 sourceLink = ParseGenericPathToFile(value, diagnostics, baseDirectory)
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-        Private Shared Function Parse_LinkResource(baseDirectory As String, diagnostics As List(Of Diagnostic), managedResources As List(Of ResourceDescription), name As String, value As String) As FlagParse
-            Dim linkedResource = ParseResourceDescription(name, value, baseDirectory, diagnostics, embedded:=False)
-            If linkedResource IsNot Nothing Then
-                managedResources.Add(linkedResource)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Resource(baseDirectory As String, diagnostics As List(Of Diagnostic), managedResources As List(Of ResourceDescription), name As String, value As String) As FlagParse
-            Dim embeddedResource = ParseResourceDescription(name, value, baseDirectory, diagnostics, embedded:=True)
-            If embeddedResource IsNot Nothing Then
-                managedResources.Add(embeddedResource)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_NoWin32_Manifest(ByRef noWin32Manifest As Boolean, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                noWin32Manifest = True
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_Win32_Manifest(diagnostics As List(Of Diagnostic), ByRef win32ManifestFile As String, value As String) As FlagParse
-            win32ManifestFile = GetWin32Setting(s_win32Manifest, RemoveQuotesAndSlashes(value), diagnostics)
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Win32_Icon(diagnostics As List(Of Diagnostic), ByRef win32IconFile As String, value As String) As FlagParse
-            win32IconFile = GetWin32Setting(s_win32Icon, RemoveQuotesAndSlashes(value), diagnostics)
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Link(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), result As FlagParse, name As String, value As String) As FlagParse
-            metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=True))
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Win32_Resource(diagnostics As List(Of Diagnostic), ByRef win32ResourceFile As String, value As String) As FlagParse
-            win32ResourceFile = GetWin32Setting(s_win32Res, RemoveQuotesAndSlashes(value), diagnostics)
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_AddModule(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), value As String) As FlagParse
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "addmodule", ":<file_list>")
-            Else
-
-                ' NOTE(tomat): Dev10 reports "Command line error BC2017 : could not find library."
-                ' Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
-                ' An error will be reported by the assembly manager anyways.
-                metadataReferences.AddRange(
-                    ParseSeparatedPaths(value).Select(
-                        Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Module))))
-
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_Recurse(baseDirectory As String, diagnostics As List(Of Diagnostic), sourceFiles As List(Of CommandLineSourceFile), ByRef hasSourceFiles As Boolean, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
-            Else
-                Dim before As Integer = sourceFiles.Count
-                sourceFiles.AddRange(ParseRecurseArgument(value, baseDirectory, diagnostics))
-                If sourceFiles.Count > before Then
-                    hasSourceFiles = True
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Instrument(diagnostics As List(Of Diagnostic), instrumentationKinds As ArrayBuilder(Of InstrumentationKind), value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
-            Else
-
-                For Each instrumentationKind As InstrumentationKind In ParseInstrumentationKinds(value, diagnostics)
-                    If Not instrumentationKinds.Contains(instrumentationKind) Then
-                        instrumentationKinds.Add(instrumentationKind)
-                    End If
-                Next
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_SDKPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), value As String) As FlagParse
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sdkpath", ":<path>")
-            Else
-                Paths.SDK.Clear()
-                Paths.SDK.AddRange(ParseSeparatedPaths(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_ErrorLog(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef errorLogPath As String, value As String) As FlagParse
+        Private Function Parse_ErrorLog(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef errorLogPath As String, value As String) As Flags.Validation
             Dim unquoted = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(unquoted) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
             Else
                 errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
         Private Function Parse_Doc(
@@ -1251,7 +744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     diagnostics As List(Of Diagnostic),
                               ByRef _Documentation As (_Path As String, ParseComments As Boolean),
                                     value As String
-                                  ) As FlagParse
+                                  ) As Flags.Validation
             value = RemoveQuotesAndSlashes(value)
             _Documentation.ParseComments = True
             If value Is Nothing Then
@@ -1269,16 +762,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-        Private Shared Function Parse_Doc(
+        Private Function Parse_Doc(
                                            GenerateFileNameForDocComment As String,
                                            diagnostics As List(Of Diagnostic),
                                      ByRef _Documentation As (_Path As String, ParseComments As Boolean),
                                            name As String,
                                            value As String
-                                         ) As FlagParse
+                                         ) As Flags.Validation
             If value IsNot Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
             End If
@@ -1291,296 +784,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Seems redundant with default values, but we need to clobber any preceding /doc switches
                     _Documentation = (Nothing, False)
             End Select
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-        Private Shared Function Parse_RootNamespace(diagnostics As List(Of Diagnostic), ByRef rootNamespace As String, value As String) As FlagParse
+
+
+
+        Private Function Parse_AdditionalFile(baseDirectory As String, diagnostics As List(Of Diagnostic), additionalFiles As List(Of CommandLineSourceFile), name As String, value As String) As Flags.Validation
             value = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "rootnamespace", ":<string>")
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
             Else
-                rootNamespace = value
+                additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-        Private Shared Function Parse_VBRuntime(ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean), value As String) As FlagParse
-            If value Is Nothing Then
-                _VBRuntime = (_Path:=Nothing, IncludeReference:=True, EmbedCore:=False)
-            Else
-                ' NOTE: that Dev11 does not report errors on empty or invalid file specified
-                _VBRuntime = (_Path:=RemoveQuotesAndSlashes(value), IncludeReference:=True, EmbedCore:=False)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_VBRuntime(ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                Return FlagParse.Invalid_ExitSelect
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "+"c : _VBRuntime = (_Path:=Nothing, IncludeReference:=True, EmbedCore:=False)
-                    Case "-"c : _VBRuntime = (_Path:=Nothing, IncludeReference:=False, EmbedCore:=False)
-                    Case "*"c : _VBRuntime = (_Path:=Nothing, IncludeReference:=False, EmbedCore:=True)
-                End Select
-                Return FlagParse.Valid_ContinueFor
-            End If
-        End Function
-
-        Private Shared Function Parse_ModuleAssemblyName(diagnostics As List(Of Diagnostic), ByRef moduleAssemblyName As String, arg As String, value As String) As FlagParse
+        Private Function Parse_Embed(baseDirectory As String, diagnostics As List(Of Diagnostic), embeddedFiles As List(Of CommandLineSourceFile), ByRef embedAllSourceFiles As Boolean, value As String) As Flags.Validation
             value = RemoveQuotesAndSlashes(value)
-            Dim identity As AssemblyIdentity = Nothing
-
-            ' Note that native compiler also extracts public key, but Roslyn doesn't use it.
-
             If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "moduleassemblyname", ":<string>")
-            ElseIf Not AssemblyIdentity.TryParseDisplayName(value, identity) OrElse
-                       Not MetadataHelpers.IsValidAssemblyOrModuleName(identity.Name) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_InvalidAssemblyName, value, arg)
+                embedAllSourceFiles = True
             Else
-                moduleAssemblyName = identity.Name
+                embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
             End If
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
-        Private Shared Function Parse_Target(diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), name As String, value As String) As FlagParse
+        Private Function Parse_PathMap(diagnostics As List(Of Diagnostic), ByRef pathMap As ImmutableArray(Of KeyValuePair(Of String, String)), value As String) As Flags.Validation
+            ' "/pathmap:K1=V1,K2=V2..."
+            If value = Nothing Then
+                Return Flags.Validation.Failure
+            Else
+                pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
+                Return Flags.Validation.Success
+            End If
+        End Function
+
+        Private Function Parse_Recurse(baseDirectory As String, diagnostics As List(Of Diagnostic), sourceFiles As List(Of CommandLineSourceFile), ByRef hasSourceFiles As Boolean, value As String) As Flags.Validation
             value = RemoveQuotesAndSlashes(value)
-            Output.Kind = ParseTarget(name, value, diagnostics)
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Function Parse_Out(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), name As String, value As String) As FlagParse
-            If String.IsNullOrWhiteSpace(value) Then
-                ' When the value has " " (e.g., "/out: ")
-                ' the Roslyn VB compiler reports "BC 2006 : option 'out' requires ':<file>',
-                ' While the Dev11 VB compiler reports "BC2012 : can't open ' ' for writing,
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
-            Else
-                ' Even when value is neither null or whitespace, the output file name still could be invalid. (e.g., "/out:sub\ ")
-                ' While the Dev11 VB compiler reports "BC2012: can't open 'sub\ ' for writing,
-                ' the Roslyn VB compiler reports "BC2032: File name 'sub\ ' is empty, contains invalid characters, ..."
-                ' which is generated by the following ParseOutputFile.
-                ParseOutputFile(value, diagnostics, baseDirectory, Output.FileName, Output.Directory)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_LoadPaths(diagnostics As List(Of Diagnostic),
-                                                Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)),
-                                                name As String, value As String) As FlagParse
             If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
             Else
-                Paths.Source.AddRange(ParseSeparatedPaths(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_interactive(diagnostics As List(Of Diagnostic), ByRef interactiveMode As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
-            End If
-            Dim ch = name.Last
-            Select Case ch
-                Case "i"c,
-                     "+"c : interactiveMode = True
-                Case "-"c : interactiveMode = False
-            End Select
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_LibPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), name As String, value As String) As FlagParse
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
-            Else
-                Paths.LIB.AddRange(ParseSeparatedPaths(value))
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_PreferredUILang(diagnostics As List(Of Diagnostic), ByRef preferredUILang As CultureInfo, name As String, ByRef value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If (String.IsNullOrEmpty(value)) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
-            Else
-                Try
-                    preferredUILang = New CultureInfo(value)
-                    If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
-                        ' Do not use user custom cultures.
-                        preferredUILang = Nothing
-                    End If
-                Catch ex As CultureNotFoundException
-                End Try
-
-                If preferredUILang Is Nothing Then
-                    AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
+                Dim before As Integer = sourceFiles.Count
+                sourceFiles.AddRange(ParseRecurseArgument(value, baseDirectory, diagnostics))
+                If sourceFiles.Count > before Then
+                    hasSourceFiles = True
                 End If
             End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_SQMSessionGuid(diagnostics As List(Of Diagnostic), name As String, ByRef value As String) As FlagParse
-            ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
-            ' back compat reasons.
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrWhiteSpace(value) = True Then
-                AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
-            Else
-                Dim sqmsessionguid As Guid
-                If Not Guid.TryParse(value, sqmsessionguid) Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_RemoveIntChecks(diagnostics As List(Of Diagnostic), ByRef checkOverflow As Boolean, name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "s"c,
-                         "+"c : checkOverflow = False
-                    Case "-"c : checkOverflow = True
-                    Case Else
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_ChecksumAlgorithm(diagnostics As List(Of Diagnostic), ByRef checksumAlgorithm As SourceHashAlgorithm, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
-            Else
-
-                Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
-                If newChecksumAlgorithm = SourceHashAlgorithm.None Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
-                Else
-                    checksumAlgorithm = newChecksumAlgorithm
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_CodePage(diagnostics As List(Of Diagnostic), ByRef codepage As Encoding, name As String, value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
-            Else
-                Dim encoding = TryParseEncodingName(value)
-                If encoding Is Nothing Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_BadCodepage, value)
-                Else
-                    codepage = encoding
-                End If
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Option_Infer(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "r"c,
-                         "+"c : _option.Infer = True
-                    Case "-"c : _option.Infer = False
-                    Case Else
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Option_Compare(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If value Is Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
-            ElseIf String.Equals(value, "text", StringComparison.OrdinalIgnoreCase) Then
-                _option.CompareText = True
-            ElseIf String.Equals(value, "binary", StringComparison.OrdinalIgnoreCase) Then
-                _option.CompareText = False
-            Else
-                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Option_Strict(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "+"c : _option.Strict = VisualBasic.OptionStrict.On
-                    Case "-"c : _option.Strict = VisualBasic.OptionStrict.Off
-                    Case Else
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Option_Strict(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As FlagParse
-            value = RemoveQuotesAndSlashes(value)
-            If value Is Nothing Then
-                _option.Strict = VisualBasic.OptionStrict.On
-            ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
-                _option.Strict = VisualBasic.OptionStrict.Custom
-            Else
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optionstrict", ":custom")
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Option_Explicit(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
-            If value IsNot Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
-            Else
-                Dim ch = name.Last
-                Select Case ch
-                    Case "t"c,
-                         "+"c : _option.Explicit = True
-                    Case "-"c : _option.Explicit = False
-                    Case Else
-                End Select
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Imports(diagnostics As List(Of Diagnostic), ByRef globalImports As List(Of GlobalImport), name As String, value As String) As FlagParse
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, If(name = "import", ":<str>", ":<import_list>"))
-            Else
-                ParseGlobalImports(value, globalImports, diagnostics)
-            End If
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Define(diagnostics As List(Of Diagnostic), ByRef defines As IReadOnlyDictionary(Of String, Object), name As String, value As String) As FlagParse
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<symbol_list>")
-            Else
-                Dim conditionalCompilationDiagnostics As IEnumerable(Of Diagnostic) = Nothing
-                defines = ParseConditionalCompilationSymbols(value, conditionalCompilationDiagnostics, defines)
-                diagnostics.AddRange(conditionalCompilationDiagnostics)
-            End If
-
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Analyzer(diagnostics As List(Of Diagnostic), analyzers As List(Of CommandLineAnalyzerReference), name As String, value As String) As FlagParse
-            analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
-            Return FlagParse.Valid_ContinueFor
-        End Function
-
-        Private Shared Function Parse_Reference(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), name As String, value As String) As FlagParse
-            metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=False))
-            Return FlagParse.Valid_ContinueFor
+            Return Flags.Validation.Success
         End Function
 
         Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
@@ -2425,6 +1676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 moduleName = outputFileName
             End If
         End Sub
+
     End Class
 End Namespace
 
