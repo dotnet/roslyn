@@ -553,8 +553,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString(), contentType);
         }
 
-        private async Task<object> CreateNewDifferenceViewerAsync(PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
-            IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer, double zoomLevel, CancellationToken cancellationToken)
+        private async Task<object> CreateNewDifferenceViewerAsync(
+            PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
+            IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
+            double zoomLevel, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -564,24 +566,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             Contract.ThrowIfTrue((leftWorkspace == null) && (rightWorkspace == null));
 
             var diffBuffer = _differenceBufferService.CreateDifferenceBuffer(
-                    originalBuffer, changedBuffer,
-                    new StringDifferenceOptions(), disableEditing: true);
+                originalBuffer, changedBuffer,
+                new StringDifferenceOptions(), disableEditing: true);
 
             var diffViewer = _differenceViewerService.CreateDifferenceView(diffBuffer, _previewRoleSet);
 
             diffViewer.Closed += (s, e) =>
             {
-                if (leftWorkspace != null)
-                {
-                    leftWorkspace.Dispose();
-                    leftWorkspace = null;
-                }
+                leftWorkspace?.Dispose();
+                leftWorkspace = null;
 
-                if (rightWorkspace != null)
-                {
-                    rightWorkspace.Dispose();
-                    rightWorkspace = null;
-                }
+                rightWorkspace?.Dispose();
+                rightWorkspace = null;
             };
 
             const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
@@ -615,15 +611,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We use ConfigureAwait(true) to stay on the UI thread.
             await diffViewer.SizeToFitAsync().ConfigureAwait(true);
 
-            if (leftWorkspace != null)
-            {
-                leftWorkspace.EnableDiagnostic();
-            }
-
-            if (rightWorkspace != null)
-            {
-                rightWorkspace.EnableDiagnostic();
-            }
+            leftWorkspace?.EnableDiagnostic();
+            rightWorkspace?.EnableDiagnostic();
 
             return new DifferenceViewerPreview(diffViewer);
         }
