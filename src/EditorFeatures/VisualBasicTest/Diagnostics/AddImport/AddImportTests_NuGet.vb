@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of CancellationToken))).
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                      Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
@@ -76,7 +76,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of CancellationToken))).
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                      Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
@@ -103,7 +103,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of CancellationToken))).
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                      Returns(False)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
@@ -191,7 +191,7 @@ fixProviderData:=data)
                 Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Loose)
                 installerServiceMock.SetupGet(Function(i) i.IsEnabled).Returns(True)
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of CancellationToken))).
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                      Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
@@ -219,7 +219,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 installerServiceMock.SetupGet(Function(i) i.PackageSources).Returns(NugetPackageSources)
                 installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                     Returns(ImmutableArray.Create("1.0"))
-                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of CancellationToken))).
+                installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                      Returns(True)
 
                 Dim packageServiceMock = New Mock(Of ISymbolSearchService)()
