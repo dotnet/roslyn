@@ -20,6 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
     internal partial class NamingStyleOptionPageControl : AbstractOptionPageControl
     {
+        public static string ReorderHeader => ServicesVSResources.Reorder;
+        public static string SpecificationHeader => ServicesVSResources.Specification;
+        public static string StyleHeader => ServicesVSResources.Style;
+
         private NamingStyleOptionPageViewModel _viewModel;
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
