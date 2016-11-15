@@ -88,7 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override IAssemblySymbol GetReferencedAssembly(AssemblyReferenceHandle handle)
         {
             int index = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle);
-            return _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbols()[index];
+            var assembly = _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbol(index);
+            if (assembly == null)
+            {
+                throw new BadImageFormatException();
+            }
+            return assembly;
         }
 
         /// <exception cref="UnsupportedSignatureContent"></exception>

@@ -54,6 +54,7 @@
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
     <Compile Include="MethodDebugInfoBytes.cs" />
     <Compile Include="MethodDebugInfoValidation.cs" />
+    <Compile Include="NamespaceTypeDefinitionNoBase.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
     <Compile Include="MockSymUnmanaged.cs" />
