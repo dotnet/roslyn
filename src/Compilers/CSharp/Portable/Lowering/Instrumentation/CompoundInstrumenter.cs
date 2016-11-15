@@ -217,10 +217,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Previous.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
         }
-
-        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
-        {
-            return Previous.InstrumentLocalDeconstructionDeclaration(original, rewritten);
-        }
     }
 }

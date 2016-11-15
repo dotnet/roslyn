@@ -1142,6 +1142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (FallBackOnDiscard(node, diagnostics))
+                {
+                    return new BoundDiscardedExpression(node, type: null);
+                }
+
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
                 expression = BadExpression(node);
                 if (lookupResult.Error != null)
@@ -1164,6 +1169,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
             return expression;
+        }
+
+        /// <summary>
+        /// Is this is an _ identifier in a context where discards are allowed?
+        /// </summary>
+        private bool FallBackOnDiscard(SimpleNameSyntax node, DiagnosticBag diagnostics)
+        {
+            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            {
+                return false;
+            }
+
+            CSharpSyntaxNode containingDeconstruction = node.GetContainingDeconstruction();
+            return containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+        }
+
+        private bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
+        {
+            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+
+            CSharpSyntaxNode parent = node.Parent;
+            return parent.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent)?.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
+                (parent = parent.Parent)?.Kind() == SyntaxKind.ArgumentList &&
+                (parent = parent.Parent)?.Kind() == SyntaxKind.InvocationExpression;
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -2093,10 +2123,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
+        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax decl, DiagnosticBag diagnostics)
         {
-            TypeSyntax typeSyntax = declarationExpression.Type;
-            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            TypeSyntax typeSyntax = decl.Type;
+            VariableDesignationSyntax designation = decl.Designation;
+            switch (designation.Kind())
+            {
+                case SyntaxKind.DiscardedDesignation:
+                    {
+                        bool isVar;
+                        bool isConst = false;
+                        AliasSymbol alias;
+                        TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                        Debug.Assert(isVar == ((object)declType == null));
+
+                        return new BoundDiscardedExpression((DiscardedDesignationSyntax)designation, declType);
+                    }
+                case SyntaxKind.SingleVariableDesignation:
+                    return BindOutVariableArgument((SingleVariableDesignationSyntax)designation, typeSyntax, decl, diagnostics);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
+
+        private BoundExpression BindOutVariableArgument(
+             SingleVariableDesignationSyntax designation,
+             TypeSyntax typeSyntax,
+             DeclarationExpressionSyntax declarationExpression,
+             DiagnosticBag diagnostics)
+        {
             bool isVar;
 
             // Is this a local?

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -138,7 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             var rewrittenArguments = VisitList(node.Arguments);
 
-            return MakeCall(
+            var discardsCount = rewrittenArguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+            var temps = discardsCount != 0 ? ArrayBuilder<LocalSymbol>.GetInstance(discardsCount) : null;
+            if (temps != null)
+            {
+                rewrittenArguments = rewrittenArguments.SelectAsArray(
+                                            arg => arg.Kind == BoundKind.DiscardedExpression ?
+                                                MakeTempForDiscardedExpression((BoundDiscardedExpression)arg, temps) :
+                                                arg);
+            }
+
+            var call = MakeCall(
                 syntax: node.Syntax,
                 rewrittenReceiver: rewrittenReceiver,
                 method: node.Method,
@@ -150,6 +161,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: node.ResultKind,
                 type: node.Type,
                 nodeOpt: node);
+
+            return temps != null
+                ? _factory.Sequence(temps.ToImmutableAndFree(), ImmutableArray<BoundExpression>.Empty, call)
+                : call;
+        }
+
+        private BoundLocal MakeTempForDiscardedExpression(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
+        {
+            var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
+            temps.Add(localSymbol);
+
+            return new BoundLocal(node.Syntax, localSymbol, constantValueOpt: null, type: node.Type)
+                        { WasCompilerGenerated = true };
         }
 
         private BoundExpression MakeCall(

@@ -2105,6 +2105,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ImplicitlyTypedVariableAssignedBadValue" xml:space="preserve">
     <value>Cannot assign {0} to an implicitly-typed variable</value>
   </data>
+  <data name="ERR_DiscardVariableAssignedBadValue" xml:space="preserve">
+    <value>Cannot assign {0} to a discard variable</value>
+  </data>
+  <data name="ERR_MixedDeconstructionDisallowed" xml:space="preserve">
+    <value>Cannot reference {0} in a deconstruction declaration</value>
+  </data>
   <data name="ERR_ImplicitlyTypedVariableWithNoInitializer" xml:space="preserve">
     <value>Implicitly-typed variables must be initialized</value>
   </data>

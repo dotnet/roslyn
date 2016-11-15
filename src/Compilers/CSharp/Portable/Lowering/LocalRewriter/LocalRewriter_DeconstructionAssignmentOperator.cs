@@ -102,6 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
+                if (lhsTargets[i].Kind == BoundKind.DiscardedExpression)
+                {
+                    // skip assignment step for discards
+                    continue;
+                }
+
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
@@ -123,18 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Makes an expression that constructs the return value for the deconstruction.
-        /// For d-declarations, that is simply void.
-        /// For d-assignments, that is a series of tuple constructions, that are chained with the help of placeholders.
+        /// Makes an expression that constructs the return value for the deconstruction:
+        /// a series of tuple constructions, that are chained with the help of placeholders.
         /// The placeholders that are set are added to the list for later clearing.
         /// </summary>
         private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
-            if (node.IsDeclaration)
-            {
-                return new BoundVoid(node.Syntax, node.Type);
-            }
-
             BoundExpression loweredConstruction = null;
             foreach (var constructionInfo in node.ConstructionStepsOpt)
             {
@@ -158,7 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var variable in variables)
             {
-                lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                if (variable.Kind == BoundKind.DiscardedExpression)
+                {
+                    lhsReceivers.Add(variable);
+                }
+                else
+                {
+                    lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                }
             }
 
             return lhsReceivers.ToImmutableAndFree();

@@ -8605,6 +8605,12 @@ tryAgain:
             }
             else
             {
+                if (this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken &&
+                    (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken))
+                {
+                    return this.ParseIdentifierName();
+                }
+
                 TypeSyntax type;
                 bool reportMissingType = false;
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
@@ -8662,6 +8668,8 @@ tryAgain:
 
                         return true;
                     }
+                case SyntaxKind.IdentifierName:
+                    return false;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }

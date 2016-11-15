@@ -1793,7 +1793,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambdaOpt = node as UnboundLambda;
 
             var nodeKind = node.Kind;
-            if (nodeKind == BoundKind.OutVariablePendingInference || nodeKind == BoundKind.OutDeconstructVarPendingInference)
+            if (nodeKind == BoundKind.OutVariablePendingInference ||
+                nodeKind == BoundKind.OutDeconstructVarPendingInference ||
+                nodeKind == BoundKind.DiscardedExpression)
             {
                 // Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration.
                 okToDowngradeToNeither = false;
@@ -2970,7 +2972,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            if (argument.Kind == BoundKind.OutVariablePendingInference || argument.Kind == BoundKind.OutDeconstructVarPendingInference)
+            if (argument.Kind == BoundKind.OutVariablePendingInference ||
+                argument.Kind == BoundKind.OutDeconstructVarPendingInference ||
+                argument.Kind == BoundKind.DiscardedExpression)
             {
                 Debug.Assert(argRefKind != RefKind.None);
 

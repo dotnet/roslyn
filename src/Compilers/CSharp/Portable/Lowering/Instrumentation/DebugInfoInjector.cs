@@ -206,11 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.Variable.Span);
         }
 
-        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
-        {
-            return AddSequencePoint(base.InstrumentLocalDeconstructionDeclaration(original, rewritten));
-        }
-
         /// <summary>
         /// Add sequence point |here|:
         /// 

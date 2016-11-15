@@ -27290,10 +27290,56 @@ public class C
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void OutVarDiscard()
+        {
+            var source =
+@"
+public class C
+{
+    static void Main()
+    {
+        M(out int _);
+        M(out var _);
+        M(out _);
+    }
+
+    static void M(out int x) { x = 1; System.Console.Write(""M""); }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "MMM");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.Single();
+            var model = comp.Compilation.GetSemanticModel(tree);
+
+            // PROTOTYPE(wildcards) Add semantic validation
+            //var x1Decl = GetOutVarDeclaration(tree, "x1");
+            //var x1Ref = GetReference(tree, "x1");
+            //VerifyModelForOutVar(model, x1Decl, x1Ref);
+            //Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""void C.M(out int)""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""void C.M(out int)""
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""void C.M(out int)""
+  IL_0015:  ret
+}
+");
+
+        }
     }
 
     internal static class OutVarTestsExtensions
-    { 
+    {
         internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
         {
             return (SingleVariableDesignationSyntax)self.Designation;
