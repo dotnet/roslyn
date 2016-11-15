@@ -184,6 +184,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
             Await TestMissingAsync(
@@ -198,6 +199,7 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
             Await TestAsync(
