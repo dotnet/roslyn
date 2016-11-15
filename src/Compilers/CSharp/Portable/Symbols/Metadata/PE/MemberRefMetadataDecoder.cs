@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case (byte)SignatureCallingConvention.Default:
                     case (byte)SignatureCallingConvention.VarArgs:
                         int typeParamCount;
-                        ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount, allowByRefReturn: true);
+                        ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
                         return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo);
 
                     case (byte)SignatureKind.Field:
@@ -267,6 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetReturnParam)
         {
+            if (candidateMethod.ReturnsByRef != targetReturnParam.IsByRef || candidateMethod.CountOfCustomModifiersPrecedingByRef != targetReturnParam.CountOfCustomModifiersPrecedingByRef)
+            {
+                return false;
+            }
+
             TypeSymbol candidateReturnType = candidateMethod.ReturnType;
             TypeSymbol targetReturnType = targetReturnParam.Type;
 

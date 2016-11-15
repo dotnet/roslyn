@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If top level tuple uses non-default names, there is no way to preserve them
                 // unless we use tuple syntax for the type. So, we give them priority.
-                if (HasNonDefaultTupleElementNames(symbol) || CanUseTupleTypeName(symbol))
+                if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
                 {
                     AddTupleTypeName(symbol);
                     return;
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];
                 Debug.Assert(tupleSymbol.IsTupleType);
 
-                if (HasNonDefaultTupleElementNames(tupleSymbol))
+                if (HasNonDefaultTupleElements(tupleSymbol))
                 {
                     return false;
                 }
@@ -416,46 +416,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
+        private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-            var elementNames = tupleSymbol.TupleElementNames;
-            if (!elementNames.IsDefault)
-            {
-                for (int i = 0; i < elementNames.Length; i++)
-                {
-                    if (elementNames[i] != TupleTypeSymbol.TupleMemberName(i + 1))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
         {
             Debug.Assert(symbol.IsTupleType);
 
-            ImmutableArray<ITypeSymbol> elementTypes = symbol.TupleElementTypes;
-            ImmutableArray<string> elementNames = symbol.TupleElementNames;
-            bool hasNames = !elementNames.IsDefault;
+            ImmutableArray<IFieldSymbol> elements = symbol.TupleElements;
 
             AddPunctuation(SyntaxKind.OpenParenToken);
-
-            for (int i = 0; i < elementTypes.Length; i++)
+            for (int i = 0; i < elements.Length; i++)
             {
+                var element = elements[i];
+
                 if (i != 0)
                 {
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
 
-                elementTypes[i].Accept(this.NotFirstVisitor);
-                if (hasNames && elementNames[i] != null)
+                element.Type.Accept(this.NotFirstVisitor);
+                if (!element.IsImplicitlyDeclared)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
                 }
             }
 

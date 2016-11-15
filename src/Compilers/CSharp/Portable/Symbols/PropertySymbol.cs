@@ -71,6 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
 
         /// <summary>
+        /// In order to avoid breaking interop scenarios, we need to support signatures
+        /// with modifiers preceding ByRef.
+        /// Should be 0 for non-ref returns.
+        /// </summary>
+        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
+
+        /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
         /// an empty list. Parameters are only present on indexers, or on some properties
         /// imported from a COM interface.

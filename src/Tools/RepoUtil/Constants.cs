@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RepoUtil
 {
@@ -18,5 +15,14 @@ namespace RepoUtil
         /// case insensitive for now.
         /// </summary>
         internal static readonly StringComparer NugetPackageVersionComparer = StringComparer.OrdinalIgnoreCase;
+
+        internal struct IgnoreGenerateNameComparer : IEqualityComparer<NuGetPackage>
+        {
+            public bool Equals(NuGetPackage x, NuGetPackage y) =>
+                x.Name.Equals(y.Name, StringComparison.OrdinalIgnoreCase) &&
+                x.Version.Equals(y.Version, StringComparison.OrdinalIgnoreCase);
+
+            public int GetHashCode(NuGetPackage obj) => obj.GetHashCode();
+        }
     }
 }

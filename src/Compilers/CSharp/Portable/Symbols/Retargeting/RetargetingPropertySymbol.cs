@@ -83,6 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return _underlyingProperty.CountOfCustomModifiersPrecedingByRef;
+            }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get

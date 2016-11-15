@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // collects various variable informations
                 // extracted code contains return value
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement(model);
-                var signatureTuple = GetSignatureInformation(model, dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
+                var signatureTuple = GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
 
                 var parameters = signatureTuple.Item1;
                 var returnType = signatureTuple.Item2;
@@ -198,20 +198,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private Tuple<IList<VariableInfo>, ITypeSymbol, VariableInfo, bool> GetSignatureInformation(
-                SemanticModel model,
                 DataFlowAnalysis dataFlowAnalysisData,
                 IDictionary<ISymbol, VariableInfo> variableInfoMap,
                 bool isInExpressionOrHasReturnStatement)
             {
+                var model = _semanticDocument.SemanticModel;
+                var compilation = model.Compilation;
                 if (isInExpressionOrHasReturnStatement)
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap.Values);
-                    var returnType = this.SelectionResult.GetContainingScopeType();
-                    if (returnType == null)
-                    {
-                        returnType = model.Compilation.GetSpecialType(SpecialType.System_Object);
-                    }
+                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return Tuple.Create(parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
@@ -221,15 +218,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // no return statement
                     var parameters = MarkVariableInfoToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap.Values));
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
-                    var returnType = default(ITypeSymbol);
-                    if (variableToUseAsReturnValue != null)
-                    {
-                        returnType = variableToUseAsReturnValue.GetVariableType(_semanticDocument);
-                    }
-                    else
-                    {
-                        returnType = model.Compilation.GetSpecialType(SpecialType.System_Void);
-                    }
+                    var returnType = variableToUseAsReturnValue != null
+                        ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
+                        : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return Tuple.Create(parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed);
@@ -353,9 +344,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private IList<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
             {
                 var list = new List<VariableInfo>(variableInfo);
-
-                list.Sort(VariableInfo.Compare);
-
+                VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
                 return list;
             }
 

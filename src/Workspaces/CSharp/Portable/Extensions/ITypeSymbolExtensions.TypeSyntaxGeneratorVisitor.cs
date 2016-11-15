@@ -167,14 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
             {
                 var list = new SeparatedSyntaxList<TupleElementSyntax>();
-                var types = symbol.TupleElementTypes;
-                var names = symbol.TupleElementNames;
-                bool hasNames = !names.IsDefault;
 
-                for (int i = 0; i < types.Length; i++)
-                {
-                    var name = (hasNames && names[i] != null) ? SyntaxFactory.IdentifierName(names[i]) : null;
-                    list = list.Add(SyntaxFactory.TupleElement(types[i].GenerateTypeSyntax(), name));
+                foreach (var element in symbol.TupleElements)
+                {   
+                    var name = element.IsImplicitlyDeclared ? null: SyntaxFactory.IdentifierName(element.Name);
+                    list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
                 }
 
                 return AddInformationTo(SyntaxFactory.TupleType(list), symbol);
