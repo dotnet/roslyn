@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _cachedDisplayAndInsertionTextContext As SyntaxContext
         Private _cachedDisplayAndInsertionTextContainingTypeText As String
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
             If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
                 If _cachedDisplayAndInsertionTextContainingType IsNot symbol.ContainingType OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Dim text As String = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
-                Return ValueTuple.Create(text, text)
+                Return (text, text)
             End If
 
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)

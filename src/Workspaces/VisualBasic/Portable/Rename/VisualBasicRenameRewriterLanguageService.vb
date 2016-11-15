@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Not Me._isProcessingComplexifiedSpans Then
                     _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan)
                 Else
-                    Me._modifiedSubSpans.Add(ValueTuple.Create(oldSpan, newSpan))
+                    Me._modifiedSubSpans.Add((oldSpan, newSpan))
                 End If
             End Sub
 

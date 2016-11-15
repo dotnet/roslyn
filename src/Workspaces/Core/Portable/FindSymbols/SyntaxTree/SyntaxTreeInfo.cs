@@ -71,12 +71,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             ConditionalWeakTable<Document, T> cache,
             Func<Document, CancellationToken, Task<T>> generator,
-            Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, T> selector,
+            Func<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo), T> selector,
             CancellationToken cancellationToken)
             where T : class
         {
-            T info;
-            if (cache.TryGetValue(document, out info))
+            if (cache.TryGetValue(document, out var info))
             {
                 return info;
             }
@@ -91,9 +90,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
 
             // okay, persist this info
-            await data.Item1.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.Item2.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.Item3.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await data.identifierInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await data.contextInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await data.declarationInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
             info = selector(data);
             return cache.GetValue(document, _ => info);
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Func<Document, CancellationToken, Task<SyntaxTreeDeclarationInfo>> s_loadAsync 
             = SyntaxTreeDeclarationInfo.LoadAsync;
-        private static Func<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>, SyntaxTreeDeclarationInfo> s_getThirdItem 
+        private static Func<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo), SyntaxTreeDeclarationInfo> s_getThirdItem 
             = tuple => tuple.Item3;
 
         public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(
@@ -125,15 +124,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        private static async Task<ValueTuple<SyntaxTreeIdentifierInfo, SyntaxTreeContextInfo, SyntaxTreeDeclarationInfo>> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo)> CreateInfoAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
-            HashSet<string> identifiers;
-            HashSet<string> escapedIdentifiers;
-            GetIdentifierSet(ignoreCase, out identifiers, out escapedIdentifiers);
+            GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
 
             try
             {
@@ -167,7 +164,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                             containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
-
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
                             // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
@@ -178,8 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            DeclaredSymbolInfo declaredSymbolInfo;
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo))
+                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
@@ -213,14 +208,12 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                                 }
                             }
 
-                            PredefinedType predefinedType;
-                            if (syntaxFacts.TryGetPredefinedType(token, out predefinedType))
+                            if (syntaxFacts.TryGetPredefinedType(token, out var predefinedType))
                             {
                                 predefinedTypes |= (int)predefinedType;
                             }
 
-                            PredefinedOperator predefinedOperator;
-                            if (syntaxFacts.TryGetPredefinedOperator(token, out predefinedOperator))
+                            if (syntaxFacts.TryGetPredefinedOperator(token, out var predefinedOperator))
                             {
                                 predefinedOperators |= (int)predefinedOperator;
                             }
@@ -230,26 +223,25 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                return ValueTuple.Create(
-                    new SyntaxTreeIdentifierInfo(
-                        version,
-                        new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
-                        new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
-                    new SyntaxTreeContextInfo(
-                        version,
-                        predefinedTypes,
-                        predefinedOperators,
-                        containsForEachStatement,
-                        containsLockStatement,
-                        containsUsingStatement,
-                        containsQueryExpression,
-                        containsThisConstructorInitializer,
-                        containsBaseConstructorInitializer,
-                        containsElementAccess,
-                        containsIndexerMemberCref),
-                    new SyntaxTreeDeclarationInfo(
-                        version,
-                        declaredSymbolInfos));
+                return (new SyntaxTreeIdentifierInfo(
+                            version,
+                            new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
+                            new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
+                        new SyntaxTreeContextInfo(
+                            version,
+                            predefinedTypes,
+                            predefinedOperators,
+                            containsForEachStatement,
+                            containsLockStatement,
+                            containsUsingStatement,
+                            containsQueryExpression,
+                            containsThisConstructorInitializer,
+                            containsBaseConstructorInitializer,
+                            containsElementAccess,
+                            containsIndexerMemberCref),
+                        new SyntaxTreeDeclarationInfo(
+                            version,
+                            declaredSymbolInfos));
             }
             finally
             {
