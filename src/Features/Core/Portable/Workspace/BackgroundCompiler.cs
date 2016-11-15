@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _compilationScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
+            _compilationScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
 
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;

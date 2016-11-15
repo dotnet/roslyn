@@ -980,7 +980,6 @@
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskQueue.cs" />
-    <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ISupportDirectMemoryAccess.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorage.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageWithName.cs" />

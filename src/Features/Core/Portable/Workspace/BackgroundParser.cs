@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
             _workspace = workspace;
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _taskScheduler = taskSchedulerFactory.CreateTaskScheduler(TaskScheduler.Default);
+            _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
             var editorWorkspace = workspace as Workspace;

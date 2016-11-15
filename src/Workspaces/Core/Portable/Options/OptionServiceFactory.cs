@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Options
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-
-            // Can be null during testing.
-            private readonly IWorkspaceTaskScheduler _taskQueue;
+            private readonly Lazy<IWorkspaceTaskScheduler> _taskQueue;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -59,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 _globalOptionService = globalOptionService;
 
-                var workspaceTaskSchedulerFactory = workspaceServices?.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = workspaceTaskSchedulerFactory?.CreateTaskQueue();
+                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
+                _taskQueue = new Lazy<IWorkspaceTaskScheduler>(() => workspaceTaskSchedulerFactory.CreateEventingTaskQueue());
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                _taskQueue?.ScheduleTask(() =>
+                _taskQueue.Value.ScheduleTask(() =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread

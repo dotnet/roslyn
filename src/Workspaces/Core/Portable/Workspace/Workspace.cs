@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler _taskQueue;
+        private readonly Lazy<IWorkspaceTaskScheduler> _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+            _taskQueue = new Lazy<IWorkspaceTaskScheduler>(() => workspaceTaskSchedulerFactory.CreateEventingTaskQueue(), LazyThreadSafetyMode.PublicationOnly);
 
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(action, taskName);
+            return _taskQueue.Value.ScheduleTask(action, taskName);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(func, taskName);
+            return _taskQueue.Value.ScheduleTask(func, taskName);
         }
 
         /// <summary>

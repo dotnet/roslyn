@@ -1,32 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
+    [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Default)]
+    [Shared]
     internal partial class WorkspaceTaskSchedulerFactory : IWorkspaceTaskSchedulerFactory
     {
-        public virtual IWorkspaceTaskScheduler CreateTaskScheduler(TaskScheduler taskScheduler = null)
+        public virtual IWorkspaceTaskScheduler CreateBackgroundTaskScheduler()
         {
-            if (taskScheduler == null)
-            {
-                taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
-                    : TaskScheduler.Default;
-            }
-
-            return new WorkspaceTaskScheduler(this, taskScheduler);
+            return new WorkspaceTaskScheduler(this, TaskScheduler.Default);
         }
 
-        public virtual IWorkspaceTaskScheduler CreateTaskQueue(TaskScheduler taskScheduler = null)
+        public virtual IWorkspaceTaskScheduler CreateEventingTaskQueue()
         {
-            if (taskScheduler == null)
-            {
-                taskScheduler = (SynchronizationContext.Current != null)
-                    ? TaskScheduler.FromCurrentSynchronizationContext()
-                    : TaskScheduler.Default;
-            }
+            var taskScheduler = (SynchronizationContext.Current != null)
+                ? TaskScheduler.FromCurrentSynchronizationContext()
+                : TaskScheduler.Default;
 
             return new WorkspaceTaskQueue(this, taskScheduler);
         }

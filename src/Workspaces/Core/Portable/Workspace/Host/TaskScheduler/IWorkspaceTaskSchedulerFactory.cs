@@ -10,13 +10,14 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IWorkspaceTaskSchedulerFactory : IWorkspaceService
     {
         /// <summary>
-        /// Creates a workspace task scheduler that schedules tasks to run in parallel.
+        /// Creates a workspace task scheduler that schedules tasks to run in parallel on the background.
         /// </summary>
-        IWorkspaceTaskScheduler CreateTaskScheduler(TaskScheduler taskScheduler = null);
+        IWorkspaceTaskScheduler CreateBackgroundTaskScheduler();
 
         /// <summary>
-        /// Creates a workspace task scheduler that schedules task to run in sequence.
+        /// Creates a workspace task scheduler that schedules task to run in sequence to be used for raising
+        /// workspace events.
         /// </summary>
-        IWorkspaceTaskScheduler CreateTaskQueue(TaskScheduler taskScheduler = null);
+        IWorkspaceTaskScheduler CreateEventingTaskQueue();
     }
 }
