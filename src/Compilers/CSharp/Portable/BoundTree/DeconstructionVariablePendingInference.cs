@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportInferenceFailure(diagnostics);
                     }
+                    else
+                    {
+                        Binder.CheckSpecialByRefLocal(local.ContainingSymbol, type, diagnostics, this.Syntax);
+                    }
+
                     local.SetType(type);
                     return new BoundLocal(this.Syntax, local, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
