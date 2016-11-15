@@ -333,21 +333,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Generate the path to the tool
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            var pathToTool = Utilities.GenerateFullPathToMSBuildRoslynTool(ToolName);
-
-            if (null == pathToTool)
-            {
-                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
-            }
-
-            return pathToTool;
-        }
-
-        /// <summary>
         /// vbc.exe only takes the BaseAddress in hexadecimal format.  But we allow the caller
         /// of the task to pass in the BaseAddress in either decimal or hexadecimal format.
         /// Examples of supported hex formats include "0x10000000" or "&amp;H10000000".

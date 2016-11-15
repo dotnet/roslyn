@@ -152,22 +152,81 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return (string)method.Invoke(assembly, parameters: null);
         }
 
-        internal static string GenerateFullPathToMSBuildRoslynTool(string toolName)
+        /// <summary>
+        /// Try to get the directory this assembly is in. Returns null if assembly
+        /// was in the GAC or DLL location can not be retrieved.
+        /// </summary>
+        public static string GenerateFullPathToTool(string toolName)
         {
-            // Roslyn always deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
-            var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
+            string toolLocation = null;
 
-            if (null != pathToBuildTools)
+            var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
+            var inGac = (bool?)typeof(Assembly)
+                .GetTypeInfo()
+                .GetDeclaredProperty("GlobalAssemblyCache")
+                ?.GetMethod.Invoke(buildTask, parameters: null);
+
+            if (inGac != true)
             {
-                var pathToTool = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
+                var codeBase = (string)typeof(Assembly)
+                    .GetTypeInfo()
+                    .GetDeclaredProperty("CodeBase")
+                    ?.GetMethod.Invoke(buildTask, parameters: null);
 
-                if (File.Exists(pathToTool))
+                if (codeBase != null)
                 {
-                    return pathToTool;
+                    var uri = new Uri(codeBase);
+
+                    string assemblyPath = null;
+                    if (uri.IsFile)
+                    {
+                        assemblyPath = uri.LocalPath;
+                    }
+                    else
+                    {
+                        var callingAssembly = (Assembly)typeof(Assembly)
+                            .GetTypeInfo()
+                            .GetDeclaredMethod("GetCallingAssembly")
+                            ?.Invoke(null, null);
+
+                        var location = GetLocation(callingAssembly);
+
+                        if (location != null)
+                        {
+                            assemblyPath = location;
+                        }
+                    }
+
+                    if(assemblyPath != null)
+                    {
+                        var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                        var toolLocalLocation = Path.Combine(assemblyDirectory, toolName);
+
+                        if (File.Exists(toolLocalLocation))
+                        {
+                            toolLocation = toolLocalLocation;
+                        }
+                    }
+                }
+
+                if (toolLocation == null)
+                {
+                    // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
+                    var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
+
+                    if (pathToBuildTools != null)
+                    {
+                        var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
+
+                        if (File.Exists(toolMSBuildLocation))
+                        {
+                            toolLocation = toolMSBuildLocation;
+                        }
+                    }
                 }
             }
 
-            return null;
+            return toolLocation;
         }
     }
 }

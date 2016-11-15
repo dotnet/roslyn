@@ -180,21 +180,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Return the path to the tool to execute.
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            var pathToTool = Utilities.GenerateFullPathToMSBuildRoslynTool(ToolName);
-
-            if (null == pathToTool)
-            {
-                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
-            }
-
-            return pathToTool;
-        }
-
-        /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
         protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
