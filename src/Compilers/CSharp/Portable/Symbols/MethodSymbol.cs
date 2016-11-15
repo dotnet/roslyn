@@ -280,6 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get; }
 
         /// <summary>
+        /// In order to avoid breaking interop scenarios, we need to support signatures
+        /// with modifiers preceding ByRef.
+        /// Should be 0 for non-ref returns.
+        /// </summary>
+        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
+
+        /// <summary>
         /// Gets the attributes on method's return type.
         /// Returns an empty array if there are no attributes.
         /// </summary>

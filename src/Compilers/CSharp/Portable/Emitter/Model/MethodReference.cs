@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return UnderlyingMethod.CountOfCustomModifiersPrecedingByRef;
+            }
+        }
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get

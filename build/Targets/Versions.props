@@ -12,7 +12,7 @@
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">rc2</RoslynNuGetMoniker>
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">rc3</RoslynNuGetMoniker>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
     <!-- Currently we version IW the same as Roslyn. -->
@@ -62,29 +62,6 @@
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
         <BuildVersion>42.42.42.42424</BuildVersion>
         <VsixVersion>42.42.42.42424</VsixVersion>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
-  <Choose>
-    <When Condition="'$(BUILD_SOURCEVERSION)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' == '' and '$(GIT_COMMIT)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <GitHeadSha>Not found</GitHeadSha>
-        <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
-        <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
-        <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-        <GitHeadSha Condition="'$(RefPath)' != '' and Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
-        <GitHeadSha Condition="'$(HeadFileContent)' != '' and '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
       </PropertyGroup>
     </Otherwise>
   </Choose>

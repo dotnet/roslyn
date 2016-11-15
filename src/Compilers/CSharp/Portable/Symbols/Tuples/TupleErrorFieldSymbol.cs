@@ -25,20 +25,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly ImmutableArray<Location> _locations;
         private readonly DiagnosticInfo _useSiteDiagnosticInfo;
+        private readonly TupleErrorFieldSymbol _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
         // otherwise implicitly declared by compiler
         private readonly bool _isImplicitlyDeclared;
 
-        public TupleErrorFieldSymbol(NamedTypeSymbol container, string name, int tupleElementIndex, Location location, TypeSymbol type, DiagnosticInfo useSiteDiagnosticInfo, bool isImplicitlyDeclared)
+        public TupleErrorFieldSymbol(
+            NamedTypeSymbol container, 
+            string name, 
+            int tupleElementIndex, 
+            Location location, 
+            TypeSymbol type, 
+            DiagnosticInfo useSiteDiagnosticInfo, 
+            bool isImplicitlyDeclared,
+            TupleErrorFieldSymbol correspondingDefaultFieldOpt)
+
             : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
         {
             Debug.Assert(name != null);
             _type = type;
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
-            _tupleElementIndex = tupleElementIndex;
+            _tupleElementIndex = (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
             _isImplicitlyDeclared = isImplicitlyDeclared;
+
+            Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
+            Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
+
+            _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
         }
 
         public override bool IsTupleField
@@ -108,6 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _isImplicitlyDeclared;
+            }
+        }
+
+        public override FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return _correspondingDefaultField;
             }
         }
 

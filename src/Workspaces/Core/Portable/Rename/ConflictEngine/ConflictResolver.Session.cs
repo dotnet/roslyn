@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Solution originalSolution,
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsToRename,
-                IEnumerable<RenameLocation> renameLocations,
+                ISet<RenameLocation> renameLocations,
                 RenamedSpansTracker renameSpansTracker,
                 bool replacementTextValid)
             {
@@ -725,15 +725,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        // We try to rewrite all locations that are not candidate locations. If there is only one location 
-                        // it must be the correct one (the symbol is ambiguous to something else) and we always try to rewrite it.
                         var document = originalSolution.GetDocument(documentId);
                         var semanticModel = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
                         // Get all rename locations for the current document.
                         var allTextSpansInSingleSourceTree = renameLocations
-                            .Where(l => l.DocumentId == documentId && !l.IsRenameInStringOrComment && (renameLocations.Count() == 1 || !l.IsCandidateLocation || l.IsMethodGroupReference))
+                            .Where(l => l.DocumentId == documentId && ShouldIncludeLocation(renameLocations, l))
                             .ToDictionary(l => l.Location.SourceSpan);
 
                         // All textspan in the document documentId, that requires rename in String or Comment
@@ -789,6 +787,25 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            /// We try to rewrite all locations that are invalid candidate locations. If there is only
+            /// one location it must be the correct one (the symbol is ambiguous to something else)
+            /// and we always try to rewrite it.  If there are multiple locations, we only allow it
+            /// if the candidate reason allows for it).
+            private bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
+            {
+                if (location.IsRenameInStringOrComment)
+                {
+                    return false;
+                }
+
+                if (renameLocations.Count == 1)
+                {
+                    return true;
+                }
+
+                return RenameLocation.ShouldRename(location);
             }
         }
     }

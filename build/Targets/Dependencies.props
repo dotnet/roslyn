@@ -3,8 +3,12 @@
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
-    <MicrosoftBuildVersion>14.3.0</MicrosoftBuildVersion>
-    <MicrosoftBuildTasksCoreVersion>14.3.0</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildVersion>15.1.0-preview-000370-00</MicrosoftBuildVersion>
+    <MicrosoftBuild14Version>14.3.0</MicrosoftBuild14Version>
+    <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
+    <MicrosoftBuildRuntimeVersion>15.1.0-preview-000370-00</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000370-00</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildTasksCore14Version>14.3.0</MicrosoftBuildTasksCore14Version>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>

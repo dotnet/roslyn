@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _document;
             private readonly TService _service;
-            private readonly string _title;
-
-            private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
 
             internal AbstractIntroduceVariableCodeAction(
                 TService service,
@@ -40,13 +37,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _isConstant = isConstant;
                 _isLocal = isLocal;
                 _isQueryLocal = isQueryLocal;
-                _title = CreateDisplayText(expression);
+                Title = CreateDisplayText(expression);
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title { get; }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -79,10 +73,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private string CreateDisplayText(TExpressionSyntax expression)
             {
                 var singleLineExpression = _document.Project.LanguageServices.GetService<ISyntaxFactsService>().ConvertToSingleLine(expression);
-                var nodeString = singleLineExpression.ToFullString().Trim();
-
-                // prevent the display string from spanning multiple lines
-                nodeString = s_newlinePattern.Replace(nodeString, " ");
+                var nodeString = singleLineExpression.ToString();
 
                 // prevent the display string from being too long
                 const int MaxLength = 40;

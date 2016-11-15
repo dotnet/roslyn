@@ -51,6 +51,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddImports\CSharpAddImportsService.cs" />
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />

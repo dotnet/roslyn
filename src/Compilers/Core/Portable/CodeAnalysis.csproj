@@ -418,9 +418,6 @@
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\UICultureUtilities.cs" />
-    <Compile Include="InternalUtilities\ValueTuple.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`2.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`3.cs" />
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />

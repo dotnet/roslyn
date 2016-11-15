@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //computed
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly TypeSymbol _returnType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly string _name;
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementingType.IsDefinition);
 
             _name = name ?? ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
-            _interfaceMethod = interfaceMethod;
             _implementingType = implementingType;
             _generateDebugInfo = generateDebugInfo;
             _associatedProperty = associatedProperty;
@@ -43,9 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
             typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            var substitutedInterfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
-            _returnType = substitutedInterfaceMethod.ReturnType;
-            _parameters = SynthesizedParameterSymbol.DeriveParameters(substitutedInterfaceMethod, this);
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+            _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
         #region Delegate to interfaceMethod
@@ -73,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get { return _interfaceMethod.ReturnTypeCustomModifiers; }
+        }
+
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get { return _interfaceMethod.CountOfCustomModifiersPrecedingByRef; }
         }
 
         #endregion
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbol ReturnType
         {
-            get { return _returnType; }
+            get { return _interfaceMethod.ReturnType; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

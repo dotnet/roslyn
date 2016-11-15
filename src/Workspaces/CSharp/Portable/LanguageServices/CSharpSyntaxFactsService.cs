@@ -714,9 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
-        {
-            return node.ConvertToSingleLine(useElasticTrivia);
-        }
+            => node.ConvertToSingleLine(useElasticTrivia);
 
         public SyntaxToken ToIdentifierToken(string name)
         {
