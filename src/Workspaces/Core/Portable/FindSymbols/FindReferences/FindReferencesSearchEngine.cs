@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task ProcessAsync(
-            ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> documentMap)
+            ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> documentMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, _cancellationToken))
             {
@@ -98,18 +98,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<Project, Dictionary<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> s_documentMapGetter =
-            _ => new Dictionary<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
+        private static readonly Func<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> s_documentMapGetter =
+            _ => new Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>();
 
-        private static readonly Func<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> s_queueGetter =
-            _ => new List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+        private static readonly Func<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> s_queueGetter =
+            _ => new List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-        private static Dictionary<Project, Dictionary<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateProjectMap(
-            ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> map)
+        private static Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> CreateProjectMap(
+            ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> map)
         {
             Contract.Requires(map.Count > 0);
 
-            var projectMap = new Dictionary<Project, Dictionary<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>>();
+            var projectMap = new Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>>();
             foreach (var kv in map)
             {
                 var documentMap = projectMap.GetOrAdd(kv.Key.Project, s_documentMapGetter);
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         [Conditional("DEBUG")]
         private static void ValidateProjectMap(
-            Dictionary<Project, Dictionary<Document, List<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> projectMap)
+            Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> projectMap)
         {
-            var set = new HashSet<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+            var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
             foreach (var map in projectMap.Values)
             {
