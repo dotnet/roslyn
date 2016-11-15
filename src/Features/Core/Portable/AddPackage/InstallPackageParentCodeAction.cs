@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
 
-namespace Microsoft.CodeAnalysis.AddMissingReference
+namespace Microsoft.CodeAnalysis.AddPackage
 {
     /// <summary>
     /// This is the top level 'Install Nuget Package' code action we show in 
@@ -34,9 +30,10 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             IPackageInstallerService installerService,
             string source,
             string packageName,
+            bool includePrerelease,
             Document document)
             : base(string.Format(FeaturesResources.Install_package_0, packageName),
-                   CreateNestedActions(installerService, source, packageName, document),
+                   CreateNestedActions(installerService, source, packageName, includePrerelease, document),
                    isInlinable: false)
         {
             _installerService = installerService;
@@ -46,7 +43,8 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
         private static ImmutableArray<CodeAction> CreateNestedActions(
             IPackageInstallerService installerService,
-            string source, string packageName, Document document)
+            string source, string packageName, bool includePrerelease,
+            Document document)
         {
             // Determine what versions of this package are already installed in some project
             // in this solution.  We'll offer to add those specific versions to this project,
@@ -56,13 +54,13 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
             // First add the actions to install a specific version.
             codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(
-                installerService, source, packageName, 
-                document, versionOpt: v, isLocal: true)));
+                installerService, source, packageName, document, 
+                versionOpt: v, includePrerelease: includePrerelease, isLocal: true)));
 
             // Now add the action to install the specific version.
             codeActions.Add(CreateCodeAction(
                 installerService, source, packageName, document,
-                versionOpt: null, isLocal: false));
+                versionOpt: null, includePrerelease: includePrerelease, isLocal: false));
 
             // And finally the action to show the package manager dialog.
             codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, packageName));
@@ -75,10 +73,12 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             string packageName,
             Document document,
             string versionOpt,
+            bool includePrerelease,
             bool isLocal)
         {
             return new InstallPackageDirectlyCodeAction(
-                installerService, document, source, packageName, versionOpt, isLocal);
+                installerService, document, source, packageName, 
+                versionOpt, includePrerelease, isLocal);
         }
     }
 }

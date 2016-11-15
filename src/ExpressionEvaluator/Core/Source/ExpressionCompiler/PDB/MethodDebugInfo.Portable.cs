@@ -6,7 +6,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -165,16 +164,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var importGroupsBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance();
             var externAliasesBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance();
 
-            try
+            if (!innerMostImportScope.IsNil)
             {
-                if (!innerMostImportScope.IsNil)
-                {
-                    PopulateImports(reader, innerMostImportScope, symbolProvider, isVisualBasicMethod, importGroupsBuilder, externAliasesBuilder);
-                }
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
-            {
-                // ignore invalid imports
+                PopulateImports(reader, innerMostImportScope, symbolProvider, isVisualBasicMethod, importGroupsBuilder, externAliasesBuilder);
             }
 
             importGroups = importGroupsBuilder.ToImmutableAndFree();
@@ -206,7 +198,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static void PopulateImports(
             MetadataReader reader,
             ImportScopeHandle handle,
@@ -221,70 +212,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var importScope = reader.GetImportScope(handle);
 
-                foreach (ImportDefinition import in importScope.GetImports())
+                try
                 {
-                    switch (import.Kind)
-                    {
-                        case ImportDefinitionKind.ImportNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.ImportAssemblyNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetString: ReadUtf8String(reader, import.TargetNamespace),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.ImportType:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Type,
-                                targetType: symbolProvider.GetType(import.TargetType)));
-                            break;
-
-                        case ImportDefinitionKind.ImportXmlNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.XmlNamespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.ImportAssemblyReferenceAlias:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Assembly,
-                                alias: ReadUtf8String(reader, import.Alias)));
-                            break;
-
-                        case ImportDefinitionKind.AliasAssemblyReference:
-                            externAliasesBuilder.Add(new ExternAliasRecord(
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.AliasNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.AliasAssemblyNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.AliasType:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Type,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetType: symbolProvider.GetType(import.TargetType)));
-                            break;
-                    }
+                    PopulateImports(reader, importScope, symbolProvider, importGroupBuilder, externAliasesBuilder);
+                }
+                catch (BadImageFormatException)
+                {
+                    // ignore invalid imports
                 }
 
                 // VB always expects two import groups (even if they are empty).
@@ -299,6 +233,81 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             importGroupBuilder.Free();
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static void PopulateImports(
+            MetadataReader reader,
+            ImportScope importScope,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            ArrayBuilder<ImportRecord> importGroupBuilder,
+            ArrayBuilder<ExternAliasRecord> externAliasesBuilder)
+        {
+            foreach (ImportDefinition import in importScope.GetImports())
+            {
+                switch (import.Kind)
+                {
+                    case ImportDefinitionKind.ImportNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.ImportAssemblyNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            targetString: ReadUtf8String(reader, import.TargetNamespace),
+                        targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.ImportType:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Type,
+                            targetType: symbolProvider.GetType(import.TargetType)));
+                        break;
+
+                    case ImportDefinitionKind.ImportXmlNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.XmlNamespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.ImportAssemblyReferenceAlias:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Assembly,
+                            alias: ReadUtf8String(reader, import.Alias)));
+                        break;
+
+                    case ImportDefinitionKind.AliasAssemblyReference:
+                        externAliasesBuilder.Add(new ExternAliasRecord(
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.AliasNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.AliasAssemblyNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace),
+                            targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.AliasType:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Type,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetType: symbolProvider.GetType(import.TargetType)));
+                        break;
+                }
+            }
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
