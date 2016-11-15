@@ -277,27 +277,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If IsScriptRunner Then
                     Select Case name
-                        Case "i", "i+"
-                            If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
-                            End If
-                            interactiveMode = True
-                            Continue For
+                        Case "i", "i+", "i-"
+                            result = Parse_interactive(diagnostics, interactiveMode, name, value)
 
-                        Case "i-"
-                            If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
-                            End If
-                            interactiveMode = False
-                            Continue For
                         Case "loadpath", "loadpaths"
-                            If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
-                                Continue For
-                            End If
+                            result = Parse_LoadPaths(diagnostics, Paths, name, value)
 
-                            Paths.Source.AddRange(ParseSeparatedPaths(value))
-                            Continue For
                     End Select
 
 
@@ -1277,6 +1262,30 @@ lVbRuntimePlus:
                 .ReportAnalyzer = reportAnalyzer,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
+        End Function
+
+        Private Shared Function Parse_LoadPaths(diagnostics As List(Of Diagnostic),
+                                                Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)),
+                                                name As String, value As String) As FlagParse
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+            Else
+                Paths.Source.AddRange(ParseSeparatedPaths(value))
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_interactive(diagnostics As List(Of Diagnostic), ByRef interactiveMode As Boolean, name As String, value As String) As FlagParse
+            If value IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
+            End If
+            Dim ch = name.Last
+            Select Case ch
+                Case "i"c,
+                     "+"c : interactiveMode = True
+                Case "-"c : interactiveMode = False
+            End Select
+            Return FlagParse.Valid_ContinueFor
         End Function
 
         Private Shared Function Parse_LibPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), name As String, value As String) As FlagParse
