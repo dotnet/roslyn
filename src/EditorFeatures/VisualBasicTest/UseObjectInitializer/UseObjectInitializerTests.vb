@@ -200,10 +200,6 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
-            Dim a = Sub()
-
-                    End Sub
-
             Await TestAsync(
 "                            
 Class C
