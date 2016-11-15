@@ -573,6 +573,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             diffViewer.Closed += (s, e) =>
             {
+                // Workaround Editor bug.  The editor has an issue where they sometimes crash when 
+                // trying to apply changes to projection buffer.  So, when the user actually invokes
+                // a SuggestedAction we may then edit a text buffer, which the editor will then 
+                // try to propagate through the projections we have here over that buffer.  To ensure
+                // that that doesn't happen, we clear out the projections first so that this crash
+                // won't happen.
+                originalBuffer.DeleteSpans(0, originalBuffer.CurrentSnapshot.SpanCount);
+                changedBuffer.DeleteSpans(0, changedBuffer.CurrentSnapshot.SpanCount);
+
                 leftWorkspace?.Dispose();
                 leftWorkspace = null;
 
