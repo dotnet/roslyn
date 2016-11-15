@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            var pathToTool = Utilities.GenerateFullPathToMSBuildRoslynTool(ToolName);
+            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
 
             if (null == pathToTool)
             {
