@@ -7,6 +7,10 @@
             "version": "2.0.0-beta5-60820-04",
             "suppressParent": "all"
         },
+        "Microsoft.VisualStudio.CoreUtility": {
+            "version": "15.0.25604-Preview4",
+            "suppressParent": "all"
+        },
         "Microsoft.VisualStudio.Editor": {
             "version": "15.0.25604-Preview4",
             "suppressParent": "all"
