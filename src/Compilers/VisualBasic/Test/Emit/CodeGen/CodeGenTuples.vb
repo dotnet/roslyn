@@ -17666,6 +17666,66 @@ val:   -2
 ]]>)
 
         End Sub
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs001()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs002()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As IComparable(of (Integer, Integer)) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
     End Class
 
 End Namespace
