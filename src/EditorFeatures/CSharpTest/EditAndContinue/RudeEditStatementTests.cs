@@ -7170,6 +7170,32 @@ foreach(var (x1, x2) in new[] { (30, 40) }) { Console.Write(50); }
         }
 
         [Fact]
+        public void ForEachAndForEachComponentStatement()
+        {
+            string src1 = @"
+foreach(var (x1, x2) in F()) { Console.Write(1); }
+";
+
+            string src2 = @"
+foreach(var (x3, x4) in new[] { (1, 2) }) { Console.Write(1); }
+foreach(var x1 in F()) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "foreach(var (x1, x2) in F()) { Console.Write(1); }", "foreach(var x1 in F()) { Console.Write(50); }" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void ForWithDeconstruction()
         {
             string src1 = @"
