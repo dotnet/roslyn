@@ -36,6 +36,7 @@
                 "Microsoft.Composition",
                 "ManagedEsent",
                 "xunit",
+                "PdbGit",
                 "RoslynTools.*",
                 "^Microsoft.?Build.*"
             ]

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- Need the NuGet package versions -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Dependencies.props" />
+
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\..\</ProjectDir>
@@ -30,7 +33,7 @@
 
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(OutDir.TrimEnd('\'))&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
@@ -42,6 +45,8 @@
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(BinariesPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)run-pdbgit.ps1 -sourcePath $(ProjectDir) -binariesPath &quot;$(BinariesPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -binariesPath &quot;$(BinariesPath)&quot; -branchName $(BranchName) -apiKey $(RoslynNuGetApiKey) $(PublishAssetsArgs)" />
 

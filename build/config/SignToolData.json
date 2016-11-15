@@ -1,5 +1,5 @@
 ﻿{
-    sign: [
+    "sign": [
         {
             "certificate": "Microsoft402",
             "strongName": "MsSharedLib72",
@@ -101,8 +101,7 @@
         }
     ],
 
-    // Binaries which are included in VSIX above which are not to be signed.
-    exclude: [
+    "exclude": [
         "Esent.Interop.dll",
         "Microsoft.CodeAnalysis.Elfie.dll",
         "Microsoft.DiaSymReader.dll",
