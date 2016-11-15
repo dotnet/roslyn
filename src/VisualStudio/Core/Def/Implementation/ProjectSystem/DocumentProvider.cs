@@ -56,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider(
             IVisualStudioHostProjectContainer projectContainer,
             IServiceProvider serviceProvider,
-            bool signUpForFileChangeNotification = true,
-            VisualStudioDocumentTrackingService documentTrackingService = null)
+            VisualStudioDocumentTrackingService documentTrackingService)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
@@ -69,12 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
-            // In the CodeSense scenario we will receive file change notifications from the native
-            // Language Services, so we don't want to sign up for them ourselves.
-            if (signUpForFileChangeNotification)
-            {
-                _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            }
+            _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
             if (shell == null)

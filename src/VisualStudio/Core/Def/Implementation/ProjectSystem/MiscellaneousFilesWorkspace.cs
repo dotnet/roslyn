@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
-            _documentProvider = new DocumentProvider(this, serviceProvider);
+            _documentProvider = new DocumentProvider(this, serviceProvider, documentTrackingService: null);
             saveEventsService.StartSendingSaveEvents();
         }
 
