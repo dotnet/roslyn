@@ -57,6 +57,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories)
         End Function
 
+        Protected Friend Function Parse_Help(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As FlagParse
+            If value IsNot Nothing Then
+                Return FlagParse.Invalid_ExitSelect
+            Else
+                display.Help = True
+                Return FlagParse.Valid_ContinueFor
+            End If
+        End Function
+
+        Protected Friend Function Parser_Version(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As FlagParse
+            If value IsNot Nothing Then
+                Return FlagParse.Invalid_ExitSelect
+            Else
+                display.Version = True
+                Return FlagParse.Valid_ContinueFor
+            End If
+        End Function
+
+        Protected Friend Enum FlagParse
+            Valid_ContinueFor
+            Invalid_ExitSelect
+        End Enum
+
         ''' <summary>
         ''' Parses a command line.
         ''' </summary>
@@ -72,10 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim flattenedArgs As List(Of String) = New List(Of String)()
             Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
 
-            'Dim sdkPaths As New List(Of String)()
-            'Dim libPaths As New List(Of String)()
-            'Dim sourcePaths As New List(Of String)()
-            'Dim keyFileSearchPaths = New List(Of String)()
             Dim Paths = (SDK:=New List(Of String),
                        [LIB]:=New List(Of String),
                       Source:=New List(Of String),
@@ -85,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, Paths.Response)
 
-            Dim display = (Logo:=True, Help:=False, Version:=False)
+            Dim display As (Logo As Boolean, Help As Boolean, Version As Boolean) = (Logo:=True, Help:=False, Version:=False)
 
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
@@ -95,20 +114,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim emitPdb As Boolean
             Dim debugInformationFormat As DebugInformationFormat = DebugInformationFormat.Pdb
             Dim noStdLib As Boolean = False
-            Dim utf8output As Boolean = False
-            Dim outputFileName As String = Nothing
-            Dim outputDirectory As String = baseDirectory
+
+            Dim Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind) = (UTF8:=False, FileName:=Nothing, Directory:=baseDirectory, Kind:=CodeAnalysis.OutputKind.ConsoleApplication)
+
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
-            Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
             Dim languageVersion As LanguageVersion = LanguageVersion.Default
             Dim mainTypeName As String = Nothing
+
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
             Dim win32IconFile As String = Nothing
             Dim noWin32Manifest As Boolean = False
+
             Dim managedResources = New List(Of ResourceDescription)()
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
@@ -123,10 +143,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim globalImports = New List(Of GlobalImport)
             Dim rootNamespace As String = ""
-            Dim optionStrict As OptionStrict = OptionStrict.Off
-            Dim optionInfer As Boolean = False ' MSDN says: ...The compiler default for this option is /optioninfer-.
-            Dim optionExplicit As Boolean = True
-            Dim optionCompareText As Boolean = False
+
+            Dim _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean) =
+                          (Strict:=OptionStrict.Off,
+                            Infer:=False,  ' MSDN says: ...The compiler default for this option is /optioninfer-.
+                         Explicit:=True,
+                      CompareText:=False)
+
             Dim embedVbCoreRuntime As Boolean = False
             Dim platform As Platform = Platform.AnyCpu
             Dim preferredUILang As CultureInfo = Nothing
@@ -176,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each arg In flattenedArgs
                 Debug.Assert(Not arg.StartsWith("@", StringComparison.Ordinal))
-
+                Dim result As FlagParse = FlagParse.Invalid_ExitSelect
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
@@ -187,229 +210,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case name
                     Case "?", "help"
-                        If value IsNot Nothing Then
-                            Exit Select
-                        End If
-
-                        display.Help = True
-                        Continue For
+                        result = Parse_Help(value, display)
 
                     Case "version"
-                        If value IsNot Nothing Then
-                            Exit Select
-                        End If
-
-                        display.Version = True
-                        Continue For
+                        result = Parser_Version(value, display)
 
                     Case "r", "reference"
-                        metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=False))
-                        Continue For
+                        result = Parse_Reference(diagnostics, metadataReferences, name, value)
 
                     Case "a", "analyzer"
-                        analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
-                        Continue For
+                        result = Parse_Analyzer(diagnostics, analyzers, name, value)
 
                     Case "d", "define"
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<symbol_list>")
-                            Continue For
-                        End If
-                        Dim conditionalCompilationDiagnostics As IEnumerable(Of Diagnostic) = Nothing
-                        defines = ParseConditionalCompilationSymbols(value, conditionalCompilationDiagnostics, defines)
-                        diagnostics.AddRange(conditionalCompilationDiagnostics)
-
-                        Continue For
+                        result = Parse_Define(diagnostics, defines, name, value)
 
                     Case "imports", "import"
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, If(name = "import", ":<str>", ":<import_list>"))
-                            Continue For
-                        End If
-
-                        ParseGlobalImports(value, globalImports, diagnostics)
-                        Continue For
+                        result = Parse_Imports(diagnostics, globalImports, name, value)
 
                     Case "optionstrict"
-                        value = RemoveQuotesAndSlashes(value)
-                        If value Is Nothing Then
-                            optionStrict = VisualBasic.OptionStrict.On
-                        ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
-                            optionStrict = VisualBasic.OptionStrict.Custom
-                        Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optionstrict", ":custom")
-                        End If
+                        result = Parse_Option_Strict(diagnostics, _option, value)
 
-                        Continue For
-
-                    Case "optionstrict+"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
-                            Continue For
-                        End If
-
-                        optionStrict = VisualBasic.OptionStrict.On
-                        Continue For
-
-                    Case "optionstrict-"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
-                            Continue For
-                        End If
-
-                        optionStrict = VisualBasic.OptionStrict.Off
-                        Continue For
+                    Case "optionstrict+", "optionstrict-"
+                        result = Parse_Option_Strict_(diagnostics, _option, name, value)
 
                     Case "optioncompare"
-                        value = RemoveQuotesAndSlashes(value)
-                        If value Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
-                        ElseIf String.Equals(value, "text", StringComparison.OrdinalIgnoreCase) Then
-                            optionCompareText = True
-                        ElseIf String.Equals(value, "binary", StringComparison.OrdinalIgnoreCase) Then
-                            optionCompareText = False
-                        Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
-                        End If
+                        result = Parse_Option_Compare(diagnostics, _option, value)
 
-                        Continue For
+                    Case "optionexplicit", "optionexplicit+", "optionexplicit-"
+                        result = Parse_Option_Explicit(diagnostics, _option, name, value)
 
-                    Case "optionexplicit", "optionexplicit+"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
-                            Continue For
-                        End If
-
-                        optionExplicit = True
-                        Continue For
-
-                    Case "optionexplicit-"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
-                            Continue For
-                        End If
-
-                        optionExplicit = False
-                        Continue For
-
-                    Case "optioninfer", "optioninfer+"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
-                            Continue For
-                        End If
-
-                        optionInfer = True
-                        Continue For
-
-                    Case "optioninfer-"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
-                            Continue For
-                        End If
-
-                        optionInfer = False
-                        Continue For
+                    Case "optioninfer", "optioninfer+", "optioninfer-"
+                        result = Parse_Option_Infer(diagnostics, _option, name, value)
 
                     Case "codepage"
-                        value = RemoveQuotesAndSlashes(value)
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
-                            Continue For
-                        End If
-
-                        Dim encoding = TryParseEncodingName(value)
-                        If encoding Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_BadCodepage, value)
-                            Continue For
-                        End If
-
-                        codepage = encoding
-                        Continue For
+                        result = Parse_CodePage(diagnostics, codepage, name, value)
 
                     Case "checksumalgorithm"
-                        value = RemoveQuotesAndSlashes(value)
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
-                            Continue For
-                        End If
+                        result = Parse_ChecksumAlgorithm(diagnostics, checksumAlgorithm, value)
 
-                        Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
-                        If newChecksumAlgorithm = SourceHashAlgorithm.None Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
-                            Continue For
-                        End If
-
-                        checksumAlgorithm = newChecksumAlgorithm
-                        Continue For
-
-                    Case "removeintchecks", "removeintchecks+"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
-                            Continue For
-                        End If
-
-                        checkOverflow = False
-                        Continue For
-
-                    Case "removeintchecks-"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
-                            Continue For
-                        End If
-
-                        checkOverflow = True
-                        Continue For
+                    Case "removeintchecks", "removeintchecks+", "removeintchecks-"
+                        result = Parse_RemoveIntChecks(diagnostics, checkOverflow, name, value)
 
                     Case "sqmsessionguid"
-                        ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
-                        ' back compat reasons.
-                        value = RemoveQuotesAndSlashes(value)
-                        If String.IsNullOrWhiteSpace(value) = True Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
-                        Else
-                            Dim sqmsessionguid As Guid
-                            If Not Guid.TryParse(value, sqmsessionguid) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
-                            End If
-                        End If
-                        Continue For
+                        result = Parse_SQMSessionGuid(diagnostics, name, value)
 
                     Case "preferreduilang"
-                        value = RemoveQuotesAndSlashes(value)
-                        If (String.IsNullOrEmpty(value)) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
-                            Continue For
-                        End If
-
-                        Try
-                            preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
-                                ' Do not use user custom cultures.
-                                preferredUILang = Nothing
-                            End If
-                        Catch ex As CultureNotFoundException
-                        End Try
-
-                        If preferredUILang Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
-                        End If
-
-                        Continue For
+                        result = Parse_PreferredUILang(diagnostics, preferredUILang, name, value)
 
                     Case "lib", "libpath", "libpaths"
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
-                            Continue For
-                        End If
+                        result = Parse_LibPath(diagnostics, Paths, name, value)
 
-                        Paths.LIB.AddRange(ParseSeparatedPaths(value))
-                        Continue For
 
 #If DEBUG Then
                     Case "attachdebugger"
                         Debugger.Launch()
-                        Continue For
+                        result = FlagParse.Valid_ContinueFor
 #End If
+                End Select
+                Select Case result
+                    Case FlagParse.Valid_ContinueFor
+                        Continue For
+                    Case FlagParse.Invalid_ExitSelect
+                    Case Else
+                        Throw New Exception
                 End Select
 
                 If IsScriptRunner Then
@@ -436,6 +299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Paths.Source.AddRange(ParseSeparatedPaths(value))
                             Continue For
                     End Select
+
+
                 Else
                     Select Case name
                         Case "out"
@@ -449,13 +314,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' While the Dev11 VB compiler reports "BC2012: can't open 'sub\ ' for writing,
                                 ' the Roslyn VB compiler reports "BC2032: File name 'sub\ ' is empty, contains invalid characters, ..."
                                 ' which is generated by the following ParseOutputFile.
-                                ParseOutputFile(value, diagnostics, baseDirectory, outputFileName, outputDirectory)
+                                ParseOutputFile(value, diagnostics, baseDirectory, Output.FileName, Output.Directory)
                             End If
                             Continue For
 
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
-                            outputKind = ParseTarget(name, value, diagnostics)
+                            Output.Kind = ParseTarget(name, value, diagnostics)
                             Continue For
 
                         Case "moduleassemblyname"
@@ -544,11 +409,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case "sdkpath"
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sdkpath", ":<path>")
-                                Continue For
+                            Else
+                                Paths.SDK.Clear()
+                                Paths.SDK.AddRange(ParseSeparatedPaths(value))
                             End If
-
-                            Paths.SDK.Clear()
-                            Paths.SDK.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "instrument"
@@ -985,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
                             End If
 
-                            utf8output = True
+                            Output.UTF8 = True
                             Continue For
 
                         Case "utf8output-"
@@ -993,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
                             End If
 
-                            utf8output = False
+                            Output.UTF8 = False
                             Continue For
 
                         Case "noconfig"
@@ -1175,7 +1039,12 @@ lVbRuntimePlus:
                     End Select
                 End If
 
-                AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
+                Select Case result
+                    Case FlagParse.Valid_ContinueFor
+                    Case FlagParse.Invalid_ExitSelect
+                        AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
+
+                End Select
             Next
 
             Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, CaseInsensitiveComparison.Comparer)
@@ -1250,7 +1119,7 @@ lVbRuntimePlus:
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
-            ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
+            ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, Output.Kind, diagnostics)
 
             If sourceLink IsNot Nothing Then
                 If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
@@ -1284,19 +1153,19 @@ lVbRuntimePlus:
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
             Paths.KeyFileSearch.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
-                Paths.KeyFileSearch.Add(outputDirectory)
+            If baseDirectory <> Output.Directory Then
+                Paths.KeyFileSearch.Add(Output.Directory)
             End If
 
             Dim parsedFeatures = ParseFeatures(features)
 
             Dim compilationName As String = Nothing
-            GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
+            GetCompilationAndModuleNames(diagnostics, Output.Kind, sourceFiles, moduleAssemblyName, Output.FileName, moduleName, compilationName)
 
             If Not IsScriptRunner AndAlso
                 Not hasSourceFiles AndAlso
                 Not managedResources.IsEmpty() AndAlso
-                outputFileName = Nothing AndAlso
+                Output.FileName = Nothing AndAlso
                 Not flattenedArgs.IsEmpty() Then
 
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
@@ -1306,7 +1175,7 @@ lVbRuntimePlus:
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                 kind:=SourceCodeKind.Regular,
-                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(Output.Kind, defines.AsImmutableOrEmpty()),
                 features:=parsedFeatures)
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
@@ -1316,16 +1185,16 @@ lVbRuntimePlus:
             Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
 
             Dim options = New VisualBasicCompilationOptions(
-                outputKind:=outputKind,
+                outputKind:=Output.Kind,
                 moduleName:=moduleName,
                 mainTypeName:=mainTypeName,
                 scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
                 globalImports:=globalImports,
                 rootNamespace:=rootNamespace,
-                optionStrict:=optionStrict,
-                optionInfer:=optionInfer,
-                optionExplicit:=optionExplicit,
-                optionCompareText:=optionCompareText,
+                 optionStrict:=_option.Strict,
+                optionInfer:=_option.Infer,
+                optionExplicit:=_option.Explicit,
+                optionCompareText:=_option.CompareText,
                 embedVbCoreRuntime:=embedVbCoreRuntime,
                 checkOverflow:=checkOverflow,
                 concurrentBuild:=concurrentBuild,
@@ -1357,7 +1226,7 @@ lVbRuntimePlus:
             diagnostics.AddRange(options.Errors)
 
             If documentationPath Is GenerateFileNameForDocComment Then
-                documentationPath = PathUtilities.CombineAbsoluteAndRelativePaths(outputDirectory, PathUtilities.RemoveExtension(outputFileName))
+                documentationPath = PathUtilities.CombineAbsoluteAndRelativePaths(Output.Directory, PathUtilities.RemoveExtension(Output.FileName))
                 documentationPath = documentationPath + ".xml"
             End If
 
@@ -1371,10 +1240,10 @@ lVbRuntimePlus:
                 .InteractiveMode = interactiveMode,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
-                .Utf8Output = utf8output,
+                .Utf8Output = Output.UTF8,
                 .CompilationName = compilationName,
-                .OutputFileName = outputFileName,
-                .OutputDirectory = outputDirectory,
+                .OutputFileName = Output.FileName,
+                .OutputDirectory = Output.Directory,
                 .DocumentationPath = documentationPath,
                 .ErrorLogPath = errorLogPath,
                 .SourceFiles = sourceFiles.AsImmutable(),
@@ -1408,6 +1277,198 @@ lVbRuntimePlus:
                 .ReportAnalyzer = reportAnalyzer,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
+        End Function
+
+        Private Shared Function Parse_LibPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), name As String, value As String) As FlagParse
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+            Else
+                Paths.LIB.AddRange(ParseSeparatedPaths(value))
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_PreferredUILang(diagnostics As List(Of Diagnostic), ByRef preferredUILang As CultureInfo, name As String, ByRef value As String) As FlagParse
+            value = RemoveQuotesAndSlashes(value)
+            If (String.IsNullOrEmpty(value)) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
+            Else
+                Try
+                    preferredUILang = New CultureInfo(value)
+                    If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                        ' Do not use user custom cultures.
+                        preferredUILang = Nothing
+                    End If
+                Catch ex As CultureNotFoundException
+                End Try
+
+                If preferredUILang Is Nothing Then
+                    AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
+                End If
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_SQMSessionGuid(diagnostics As List(Of Diagnostic), name As String, ByRef value As String) As FlagParse
+            ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
+            ' back compat reasons.
+            value = RemoveQuotesAndSlashes(value)
+            If String.IsNullOrWhiteSpace(value) = True Then
+                AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
+            Else
+                Dim sqmsessionguid As Guid
+                If Not Guid.TryParse(value, sqmsessionguid) Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
+                End If
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_RemoveIntChecks(diagnostics As List(Of Diagnostic), ByRef checkOverflow As Boolean, name As String, value As String) As FlagParse
+            If value IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
+            Else
+                Dim ch = name.Last
+                Select Case ch
+                    Case "s"c,
+                         "+"c : checkOverflow = False
+                    Case "-"c : checkOverflow = True
+                    Case Else
+                End Select
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_ChecksumAlgorithm(diagnostics As List(Of Diagnostic), ByRef checksumAlgorithm As SourceHashAlgorithm, value As String) As FlagParse
+            value = RemoveQuotesAndSlashes(value)
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
+            Else
+
+                Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
+                If newChecksumAlgorithm = SourceHashAlgorithm.None Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
+                Else
+                    checksumAlgorithm = newChecksumAlgorithm
+                End If
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_CodePage(diagnostics As List(Of Diagnostic), ByRef codepage As Encoding, name As String, value As String) As FlagParse
+            value = RemoveQuotesAndSlashes(value)
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
+            Else
+                Dim encoding = TryParseEncodingName(value)
+                If encoding Is Nothing Then
+                    AddDiagnostic(diagnostics, ERRID.ERR_BadCodepage, value)
+                Else
+                    codepage = encoding
+                End If
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Option_Infer(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
+            If value IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
+            Else
+                Dim ch = name.Last
+                Select Case ch
+                    Case "r"c,
+                         "+"c : _option.Infer = True
+                    Case "-"c : _option.Infer = False
+                    Case Else
+                End Select
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Option_Compare(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As FlagParse
+            value = RemoveQuotesAndSlashes(value)
+            If value Is Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
+            ElseIf String.Equals(value, "text", StringComparison.OrdinalIgnoreCase) Then
+                _option.CompareText = True
+            ElseIf String.Equals(value, "binary", StringComparison.OrdinalIgnoreCase) Then
+                _option.CompareText = False
+            Else
+                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Option_Strict_(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
+            If value IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
+            Else
+                Dim ch = name.Last
+                Select Case ch
+                    Case "+"c : _option.Strict = VisualBasic.OptionStrict.On
+                    Case "-"c : _option.Strict = VisualBasic.OptionStrict.Off
+                    Case Else
+                End Select
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Option_Strict(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As FlagParse
+            value = RemoveQuotesAndSlashes(value)
+            If value Is Nothing Then
+                _option.Strict = VisualBasic.OptionStrict.On
+            ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
+                _option.Strict = VisualBasic.OptionStrict.Custom
+            Else
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optionstrict", ":custom")
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Option_Explicit(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), name As String, value As String) As FlagParse
+            If value IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
+            Else
+                Dim ch = name.Last
+                Select Case ch
+                    Case "t"c,
+                         "+"c : _option.Explicit = True
+                    Case "-"c : _option.Explicit = False
+                    Case Else
+                End Select
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Imports(diagnostics As List(Of Diagnostic), ByRef globalImports As List(Of GlobalImport), name As String, value As String) As FlagParse
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, If(name = "import", ":<str>", ":<import_list>"))
+            Else
+                ParseGlobalImports(value, globalImports, diagnostics)
+            End If
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Define(diagnostics As List(Of Diagnostic), ByRef defines As IReadOnlyDictionary(Of String, Object), name As String, value As String) As FlagParse
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<symbol_list>")
+            Else
+                Dim conditionalCompilationDiagnostics As IEnumerable(Of Diagnostic) = Nothing
+                defines = ParseConditionalCompilationSymbols(value, conditionalCompilationDiagnostics, defines)
+                diagnostics.AddRange(conditionalCompilationDiagnostics)
+            End If
+
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Analyzer(diagnostics As List(Of Diagnostic), analyzers As List(Of CommandLineAnalyzerReference), name As String, value As String) As FlagParse
+            analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
+            Return FlagParse.Valid_ContinueFor
+        End Function
+
+        Private Shared Function Parse_Reference(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), name As String, value As String) As FlagParse
+            metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=False))
+            Return FlagParse.Valid_ContinueFor
         End Function
 
         Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
