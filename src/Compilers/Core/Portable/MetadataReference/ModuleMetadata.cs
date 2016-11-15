@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis
         private ModuleMetadata(PEReader peReader)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
+            _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
-        private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
+        private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
             : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
+            _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes, ignoreAssemblyRefs: ignoreAssemblyRefs);
         }
 
         // creates a copy
@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(CodeAnalysisResources.SizeHasToBePositive, nameof(size));
             }
 
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false);
+            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes: false, ignoreAssemblyRefs: false);
         }
 
-        internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
+        internal static ModuleMetadata CreateFromMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs = false)
         {
             Debug.Assert(metadata != IntPtr.Zero);
             Debug.Assert(size > 0);
-            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes);
+            return new ModuleMetadata(metadata, size, includeEmbeddedInteropTypes, ignoreAssemblyRefs);
         }
 
         /// <summary>

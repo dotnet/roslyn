@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             string source,
             string packageName,
             string versionOpt,
+            bool includePrerelease,
             bool isLocal)
         {
             Title = versionOpt == null
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
             _installPackageOperation = new InstallPackageDirectlyCodeActionOperation(
-                installerService, document, source, packageName, versionOpt, isLocal);
+                installerService, document, source, packageName,
+                versionOpt, includePrerelease, isLocal);
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)

@@ -124,9 +124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             referencedAssemblyIndex As Integer,
             ByRef emittedName As MetadataTypeName
         ) As TypeSymbol
-            Try
-                Dim assembly As AssemblySymbol = moduleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
+            Dim assembly As AssemblySymbol = ModuleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex)
+            If assembly Is Nothing Then
+                Return New UnsupportedMetadataTypeSymbol()
+            End If
 
+            Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
             Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
