@@ -7320,5 +7320,169 @@ class C
         }
 
         #endregion
+
+        #region C# 7
+
+        [Fact]
+        public void DeconstructionStatement()
+        {
+            string src1 = @"
+var (x1, x2) = (1, 2);
+";
+
+            string src2 = @"
+var (x3, x4) = (1, 2);
+var (x1, x2) = (30, 40);
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "var (x1, x2) = (1, 2);", "var (x1, x2) = (30, 40);" },
+                { "var (x1, x2) = (1, 2)", "var (x1, x2) = (30, 40)" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ForEachStatement()
+        {
+            string src1 = @"
+foreach(var x1 in new[] { 1 }) { Console.Write(1); }
+";
+
+            string src2 = @"
+foreach(var x3 in new[] { 1 }) { Console.Write(1); }
+foreach(var x1 in new[] { 30 }) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "foreach(var x1 in new[] { 1 }) { Console.Write(1); }", "foreach(var x1 in new[] { 30 }) { Console.Write(50); }" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ForEachComponentStatement()
+        {
+            string src1 = @"
+foreach(var (x1, x2) in new[] { (1, 2) }) { Console.Write(1); }
+";
+
+            string src2 = @"
+foreach(var (x3, x4) in new[] { (1, 2) }) { Console.Write(1); }
+foreach(var (x1, x2) in new[] { (30, 40) }) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "foreach(var (x1, x2) in new[] { (1, 2) }) { Console.Write(1); }", "foreach(var (x1, x2) in new[] { (30, 40) }) { Console.Write(50); }" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ForWithDeconstruction()
+        {
+            string src1 = @"
+for (var (x1, x2) = (1, 2); ; ) { Console.Write(1); }
+";
+
+            string src2 = @"
+for (var (x3, x4) = (1, 2); ; ) { Console.Write(1); }
+for (var (x1, x2) = (30, 40); ; ) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "for (var (x1, x2) = (1, 2); ; ) { Console.Write(1); }", "for (var (x1, x2) = (30, 40); ; ) { Console.Write(50); }" },
+                { "var (x1, x2) = (1, 2)", "var (x1, x2) = (30, 40)" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void For()
+        {
+            string src1 = @"
+for (var x1 = 1; ; ) { Console.Write(1); }
+";
+
+            string src2 = @"
+for (var x3 = 1; ; ) { Console.Write(1); }
+for (var x1 = 30; ; ) { Console.Write(50); }
+";
+
+            // variable names weight more in matching
+            var expected = new MatchingPairs
+            {
+                { "for (var x1 = 1; ; ) { Console.Write(1); }", "for (var x1 = 30; ; ) { Console.Write(50); }" },
+                { "var x1 = 1", "var x1 = 30" },
+                { "x1 = 1", "x1 = 30" },
+                { "{ Console.Write(1); }", "{ Console.Write(50); }" },
+                { "Console.Write(1);", "Console.Write(1);" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13904")]
+        [WorkItem(13904, "https://github.com/dotnet/roslyn/issues/13904")]
+        public void Assignment()
+        {
+            string src1 = @"
+var x1 = 1;
+";
+
+            string src2 = @"
+var x3 = 1;
+var x1 = 100;
+";
+
+            // This matching seems wrong, as it doesn't give more weight to names of locals
+            // https://github.com/dotnet/roslyn/issues/13904
+            var expected = new MatchingPairs
+            {
+                { "var x1 = 1;", "var x1 = 1;" },
+                { "var x1 = 1", "var x1 = 1" },
+                { "x1 = 1", "x1 = 1" }
+            };
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
     }
 }

@@ -8189,15 +8189,15 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_VarDeconstruction()
+        public void MethodUpdate_VarDeconstructionInForLoop()
         {
             string src1 = @"
 class C
 {
     static void F(object o1, object o2)
     {
-        <AS:0>Console.WriteLine(1);</AS:0>
         for (var (x, y) = o1; ; ) { }
+        <AS:0>Console.WriteLine(1);</AS:0>
     }
 }
 ";
@@ -8206,8 +8206,8 @@ class C
 {
     static void F(object o1, object o2)
     {
-        <AS:0>Console.WriteLine(1);</AS:0>
         for (var (x, y) = o2; ; ) { }
+        <AS:0>Console.WriteLine(1);</AS:0>
     }
 }
 ";
@@ -8219,7 +8219,7 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_TypedDeconstruction()
+        public void MethodUpdate_TypedDeconstructionInForLoop()
         {
             string src1 = @"
 class C

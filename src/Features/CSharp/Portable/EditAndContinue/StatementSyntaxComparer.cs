@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ForStatement,
             ForStatementPart,                 // tied to parent
             ForEachStatement,
-            ForEachComponentStatement,
             UsingStatement,
             FixedStatement,
             LockStatement,
@@ -192,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             LocalDeclarationStatement,         // tied to parent
             LocalVariableDeclaration,          // tied to parent
             LocalVariableDeclarator,           // tied to parent
+            DeconstructionDeclarationStatement, // tied to parent
+            VariableComponentAssignment, // tied to parent
 
             AwaitExpression,
 
@@ -212,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
 
+            ForEachComponentStatement,
+
             // helpers:
             Count,
             Ignored = IgnoredNode
@@ -224,6 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.LocalDeclarationStatement:
                 case Label.LocalVariableDeclaration:
                 case Label.LocalVariableDeclarator:
+                case Label.DeconstructionDeclarationStatement:
+                case Label.VariableComponentAssignment:
                 case Label.GotoCaseStatement:
                 case Label.BreakContinueStatement:
                 case Label.ElseClause:
@@ -480,6 +485,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AwaitExpression:
                     return Label.AwaitExpression;
 
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    return Label.DeconstructionDeclarationStatement;
+
+                case SyntaxKind.VariableComponentAssignment:
+                    return Label.VariableComponentAssignment;
+
                 default:
                     // any other node may contain a lambda:
                     return Label.Ignored;
@@ -592,6 +603,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return true;
                     }
 
+                case SyntaxKind.ForEachComponentStatement:
+                    {
+                        var leftForEach = (ForEachComponentStatementSyntax)leftNode;
+                        var rightForEach = (ForEachComponentStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
+                        return true;
+                    }
+
                 case SyntaxKind.UsingStatement:
                     var leftUsing = (UsingStatementSyntax)leftNode;
                     var rightUsing = (UsingStatementSyntax)rightNode;
@@ -663,6 +682,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.LocalFunctionStatement:
                     distance = ComputeWeightedDistanceOfLocalFunctions((LocalFunctionStatementSyntax)leftNode, (LocalFunctionStatementSyntax)rightNode);
                     return true;
+
+                case SyntaxKind.DeconstructionDeclarationStatement:
+                    {
+                        var leftDeconstruction = (DeconstructionDeclarationStatementSyntax)leftNode;
+                        var rightDeconstruction = (DeconstructionDeclarationStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftDeconstruction, rightDeconstruction);
+                        return true;
+                    }
 
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
@@ -841,6 +868,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return ComputeValueDistance(leftBlock, rightBlock);
         }
 
+        private static double ComputeWeightedDistance(DeconstructionDeclarationStatementSyntax left, DeconstructionDeclarationStatementSyntax right)
+        {
+            return ComputeWeightedDistance(left.Assignment, right.Assignment);
+        }
+
+        private static double ComputeWeightedDistance(VariableComponentAssignmentSyntax left, VariableComponentAssignmentSyntax right)
+        {
+            double distance = ComputeDistance(left, right);
+
+            double identifiersDistance;
+            if (TryComputeLocalsDistance(left.VariableComponent, right.VariableComponent, out identifiersDistance))
+            {
+                distance = distance * 0.4 + identifiersDistance * 0.6;
+            }
+
+            return distance;
+        }
+
         private static double ComputeWeightedDistance(CatchClauseSyntax left, CatchClauseSyntax right)
         {
             double blockDistance = ComputeDistance(left.Block, right.Block);
@@ -858,6 +903,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
         }
 
+        private static double ComputeWeightedDistance(ForEachComponentStatementSyntax left, ForEachComponentStatementSyntax right)
+        {
+            double statementDistance = ComputeDistance(left.Statement, right.Statement);
+            double expressionDistance = ComputeDistance(left.Expression, right.Expression);
+
+            double identifiersDistance;
+            TryComputeLocalsDistance(left.VariableComponent, right.VariableComponent, out identifiersDistance);
+
+            double distance = identifiersDistance * 0.7 + expressionDistance * 0.2 + statementDistance * 0.1;
+            return AdjustForLocalsInBlock(distance, left.Statement, right.Statement, localsWeight: 0.6);
+        }
+
         private static double ComputeWeightedDistance(ForStatementSyntax left, ForStatementSyntax right)
         {
             double statementDistance = ComputeDistance(left.Statement, right.Statement);
@@ -869,7 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double distance = conditionDistance * 0.3 + incDistance * 0.3 + statementDistance * 0.4;
 
             double localsDistance;
-            if (TryComputeLocalsDistance(left.Declaration, right.Declaration, out localsDistance))
+            if (TryComputeLocalsDistance(left.Declaration, right.Declaration, out localsDistance) ||
+                TryComputeLocalsDistance(left.Deconstruction, right.Deconstruction, out localsDistance))
             {
                 distance = distance * 0.4 + localsDistance * 0.6;
             }
@@ -938,15 +996,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
 
-            if (leftOpt != null)
-            {
-                GetLocalNames(leftOpt, ref leftLocals);
-            }
-
-            if (rightOpt != null)
-            {
-                GetLocalNames(rightOpt, ref rightLocals);
-            }
+            GetLocalNames(leftOpt, ref leftLocals);
+            GetLocalNames(rightOpt, ref rightLocals);
 
             if (leftLocals == null || rightLocals == null)
             {
@@ -956,6 +1007,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             distance = ComputeDistance(leftLocals, rightLocals);
             return true;
+        }
+
+        private static bool TryComputeLocalsDistance(VariableComponentSyntax leftOpt, VariableComponentSyntax rightOpt, out double distance)
+        {
+            List<SyntaxToken> leftLocals = null;
+            List<SyntaxToken> rightLocals = null;
+
+            GetLocalNames(leftOpt, ref leftLocals);
+            GetLocalNames(rightOpt, ref rightLocals);
+
+            if (leftLocals == null || rightLocals == null)
+            {
+                distance = 0;
+                return false;
+            }
+
+            distance = ComputeDistance(leftLocals, rightLocals);
+            return true;
+        }
+
+        private static bool TryComputeLocalsDistance(VariableComponentAssignmentSyntax leftOpt, VariableComponentAssignmentSyntax rightOpt, out double distance)
+        {
+            if (leftOpt == null || rightOpt == null)
+            {
+                distance = 0;
+                return false;
+            }
+
+            return TryComputeLocalsDistance(leftOpt.VariableComponent, rightOpt.VariableComponent, out distance);
         }
 
         private static bool TryComputeLocalsDistance(BlockSyntax left, BlockSyntax right, out double distance)
@@ -991,6 +1071,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         // doesn't include variables declared in declaration expressions
         private static void GetLocalNames(VariableDeclarationSyntax localDeclaration, ref List<SyntaxToken> result)
         {
+            if (localDeclaration == null)
+            {
+                return;
+            }
+
             foreach (var local in localDeclaration.Variables)
             {
                 if (result == null)
@@ -999,6 +1084,57 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 result.Add(local.Identifier);
+            }
+        }
+
+        // doesn't include variables declared in declaration expressions
+        private static void GetLocalNames(VariableComponentAssignmentSyntax deconstructionAssignment, ref List<SyntaxToken> result)
+        {
+            if (deconstructionAssignment == null)
+            {
+                return;
+            }
+
+            GetLocalNames(deconstructionAssignment.VariableComponent, ref result);
+        }
+
+        private static void GetLocalNames(VariableComponentSyntax variableComponent, ref List<SyntaxToken> result)
+        {
+            switch (variableComponent.Kind())
+            {
+                case SyntaxKind.TypedVariableComponent:
+                    GetLocalNames(((TypedVariableComponentSyntax)variableComponent).Designation, ref result);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableComponent:
+                    var variables = ((ParenthesizedVariableComponentSyntax)variableComponent).Variables;
+                    foreach (VariableComponentSyntax component in variables)
+                    {
+                        GetLocalNames(component, ref result);
+                    }
+                    break;
+            }
+        }
+
+        private static void GetLocalNames(VariableDesignationSyntax variableDesignation, ref List<SyntaxToken> result)
+        {
+            switch (variableDesignation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    if (result == null)
+                    {
+                        result = new List<SyntaxToken>();
+                    }
+                    result.Add(((SingleVariableDesignationSyntax)variableDesignation).Identifier);
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    var variables = ((ParenthesizedVariableDesignationSyntax)variableDesignation).Variables;
+                    foreach (VariableDesignationSyntax designation in variables)
+                    {
+                        GetLocalNames(designation, ref result);
+                    }
+                    break;
             }
         }
 
