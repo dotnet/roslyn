@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardedDesignation:
                     {
                         var discarded = (DiscardedDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardedExpression(discarded, declType, diagnostics), node);
+                        return new DeconstructionVariable(BindDiscardedExpression(discarded, declType), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -724,8 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundDiscardedExpression BindDiscardedExpression(
             DiscardedDesignationSyntax designation,
-            TypeSymbol declType,
-            DiagnosticBag diagnostics)
+            TypeSymbol declType)
         {
             return new BoundDiscardedExpression(designation, declType);
         }
