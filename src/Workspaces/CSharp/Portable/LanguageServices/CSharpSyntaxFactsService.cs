@@ -532,21 +532,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsSimpleMemberAccessExpression(SyntaxNode node)
-        {
-            return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.SimpleMemberAccessExpression;
-        }
+            => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.SimpleMemberAccessExpression;
 
         public bool IsConditionalMemberAccessExpression(SyntaxNode node)
-        {
-            return node is ConditionalAccessExpressionSyntax;
-        }
+            => node is ConditionalAccessExpressionSyntax;
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
-        {
-            return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.PointerMemberAccessExpression;
-        }
+            => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 
         public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
         {
@@ -561,12 +553,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MemberBindingExpression)
-                ? GetExpressionOfConditionalAccessExpression(node.GetParentConditionalAccessExpression())
-                : (node as MemberAccessExpressionSyntax)?.Expression;
-        }
+        public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
+            => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+
+        public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
+            => (node as MemberAccessExpressionSyntax)?.Expression;
 
         public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
             => (node as ConditionalAccessExpressionSyntax)?.Expression;

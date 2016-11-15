@@ -185,6 +185,52 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
+            Await TestMissingAsync(
+"
+Class C
+    Sub M()
+        With New String()
+            Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+            x.Arguments = .Length.ToString()
+        End With
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
+            Dim a = Sub()
+
+                    End Sub
+
+            Await TestAsync(
+"                            
+Class C
+    Sub M()
+        Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+        x.Arguments = Sub()
+                         With New String()
+                            Dim a = .Length.ToString()
+                         End With
+                      End Sub()
+    End Sub
+End Class",
+"                            
+Class C
+    Sub M()
+        Dim x As ProcessStartInfo = New ProcessStartInfo() With {
+            .Arguments = Sub()
+                             With New String()
+                                 Dim a = .Length.ToString()
+                             End With
+                         End Sub()
+        }
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestFixAllInDocument() As Task
             Await TestAsync(
 "
