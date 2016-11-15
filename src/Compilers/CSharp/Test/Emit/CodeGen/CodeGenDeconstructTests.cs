@@ -1174,6 +1174,9 @@ class C
     {
         (int x, var (err1, y)) = (0, new C());
         (ArgIterator err2, var err3) = M2();
+        foreach ((ArgIterator err4, var err5) in new[] { M2() })
+        {
+        }
     }
 
     public static (ArgIterator, ArgIterator) M2()
@@ -1190,15 +1193,15 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (11,20): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // (14,20): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public static (ArgIterator, ArgIterator) M2()
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(11, 20),
-                // (11,33): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 20),
+                // (14,33): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public static (ArgIterator, ArgIterator) M2()
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(11, 33),
-                // (15,29): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 33),
+                // (18,29): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     public void Deconstruct(out ArgIterator a, out int b)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator a").WithArguments("System.ArgIterator").WithLocation(15, 29),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator a").WithArguments("System.ArgIterator").WithLocation(18, 29),
                 // (7,22): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         (int x, var (err1, y)) = (0, new C());
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err1").WithArguments("System.ArgIterator").WithLocation(7, 22),
@@ -1208,15 +1211,21 @@ class C
                 // (8,32): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         (ArgIterator err2, var err3) = M2();
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err3").WithArguments("System.ArgIterator").WithLocation(8, 32),
+                // (9,19): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 19),
+                // (9,41): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err5").WithArguments("System.ArgIterator").WithLocation(9, 41),
                 // (5,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public async void M()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(5, 23),
-                // (13,17): error CS0610: Field or property cannot be of type 'ArgIterator'
+                // (16,17): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //         return (default(ArgIterator), default(ArgIterator));
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(13, 17),
-                // (13,39): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 17),
+                // (16,39): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //         return (default(ArgIterator), default(ArgIterator));
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(13, 39)
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 39)
                 );
         }
 

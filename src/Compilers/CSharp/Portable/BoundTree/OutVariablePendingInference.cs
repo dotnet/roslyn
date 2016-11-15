@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             TypeSyntax typeSyntax = ((DeclarationExpressionSyntax)Syntax).Type;
-                            Binder.CheckSpecialByRefLocal(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeSyntax);
+                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeSyntax);
                         }
                     }
 

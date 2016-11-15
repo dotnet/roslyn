@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors)
                 {
-                    hasErrors = CheckSpecialByRefLocal(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);

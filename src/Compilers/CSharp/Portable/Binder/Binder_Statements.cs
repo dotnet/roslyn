@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (CheckSpecialByRefLocal(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
+            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
             {
                 hasErrors = true;
             }

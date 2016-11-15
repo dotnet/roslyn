@@ -2120,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new OutVariablePendingInference(declarationExpression, localSymbol, null);
                 }
 
-                CheckSpecialByRefLocal(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
                 return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
             }
@@ -2157,7 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if a bad special by ref local was found.
         /// </summary>
-        internal static bool CheckSpecialByRefLocal(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync

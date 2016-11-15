@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Binder.CheckSpecialByRefLocal(local.ContainingSymbol, type, diagnostics, this.Syntax);
+                        Binder.CheckRestrictedTypeInAsync(local.ContainingSymbol, type, diagnostics, this.Syntax);
                     }
 
                     local.SetType(type);
