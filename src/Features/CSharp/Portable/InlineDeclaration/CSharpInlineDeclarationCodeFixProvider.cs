@@ -24,12 +24,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpInlineDeclarationCodeFixProvider : CodeFixProvider
+    internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => new InlineDeclarationFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,20 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Create an editor to do all the transformations.  This allows us to fix all
-            // the diagnostics in a clean manner.  If we used the normal batch fix provider
-            // then it might fail to apply all the individual text changes as many of the 
-            // changes produced by the diff might end up overlapping others.
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var options = document.Project.Solution.Workspace.Options;
+            var options = document.Project.Solution.Options;
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
@@ -68,9 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, 
                     cancellationToken).ConfigureAwait(false);
             }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task AddEditsAsync(

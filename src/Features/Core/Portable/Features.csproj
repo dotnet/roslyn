@@ -144,7 +144,6 @@
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
-    <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="Structure\BlockTypes.cs" />
     <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
