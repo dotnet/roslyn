@@ -1266,6 +1266,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                    Get
+                        Return ClonedFrom.CountOfCustomModifiersPrecedingByRef
+                    End Get
+                End Property
+
                 Friend Overrides ReadOnly Property Syntax As SyntaxNode
                     Get
                         Throw ExceptionUtilities.Unreachable
@@ -1801,6 +1807,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
                         Return _clonedFrom.TypeCustomModifiers
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                    Get
+                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
                     End Get
                 End Property
 
