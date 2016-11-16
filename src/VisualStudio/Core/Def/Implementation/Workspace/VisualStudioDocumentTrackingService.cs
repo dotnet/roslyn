@@ -135,12 +135,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public void OnNonRoslynBufferOpened(ITextBuffer buffer)
         {
-            buffer.Changed += OnNonRoslynBufferChanged;
+            buffer.PostChanged += OnNonRoslynBufferChanged;
         }
 
         public void OnNonRoslynBufferClosed(ITextBuffer buffer)
         {
-            buffer.Changed -= OnNonRoslynBufferChanged;
+            buffer.PostChanged -= OnNonRoslynBufferChanged;
         }
 
         private void OnNonRoslynBufferChanged(object sender, EventArgs e)

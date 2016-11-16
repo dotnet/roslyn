@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-        protected IVsRunningDocumentTable4 RunningDocumentTable { get; }
-        protected bool IsRoslynPackageInstalled { get; }
-        protected IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; }
-        protected IContentTypeRegistryService ContentTypeRegistryService { get; }
-        protected VisualStudioDocumentTrackingService DocumentTrackingService { get; }
+        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
+        private readonly bool _isRoslynPackageInstalled;
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly VisualStudioDocumentTrackingService _documentTrackingServiceOpt;
         #endregion
 
         #region Mutable fields accessed from foreground or background threads - need locking for access.
@@ -53,6 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<DocumentId, TaskAndTokenSource> _pendingDocumentInitializationTasks = new Dictionary<DocumentId, TaskAndTokenSource>();
         #endregion
 
+        /// <summary>
+        /// Creates a document provider.
+        /// </summary>
+        /// <param name="projectContainer">Project container for the documents.</param>
+        /// <param name="serviceProvider">Service provider</param>
+        /// <param name="documentTrackingService">An optional <see cref="VisualStudioDocumentTrackingService"/> to track active and visible documents.</param>
         public DocumentProvider(
             IVisualStudioHostProjectContainer projectContainer,
             IServiceProvider serviceProvider,
@@ -61,10 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             _projectContainer = projectContainer;
-            this.DocumentTrackingService = documentTrackingService;
-            this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            this.EditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this.ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
+            this._documentTrackingServiceOpt = documentTrackingService;
+            this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
             _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
@@ -79,9 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             int installed;
             Marshal.ThrowExceptionForHR(shell.IsPackageInstalled(Guids.RoslynPackageId, out installed));
-            IsRoslynPackageInstalled = installed != 0;
+            _isRoslynPackageInstalled = installed != 0;
 
-            var runningDocumentTableForEvents = (IVsRunningDocumentTable)RunningDocumentTable;
+            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
         }
 
@@ -132,9 +138,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 //   2.) Initialization may cause a whole host of other code to run synchronously, such as taggers.
                 // Instead, we check if the document is already initialized, and avoid asking for the doc data and
                 // hierarchy if it is not.
-                if (RunningDocumentTable.TryGetCookieForInitializedDocument(documentKey.Moniker, out foundCookie))
+                if (_runningDocumentTable.TryGetCookieForInitializedDocument(documentKey.Moniker, out foundCookie))
                 {
-                    object foundDocData = RunningDocumentTable.GetDocumentData(foundCookie);
+                    object foundDocData = _runningDocumentTable.GetDocumentData(foundCookie);
                     openTextBuffer = TryGetTextBufferFromDocData(foundDocData);
                     if (openTextBuffer == null)
                     {
@@ -197,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (shimTextBuffer != null)
             {
-                return EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+                return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }
             else
             {
@@ -311,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             uint docCookie;
-            if (RunningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
+            if (_runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
             {
                 TryProcessOpenForDocCookie(docCookie, cancellationToken);
             }
@@ -334,13 +340,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void TryProcessOpenForDocCookie_NoLock(uint docCookie)
         {
-            string moniker = RunningDocumentTable.GetDocumentMoniker(docCookie);
+            string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
 
             IVsHierarchy hierarchy;
             uint itemid;
-            RunningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
+            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
 
-            var shimTextBuffer = RunningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
+            var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
 
             if (shimTextBuffer != null)
             {
@@ -352,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (_documentMap.ContainsKey(documentKey))
                     {
                         hasAssociatedRoslynDocument = true;
-                        var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+                        var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
 
                         // If we already have an ITextBuffer for this document, then we can open it now.
                         // Otherwise, setup an event handler that will do it when the buffer loads.
@@ -379,23 +385,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                         else
                         {
-                            TextBufferDataEventsSink.HookupHandler(this, shimTextBuffer, documentKey);
+                            TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKey, moniker));
                         }
                     }
                 }
 
-                if (!hasAssociatedRoslynDocument && this.DocumentTrackingService != null && !_docCookiesToNonRoslynDocumentBuffers.ContainsKey(docCookie))
+                if (!hasAssociatedRoslynDocument && this._documentTrackingServiceOpt != null && !_docCookiesToNonRoslynDocumentBuffers.ContainsKey(docCookie))
                 {
                     // Non-Roslyn document opened.
-                    var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+                    var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
                     if (textBuffer != null)
                     {
-                        this.DocumentTrackingService.OnNonRoslynBufferOpened(textBuffer);
+                        this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
                         _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
                     }
                     else
                     {
-                        TextBufferDataEventsSink.HookupHandler(this, shimTextBuffer, moniker);
+                        TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKeyOpt: null, moniker: moniker));
                     }
                 }
             }
@@ -420,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var ids = GetDocumentIdsFromDocCookie(docCookie);
             foreach (var id in ids)
             {
-                this.DocumentTrackingService?.DocumentFrameShowing(frame, id, firstShow);
+                this._documentTrackingServiceOpt?.DocumentFrameShowing(frame, id, firstShow);
             }
         }
 
@@ -475,12 +481,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
             {
                 // Handle non-Roslyn document close.
-                if (this.DocumentTrackingService != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
+                if (this._documentTrackingServiceOpt != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
                 {
-                    var moniker = RunningDocumentTable.GetDocumentMoniker(docCookie);
+                    var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
                     if (!StringComparer.OrdinalIgnoreCase.Equals(moniker, monikerToKeep))
                     {
-                        this.DocumentTrackingService.OnNonRoslynBufferClosed(textBuffer);
+                        this._documentTrackingServiceOpt.OnNonRoslynBufferClosed(textBuffer);
                         _docCookiesToNonRoslynDocumentBuffers.Remove(docCookie);
                     }
                 }
@@ -696,7 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void DocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKey, string moniker)
+        private void OnDocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKeyOpt, string moniker)
         {
             AssertIsForeground();
 
@@ -704,26 +710,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // newly-created buffer.
 
             uint docCookie;
-            if (!RunningDocumentTable.TryGetCookieForInitializedDocument(moniker, out docCookie))
+            if (!_runningDocumentTable.TryGetCookieForInitializedDocument(moniker, out docCookie))
             {
                 return;
             }
 
-            var textBuffer = EditorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
+            var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             if (textBuffer == null)
             {
                 throw new InvalidOperationException("The IVsTextBuffer has been populated but the underlying ITextBuffer does not exist!");
             }
 
-            if (documentKey == null)
+            if (documentKeyOpt == null)
             {
                 // Non-Roslyn document.
-                this.DocumentTrackingService.OnNonRoslynBufferOpened(textBuffer);
+                this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
                 _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
             }
             else
             {
-                NewBufferOpened(docCookie, textBuffer, documentKey, IsCurrentContext(docCookie, documentKey));
+                NewBufferOpened(docCookie, textBuffer, documentKeyOpt, IsCurrentContext(docCookie, documentKeyOpt));
             }
         }
 
@@ -733,7 +739,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             IVsHierarchy hierarchy;
             uint itemid;
-            RunningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
+            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
 
             // If it belongs to a Shared Code or ASP.NET 5 project, then find the correct host project
             var hostProject = LinkedFileUtilities.GetContextHostProject(hierarchy, _projectContainer);

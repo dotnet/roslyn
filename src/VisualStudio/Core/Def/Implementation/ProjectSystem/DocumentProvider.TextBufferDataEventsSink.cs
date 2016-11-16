@@ -2,6 +2,7 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.TextManager.Interop;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -9,43 +10,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private class TextBufferDataEventsSink : IVsTextBufferDataEvents
         {
-            private readonly DocumentKey _documentKey;
-            private readonly string _moniker;
-            private readonly DocumentProvider _documentProvider;
-            private readonly IVsTextBuffer _textBuffer;
+            private readonly Action _onDocumentLoadCompleted;
 
             private IComEventSink _sink;
 
             /// <summary>
             /// Helper method for creating and hooking up a <c>TextBufferDataEventsSink</c>.
             /// </summary>
-            public static void HookupHandler(DocumentProvider documentProvider, IVsTextBuffer textBuffer, DocumentKey documentKey)
+            public static void HookupHandler(IVsTextBuffer textBuffer, Action onDocumentLoadCompleted)
             {
-                var eventHandler = new TextBufferDataEventsSink(documentProvider, textBuffer, documentKey);
+                var eventHandler = new TextBufferDataEventsSink(onDocumentLoadCompleted);
 
                 eventHandler._sink = ComEventSink.Advise<IVsTextBufferDataEvents>(textBuffer, eventHandler);
             }
 
-            public static void HookupHandler(DocumentProvider documentProvider, IVsTextBuffer textBuffer, string moniker)
+            private TextBufferDataEventsSink(Action onDocumentLoadCompleted)
             {
-                var eventHandler = new TextBufferDataEventsSink(documentProvider, textBuffer, moniker);
-
-                eventHandler._sink = ComEventSink.Advise<IVsTextBufferDataEvents>(textBuffer, eventHandler);
-            }
-
-            private TextBufferDataEventsSink(DocumentProvider documentProvider, IVsTextBuffer textBuffer, DocumentKey documentKey)
-            {
-                _documentProvider = documentProvider;
-                _textBuffer = textBuffer;
-                _documentKey = documentKey;
-                _moniker = documentKey.Moniker;
-            }
-
-            private TextBufferDataEventsSink(DocumentProvider documentProvider, IVsTextBuffer textBuffer, string moniker)
-            {
-                _documentProvider = documentProvider;
-                _textBuffer = textBuffer;
-                _moniker = moniker;
+                _onDocumentLoadCompleted = onDocumentLoadCompleted;
             }
 
             public void OnFileChanged(uint grfChange, uint dwFileAttrs)
@@ -55,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public int OnLoadCompleted(int fReload)
             {
                 _sink.Unadvise();
-
-                _documentProvider.DocumentLoadCompleted(_textBuffer, _documentKey, _moniker);
+                _onDocumentLoadCompleted();
 
                 return VSConstants.S_OK;
             }
