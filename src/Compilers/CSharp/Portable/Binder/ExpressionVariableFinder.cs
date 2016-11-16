@@ -399,7 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
             var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null) return null;
+            if (designation == null)
+            {
+                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardedDesignation);
+                return null;
+            }
 
             NamedTypeSymbol container = _scopeBinder.ContainingType;
             if ((object)container != null && container.IsScriptClass &&
@@ -423,7 +427,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol container = _scopeBinder.ContainingType;
             var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null) return null;
+            if (designation == null)
+            {
+                return null;
+            }
 
             if ((object)container != null && container.IsScriptClass &&
                 (object)_scopeBinder.LookupDeclaredField(designation) != null)
@@ -511,7 +518,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override Symbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
             var designation = node.Designation as SingleVariableDesignationSyntax;
-            if (designation == null) return null;
+            if (designation == null)
+            {
+                return null;
+            }
 
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,

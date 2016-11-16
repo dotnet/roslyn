@@ -198,6 +198,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitDiscarded(IDiscardedSymbol symbol)
+        {
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+            {
+                symbol.Type.Accept(this);
+                AddSpace();
+            }
+
+            builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "_"));
+        }
+
         public override void VisitRangeVariable(IRangeVariableSymbol symbol)
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))

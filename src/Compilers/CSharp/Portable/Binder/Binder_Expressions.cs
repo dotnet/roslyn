@@ -2340,6 +2340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
+                else if (argument.Kind == BoundKind.DiscardedExpression && (object)argument.Type == null)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    Debug.Assert((object)parameterType != null);
+                    arguments[arg] = ((BoundDiscardedExpression)argument).Update(parameterType);
+                }
             }
         }
 
@@ -6773,7 +6779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var accessType = access.Type;
 
             // access cannot have no type
-            if (accessType == null)
+            if ((object)accessType == null)
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
@@ -6940,7 +6946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             // Can't dot into the null literal or anything that has no type
-            if (receiverType == null)
+            if ((object)receiverType == null)
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiver.Display);
                 return BadExpression(receiverSyntax, receiver);

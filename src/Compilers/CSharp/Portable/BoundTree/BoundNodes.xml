@@ -1566,12 +1566,6 @@
     <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
   </AbstractNode>
 
-  <Node Name="BoundDiscardedValue" Base="BoundExpression">
-    <!-- A discarded value, when a designator uses `_`. When the type is given as `var, it is without
-         a type before type inference, and it is replaced byt a BoundDiscardedValue with a type
-         after inference. -->
-  </Node>
-
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used. -->
@@ -1594,6 +1588,13 @@
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  </Node>
+
+  <Node Name="BoundDiscardedExpression" Base="BoundExpression">
+    <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
+         is null before type inference, and it is replaced by a BoundDiscardedExpression with a non-null
+         type after inference. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">
