@@ -147,107 +147,61 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = editor.OriginalRoot;
-            var blockToMatchingStatements = new MultiDictionary<SyntaxNode, int>();
+            // Fix-All for this feature is somewhat complicated.  As Object-Initializers 
+            // could be arbitrarily nested, we have to make sure that any edits we make
+            // to one Object-Initializer are seen by any higher ones.  In order to do this
+            // we actually process each object-creation-node, one at a time, rewriting
+            // the tree for each node.  In order to do this effectively, we use the '.TrackNodes'
+            // feature to keep track of all the object creation nodes as we make edits to
+            // the tree.  If we didn't do this, then we wouldn't be able to find the 
+            // second object-creation-node after we make the edit for the first one.
+            var workspace = document.Project.Solution.Workspace;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
+            var root = editor.OriginalRoot;
+            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(
                     diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var analysisResult = Analyze(objectCreation).Value;
-
-                blockToMatchingStatements.Add(
-                    analysisResult.BlockNode, analysisResult.ContainingStatementIndex);
+                originalObjectCreationNodes.Push(objectCreation);
             }
 
-            foreach (var kvp in blockToMatchingStatements)
+            // We're going to be continually editing this tree.  Track all the nodes we
+            // care about so we can find them across each edit.
+            var currentRoot = root.TrackNodes(originalObjectCreationNodes);
+
+            while (originalObjectCreationNodes.Count > 0)
             {
-                var block = kvp.Key;
-                var matchingStatements = kvp.Value;
+                var originalObjectCreation = originalObjectCreationNodes.Pop();
+                var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                editor.ReplaceNode(
-                    block,
-                    (currentBlock, g) => UpdateBlock(currentBlock, matchingStatements.ToArray()));
+                var result = this.Analyze(objectCreation);
+                var matches = result.Value.Matches;
+
+                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                var newStatement = statement.ReplaceNode(
+                    objectCreation,
+                    GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
+
+                var block = statement.Parent;
+                var newBlock = UpdateBlock(workspace, block, statement, newStatement, matches);
+
+                currentRoot = currentRoot.ReplaceNode(block, newBlock);
             }
 
+            editor.ReplaceNode(editor.OriginalRoot, currentRoot);
             return SpecializedTasks.EmptyTask;
         }
 
-        private SyntaxNode UpdateBlock(SyntaxNode oldBlock, int[] containingStatementIndices)
+        private SyntaxNode UpdateBlock(
+            Workspace workspace,
+            SyntaxNode block,
+            TStatementSyntax statement,
+            TStatementSyntax newStatement,
+            ImmutableArray<Match> matches)
         {
-            var syntaxFacts = this.GetSyntaxFactsService();
-
-            var oldStatementToNewStatement = new Dictionary<TStatementSyntax, TStatementSyntax>();
-            var oldStatementIndicesToRemove = new List<int>();
-
-            var oldChildNodesAndTokens = oldBlock.ChildNodesAndTokens().ToList();
-            foreach (var containingStatementIndex in containingStatementIndices)
-            {
-                var containingStatement = (TStatementSyntax)oldChildNodesAndTokens[containingStatementIndex];
-
-                var objectCreation = GetObjectCreation(containingStatement);
-                var result = Analyze(objectCreation).Value;
-
-                var newObjectCreation = GetNewObjectCreation(objectCreation, result.Matches);
-
-                var newStatement = containingStatement.ReplaceNode(objectCreation, newObjectCreation)
-                                                      .WithAdditionalAnnotations(Formatter.Annotation);
-
-                oldStatementToNewStatement.Add(containingStatement, newStatement);
-                oldStatementIndicesToRemove.AddRange(result.Matches.Select(
-                    m => oldChildNodesAndTokens.IndexOf(m.Statement)));
-            }
-
-            // First, replace all the statements with the old object initializer with the updated
-            // statement with the new object initializer.
-            var newBlock1 = oldBlock.ReplaceNodes(
-                oldStatementToNewStatement.Keys,
-                (oldStatement, _) => oldStatementToNewStatement[oldStatement]);
-
-            // Now find all the statements we want to remove in this new block.
-            var newChildNodesAndTokens = newBlock1.ChildNodesAndTokens().ToArray();
-            var currentStatementsToRemove = oldStatementIndicesToRemove.Order().Select(
-                i => newChildNodesAndTokens[i].AsNode()).ToList();
-
-            var newBlock2 = newBlock1.RemoveNodes(
-                currentStatementsToRemove, SyntaxGenerator.DefaultRemoveOptions);
-
-            return newBlock2;
-        }
-
-        private TObjectCreationExpressionSyntax GetObjectCreation(TStatementSyntax statement)
-        {
-            var syntaxFacts = this.GetSyntaxFactsService();
-            if (syntaxFacts.IsSimpleAssignmentStatement(statement))
-            {
-                syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-                return (TObjectCreationExpressionSyntax)right;
-            }
-            else
-            {
-                var expression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(statement);
-                syntaxFacts.GetPartsOfBinaryExpression(expression, out var left, out var right);
-                return (TObjectCreationExpressionSyntax)right;
-            }
-        }
-
-#if false
-        private async Task<Document> FixAsync(
-    Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var result = _analyzer.Analyze(objectCreation);
-            var matches = result.Value.Matches;
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
-            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-            var newStatement = statement.ReplaceNode(
-                objectCreation,
-                GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
+            var editor = new SyntaxEditor(block, workspace);
 
             editor.ReplaceNode(statement, newStatement);
             foreach (var match in matches)
@@ -255,10 +209,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 editor.RemoveNode(match.Statement);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return editor.GetChangedRoot();
         }
-#endif
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
             TObjectCreationExpressionSyntax objectCreation,

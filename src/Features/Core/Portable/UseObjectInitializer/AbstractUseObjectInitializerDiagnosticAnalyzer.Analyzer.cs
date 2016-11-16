@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                         if (child == _containingStatement)
                         {
                             foundStatement = true;
+                            continue;
                         }
 
                         index++;
@@ -161,7 +162,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     }
 
                     matches.Add(new Match(statement, leftMemberAccess, rightExpression));
-                    index++;
                 }
 
                 return new AnalysisResult(
