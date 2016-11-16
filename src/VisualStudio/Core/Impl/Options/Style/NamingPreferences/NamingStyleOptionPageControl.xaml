@@ -109,7 +109,7 @@
             <DataGrid.Columns>
                 <DataGridTemplateColumn 
                     x:Name="selectable" 
-                    Header="Reorder"
+                    Header="{x:Static style:NamingStyleOptionPageControl.ReorderHeader}"
                     Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -145,7 +145,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="symbolSpec" 
-                    Header="Specification"
+                    Header="{x:Static style:NamingStyleOptionPageControl.SpecificationHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -162,7 +162,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="style"
-                    Header="Style"
+                    Header="{x:Static style:NamingStyleOptionPageControl.StyleHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
