@@ -34,32 +34,24 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 _objectCreationExpression = objectCreationExpression;
             }
 
-            internal AnalysisResult? Analyze()
+            internal ImmutableArray<Match> Analyze()
             {
                 if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
                 {
                     // Don't bother if this already has an initializer.
-                    return null;
+                    return ImmutableArray<Match>.Empty;
                 }
 
                 _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
                 if (_containingStatement == null)
                 {
-                    return null;
+                    return ImmutableArray<Match>.Empty;
                 }
 
-                ObjectInitializerKind kind;
-                if (TryInitializeVariableDeclarationCase())
+                if (!TryInitializeVariableDeclarationCase() &&
+                    !TryInitializeAssignmentCase())
                 {
-                    kind = ObjectInitializerKind.VariableDeclaration;
-                }
-                else if (TryInitializeAssignmentCase())
-                {
-                    kind = ObjectInitializerKind.Assignment;
-                }
-                else
-                {
-                    return null;
+                    return ImmutableArray<Match>.Empty;
                 }
 
                 var containingBlock = _containingStatement.Parent;
@@ -68,7 +60,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var matches = ArrayBuilder<Match>.GetInstance();
                 HashSet<string> seenNames = null;
 
-                var index = 0;
                 foreach (var child in containingBlock.ChildNodesAndTokens())
                 {
                     if (!foundStatement)
@@ -79,7 +70,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                             continue;
                         }
 
-                        index++;
                         continue;
                     }
 
@@ -164,9 +154,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     matches.Add(new Match(statement, leftMemberAccess, rightExpression));
                 }
 
-                return new AnalysisResult(
-                    containingBlock, index, kind,
-                    matches.ToImmutableAndFree());
+                return matches.ToImmutableAndFree();
             }
 
             private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
@@ -288,31 +276,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 Statement = statement;
                 MemberAccessExpression = memberAccessExpression;
                 Initializer = initializer;
-            }
-        }
-
-        internal enum ObjectInitializerKind
-        {
-            // var v = new O() ...
-            VariableDeclaration,
-
-            // v = new O() ...
-            Assignment,
-        }
-
-        internal struct AnalysisResult
-        {
-            public readonly SyntaxNode BlockNode;
-            public readonly int ContainingStatementIndex;
-            public readonly ObjectInitializerKind Kind;
-            public readonly ImmutableArray<Match> Matches;
-
-            public AnalysisResult(SyntaxNode blockNode, int containingStatementIndex, ObjectInitializerKind kind, ImmutableArray<Match> matches)
-            {
-                BlockNode = blockNode;
-                ContainingStatementIndex = containingStatementIndex;
-                Kind = kind;
-                Matches = matches;
             }
         }
     }

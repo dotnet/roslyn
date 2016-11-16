@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var result = Analyze(objectCreationExpression);
-            if (result == null || result.Value.Matches.Length == 0)
+            if (result.Length == 0)
             {
                 return;
             }
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
-            FadeOutCode(context, optionSet, result.Value, locations);
+            FadeOutCode(context, optionSet, result, locations);
         }
 
-        public AnalysisResult? Analyze(TObjectCreationExpressionSyntax objectCreationExpression)
+        public ImmutableArray<Match> Analyze(TObjectCreationExpressionSyntax objectCreationExpression)
         {
             var syntaxFacts = GetSyntaxFactsService();
             var analyzer = new Analyzer(syntaxFacts, objectCreationExpression);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            AnalysisResult result,
+            ImmutableArray<Match> matches,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var syntaxFacts = GetSyntaxFactsService();
 
-            foreach (var match in result.Matches)
+            foreach (var match in matches)
             {
                 var end = this.FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
@@ -176,8 +176,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var result = this.Analyze(objectCreation);
-                var matches = result.Value.Matches;
+                var matches = this.Analyze(objectCreation);
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
                 var newStatement = statement.ReplaceNode(
