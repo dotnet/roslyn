@@ -1094,20 +1094,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)
         {
-            var parent = node.Parent;
-            while (parent != null)
+            var current = node;
+            while (current?.Parent != null)
             {
-                // Because the syntax for conditional access is right associate, we cannot
-                // simply take the first ancestor ConditionalAccessExpression. Instead, we 
-                // must walk upward until we find the ConditionalAccessExpression whose
-                // OperatorToken appears left of the MemberBinding.
-                if (parent.IsKind(SyntaxKind.ConditionalAccessExpression) &&
-                    ((ConditionalAccessExpressionSyntax)parent).OperatorToken.Span.End <= node.SpanStart)
+                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
+                    ((ConditionalAccessExpressionSyntax)current.Parent).WhenNotNull == current)
                 {
-                    return (ConditionalAccessExpressionSyntax)parent;
+                    return (ConditionalAccessExpressionSyntax)current.Parent;
                 }
 
-                parent = parent.Parent;
+                current = current.Parent;
             }
 
             return null;
