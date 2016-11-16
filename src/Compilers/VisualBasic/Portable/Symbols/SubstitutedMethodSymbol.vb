@@ -309,6 +309,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return OriginalDefinition.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Public MustOverride Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
 
         Public MustOverride Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)

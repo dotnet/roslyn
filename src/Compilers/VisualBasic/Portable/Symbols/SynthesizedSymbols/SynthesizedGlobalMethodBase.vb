@@ -313,6 +313,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return ImmutableArray(Of VisualBasicAttributeData).Empty
         End Function

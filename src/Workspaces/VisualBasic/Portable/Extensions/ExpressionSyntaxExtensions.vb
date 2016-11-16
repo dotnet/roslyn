@@ -667,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim descendentExpressions = expression.DescendantNodesAndSelf().OfType(Of ExpressionSyntax).Where(Function(e) span.Contains(e.Span)).ToSet()
 
             Return descendentExpressions.OfType(Of MemberAccessExpressionSyntax).
-                                         Select(Function(m) m.GetExpressionOfMemberAccessExpression()).
+                                         Select(Function(m) m.GetExpressionOfMemberAccessExpression(allowImplicitTarget:=True)).
                                          Where(Function(e) Not descendentExpressions.Contains(e))
         End Function
 

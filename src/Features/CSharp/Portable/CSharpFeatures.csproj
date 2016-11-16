@@ -76,17 +76,13 @@
     <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsDiagnosticAnalyzer.cs" />
     <Compile Include="UseExpressionBody\Constructors\UseExpressionBodyForConstructorsCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Operators\UseExpressionBodyForOperatorsCodeFixProvider.cs" />
-    <Compile Include="UseExpressionBody\AbstractUseExpressionBodyCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesCodeFixProvider.cs" />
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
-    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
-    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.InlineTypeCheckFixAllProvider.cs" />
-    <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.InlineDeclarationFixAllProvider.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckDiagnosticAnalyzer.cs" />
     <Compile Include="UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
@@ -118,8 +114,8 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
+    <Compile Include="TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
@@ -352,7 +348,6 @@
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
-    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />

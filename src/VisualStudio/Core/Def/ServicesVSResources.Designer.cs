@@ -488,6 +488,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string Description {
+            get {
+                return ResourceManager.GetString("Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Deselect All.
         /// </summary>
         internal static string Deselect_All {
@@ -1443,6 +1452,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preference.
+        /// </summary>
+        internal static string Preference {
+            get {
+                return ResourceManager.GetString("Preference", resourceCulture);
             }
         }
         

@@ -15,13 +15,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    internal partial class UseExplicitTupleNameCodeFixProvider : CodeFixProvider
+    internal partial class UseExplicitTupleNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider()
-            => new UseExplicitTupleNameFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -31,19 +28,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var root = editor.OriginalRoot;
             var generator = editor.Generator;
 
             foreach (var diagnostic in diagnostics)
@@ -57,10 +46,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 editor.ReplaceNode(oldNameNode, newNameNode);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            var newDocument = document.WithSyntaxRoot(newRoot);
-
-            return newDocument;
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 var rightExpression = right as TExpressionSyntax;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
+
                 if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
                 {
                     break;
@@ -274,6 +275,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
+                // If we have code like "x.v = .Length.ToString()"
+                // then we don't want to change this into:
+                //
+                //      var x = new Whatever() With { .v = .Length.ToString() }
+                //
+                // The problem here is that .Length will change it's meaning to now refer to the 
+                // object that we're creating in our object-creation expression.
+                if (ImplicitMemberAccessWouldBeAffected(rightExpression))
+                {
+                    break;
+                }
+
                 // found a match!
                 seenNames = seenNames ?? new HashSet<string>();
 
@@ -291,6 +304,38 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             return matches.ToImmutableAndFree();
+        }
+
+        private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
+        {
+            if (node != null)
+            {
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                    {
+                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                if (_syntaxFacts.IsSimpleMemberAccessExpression(node))
+                {
+                    var expression = _syntaxFacts.GetExpressionOfMemberAccessExpression(
+                        node, allowImplicitTarget: true);
+
+                    // If we're implicitly referencing some target that is before the 
+                    // object creation expression, then our semantics will change.
+                    if (expression != null && expression.SpanStart < _objectCreationExpression.SpanStart)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool ExpressionContainsValuePattern(TExpressionSyntax expression)

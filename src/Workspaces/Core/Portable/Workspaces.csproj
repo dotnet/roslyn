@@ -315,7 +315,7 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\DocumentBasedFixAllProvider.cs" />
+    <Compile Include="CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
@@ -329,6 +329,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllScope.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProvider.cs" />
     <Compile Include="CodeFixes\CodeFix.cs" />
+    <Compile Include="CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
     <Compile Include="CodeGeneration\AbstractFlagsEnumGenerator.cs" />

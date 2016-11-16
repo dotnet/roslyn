@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -55,11 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
             INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
-            return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
+            return (displayAndInsertionText, displayAndInsertionText);
         }
 
         protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
