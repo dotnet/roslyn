@@ -114,8 +114,8 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
+    <Compile Include="TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeLens\CSharpCodeLensDisplayInfoService.cs" />
     <Compile Include="ConvertToInterpolatedString\CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
