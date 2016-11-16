@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await FixAllAsync(document, diagnostics, editor, cancellationToken).ConfigureAwait(false);
 
             var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(root);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         protected abstract Task FixAllAsync(
