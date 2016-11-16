@@ -12,6 +12,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    using CodeAnalysis.Test.Utilities;
+
     public partial class DiagnosticTest : CSharpTestBase
     {
         /// <summary>
@@ -2148,6 +2150,58 @@ public class A
                 // (26,36): error CS7003: Unexpected use of an unbound generic name
                 //         object a12 = typeof(Action<Action<>>);
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Action<>").WithLocation(26, 36));
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is correctly emitted.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCast()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var z = (System.ConsoleColor) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 18),
+                // (5,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 18),
+                // (5,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var z = (System.ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(5, 17)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if fixing CS0075 - "To cast a negative value, you must enclose the value in parentheses" works. (fixed version of <see cref="PossibleBadNegCast"/>).
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastFixed()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var z = (System.ConsoleColor) (- 1);
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         var z = (System.ConsoleColor) (- 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(5, 13)
+            });
         }
 
         #region Mocks
