@@ -1139,9 +1139,6 @@ This version used in: {2}</value>
   <data name="All_uppercase" xml:space="preserve">
     <value>All uppercase</value>
   </data>
-  <data name="Camel_Case" xml:space="preserve">
-    <value>Camel Case</value>
-  </data>
   <data name="First_word_capitalized" xml:space="preserve">
     <value>First word capitalized</value>
   </data>
