@@ -2,24 +2,29 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
-using System;
-using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
-    internal abstract class AbstractUseObjectInitializerDiagnosticAnalyzer<
+    internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclarator>
+        TVariableDeclaratorSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -27,13 +32,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
-        where TVariableDeclarator : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected abstract bool FadeOutOperatorToken { get; }
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        protected AbstractUseObjectInitializerDiagnosticAnalyzer() 
+        protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -65,12 +70,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return;
             }
 
-            var syntaxFacts = GetSyntaxFactsService();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclarator>(
-                syntaxFacts,
-                objectCreationExpression);
-            var matches = analyzer.Analyze();
-            if (matches.Length == 0)
+            var result = Analyze(objectCreationExpression);
+            if (result == null || result.Value.Matches.Length == 0)
             {
                 return;
             }
@@ -83,13 +84,21 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
-            FadeOutCode(context, optionSet, matches, locations);
+            FadeOutCode(context, optionSet, result.Value, locations);
+        }
+
+        public AnalysisResult? Analyze(TObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            var syntaxFacts = GetSyntaxFactsService();
+            var analyzer = new Analyzer(syntaxFacts, objectCreationExpression);
+            var result = analyzer.Analyze();
+            return result;
         }
 
         private void FadeOutCode(
             SyntaxNodeAnalysisContext context,
             OptionSet optionSet,
-            ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> matches,
+            AnalysisResult result,
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
@@ -103,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var syntaxFacts = GetSyntaxFactsService();
 
-            foreach (var match in matches)
+            foreach (var match in result.Matches)
             {
                 var end = this.FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
@@ -133,281 +142,126 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
-    }
 
-    internal struct Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : SyntaxNode
-    {
-        public readonly TAssignmentStatementSyntax Statement;
-        public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
-        public readonly TExpressionSyntax Initializer;
-
-        public Match(
-            TAssignmentStatementSyntax statement,
-            TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer)
+        public Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            Statement = statement;
-            MemberAccessExpression = memberAccessExpression;
-            Initializer = initializer;
-        }
-    }
+            var root = editor.OriginalRoot;
+            var blockToMatchingStatements = new MultiDictionary<SyntaxNode, int>();
 
-    internal struct Analyzer<
-            TExpressionSyntax,
-            TStatementSyntax, 
-            TObjectCreationExpressionSyntax, 
-            TMemberAccessExpressionSyntax,
-            TAssignmentStatementSyntax,
-            TVariableDeclaratorSyntax>
-        where TExpressionSyntax : SyntaxNode
-        where TStatementSyntax : SyntaxNode
-        where TObjectCreationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TAssignmentStatementSyntax : TStatementSyntax
-        where TVariableDeclaratorSyntax : SyntaxNode
-    {
-        private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly TObjectCreationExpressionSyntax _objectCreationExpression;
+            foreach (var diagnostic in diagnostics)
+            {
+                var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(
+                    diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+                var analysisResult = Analyze(objectCreation).Value;
 
-        private TStatementSyntax _containingStatement;
-        private SyntaxNodeOrToken _valuePattern;
+                blockToMatchingStatements.Add(
+                    analysisResult.BlockNode, analysisResult.ContainingStatementIndex);
+            }
 
-        public Analyzer(
-            ISyntaxFactsService syntaxFacts, 
-            TObjectCreationExpressionSyntax objectCreationExpression) : this()
-        {
-            _syntaxFacts = syntaxFacts;
-            _objectCreationExpression = objectCreationExpression;
+            foreach (var kvp in blockToMatchingStatements)
+            {
+                var block = kvp.Key;
+                var matchingStatements = kvp.Value;
+
+                editor.ReplaceNode(
+                    block,
+                    (currentBlock, g) => UpdateBlock(currentBlock, matchingStatements.ToArray()));
+            }
+
+            return SpecializedTasks.EmptyTask;
         }
 
-        internal ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>> Analyze()
+        private SyntaxNode UpdateBlock(SyntaxNode oldBlock, int[] containingStatementIndices)
         {
-            if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
+            var syntaxFacts = this.GetSyntaxFactsService();
+
+            var oldStatementToNewStatement = new Dictionary<TStatementSyntax, TStatementSyntax>();
+            var oldStatementIndicesToRemove = new List<int>();
+
+            var oldChildNodesAndTokens = oldBlock.ChildNodesAndTokens().ToList();
+            foreach (var containingStatementIndex in containingStatementIndices)
             {
-                // Don't bother if this already has an initializer.
-                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
+                var containingStatement = (TStatementSyntax)oldChildNodesAndTokens[containingStatementIndex];
+
+                var objectCreation = GetObjectCreation(containingStatement);
+                var result = Analyze(objectCreation).Value;
+
+                var newObjectCreation = GetNewObjectCreation(objectCreation, result.Matches);
+
+                var newStatement = containingStatement.ReplaceNode(objectCreation, newObjectCreation)
+                                                      .WithAdditionalAnnotations(Formatter.Annotation);
+
+                oldStatementToNewStatement.Add(containingStatement, newStatement);
+                oldStatementIndicesToRemove.AddRange(result.Matches.Select(
+                    m => oldChildNodesAndTokens.IndexOf(m.Statement)));
             }
 
-            _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-            if (_containingStatement == null)
-            {
-                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
-            }
+            // First, replace all the statements with the old object initializer with the updated
+            // statement with the new object initializer.
+            var newBlock1 = oldBlock.ReplaceNodes(
+                oldStatementToNewStatement.Keys,
+                (oldStatement, _) => oldStatementToNewStatement[oldStatement]);
 
-            if (!TryInitializeVariableDeclarationCase() &&
-                !TryInitializeAssignmentCase())
-            {
-                return ImmutableArray<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.Empty;
-            }
+            // Now find all the statements we want to remove in this new block.
+            var newChildNodesAndTokens = newBlock1.ChildNodesAndTokens().ToArray();
+            var currentStatementsToRemove = oldStatementIndicesToRemove.Order().Select(
+                i => newChildNodesAndTokens[i].AsNode()).ToList();
 
-            var containingBlock = _containingStatement.Parent;
-            var foundStatement = false;
+            var newBlock2 = newBlock1.RemoveNodes(
+                currentStatementsToRemove, SyntaxGenerator.DefaultRemoveOptions);
 
-            var matches = ArrayBuilder<Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>>.GetInstance();
-            HashSet<string> seenNames = null;
-
-            foreach (var child in containingBlock.ChildNodesAndTokens())
-            {
-                if (!foundStatement)
-                {
-                    if (child == _containingStatement)
-                    {
-                        foundStatement = true;
-                    }
-
-                    continue;
-                }
-
-                if (child.IsToken)
-                {
-                    break;
-                }
-
-                var statement = child.AsNode() as TAssignmentStatementSyntax;
-                if (statement == null)
-                {
-                    break;
-                }
-
-                if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
-                {
-                    break;
-                }
-
-                _syntaxFacts.GetPartsOfAssignmentStatement(
-                    statement, out var left, out var right);
-
-                var rightExpression = right as TExpressionSyntax;
-                var leftMemberAccess = left as TMemberAccessExpressionSyntax;
-
-                if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
-                {
-                    break;
-                }
-
-                var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
-                if (!ValuePatternMatches(expression))
-                {
-                    break;
-                }
-
-                // Don't offer this fix if the value we're initializing is itself referenced
-                // on the RHS of the assignment.  For example:
-                //
-                //      var v = new X();
-                //      v.Prop = v.Prop.WithSomething();
-                //
-                // Or with
-                //
-                //      v = new X();
-                //      v.Prop = v.Prop.WithSomething();
-                //
-                // In the first case, 'v' is being initialized, and so will not be available 
-                // in the object initializer we create.
-                // 
-                // In the second case we'd change semantics because we'd access the old value 
-                // before the new value got written.
-                if (ExpressionContainsValuePattern(rightExpression))
-                {
-                    break;
-                }
-
-                // If we have code like "x.v = .Length.ToString()"
-                // then we don't want to change this into:
-                //
-                //      var x = new Whatever() With { .v = .Length.ToString() }
-                //
-                // The problem here is that .Length will change it's meaning to now refer to the 
-                // object that we're creating in our object-creation expression.
-                if (ImplicitMemberAccessWouldBeAffected(rightExpression))
-                {
-                    break;
-                }
-
-                // found a match!
-                seenNames = seenNames ?? new HashSet<string>();
-
-                // If we see an assignment to the same property/field, we can't convert it
-                // to an initializer.
-                var name = _syntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
-                var identifier = _syntaxFacts.GetIdentifierOfSimpleName(name);
-                if (!seenNames.Add(identifier.ValueText))
-                {
-                    break;
-                }
-
-                matches.Add(new Match<TAssignmentStatementSyntax, TMemberAccessExpressionSyntax, TExpressionSyntax>(
-                    statement, leftMemberAccess, rightExpression));
-            }
-
-            return matches.ToImmutableAndFree();
+            return newBlock2;
         }
 
-        private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
+        private TObjectCreationExpressionSyntax GetObjectCreation(TStatementSyntax statement)
         {
-            if (node != null)
+            var syntaxFacts = this.GetSyntaxFactsService();
+            if (syntaxFacts.IsSimpleAssignmentStatement(statement))
             {
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    if (child.IsNode)
-                    {
-                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                if (_syntaxFacts.IsSimpleMemberAccessExpression(node))
-                {
-                    var expression = _syntaxFacts.GetExpressionOfMemberAccessExpression(
-                        node, allowImplicitTarget: true);
-
-                    // If we're implicitly referencing some target that is before the 
-                    // object creation expression, then our semantics will change.
-                    if (expression != null && expression.SpanStart < _objectCreationExpression.SpanStart)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool ExpressionContainsValuePattern(TExpressionSyntax expression)
-        {
-            foreach (var subExpression in expression.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
-            {
-                if (!_syntaxFacts.IsNameOfMemberAccessExpression(subExpression))
-                {
-                    if (ValuePatternMatches(subExpression))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private bool ValuePatternMatches(TExpressionSyntax expression)
-        {
-            if (_valuePattern.IsToken)
-            {
-                return _syntaxFacts.IsIdentifierName(expression) &&
-                    _syntaxFacts.AreEquivalent(
-                        _valuePattern.AsToken(),
-                        _syntaxFacts.GetIdentifierOfSimpleName(expression));
+                syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+                return (TObjectCreationExpressionSyntax)right;
             }
             else
             {
-                return _syntaxFacts.AreEquivalent(
-                    _valuePattern.AsNode(), expression);
+                var expression = (TExpressionSyntax)syntaxFacts.GetExpressionOfExpressionStatement(statement);
+                syntaxFacts.GetPartsOfBinaryExpression(expression, out var left, out var right);
+                return (TObjectCreationExpressionSyntax)right;
             }
         }
 
-        private bool TryInitializeAssignmentCase()
+#if false
+        private async Task<Document> FixAsync(
+    Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            if (!_syntaxFacts.IsSimpleAssignmentStatement(_containingStatement))
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var result = _analyzer.Analyze(objectCreation);
+            var matches = result.Value.Matches;
+
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+
+            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+            var newStatement = statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
+
+            editor.ReplaceNode(statement, newStatement);
+            foreach (var match in matches)
             {
-                return false;
+                editor.RemoveNode(match.Statement);
             }
 
-            _syntaxFacts.GetPartsOfAssignmentStatement(
-                _containingStatement, out var left, out var right);
-            if (right != _objectCreationExpression)
-            {
-                return false;
-            }
-
-            _valuePattern = left;
-            return true;
+            var newRoot = editor.GetChangedRoot();
+            return document.WithSyntaxRoot(newRoot);
         }
+#endif
 
-        private bool TryInitializeVariableDeclarationCase()
-        {
-            if (!_syntaxFacts.IsLocalDeclarationStatement(_containingStatement))
-            {
-                return false;
-            }
-
-            var containingDeclarator = _objectCreationExpression.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
-            if (containingDeclarator == null)
-            {
-                return false;
-            }
-
-            if (!_syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, _containingStatement))
-            {
-                return false;
-            }
-
-            _valuePattern = _syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
-            return true;
-        }
+        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
+            TObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<Match> matches);
     }
 }

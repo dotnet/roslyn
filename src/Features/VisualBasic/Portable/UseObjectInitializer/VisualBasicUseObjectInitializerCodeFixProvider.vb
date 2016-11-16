@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
@@ -10,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseObjectInitializer), [Shared]>
     Friend Class VisualBasicUseObjectInitializerCodeFixProvider
         Inherits AbstractUseObjectInitializerCodeFixProvider(Of
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
@@ -17,46 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             VariableDeclaratorSyntax)
 
-        Protected Overrides Function GetNewObjectCreation(
-                objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As ObjectCreationExpressionSyntax
-
-            Dim initializer = SyntaxFactory.ObjectMemberInitializer(
-                CreateFieldInitializers(matches))
-
-            Return objectCreation.WithoutTrailingTrivia().
-                                  WithInitializer(initializer).
-                                  WithTrailingTrivia(objectCreation.GetTrailingTrivia())
-        End Function
-
-        Private Function CreateFieldInitializers(
-                matches As ImmutableArray(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
-            Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
-
-            For i = 0 To matches.Length - 1
-                Dim match = matches(i)
-
-                Dim rightValue = match.Initializer
-                If i < matches.Count - 1 Then
-                    rightValue = rightValue.WithoutTrailingTrivia()
-                End If
-
-                Dim initializer = SyntaxFactory.NamedFieldInitializer(
-                    keyKeyword:=Nothing,
-                    dotToken:=match.MemberAccessExpression.OperatorToken,
-                    name:=DirectCast(match.MemberAccessExpression.Name, IdentifierNameSyntax),
-                    equalsToken:=match.Statement.OperatorToken,
-                    expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
-
-                nodesAndTokens.Add(initializer)
-                If i < matches.Length - 1 Then
-                    Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken).
-                                              WithTrailingTrivia(match.Initializer.GetTrailingTrivia())
-                    nodesAndTokens.Add(comma)
-                End If
-            Next
-
-            Return SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
-        End Function
+        Public Sub New()
+            MyBase.New(New VisualBasicUseObjectInitializerDiagnosticAnalyzer())
+        End Sub
     End Class
 End Namespace
