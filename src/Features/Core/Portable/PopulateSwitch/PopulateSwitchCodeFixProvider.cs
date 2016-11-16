@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds 
+            => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
