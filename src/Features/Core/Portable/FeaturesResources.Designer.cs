@@ -496,15 +496,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Camel Case.
-        /// </summary>
-        internal static string Camel_Case {
-            get {
-                return ResourceManager.GetString("Camel_Case", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to can&apos;t not construct final tree.
         /// </summary>
         internal static string can_t_not_construct_final_tree {
