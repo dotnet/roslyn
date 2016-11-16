@@ -12,33 +12,42 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
-    internal class UseExplicitTypeCodeFixProvider : CodeFixProvider
+    internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
-
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, getInnermostNodeForTie: true);
+            context.RegisterCodeFix(new MyCodeAction(
+                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
+                context.Diagnostics);
 
-            var codeAction = new MyCodeAction(
-                CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                c => HandleDeclarationAsync(document, root, node, context.CancellationToken));
-
-            context.RegisterCodeFix(codeAction, context.Diagnostics.First());
+            return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> HandleDeclarationAsync(Document document, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            var root = editor.OriginalRoot;
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                await HandleDeclarationAsync(document, editor, node, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task HandleDeclarationAsync(
+            Document document, SyntaxEditor editor, 
+            SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarationContext = node.Parent;
@@ -65,14 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
-            var newRoot = root.ReplaceNode(node, typeName);
-            return document.WithSyntaxRoot(newRoot);
+            editor.ReplaceNode(node, typeName);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                     createChangedDocument,
+                     CSharpFeaturesResources.Use_explicit_type_instead_of_var)
             {
             }
         }
