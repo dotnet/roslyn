@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class AnalyzerAndOptions
         {
             public readonly DiagnosticAnalyzer Analyzer;
-            private readonly AnalyzerOptions _analyzerOptions;
+            public readonly AnalyzerOptions Options;
 
             public AnalyzerAndOptions(DiagnosticAnalyzer analyzer, AnalyzerOptions analyzerOptions)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If the supplied analyzerOptions is an instance of a derived type, holding on to that object
                 // can introduce a memory leak, as well as causing false negatives in comparison. Avoid these
                 // issues by creating a new object with only the desired properties. 
-                _analyzerOptions = new AnalyzerOptions(analyzerOptions.AdditionalFiles);
+                Options = new AnalyzerOptions(analyzerOptions.AdditionalFiles);
             }
 
             public bool Equals(AnalyzerAndOptions other)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return other != null &&
                     Analyzer.Equals(other.Analyzer) &&
-                    _analyzerOptions.Equals(other._analyzerOptions);
+                    Options.Equals(other.Options);
             }
 
             public override bool Equals(object other)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Analyzer.GetHashCode(), _analyzerOptions.GetHashCode());
+                return Hash.Combine(Analyzer.GetHashCode(), Options.GetHashCode());
             }
         }
     }

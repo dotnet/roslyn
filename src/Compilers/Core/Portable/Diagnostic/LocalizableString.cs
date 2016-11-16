@@ -120,5 +120,7 @@ namespace Microsoft.CodeAnalysis
                 // Ignore exceptions from the exception handlers themselves.
             }
         }
+
+        internal virtual bool CanThrowExceptions => true;
     }
 }
