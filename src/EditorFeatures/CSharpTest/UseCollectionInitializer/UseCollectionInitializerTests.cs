@@ -471,7 +471,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        public async Task TestFixAllInDocument()
+        public async Task TestFixAllInDocument1()
         {
             await TestAsync(
 @"using System.Collections.Generic;
@@ -505,6 +505,78 @@ class C
         {
             3,
             4
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestFixAllInDocument2()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = {|FixAllInDocument:new|} List<int>(() => {
+            var list2 = new List<int>();
+            list2.Add(2);
+        });
+        list1.Add(1);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<int>(() => {
+            var list2 = new List<int>
+            {
+                2
+            };
+        })
+        {
+            1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestFixAllInDocument3()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = {|FixAllInDocument:new|} List<int>();
+        list1.Add(() => {
+            var list2 = new List<int>();
+            list2.Add(2);
+        });
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<int>
+        {
+            () => {
+                var list2 = new List<int>
+                {
+                    2
+                };
+            }
         };
     }
 }");

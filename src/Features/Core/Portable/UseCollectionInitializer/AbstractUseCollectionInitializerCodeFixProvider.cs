@@ -9,34 +9,43 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
     internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
+        TSyntaxKind,
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TVariableDeclarator>
-        : CodeFixProvider
+        TVariableDeclaratorSyntax>
+        : SyntaxEditorBasedCodeFixProvider
+        where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TExpressionStatementSyntax : TStatementSyntax
-        where TVariableDeclarator : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+        private readonly AbstractUseCollectionInitializerDiagnosticAnalyzer<TSyntaxKind, TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax> _analyzer;
+
+        protected AbstractUseCollectionInitializerCodeFixProvider(
+            AbstractUseCollectionInitializerDiagnosticAnalyzer<TSyntaxKind, TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax> analyzer)
+        {
+            _analyzer = analyzer;
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
+
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -46,37 +55,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclarator>(
-                syntaxFacts, objectCreation);
-            var matches = analyzer.Analyze();
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
-            var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-            var newStatement = statement.ReplaceNode(
-                objectCreation,
-                GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
-
-            editor.ReplaceNode(statement, newStatement);
-            foreach (var match in matches)
-            {
-                editor.RemoveNode(match);
-            }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return _analyzer.FixAllAsync(document, diagnostics, editor, cancellationToken);
         }
-
-        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

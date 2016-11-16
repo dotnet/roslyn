@@ -158,18 +158,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var workspace = document.Project.Solution.Workspace;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var root = editor.OriginalRoot;
+            var originalRoot = editor.OriginalRoot;
             var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
             foreach (var diagnostic in diagnostics)
             {
-                var objectCreation = (TObjectCreationExpressionSyntax)root.FindNode(
+                var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
                     diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 originalObjectCreationNodes.Push(objectCreation);
             }
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
-            var currentRoot = root.TrackNodes(originalObjectCreationNodes);
+            var currentRoot = originalRoot.TrackNodes(originalObjectCreationNodes);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -183,32 +183,19 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     objectCreation,
                     GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
 
-                var block = statement.Parent;
-                var newBlock = UpdateBlock(workspace, block, statement, newStatement, matches);
+                var subEditor = new SyntaxEditor(currentRoot, workspace);
 
-                currentRoot = currentRoot.ReplaceNode(block, newBlock);
+                subEditor.ReplaceNode(statement, newStatement);
+                foreach (var match in matches)
+                {
+                    subEditor.RemoveNode(match.Statement);
+                }
+
+                currentRoot = subEditor.GetChangedRoot();
             }
 
             editor.ReplaceNode(editor.OriginalRoot, currentRoot);
             return SpecializedTasks.EmptyTask;
-        }
-
-        private SyntaxNode UpdateBlock(
-            Workspace workspace,
-            SyntaxNode block,
-            TStatementSyntax statement,
-            TStatementSyntax newStatement,
-            ImmutableArray<Match> matches)
-        {
-            var editor = new SyntaxEditor(block, workspace);
-
-            editor.ReplaceNode(statement, newStatement);
-            foreach (var match in matches)
-            {
-                editor.RemoveNode(match.Statement);
-            }
-
-            return editor.GetChangedRoot();
         }
 
         protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
