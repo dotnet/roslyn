@@ -25,9 +25,34 @@
         "Newtonsoft.Json": "8.0.3",
         "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
         "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
-        "System.Collections.Immutable": "1.2.0"
+        "System.Collections.Immutable": "1.2.0",
+    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
+        "version": "15.0.25726-Preview5",
+        "suppressParent": "all"
     },
-    "frameworks": {
-        "net46": { }
-    }
+    "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02",
+    "Newtonsoft.Json": "8.0.3",
+    "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
+    "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
+    "System.Collections.Immutable": "1.2.0",
+    "Microsoft.VisualStudio.Shell.Framework": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Shell.15.0": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.CoreUtility": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Text.UI.Wpf": {
+      "version": "15.0.25726-Preview5",
+      "suppressParent": "all"
+    },
+  },
+  "frameworks": {
+    "net46": { }
+  }
 }

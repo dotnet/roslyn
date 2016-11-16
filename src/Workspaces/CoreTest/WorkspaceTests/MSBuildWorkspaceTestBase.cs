@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.MSBuild;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions LoadCSharpCompilationOptions()
         {
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = CreateMSBuildWorkspace().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.Projects.First();
             var options = (Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions)project.CompilationOptions;
             return options;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected Microsoft.CodeAnalysis.CSharp.CSharpParseOptions LoadCSharpParseOptions()
         {
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = CreateMSBuildWorkspace().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.Projects.First();
             var options = (Microsoft.CodeAnalysis.CSharp.CSharpParseOptions)project.ParseOptions;
             return options;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions LoadVisualBasicCompilationOptions()
         {
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = CreateMSBuildWorkspace().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
             var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
             return options;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions LoadVisualBasicParseOptions()
         {
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = CreateMSBuildWorkspace().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
             var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
             return options;
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_ForEmittedOutput.csproj")));
 
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = CreateMSBuildWorkspace().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
             var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
 
@@ -98,8 +99,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(files);
             var solutionFileName = files.First(kvp => kvp.Key.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)).Key;
             solutionFileName = GetSolutionFileName(solutionFileName);
-            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(solutionFileName).Result;
+            var solution = CreateMSBuildWorkspace().OpenSolutionAsync(solutionFileName).Result;
             return solution;
+        }
+
+        protected static MSBuildWorkspace CreateMSBuildWorkspace()
+        {
+            return MSBuildWorkspace.Create(TestHelpers.GetMSBuildDirectory());
         }
     }
 }

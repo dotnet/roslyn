@@ -8,7 +8,7 @@
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
     xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;assembly=Microsoft.VisualStudio.LanguageServices"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
-    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
 

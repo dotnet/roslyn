@@ -87,6 +87,7 @@
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
+    <Compile Include="Interop.cs" />
     <Compile Include="ObjectReference.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />
@@ -117,6 +118,7 @@
     </Compile>
     <Compile Include="ThrowingTraceListener.cs" />
     <Compile Include="Traits.cs" />
+    <Compile Include="VSInstall.cs" />
     <Compile Include="Win32Res.cs" />
   </ItemGroup>
   <ItemGroup>

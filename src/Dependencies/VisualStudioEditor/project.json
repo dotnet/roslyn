@@ -2,19 +2,19 @@
     "supports": { },
     "dependencies": {
         "Microsoft.VisualStudio.Imaging": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.ImageCatalog": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Language.StandardClassification": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
     },

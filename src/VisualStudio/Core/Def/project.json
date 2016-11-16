@@ -10,28 +10,28 @@
       "version": "14.0.249-master2E2DC10C",
       "suppressParent": "all"
     },
-    "Microsoft.VisualStudio.Shell.14.0": {
-      "version": "14.3.25407",
+    "Microsoft.VisualStudio.Shell.15.0": {
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Editor": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Language.StandardClassification": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Language.Intellisense": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": {
@@ -39,47 +39,47 @@
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.Internal.Performance.CodeMarkers.DesignTime": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Progression": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.ImageCatalog": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-      "version": "14.3.25420",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.VisualStudio.Shell.Design": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": {
-      "version": "14.3.25407",
+      "version": "15.0.25726-Preview5",
       "suppressParent": "all"
     },
     "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
-    "Microsoft.Build": "14.3.0",
+    "Microsoft.Build": "15.1.0-preview-000370-00",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"

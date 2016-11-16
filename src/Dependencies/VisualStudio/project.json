@@ -3,7 +3,7 @@
     "dependencies": {
         "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
         "Microsoft.VisualStudio.ImageCatalog": {
-            "version": "14.3.25407",
+            "version": "15.0.25726-Preview5",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
