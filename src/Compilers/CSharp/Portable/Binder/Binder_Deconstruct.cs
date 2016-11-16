@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var pending = (BoundDiscardedExpression)variable.Single;
                                 if ((object)pending.Type == null)
                                 {
-                                    variables[i] = new DeconstructionVariable(pending.SetInferredType(foundTypes[i]), pending.Syntax);
+                                    variables[i] = new DeconstructionVariable(pending.Update(foundTypes[i]), pending.Syntax);
                                 }
                             }
                             break;
@@ -706,12 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
-                    }
-                case SyntaxKind.DiscardedDesignation:
-                    {
-                        var discarded = (DiscardedDesignationSyntax)node;
-                        return new DeconstructionVariable(new BoundDiscardedExpression(discarded, declType), node);
+                        return new DeconstructionVariable(BindDeconstructionDeclarationVariable(declType, single, diagnostics), node);
                     }
                 case SyntaxKind.DiscardedDesignation:
                     {
@@ -731,6 +726,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+        }
+
+        private BoundDiscardedExpression BindDiscardedExpression(
+            DiscardedDesignationSyntax designation,
+            TypeSymbol declType)
+        {
+            return new BoundDiscardedExpression(designation, declType);
         }
 
         private BoundDiscardedExpression BindDiscardedExpression(
