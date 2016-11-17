@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
-            allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
             return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false);
         }
