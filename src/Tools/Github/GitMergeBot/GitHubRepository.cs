@@ -49,32 +49,39 @@ git push {remoteName} {pullRequestBranch} --force
 Once all conflicts are resolved and all the tests pass, you are free to merge the pull request.
 ".Trim();
 
-            var pullRequest = await _client.PullRequest.Create(
-                owner: destinationOwner,
-                name: RepositoryName,
-                newPullRequest: new NewPullRequest(
-                    title: title,
-                    head: $"{UserName}:{pullRequestBranch}",
-                    baseRef: destinationBranch)
+            try
+            {
+                var pullRequest = await _client.PullRequest.Create(
+                    owner: destinationOwner,
+                    name: RepositoryName,
+                    newPullRequest: new NewPullRequest(
+                        title: title,
+                        head: $"{UserName}:{pullRequestBranch}",
+                        baseRef: destinationBranch)
                     {
                         Body = prMessage
                     }
-                );
+                    );
 
-            // The reason for this delay is twofold:
-            //
-            // * Github has a bug in which it can "create" a pull request without that pull request
-            //   being able to be commented on for a short period of time.
-            // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
-            //   pull-request creation is ignored.
-            //
-            // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
-            // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
-            // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
-            // scope of this PR.
-            await Task.Delay(TimeSpan.FromSeconds(30.0));
+                // The reason for this delay is twofold:
+                //
+                // * Github has a bug in which it can "create" a pull request without that pull request
+                //   being able to be commented on for a short period of time.
+                // * The Jenkins "comment watcher" has a bug whereby any comment posted shortly after
+                //   pull-request creation is ignored.
+                //
+                // Thus, this delay sidesteps both of those bugs by asking for a VSI test 30 seconds after 
+                // the creation of the PR.  Ugly, yes; but the only *real* way to sidestep this would be to 
+                // 1) Fix github, 2) Fix jenkins, and while those might be lofty goals, they are not in the 
+                // scope of this PR.
+                await Task.Delay(TimeSpan.FromSeconds(30.0));
 
-            await _client.Issue.Comment.Create(destinationOwner, RepositoryName, pullRequest.Number, "@dotnet-bot test vsi please");
+                await _client.Issue.Comment.Create(destinationOwner, RepositoryName, pullRequest.Number, "@dotnet-bot test vsi please");
+            }
+            catch (Exception ex) when (DidPullRequestFailDueToNoChanges(ex))
+            {
+                Console.WriteLine("There were no commits between the specified branchs.  Pull request not created.");
+            }
         }
 
         /// <returns>The existing open merge PRs.</returns>
@@ -90,6 +97,28 @@ Once all conflicts are resolved and all the tests pass, you are free to merge th
             }
 
             return openPrs;
+        }
+
+        /// <summary>
+        /// The Octokit API fails on pull request creation if the PR would have been empty, but there is no way
+        /// to know that ahead of time.
+        ///
+        /// The fall-back is to check for a very specific "failure".
+        /// </summary>
+        private static bool DidPullRequestFailDueToNoChanges(Exception ex)
+        {
+            if (!(ex is ApiValidationException apiException))
+            {
+                return false;
+            }
+
+            if (apiException.ApiError.Errors.Count != 1)
+            {
+                return false;
+            }
+
+            var error = apiException.ApiError.Errors.Single();
+            return error.Message.StartsWith("No commits between");
         }
     }
 }
