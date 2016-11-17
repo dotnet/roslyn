@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
-        public IReadOnlyList<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
+        public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
-        public SyntaxTreeDeclarationInfo(VersionStamp version, IReadOnlyList<DeclaredSymbolInfo> declaredSymbolInfos)
+        public SyntaxTreeDeclarationInfo(VersionStamp version, ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
             : base(version)
         {
             DeclaredSymbolInfos = declaredSymbolInfos;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public override void WriteTo(ObjectWriter writer)
         {
-            writer.WriteInt32(DeclaredSymbolInfos.Count);
+            writer.WriteInt32(DeclaredSymbolInfos.Length);
             foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
             {
                 declaredSymbolInfo.WriteTo(writer);
@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 var declaredSymbolCount = reader.ReadInt32();
-                var declaredSymbols = new DeclaredSymbolInfo[declaredSymbolCount];
+                var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
                 for (int i = 0; i < declaredSymbolCount; i++)
                 {
-                    declaredSymbols[i] = DeclaredSymbolInfo.ReadFrom(reader);
+                    builder.Add(DeclaredSymbolInfo.ReadFrom(reader));
                 }
 
-                return new SyntaxTreeDeclarationInfo(version, declaredSymbols);
+                return new SyntaxTreeDeclarationInfo(
+                    version, builder.MoveToImmutable());
             }
             catch (Exception)
             {

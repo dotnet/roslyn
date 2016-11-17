@@ -274,7 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Inline_variable_declaration, createChangedDocument)
+                : base(FeaturesResources.Inline_variable_declaration,
+                       createChangedDocument,
+                       FeaturesResources.Inline_variable_declaration)
             {
             }
         }
