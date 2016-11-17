@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
 
-                var declaredSymbolInfos = new List<DeclaredSymbolInfo>();
+                var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
 
                 if (syntaxFacts != null)
                 {
@@ -249,7 +249,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                         containsIndexerMemberCref),
                     new SyntaxTreeDeclarationInfo(
                         version,
-                        declaredSymbolInfos));
+                        declaredSymbolInfos.ToImmutableAndFree()));
             }
             finally
             {
