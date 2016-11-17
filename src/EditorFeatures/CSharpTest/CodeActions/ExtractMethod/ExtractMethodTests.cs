@@ -1266,7 +1266,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
