@@ -11,27 +11,26 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
-        private class TableDataSourceFindReferencesContext :
-            FindReferencesContext, ITableDataSource, ITableEntriesSnapshotFactory
+        private class TableDataSourceFindUsagesContext :
+            FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             private ITableDataSink _tableDataSink;
 
-            public readonly StreamingFindReferencesPresenter Presenter;
+            public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
 
             // Lock which protects _definitionToShoudlShowWithoutReferences, 
@@ -55,8 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
 
-            public TableDataSourceFindReferencesContext(
-                 StreamingFindReferencesPresenter presenter,
+            public TableDataSourceFindUsagesContext(
+                 StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow)
             {
                 presenter.AssertIsForeground();
@@ -98,9 +97,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public string DisplayName => "Roslyn Data Source";
 
-            public string Identifier => RoslynFindReferencesTableDataSourceIdentifier;
+            public string Identifier => RoslynFindUsagesTableDataSourceIdentifier;
 
-            public string SourceTypeIdentifier => RoslynFindReferencesTableDataSourceSourceTypeIdentifier;
+            public string SourceTypeIdentifier => RoslynFindUsagesTableDataSourceSourceTypeIdentifier;
 
             public IDisposable Subscribe(ITableDataSink sink)
             {
@@ -117,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             #endregion
 
-            #region FindReferencesContext overrides.
+            #region FindUsagesContext overrides.
 
             public override void SetSearchLabel(string displayName)
             {

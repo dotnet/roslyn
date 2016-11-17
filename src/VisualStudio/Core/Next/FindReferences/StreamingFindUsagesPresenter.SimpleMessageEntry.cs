@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
         private class SimpleMessageEntry : Entry
         {

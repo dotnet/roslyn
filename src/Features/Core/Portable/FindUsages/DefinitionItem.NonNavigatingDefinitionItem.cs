@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.FindReferences
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal partial class DefinitionItem
     {

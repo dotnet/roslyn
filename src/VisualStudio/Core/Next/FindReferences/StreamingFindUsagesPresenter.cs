@@ -15,17 +15,17 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    [Export(typeof(IStreamingFindReferencesPresenter)), Shared]
-    internal partial class StreamingFindReferencesPresenter :
-        ForegroundThreadAffinitizedObject, IStreamingFindReferencesPresenter
+    [Export(typeof(IStreamingFindUsagesPresenter)), Shared]
+    internal partial class StreamingFindUsagesPresenter :
+        ForegroundThreadAffinitizedObject, IStreamingFindUsagesPresenter
     {
-        public const string RoslynFindReferencesTableDataSourceIdentifier =
-            nameof(RoslynFindReferencesTableDataSourceIdentifier);
+        public const string RoslynFindUsagesTableDataSourceIdentifier =
+            nameof(RoslynFindUsagesTableDataSourceIdentifier);
 
-        public const string RoslynFindReferencesTableDataSourceSourceTypeIdentifier =
-            nameof(RoslynFindReferencesTableDataSourceSourceTypeIdentifier);
+        public const string RoslynFindUsagesTableDataSourceSourceTypeIdentifier =
+            nameof(RoslynFindUsagesTableDataSourceSourceTypeIdentifier);
 
         private readonly IServiceProvider _serviceProvider;
 
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
 
         [ImportingConstructor]
-        public StreamingFindReferencesPresenter(
+        public StreamingFindUsagesPresenter(
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -63,15 +63,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
 
-        public FindReferencesContext StartSearch()
+        public FindUsagesContext StartSearch(string title)
         {
             this.AssertIsForeground();
 
             // Get the appropriate window for FAR results to go into.
-            var window = _vsFindAllReferencesService.StartSearch(label: null);
+            var window = _vsFindAllReferencesService.StartSearch(title);
 
             // Make the data source that will feed data into this window.
-            var dataSource = new TableDataSourceFindReferencesContext(this, window);
+            var dataSource = new TableDataSourceFindUsagesContext(this, window);
 
             // And return the data source so that the FindRefs engine can report results
             // which the data source can then create the appropriate presentation items for

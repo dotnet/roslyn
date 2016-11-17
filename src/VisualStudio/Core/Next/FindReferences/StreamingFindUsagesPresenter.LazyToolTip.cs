@@ -7,9 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.

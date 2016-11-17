@@ -5,25 +5,25 @@ using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
         private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
-            private readonly StreamingFindReferencesPresenter _presenter;
-            private readonly TableDataSourceFindReferencesContext _context;
+            private readonly StreamingFindUsagesPresenter _presenter;
+            private readonly TableDataSourceFindUsagesContext _context;
 
             public readonly DefinitionItem DefinitionItem;
 
             public RoslynDefinitionBucket(
-                StreamingFindReferencesPresenter presenter,
-                TableDataSourceFindReferencesContext context,
+                StreamingFindUsagesPresenter presenter,
+                TableDataSourceFindUsagesContext context,
                 DefinitionItem definitionItem)
                 : base(name: definitionItem.DisplayParts.JoinText() + " " + definitionItem.GetHashCode(),
                        sourceTypeIdentifier: context.SourceTypeIdentifier,

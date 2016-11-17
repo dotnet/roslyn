@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
-        private readonly IEnumerable<Lazy<IStreamingFindReferencesPresenter>> _streamingPresenters;
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindReferencesPresenter>> streamingPresenters,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(synchronousPresenters);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return false;
         }
 
-        private IStreamingFindReferencesPresenter GetStreamingPresenter()
+        private IStreamingFindUsagesPresenter GetStreamingPresenter()
         {
             try
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
         private async void StreamingFindReferences(
             Document document, IStreamingFindReferencesService service,
-            IStreamingFindReferencesPresenter presenter, int caretPosition)
+            IStreamingFindUsagesPresenter presenter, int caretPosition)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 {
                     // Let the presented know we're starging a search.  It will give us back
                     // the context object that the FAR service will push results into.
-                    var context = presenter.StartSearch();
+                    var context = presenter.StartSearch(EditorFeaturesResources.Find_References);
                     await service.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
 
                     // Note: we don't need to put this in a finally.  The only time we might not hit

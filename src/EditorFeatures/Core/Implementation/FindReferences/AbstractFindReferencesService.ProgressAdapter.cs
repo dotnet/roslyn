@@ -4,7 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
-            private readonly FindReferencesContext _context;
+            private readonly FindUsagesContext _context;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             private readonly Func<ISymbol, DefinitionItem> _definitionFactory;
 
-            public ProgressAdapter(Solution solution, FindReferencesContext context)
+            public ProgressAdapter(Solution solution, FindUsagesContext context)
             {
                 _solution = solution;
                 _context = context;

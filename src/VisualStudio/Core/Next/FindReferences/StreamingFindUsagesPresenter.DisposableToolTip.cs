@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
         private class DisposableToolTip : IDisposable
         {
