@@ -534,20 +534,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : new[] { a }).ToList();
         }
 
+#if false
+         var option = triple.Item1;
+ -                var value = triple.Item2;
+ -                var notification = triple.Item3;
+ -                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
+ -                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
+#endif
+
         protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
-            => throw new Exception();
+            => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
 
         protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
-            => throw new Exception();
+            => (new OptionKey(option), codeStyle);
 
         protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
-            => throw new Exception();
+            => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
 
         protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
-            => throw new Exception();
+            => SingleOption(option, codeStyle, language: GetLanguage());
 
-        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle, string language)
-            => throw new Exception();
+        protected static (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle, string language)
+            => (new OptionKey(option, language), codeStyle);
 
         protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
@@ -561,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        protected IDictionary<OptionKey, object> OptionsSet(
+        protected static IDictionary<OptionKey, object> OptionsSet(
             params (OptionKey key, object value)[] options)
         {
             var result = new Dictionary<OptionKey, object>();
