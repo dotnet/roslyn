@@ -238,17 +238,21 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
+            // Note: we keep any context with items *or* with a suggested item.  
             var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
+                defaultItemSpan, triggeredProviders, 
+                cancellationToken).ConfigureAwait(false);
 
             // If we didn't even get any back with items, then there's nothing to do.
-            if (triggeredCompletionContexts.Length == 0)
+            // i.e. if only got items back that had only suggestion items, then we don't
+            // want to show any completion.
+            if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
             {
                 return null;
             }
 
-            // All the contexts should be non-empty.
+            // All the contexts should be non-empty or have a suggestion item.
             Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
 
             // See if there was a completion context provided that was exclusive.  If so, then
@@ -266,19 +270,17 @@ namespace Microsoft.CodeAnalysis.Completion
             // Shouldn't be any exclusive completion contexts at this point.
             Debug.Assert(triggeredCompletionContexts.All(cc => !cc.IsExclusive));
 
-            // Great!  We had some items.  Now we want to see if *any* providers would like to
-            // add items to completion list.  i.e. we first asked the 'Triggered' providers
-            // for their items.  Now the non-triggered providers get a change to 'augment' the
-            // list.  
-
+            // Great!  We had some items.  Now we want to see if any of the other providers 
+            // would like to augment the completion list.  For example, we might trigger
+            // enum-completion on space.  If enum completion results in any items, then 
+            // we'll want to augment the list with all the regular symbol completion items.
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
             var augmentingCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options, defaultItemSpan,
                 augmentingProviders, cancellationToken).ConfigureAwait(false);
 
-            var allContexts = triggeredCompletionContexts.Concat(
-                augmentingCompletionContexts.WhereAsArray(cc => !cc.IsExclusive));
+            var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
             Debug.Assert(allContexts.Length > 0);
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
