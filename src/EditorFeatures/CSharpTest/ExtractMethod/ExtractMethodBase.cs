@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -82,7 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var testDocument = workspace.Documents.Single();
                 var subjectBuffer = testDocument.TextBuffer;
 
-                var tree = await ExtractMethodAsync(workspace, testDocument, allowMovingDeclaration: allowMovingDeclaration, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+                var tree = await ExtractMethodAsync(
+                    workspace, testDocument, allowMovingDeclaration: allowMovingDeclaration,
+                    dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
 
                 using (var edit = subjectBuffer.CreateEdit())
                 {
@@ -114,6 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var originalOptions = await document.GetOptionsAsync();
             var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
+
+            workspace.Options = workspace.Options
+                                         .WithChangedOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);

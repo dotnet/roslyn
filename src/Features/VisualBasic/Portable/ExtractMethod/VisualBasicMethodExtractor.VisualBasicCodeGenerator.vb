@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -349,9 +350,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
-            Protected Overrides Function CreateDeclarationStatement(variable As VariableInfo,
-                                                                    cancellationToken As CancellationToken,
-                                                                    Optional givenInitializer As ExpressionSyntax = Nothing) As StatementSyntax
+            Protected Overrides Function CreateDeclarationStatement(
+                    variable As VariableInfo,
+                    givenInitializer As ExpressionSyntax,
+                    options As OptionSet,
+                    cancellationToken As CancellationToken) As StatementSyntax
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)

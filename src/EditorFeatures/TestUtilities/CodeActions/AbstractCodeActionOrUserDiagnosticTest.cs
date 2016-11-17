@@ -530,9 +530,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
         {
             return codeActions?.SelectMany(a => a.NestedCodeActions.Length > 0
-                ? a.NestedCodeActions.ToArray() 
+                ? a.NestedCodeActions.ToArray()
                 : new[] { a }).ToList();
         }
+
+        protected (OptionKey, object) SingleOption(Option<bool> option, bool enabled)
+            => (new OptionKey(option), enabled);
 
         protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
             => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));

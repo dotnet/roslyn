@@ -1,11 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,9 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
     public class ExtractMethodTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new ExtractMethodCodeRefactoringProvider();
-        }
+            => new ExtractMethodCodeRefactoringProvider();
+
+        private IDictionary<OptionKey, object> DoNotUseVarOption => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false));
+
+        private IDictionary<OptionKey, object> UseVarOption => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, true),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
 
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -44,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         return b != true;
     }
 }",
-index: 0);
+index: 0, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -110,7 +118,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleO
         return t;
     }
 }",
-index: 0);
+index: 0, options: DoNotUseVarOption); 
         }
 
         [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
@@ -131,7 +139,7 @@ class C
     label2:
         return;
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
@@ -172,7 +180,7 @@ class C
         return x * x;
     }
 }",
-index: 0);
+index: 0, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -197,7 +205,7 @@ index: 0);
     {
         System.Console.WriteLine(4);
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -222,7 +230,7 @@ index: 0);
     {
         System.Console.WriteLine(4);
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -247,7 +255,7 @@ index: 0);
     {
         base.ToString();
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [WorkItem(545623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
@@ -287,7 +295,7 @@ class Program
     {
         return C.X;
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -328,7 +336,7 @@ class Program
     static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -369,7 +377,7 @@ class Program
     static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [WorkItem(530709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
@@ -612,7 +620,7 @@ parseOptions: Options.Regular);
     }
 }",
 
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -664,7 +672,7 @@ compareTokens: false);
     }
 }",
 
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -713,7 +721,7 @@ compareTokens: false);
     }
 }",
 
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -741,7 +749,7 @@ compareTokens: false);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -769,7 +777,7 @@ compareTokens: false);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -797,7 +805,7 @@ compareTokens: false);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -825,7 +833,7 @@ compareTokens: false);
     {
         return (a: 1, b: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -853,7 +861,7 @@ compareTokens: false);
     {
         return (c: 1, d: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -881,7 +889,7 @@ compareTokens: false);
     {
         return (c: 1, d: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -909,7 +917,7 @@ compareTokens: false);
     {
         return (c: 1, d: 2);
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -938,7 +946,7 @@ compareTokens: false);
     {
         return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: ""hello"", b: ""world""));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -965,7 +973,7 @@ compareTokens: false);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -994,7 +1002,7 @@ compareTokens: false);
     {
         return 3;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1025,7 +1033,7 @@ compareTokens: false);
     {
         r = M1(out y, i);
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1056,7 +1064,7 @@ compareTokens: false);
     {
         r = M1(3 is int {|Conflict:y|}, i);
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1088,7 +1096,7 @@ compareTokens: false);
         r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
     }
 } ",
-compareTokens: false);
+compareTokens: false, options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1128,7 +1136,7 @@ compareTokens: false);
             System.Console.Write(y);
         }
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1168,7 +1176,7 @@ compareTokens: false);
             System.Console.Write(y);
         }
     }
-}");
+}", options: DoNotUseVarOption); 
         }
 
         [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
@@ -1211,7 +1219,55 @@ class C
             Console.WriteLine(v);
         }
     }
-}");
+}", options: DoNotUseVarOption); 
+        }
+
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseVar1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        [|var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }|]
+
+        Console.WriteLine(v);
+    }
+}",
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        var v = {|Rename:NewMethod|}(i);
+
+        Console.WriteLine(v);
+    }
+
+    private static string NewMethod(int i)
+    {
+        var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }
+
+        return v;
+    }
+}", options: UseVarOption); 
         }
     }
 }

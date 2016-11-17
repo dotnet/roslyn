@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     internal static class CSharpCodeStyleOptions
     {
         // TODO: get sign off on public api changes.
-        public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(nameof(CodeStyleOptions), nameof(UseVarWhenDeclaringLocals), defaultValue: true,
+        public static readonly Option<bool> UseVarWhenDeclaringLocals = new Option<bool>(
+            nameof(CodeStyleOptions), nameof(UseVarWhenDeclaringLocals), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseVarWhenDeclaringLocals"));
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = new Option<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(UseImplicitTypeForIntrinsicTypes), defaultValue: CodeStyleOption<bool>.Default,
