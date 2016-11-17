@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
-    internal struct Analyzer<
+    internal struct ObjectCreationExpressionAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private TStatementSyntax _containingStatement;
         private SyntaxNodeOrToken _valuePattern;
 
-        public Analyzer(
+        public ObjectCreationExpressionAnalyzer(
             ISyntaxFactsService syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression) : this()
         {
