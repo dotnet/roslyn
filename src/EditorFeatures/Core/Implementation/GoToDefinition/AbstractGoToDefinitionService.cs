@@ -17,14 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _presenters;
-        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
-        protected AbstractGoToDefinitionService(IEnumerable<Lazy<INavigableItemsPresenter>> presenters, IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
+        protected AbstractGoToDefinitionService(
+            IEnumerable<Lazy<INavigableItemsPresenter>> presenters)
         {
             _presenters = presenters;
-            _externalDefinitionProviders = externalDefinitionProviders;
         }
 
         private async Task<ISymbol> FindSymbolAsync(Document document, int position, CancellationToken cancellationToken)
@@ -59,11 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var items = symbol != null
                 ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol, displayTaggedParts: null)
                 : null;
-            if (items == null || items.IsEmpty())
-            {
-                // Fallback to asking the navigation definition providers for navigable definition locations.
-                items = await GoToDefinitionHelpers.FindExternalDefinitionsAsync(document, position, _externalDefinitionProviders, cancellationToken).ConfigureAwait(false);
-            }
 
             // realize the list here so that the consumer await'ing the result doesn't lazily cause
             // them to be created on an inappropriate thread.
@@ -74,21 +68,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
         {
             // First try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbol = FindSymbolAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (symbol != null)
+            if (symbol == null)
             {
-                var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
-
-                return GoToDefinitionHelpers.TryGoToDefinition(symbol,
-                    document.Project,
-                    _externalDefinitionProviders,
-                    _presenters,
-                    thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                    throwOnHiddenDefinition: true,
-                    cancellationToken: cancellationToken);
+                return false;
             }
 
-            // Otherwise, fallback to the external navigation definition providers.
-            return GoToDefinitionHelpers.TryExternalGoToDefinition(document, position, _externalDefinitionProviders, _presenters, cancellationToken);
+            var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
+
+            return GoToDefinitionHelpers.TryGoToDefinition(symbol,
+                document.Project,
+                _presenters,
+                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
+                throwOnHiddenDefinition: true,
+                cancellationToken: cancellationToken);
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)

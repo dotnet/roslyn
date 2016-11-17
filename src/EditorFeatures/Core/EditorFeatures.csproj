@@ -256,8 +256,6 @@
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
     <Compile Include="Implementation\FindReferences\FindReferencesContext.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
-    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />

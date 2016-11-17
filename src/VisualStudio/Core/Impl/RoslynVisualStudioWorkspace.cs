@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -30,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
         private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
-        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
@@ -38,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
-            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(
                 serviceProvider,
@@ -50,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _navigableItemsPresenters = navigableItemsPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
-            _externalDefinitionProviders = externalDefinitionProviders;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -190,15 +186,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+                    out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _externalDefinitionProviders, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -208,9 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, out var searchSymbol, out var searchProject))
             {
                 return false;
             }

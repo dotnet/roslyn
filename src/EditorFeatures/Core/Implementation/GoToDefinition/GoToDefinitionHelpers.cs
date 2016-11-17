@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
             IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
@@ -71,16 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             if (!preferredSourceLocations.Any())
             {
-                // Attempt to find source locations from external definition providers.
-                if (thirdPartyNavigationAllowed && externalDefinitionProviders.Any())
-                {
-                    var externalSourceDefinitions = FindExternalDefinitionsAsync(symbol, project, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken).ToImmutableArray();
-                    if (externalSourceDefinitions.Length > 0)
-                    {
-                        return TryGoToDefinition(externalSourceDefinitions, title, options, presenters, throwOnHiddenDefinition);
-                    }
-                }
-
                 // If there are no visible source locations, then tell the host about the symbol and 
                 // allow it to navigate to it.  This will either navigate to any non-visible source
                 // locations, or it can appropriately deal with metadata symbols for hosts that can go 
@@ -151,55 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
                 return false;
             }
-        }
-
-        public static async Task<IEnumerable<INavigableItem>> FindExternalDefinitionsAsync(Document document, int position, IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders, CancellationToken cancellationToken)
-        {
-            foreach (var definitionProvider in externalDefinitionProviders)
-            {
-                var definitions = await definitionProvider.Value.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (definitions != null && definitions.Any())
-                {
-                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(document.Project.Solution, definitions);
-                    if (preferredDefinitions.Any())
-                    {
-                        return preferredDefinitions;
-                    }
-                }
-            }
-
-            return SpecializedCollections.EmptyEnumerable<INavigableItem>();
-        }
-
-        public static async Task<IEnumerable<INavigableItem>> FindExternalDefinitionsAsync(ISymbol symbol, Project project, IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders, CancellationToken cancellationToken)
-        {
-            foreach (var definitionProvider in externalDefinitionProviders)
-            {
-                var definitions = await definitionProvider.Value.FindDefinitionsAsync(project, symbol, cancellationToken).ConfigureAwait(false);
-                if (definitions != null && definitions.Any())
-                {
-                    var preferredDefinitions = NavigableItemFactory.GetPreferredNavigableItems(project.Solution, definitions);
-                    if (preferredDefinitions.Any())
-                    {
-                        return preferredDefinitions;
-                    }
-                }
-            }
-
-            return SpecializedCollections.EmptyEnumerable<INavigableItem>();
-        }
-
-        public static bool TryExternalGoToDefinition(Document document, int position, IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders, IEnumerable<Lazy<INavigableItemsPresenter>> presenters, CancellationToken cancellationToken)
-        {
-            var externalDefinitions = FindExternalDefinitionsAsync(document, position, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (externalDefinitions != null && externalDefinitions.Any())
-            {
-                var itemsArray = externalDefinitions.ToImmutableArrayOrEmpty();
-                var title = itemsArray[0].DisplayTaggedParts.JoinText();
-                return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition: true);
-            }
-
-            return false;
         }
 
         private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution)

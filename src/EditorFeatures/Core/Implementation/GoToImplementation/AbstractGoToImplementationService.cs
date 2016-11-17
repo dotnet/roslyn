@@ -17,14 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
     internal abstract class AbstractGoToImplementationService : IGoToImplementationService
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemPresenters;
-        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         public AbstractGoToImplementationService(
-            IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemPresenters,
-            IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
+            IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemPresenters)
         {
             _navigableItemPresenters = navigableItemPresenters;
-            _externalDefinitionProviders = externalDefinitionProviders;
         }
 
         public bool TryGoToImplementation(Document document, int position, CancellationToken cancellationToken, out string message)
@@ -41,10 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 {
                     return TryGoToImplementationOnMappedSymbol(mapping, cancellationToken, out message);
                 }
-            }
-            else
-            {
-                return TryExternalGotoDefinition(document, position, cancellationToken, out message);
             }
 
             message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
@@ -100,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken))
+                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _navigableItemPresenters, cancellationToken))
                 {
                     message = null;
                     return true;
@@ -126,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else if (implementations.Count == 1)
             {
-                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken);
+                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _navigableItemPresenters, cancellationToken);
                 message = null;
                 return true;
             }
@@ -154,20 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 solution,
                 implementation,
                 displayTaggedParts: symbolDisplayService.ToDisplayParts(implementation).ToTaggedText());
-        }
-
-        private bool TryExternalGotoDefinition(Document document, int position, CancellationToken cancellationToken, out string message)
-        {
-            if (GoToDefinition.GoToDefinitionHelpers.TryExternalGoToDefinition(document, position, _externalDefinitionProviders, _navigableItemPresenters, cancellationToken))
-            {
-                message = null;
-                return true;
-            }
-            else
-            {
-                message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
-                return false;
-            }
         }
     }
 }

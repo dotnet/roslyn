@@ -21,16 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     {
         private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _referenceSymbolPresenters;
         private readonly IEnumerable<INavigableItemsPresenter> _navigableItemPresenters;
-        private readonly IEnumerable<IFindReferencesResultProvider> _externalReferencesProviders;
 
         protected AbstractFindReferencesService(
             IEnumerable<IDefinitionsAndReferencesPresenter> referenceSymbolPresenters,
-            IEnumerable<INavigableItemsPresenter> navigableItemPresenters,
-            IEnumerable<IFindReferencesResultProvider> externalReferencesProviders)
+            IEnumerable<INavigableItemsPresenter> navigableItemPresenters)
         {
             _referenceSymbolPresenters = referenceSymbolPresenters;
             _navigableItemPresenters = navigableItemPresenters;
-            _externalReferencesProviders = externalReferencesProviders;
         }
 
         /// <summary>
@@ -68,22 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             return Tuple.Create(mapping.Symbol, mapping.Project);
         }
 
-        /// <summary>
-        /// Finds references using the externally defined <see cref="IFindReferencesResultProvider"/>s.
-        /// </summary>
-        private async Task AddExternalReferencesAsync(Document document, int position, ArrayBuilder<INavigableItem> builder, CancellationToken cancellationToken)
-        {
-            // CONSIDER: Do the computation in parallel.
-            foreach (var provider in _externalReferencesProviders)
-            {
-                var references = await provider.FindReferencesAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (references != null)
-                {
-                    builder.AddRange(references.WhereNotNull());
-                }
-            }
-        }
-
         private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(
             Document document, int position, IWaitContext waitContext)
         {
@@ -116,45 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
-            var workspace = document.Project.Solution.Workspace;
-
-            // First see if we have any external navigable item references.
-            // If so, we display the results as navigable items.
-            var succeeded = TryFindAndDisplayNavigableItemsReferencesAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
-            if (succeeded)
-            {
-                return true;
-            }
 
             // Otherwise, fall back to displaying SymbolFinder based references.
             var result = this.FindReferencedSymbolsAsync(document, position, waitContext).WaitAndGetResult(cancellationToken);
             return TryDisplayReferences(result);
-        }
-
-        /// <summary>
-        /// Attempts to find and display navigable item references, including the references provided by external providers.
-        /// </summary>
-        /// <returns>False if there are no external references or display was not successful.</returns>
-        private async Task<bool> TryFindAndDisplayNavigableItemsReferencesAsync(Document document, int position, IWaitContext waitContext)
-        {
-            var foundReferences = false;
-            if (_externalReferencesProviders.Any())
-            {
-                var cancellationToken = waitContext.CancellationToken;
-                var builder = ArrayBuilder<INavigableItem>.GetInstance();
-                await AddExternalReferencesAsync(document, position, builder, cancellationToken).ConfigureAwait(false);
-
-                // TODO: Merging references from SymbolFinder and external providers might lead to duplicate or counter-intuitive results.
-                // TODO: For now, we avoid merging and just display the results either from SymbolFinder or the external result providers but not both.
-                if (builder.Count > 0 && TryDisplayReferences(builder))
-                {
-                    foundReferences = true;
-                }
-
-                builder.Free();
-            }
-
-            return foundReferences;
         }
 
         private bool TryDisplayReferences(IEnumerable<INavigableItem> result)
