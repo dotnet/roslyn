@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return options;
         }
 
-        private string ClassNamesArePascalCaseOptionString()
+        private SerializableNamingStylePreferencesInfo ClassNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);
 
-            return info.CreateXElement().ToString();
+            return info;
         }
 
-        private string MethodNamesArePascalCaseOptionString()
+        private SerializableNamingStylePreferencesInfo MethodNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);
 
-            return info.CreateXElement().ToString();
+            return info;
         }
     }
 }

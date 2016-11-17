@@ -385,6 +385,13 @@
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
+    <Compile Include="NamingStyles\Capitalization.cs" />
+    <Compile Include="NamingStyles\NamingRule.cs" />
+    <Compile Include="NamingStyles\NamingStylePreferencesInfo.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStyle.cs" />
+    <Compile Include="NamingStyles\Serialization\SerializableNamingRule.cs" />
+    <Compile Include="NamingStyles\Serialization\SerializableNamingStylePreferencesInfo.cs" />
+    <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />

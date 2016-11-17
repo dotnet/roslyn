@@ -9,6 +9,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -222,7 +224,6 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
-
             WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferCollectionInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferExplicitTupleNames, writer, cancellationToken);
@@ -230,6 +231,7 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.PreferNullPropagation, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
+            WriteOptionTo(options, language, SimplificationOptions.NamingPreferences, writer, cancellationToken);
         }
 
         protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
@@ -242,7 +244,6 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyEventAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, reader, cancellationToken);
-
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCoalesceExpression, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCollectionInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferExplicitTupleNames, reader, cancellationToken);
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferNullPropagation, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
-
+            options = ReadOptionFrom(options, language, SimplificationOptions.NamingPreferences, reader, cancellationToken);
             return options;
         }
 
@@ -290,6 +291,42 @@ namespace Microsoft.CodeAnalysis.Execution
             return options.WithChangedOption(option, language, value);
         }
 
+        protected void WriteOptionTo(OptionSet options, Option<SerializableNamingStylePreferencesInfo> option, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = options.GetOption(option);
+            writer.WriteString(value.CreateXElement().ToString());
+        }
+
+        protected OptionSet ReadOptionFrom(OptionSet options, Option<SerializableNamingStylePreferencesInfo> option, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var xmlText = reader.ReadString();
+            var value = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(xmlText));
+
+            return options.WithChangedOption(option, value);
+        }
+
+        private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<SerializableNamingStylePreferencesInfo> option, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = options.GetOption(option, language);
+            writer.WriteString(value.CreateXElement().ToString());
+        }
+
+        private OptionSet ReadOptionFrom(OptionSet options, string language, PerLanguageOption<SerializableNamingStylePreferencesInfo> option, ObjectReader reader, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var xmlText = reader.ReadString();
+            var value = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(xmlText));
+
+            return options.WithChangedOption(option, language, value);
+        }
+
         /// <summary>
         /// this is not real option set. it doesn't have all options defined in host. but only those
         /// we pre-selected.
@@ -325,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 foreach (var kvp in _values)
                 {
                     var currentValue = optionSet.GetOption(kvp.Key);
-                    if (!object.Equals(currentValue, kvp.Value))
+                    if (currentValue?.Equals(kvp.Value) == false)
                     {
                         yield return kvp.Key;
                     }
