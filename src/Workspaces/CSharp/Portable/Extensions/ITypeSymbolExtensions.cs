@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
         {
             // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type?.IsSpecialType() == true)
+            if (type.IsSpecialType() == true)
             {
                 return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
             }
