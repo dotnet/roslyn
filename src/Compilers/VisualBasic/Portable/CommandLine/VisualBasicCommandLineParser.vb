@@ -98,8 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind) = (UTF8:=False, FileName:=Nothing, Directory:=baseDirectory, Kind:=CodeAnalysis.OutputKind.ConsoleApplication)
 
             Dim errorLogPath As String = Nothing
-            'Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
-            'Dim documentationPath As String = Nothing
+
             Dim _Documentation As (_Path As String, ParseComments As Boolean) = (_Path:=Nothing,
                                                                          ParseComments:=False '  Don't just null check documentationFileName because we want to do this even if the file name is invalid.
                                                                          )
@@ -112,19 +111,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim win32IconFile As String = Nothing
             Dim noWin32Manifest As Boolean = False
 
-            Dim managedResources = New List(Of ResourceDescription)()
-            Dim sourceFiles = New List(Of CommandLineSourceFile)()
+            Dim managedResources As New List(Of ResourceDescription)()
+            Dim sourceFiles As New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
-            Dim additionalFiles = New List(Of CommandLineSourceFile)()
-            Dim embeddedFiles = New List(Of CommandLineSourceFile)()
+            Dim additionalFiles As New List(Of CommandLineSourceFile)()
+            Dim embeddedFiles As New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
             Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
-            Dim metadataReferences = New List(Of CommandLineReference)()
-            Dim analyzers = New List(Of CommandLineAnalyzerReference)()
+            Dim metadataReferences As New List(Of CommandLineReference)()
+            Dim analyzers As New List(Of CommandLineAnalyzerReference)()
 
-            Dim globalImports = New List(Of GlobalImport)
+            Dim globalImports As New List(Of GlobalImport)
             Dim rootNamespace As String = ""
 
             Dim _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean) =
@@ -145,10 +144,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim pathMap As ImmutableArray(Of KeyValuePair(Of String, String)) = ImmutableArray(Of KeyValuePair(Of String, String)).Empty
 
             ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
-            Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromGeneralArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromSpecificArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromNoWarnArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptionsFromRuleSet As New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptionsFromGeneralArguments As New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptionsFromSpecificArguments As New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptionsFromNoWarnArguments As New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
 
             Dim keyFileSetting As String = Nothing
             Dim keyContainerSetting As String = Nothing
@@ -156,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim moduleAssemblyName As String = Nothing
             Dim moduleName As String = Nothing
             Dim touchedFilesPath As String = Nothing
-            Dim features = New List(Of String)()
+            Dim features As New List(Of String)()
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
@@ -543,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
-            ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, Output.Kind, diagnostics)
+            Flags.Win32.ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, Output.Kind, diagnostics)
 
             If sourceLink IsNot Nothing Then
                 If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
@@ -586,21 +585,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, Output.Kind, sourceFiles, moduleAssemblyName, Output.FileName, moduleName, compilationName)
 
-            If Not IsScriptRunner AndAlso
-                Not hasSourceFiles AndAlso
-                Not managedResources.IsEmpty() AndAlso
+            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso Not managedResources.IsEmpty() AndAlso
                 Output.FileName = Nothing AndAlso
                 Not flattenedArgs.IsEmpty() Then
 
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
-            Dim parseOptions = New VisualBasicParseOptions(
-                languageVersion:=languageVersion,
-                documentationMode:=If(_Documentation.ParseComments, DocumentationMode.Diagnose, DocumentationMode.None),
-                kind:=SourceCodeKind.Regular,
-                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(Output.Kind, defines.AsImmutableOrEmpty()),
-                features:=parsedFeatures)
+            Dim parseOptions As New VisualBasicParseOptions(
+                                                             languageVersion:=languageVersion,
+                                                             documentationMode:=If(_Documentation.ParseComments, DocumentationMode.Diagnose, DocumentationMode.None),
+                                                             kind:=SourceCodeKind.Regular,
+                                                             preprocessorSymbols:=AddPredefinedPreprocessorSymbols(Output.Kind, defines.AsImmutableOrEmpty()),
+                                                             features:=parsedFeatures
+                                                           )
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
@@ -608,50 +606,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' However, these diagnostics won't be reported on the command line.
             Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
 
-            Dim options = New VisualBasicCompilationOptions(
-                outputKind:=Output.Kind,
-                moduleName:=moduleName,
-                mainTypeName:=mainTypeName,
-                scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
-                globalImports:=globalImports,
-                rootNamespace:=rootNamespace,
-                 optionStrict:=_option.Strict,
-                optionInfer:=_option.Infer,
-                optionExplicit:=_option.Explicit,
-                optionCompareText:=_option.CompareText,
-                embedVbCoreRuntime:=_VBRuntime.EmbedCore,
-                checkOverflow:=checkOverflow,
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                cryptoKeyContainer:=keyContainerSetting,
-                cryptoKeyFile:=keyFileSetting,
-                delaySign:=delaySignSetting,
-                publicSign:=publicSign,
-                platform:=platform,
-                generalDiagnosticOption:=generalDiagnosticOption,
-                specificDiagnosticOptions:=specificDiagnosticOptions,
-                optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                parseOptions:=parseOptions,
-                reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
+            Dim options As New VisualBasicCompilationOptions(
+                                                              outputKind:=Output.Kind,
+                                                              moduleName:=moduleName,
+                                                              mainTypeName:=mainTypeName,
+                                                              scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
+                                                              globalImports:=globalImports,
+                                                              rootNamespace:=rootNamespace,
+                                                              optionStrict:=_option.Strict,
+                                                              optionInfer:=_option.Infer,
+                                                              optionExplicit:=_option.Explicit,
+                                                              optionCompareText:=_option.CompareText,
+                                                              embedVbCoreRuntime:=_VBRuntime.EmbedCore,
+                                                              checkOverflow:=checkOverflow,
+                                                              concurrentBuild:=concurrentBuild,
+                                                              deterministic:=deterministic,
+                                                              cryptoKeyContainer:=keyContainerSetting,
+                                                              cryptoKeyFile:=keyFileSetting,
+                                                              delaySign:=delaySignSetting,
+                                                              publicSign:=publicSign,
+                                                              platform:=platform,
+                                                              generalDiagnosticOption:=generalDiagnosticOption,
+                                                              specificDiagnosticOptions:=specificDiagnosticOptions,
+                                                              optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
+                                                              parseOptions:=parseOptions,
+                                                              reportSuppressedDiagnostics:=reportSuppressedDiagnostics
+                                                            )
 
-            Dim emitOptions = New EmitOptions(
-                metadataOnly:=False,
-                debugInformationFormat:=debugInformationFormat,
-                pdbFilePath:=Nothing, ' to be determined later
-                outputNameOverride:=Nothing,  ' to be determined later
-                fileAlignment:=fileAlignment,
-                baseAddress:=baseAddress,
-                highEntropyVirtualAddressSpace:=highEntropyVA,
-                subsystemVersion:=ssVersion,
-                runtimeMetadataVersion:=Nothing,
-                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
+            Dim emitOptions As New EmitOptions(
+                                                metadataOnly:=False,
+                                                debugInformationFormat:=debugInformationFormat,
+                                                pdbFilePath:=Nothing, ' to be determined later
+                                                outputNameOverride:=Nothing,  ' to be determined later
+                                                fileAlignment:=fileAlignment,
+                                                baseAddress:=baseAddress,
+                                                highEntropyVirtualAddressSpace:=highEntropyVA,
+                                                subsystemVersion:=ssVersion,
+                                                runtimeMetadataVersion:=Nothing,
+                                                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree()
+                                              )
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
 
             If _Documentation._Path Is GenerateFileNameForDocComment Then
                 _Documentation._Path = PathUtilities.CombineAbsoluteAndRelativePaths(Output.Directory, PathUtilities.RemoveExtension(Output.FileName))
-                _Documentation._Path = _Documentation._Path & ".xml"
+                _Documentation._Path &= ".xml"
             End If
 
             ' Enable interactive mode if either `\i` option is passed in or no arguments are specified (`vbi`, `vbi script.vbx \i`).
@@ -703,7 +703,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             }
         End Function
 
-        Private Function Parse_Out(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), ByRef _arg As (name As String, value As String)) As Flags.Validation
+        Private Function Parse_Out(
+                                    baseDirectory As String,
+                                    diagnostics As List(Of Diagnostic),
+                              ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind),
+                                    _arg As (name As String, value As String)
+                                  ) As Flags.Validation
+            ' Flag(s): "out"
             If String.IsNullOrWhiteSpace(_arg.value) Then
                 ' When the value has " " (e.g., "/out: ")
                 ' the Roslyn VB compiler reports "BC 2006 : option 'out' requires ':<file>',
@@ -719,7 +725,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Flags.Validation.Success
         End Function
 
-        Private Function Parse_SourceLink(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef sourceLink As String, value As String) As Flags.Validation
+        Private Function Parse_SourceLink(
+                                           baseDirectory As String,
+                                           diagnostics As List(Of Diagnostic),
+                                     ByRef sourceLink As String,
+                                           value As String
+                                         ) As Flags.Validation
+            ' Flag(s): "sourcelink"
             value = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(value) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sourcelink", ":<file>")
@@ -729,7 +741,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Flags.Validation.Success
         End Function
 
-        Private Function Parse_ErrorLog(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef errorLogPath As String, value As String) As Flags.Validation
+        Private Function Parse_ErrorLog(
+                                         baseDirectory As String,
+                                         diagnostics As List(Of Diagnostic),
+                                   ByRef errorLogPath As String,
+                                         value As String
+                                       ) As Flags.Validation
+            ' Flag(s): "errorlog"
             Dim unquoted = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(unquoted) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
@@ -744,8 +762,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     GenerateFileNameForDocComment As String,
                                     diagnostics As List(Of Diagnostic),
                               ByRef _Documentation As (_Path As String, ParseComments As Boolean),
-                                   ByRef _arg As (name As String, value As String)
+                                    _arg As (name As String, value As String)
                                   ) As Flags.Validation
+            ' Flag(s):  "doc"
             _arg.value = RemoveQuotesAndSlashes(_arg.value)
             _Documentation.ParseComments = True
             If _arg.value Is Nothing Then
@@ -767,11 +786,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Parse_Doc(
-                                           GenerateFileNameForDocComment As String,
-                                           diagnostics As List(Of Diagnostic),
-                                     ByRef _Documentation As (_Path As String, ParseComments As Boolean),
-                                         ByRef _arg As (name As String, value As String)
-                                         ) As Flags.Validation
+                                    GenerateFileNameForDocComment As String,
+                                    diagnostics As List(Of Diagnostic),
+                              ByRef _Documentation As (_Path As String, ParseComments As Boolean),
+                                    _arg As (name As String, value As String)
+                                  ) As Flags.Validation
+            ' Flag(s): "doc+", "doc-"
             If _arg.value IsNot Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
             End If
@@ -787,10 +807,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Flags.Validation.Success
         End Function
 
-
-
-
-        Private Function Parse_AdditionalFile(baseDirectory As String, diagnostics As List(Of Diagnostic), additionalFiles As List(Of CommandLineSourceFile), ByRef _arg As (name As String, value As String)) As Flags.Validation
+        Private Function Parse_AdditionalFile(
+                                               baseDirectory As String,
+                                               diagnostics As List(Of Diagnostic),
+                                               additionalFiles As List(Of CommandLineSourceFile),
+                                               _arg As (name As String, value As String)
+                                             ) As Flags.Validation
+            ' Flag(s): "additionalfile"
             _arg.value = RemoveQuotesAndSlashes(_arg.value)
             If String.IsNullOrEmpty(_arg.value) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<file_list>")
@@ -800,7 +823,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Flags.Validation.Success
         End Function
 
-        Private Function Parse_Embed(baseDirectory As String, diagnostics As List(Of Diagnostic), embeddedFiles As List(Of CommandLineSourceFile), ByRef embedAllSourceFiles As Boolean, value As String) As Flags.Validation
+        Private Function Parse_Embed(
+                                      baseDirectory As String,
+                                      diagnostics As List(Of Diagnostic),
+                                      embeddedFiles As List(Of CommandLineSourceFile),
+                                ByRef embedAllSourceFiles As Boolean,
+                                      value As String
+                                    ) As Flags.Validation
+            ' Flag(s): "embed"
             value = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(value) Then
                 embedAllSourceFiles = True
@@ -810,7 +840,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Flags.Validation.Success
         End Function
 
-        Private Function Parse_PathMap(diagnostics As List(Of Diagnostic), ByRef pathMap As ImmutableArray(Of KeyValuePair(Of String, String)), value As String) As Flags.Validation
+        Private Function Parse_PathMap(
+                                        diagnostics As List(Of Diagnostic),
+                                  ByRef pathMap As ImmutableArray(Of KeyValuePair(Of String, String)),
+                                        value As String
+                                      ) As Flags.Validation
+            ' Flag(s): "pathmap"
             ' "/pathmap:K1=V1,K2=V2..."
             If value = Nothing Then
                 Return Flags.Validation.Failure
@@ -820,7 +855,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function Parse_Recurse(baseDirectory As String, diagnostics As List(Of Diagnostic), sourceFiles As List(Of CommandLineSourceFile), ByRef hasSourceFiles As Boolean, value As String) As Flags.Validation
+        Private Function Parse_Recurse(
+                                        baseDirectory As String,
+                                        diagnostics As List(Of Diagnostic),
+                                        sourceFiles As List(Of CommandLineSourceFile),
+                                  ByRef hasSourceFiles As Boolean,
+                                        value As String
+                                      ) As Flags.Validation
+            ' Flag(s): "recurse"
             value = RemoveQuotesAndSlashes(value)
             If String.IsNullOrEmpty(value) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
@@ -892,21 +934,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Shared Function GetWin32Setting(arg As String, value As String, diagnostics As List(Of Diagnostic)) As String
-            If value Is Nothing Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
-            Else
-                Dim noQuotes As String = RemoveQuotesAndSlashes(value)
-                If String.IsNullOrWhiteSpace(noQuotes) Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, arg, ":<file>")
-                Else
-                    Return noQuotes
-                End If
-            End If
-
-            Return Nothing
-        End Function
-
         Private Shared Function BuildSearchPaths(baseDirectory As String, sdkPaths As List(Of String), responsePaths As List(Of String), libPaths As List(Of String)) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
@@ -940,26 +967,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 builder.Add(normalizedPath)
             Next
-        End Sub
-
-        Private Shared Sub ValidateWin32Settings(noWin32Manifest As Boolean, win32ResSetting As String, win32IconSetting As String, win32ManifestSetting As String, outputKind As OutputKind, diagnostics As List(Of Diagnostic))
-            If noWin32Manifest AndAlso (win32ManifestSetting IsNot Nothing) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ConflictingManifestSwitches)
-            End If
-
-            If win32ResSetting IsNot Nothing Then
-                If win32IconSetting IsNot Nothing Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_IconFileAndWin32ResFile)
-                End If
-
-                If win32ManifestSetting IsNot Nothing Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_CantHaveWin32ResAndManifest)
-                End If
-            End If
-
-            If win32ManifestSetting IsNot Nothing AndAlso outputKind.IsNetModule() Then
-                AddDiagnostic(diagnostics, ERRID.WRN_IgnoreModuleManifest)
-            End If
         End Sub
 
         Private Shared Function ParseTarget(optionName As String, value As String, diagnostics As IList(Of Diagnostic)) As OutputKind
@@ -996,15 +1003,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
-        Private Shared Function ParseAnalyzers(ByRef _arg As (name As String, value As String), diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
+        Private Shared Function ParseAnalyzers(
+                                                _arg As (name As String, value As String),
+                                                diagnostics As IList(Of Diagnostic)
+                                              ) As IEnumerable(Of CommandLineAnalyzerReference)
             If String.IsNullOrEmpty(_arg.value) Then
                 ' TODO: localize <file_list>?
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<file_list>")
                 Return SpecializedCollections.EmptyEnumerable(Of CommandLineAnalyzerReference)()
             End If
 
-            Return ParseSeparatedPaths(_arg.value).
-                   Select(Function(path) New CommandLineAnalyzerReference(path))
+            Return ParseSeparatedPaths(_arg.value).Select(Function(path) New CommandLineAnalyzerReference(path))
         End Function
 
         ' See ParseCommandLine in vbc.cpp.
@@ -1022,14 +1031,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDescriptor,
-                baseDirectory,
-                True,
-                filePath,
-                fullPath,
-                fileName,
-                resourceName,
-                accessibility)
+                                      resourceDescriptor,
+                                      baseDirectory,
+                                      True,
+                                      filePath,
+                                      fullPath,
+                                      fileName,
+                                      resourceName,
+                                      accessibility
+                                    )
 
             If String.IsNullOrWhiteSpace(filePath) Then
                 AddInvalidSwitchValueDiagnostic(diagnostics, name, filePath)
@@ -1056,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim dataProvider As Func(Of Stream) = Function()
+            Dim dataProvider As Func(Of Stream) = Function() As FileStream
                                                       ' Use FileShare.ReadWrite because the file could be opened by the current process.
                                                       ' For example, it Is an XML doc file produced by the build.
                                                       Return New FileStream(fullPath,
@@ -1067,7 +1077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs:=False)
         End Function
 
-        Private Shared Sub AddInvalidSwitchValueDiagnostic(diagnostics As IList(Of Diagnostic), ByVal name As String, ByVal nullStringText As String)
+        Private Shared Sub AddInvalidSwitchValueDiagnostic(diagnostics As IList(Of Diagnostic), name As String, nullStringText As String)
             If String.IsNullOrEmpty(name) Then
                 ' NOTE: "(null)" to match Dev10.
                 ' CONSIDER: should this be a resource string?
@@ -1080,12 +1090,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Sub ParseGlobalImports(value As String, globalImports As List(Of GlobalImport), errors As List(Of Diagnostic))
             Dim importsArray = ParseSeparatedPaths(value)
 
-            For Each importNamespace In importsArray
-                Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
-                errors.AddRange(importDiagnostics)
-                globalImports.Add(import)
-            Next
+            Threading.Tasks.Parallel.ForEach(importsArray, Sub(importNamespace)
+                                                               Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+                                                               Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
+                                                               errors.AddRange(importDiagnostics)
+                                                               globalImports.Add(import)
+                                                           End Sub)
         End Sub
 
         ''' <summary>
@@ -1099,15 +1109,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(CaseInsensitiveComparison.Comparer)
 
             If symbols IsNot Nothing Then
-                For Each symbol In symbols
-                    Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
+                Try
+                    Dim ret = Threading.Tasks.Parallel.ForEach(symbols, Sub(symbol As KeyValuePair(Of String, Object))
+                                                                            Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
 
-                    If constant Is Nothing Then
-                        Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
-                    End If
+                                                                            If constant Is Nothing Then
+                                                                                Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
+                                                                            End If
 
-                    result(symbol.Key) = constant
-                Next
+                                                                            result(symbol.Key) = constant
+                                                                        End Sub)
+                Catch e As AggregateException
+                    Throw e.InnerException
+                End Try
             End If
 
             Return result.ToImmutable()
@@ -1139,10 +1153,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="symbols">A collection representing existing symbols. Symbols parsed from <paramref name="symbolList"/> will be merged with this dictionary. </param>
         ''' <exception cref="ArgumentException">Invalid value provided.</exception>
         Public Shared Function ParseConditionalCompilationSymbols(
-            symbolList As String,
-            <Out> ByRef diagnostics As IEnumerable(Of Diagnostic),
-            Optional symbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing
-        ) As IReadOnlyDictionary(Of String, Object)
+                                                                   symbolList As String,
+                                                       <Out> ByRef diagnostics As IEnumerable(Of Diagnostic),
+                                                          Optional symbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing
+                                                                 ) As IReadOnlyDictionary(Of String, Object)
 
             Dim diagnosticBuilder = ArrayBuilder(Of Diagnostic).GetInstance()
             Dim parsedTokensAsString As New StringBuilder
@@ -1315,7 +1329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 For Each diag In expression.VbGreen.GetSyntaxErrors
                                     If diag.Code <> ERRID.ERR_ExpectedExpression AndAlso diag.Code <> ERRID.ERR_BadCCExpression Then
                                         diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1, diag, parsedTokensAsString.ToString), Location.None))
-                                    Else
+                                    ElseIf errorSkipped = False Then
                                         errorSkipped = True
                                     End If
                                 Next
@@ -1401,7 +1415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' but explicit one (like ".... _\r\n ....") should work fine
         ''' </summary>
         Private Shared Function ParseConditionalCompilationExpression(symbolList As String, offset As Integer) As ExpressionSyntax
-            Using p = New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VisualBasicParseOptions.Default)
+            Using p As New InternalSyntax.Parser(SyntaxFactory.MakeSourceText(symbolList, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Return DirectCast(p.ParseConditionalCompilationExpression().CreateRed(Nothing, 0), ExpressionSyntax)
             End Using
@@ -1424,11 +1438,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Sub GetErrorStringForRemainderOfConditionalCompilation(
-            tokens As IEnumerator(Of SyntaxToken),
-            remainderErrorLine As StringBuilder,
-            Optional includeCurrentToken As Boolean = False,
-            Optional stopTokenKind As SyntaxKind = SyntaxKind.CommaToken
-        )
+                                                                               tokens As IEnumerator(Of SyntaxToken),
+                                                                               remainderErrorLine As StringBuilder,
+                                                                      Optional includeCurrentToken As Boolean = False,
+                                                                      Optional stopTokenKind As SyntaxKind = SyntaxKind.CommaToken
+                                                                             )
             If includeCurrentToken Then
                 remainderErrorLine.Append(" ^^ ")
 
@@ -1542,26 +1556,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The value for the option.</param>
         Private Shared Function ParseWarnings(value As String) As IEnumerable(Of String)
             Dim values = ParseSeparatedPaths(value)
-            Dim results = New List(Of String)()
-
-            For Each id In values
-                Dim number As UShort
-                If UShort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, number) AndAlso
-                   (VisualBasic.MessageProvider.Instance.GetSeverity(number) = DiagnosticSeverity.Warning) AndAlso
-                   (VisualBasic.MessageProvider.Instance.GetWarningLevel(number) = 1) Then
-                    ' The id refers to a compiler warning.
-                    ' Only accept real warnings from the compiler not including the command line warnings.
-                    ' Also only accept the numbers that are actually declared in the enum.
-                    results.Add(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(CInt(number)))
-                Else
-                    ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
-                    ' whenever unrecognized warning codes were supplied in /nowarn or 
-                    ' /warnaserror. We no longer generate a warning in such cases.
-                    ' Instead we assume that the unrecognized id refers to a custom diagnostic.
-                    results.Add(id)
-                End If
-            Next
-
+            Dim results As New System.Collections.Concurrent.ConcurrentBag(Of String)
+            Threading.Tasks.Parallel.ForEach(values, Sub(id As String)
+                                                         Dim number As UShort
+                                                         If UShort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, number) AndAlso
+                                                            (VisualBasic.MessageProvider.Instance.GetSeverity(number) = DiagnosticSeverity.Warning) AndAlso
+                                                            (VisualBasic.MessageProvider.Instance.GetWarningLevel(number) = 1) Then
+                                                             ' The id refers to a compiler warning.
+                                                             ' Only accept real warnings from the compiler not including the command line warnings.
+                                                             ' Also only accept the numbers that are actually declared in the enum.
+                                                             results.Add(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(CInt(number)))
+                                                         Else
+                                                             ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
+                                                             ' whenever unrecognized warning codes were supplied in /nowarn or 
+                                                             ' /warnaserror. We no longer generate a warning in such cases.
+                                                             ' Instead we assume that the unrecognized id refers to a custom diagnostic.
+                                                             results.Add(id)
+                                                         End If
+                                                     End Sub)
             Return results
         End Function
 

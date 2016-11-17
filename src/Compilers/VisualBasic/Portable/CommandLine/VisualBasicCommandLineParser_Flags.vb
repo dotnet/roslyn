@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Class Flags
 
-
             Protected Friend Enum Validation
                 Success
                 Failure
             End Enum
 
             Protected Friend Class Win32
+
                 Private Const s_win32Manifest As String = "win32manifest"
                 Private Const s_win32Icon As String = "win32icon"
                 Private Const s_win32Res As String = "win32resource"
@@ -39,8 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     win32IconFile = GetWin32Setting(s_win32Icon, RemoveQuotesAndSlashes(value), diagnostics)
                     Return Validation.Success
                 End Function
-
-
 
                 Protected Friend Shared Function Resource(Diagnostics As List(Of Diagnostic), ByRef win32ResourceFile As String, value As String) As Validation
                     win32ResourceFile = GetWin32Setting(s_win32Res, RemoveQuotesAndSlashes(value), Diagnostics)
@@ -67,11 +65,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return noQuotes
                         End If
                     End If
-
                     Return Nothing
                 End Function
 
-                Private Shared Sub ValidateWin32Settings(noWin32Manifest As Boolean, win32ResSetting As String, win32IconSetting As String, win32ManifestSetting As String, outputKind As OutputKind, diagnostics As List(Of Diagnostic))
+                Friend Shared Sub ValidateWin32Settings(noWin32Manifest As Boolean, win32ResSetting As String, win32IconSetting As String, win32ManifestSetting As String, outputKind As OutputKind, diagnostics As List(Of Diagnostic))
                     If noWin32Manifest AndAlso (win32ManifestSetting IsNot Nothing) Then
                         AddDiagnostic(diagnostics, ERRID.ERR_ConflictingManifestSwitches)
                     End If
@@ -90,9 +87,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddDiagnostic(diagnostics, ERRID.WRN_IgnoreModuleManifest)
                     End If
                 End Sub
+
             End Class
 
-            Protected Friend Shared Function Help(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As Validation
+            Protected Friend Shared Function Help(
+                                                   value As String,
+                                             ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)
+                                                 ) As Validation
                 If value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -101,7 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function Version(value As String, ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)) As Validation
+            Protected Friend Shared Function Version(
+                                                      value As String,
+                                                ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean)
+                                                    ) As Validation
                 If value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -110,17 +114,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function Analyzer(diagnostics As List(Of Diagnostic), analyzers As List(Of CommandLineAnalyzerReference), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Analyzer(
+                                                       diagnostics As List(Of Diagnostic),
+                                                       analyzers As List(Of CommandLineAnalyzerReference),
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 analyzers.AddRange(ParseAnalyzers(_arg, diagnostics))
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Reference(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Reference(
+                                                        diagnostics As List(Of Diagnostic),
+                                                        metadataReferences As List(Of CommandLineReference),
+                                                        _arg As (name As String, value As String)
+                                                      ) As Validation
                 metadataReferences.AddRange(ParseAssemblyReferences(_arg.name, _arg.value, diagnostics, embedInteropTypes:=False))
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Define(diagnostics As List(Of Diagnostic), ByRef defines As IReadOnlyDictionary(Of String, Object), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Define(
+                                                     diagnostics As List(Of Diagnostic),
+                                               ByRef defines As IReadOnlyDictionary(Of String, Object),
+                                                     _arg As (name As String, value As String)
+                                                   ) As Validation
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<symbol_list>")
                 Else
@@ -128,10 +144,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     defines = ParseConditionalCompilationSymbols(_arg.value, conditionalCompilationDiagnostics, defines)
                     diagnostics.AddRange(conditionalCompilationDiagnostics)
                 End If
-
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function [Imports](diagnostics As List(Of Diagnostic), ByRef globalImports As List(Of GlobalImport), ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function [Imports](
+                                                        diagnostics As List(Of Diagnostic),
+                                                  ByRef globalImports As List(Of GlobalImport),
+                                                        _arg As (name As String, value As String)
+                                                      ) As Validation
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, If(_arg.name = "import", ":<str>", ":<import_list>"))
                 Else
@@ -140,7 +160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Option_Strict(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Option_Strict(
+                                                            diagnostics As List(Of Diagnostic),
+                                                      ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean),
+                                                            _arg As (name As String, value As String)
+                                                          ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
                 Else
@@ -154,7 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Option_Strict(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As Validation
+            Protected Friend Shared Function Option_Strict(
+                                                            diagnostics As List(Of Diagnostic),
+                                                      ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean),
+                                                            value As String
+                                                          ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If value Is Nothing Then
                     _option.Strict = VisualBasic.OptionStrict.On
@@ -166,7 +194,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Option_Compare(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), value As String) As Validation
+            Protected Friend Shared Function Option_Compare(
+                                                             diagnostics As List(Of Diagnostic),
+                                                       ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean),
+                                                             value As String
+                                                           ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If value Is Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
@@ -180,7 +212,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Option_Explicit(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Option_Explicit(
+                                                              diagnostics As List(Of Diagnostic),
+                                                        ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean),
+                                                              _arg As (name As String, value As String)
+                                                            ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
                 Else
@@ -194,7 +230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function Option_Infer(diagnostics As List(Of Diagnostic), ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean), ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function Option_Infer(
+                                                           diagnostics As List(Of Diagnostic),
+                                                     ByRef _option As (Strict As OptionStrict, Infer As Boolean, Explicit As Boolean, CompareText As Boolean),
+                                                           _arg As (name As String, value As String)
+                                                         ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
                 Else
@@ -208,7 +249,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function CodePage(diagnostics As List(Of Diagnostic), ByRef _codepage As Encoding, ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function CodePage(
+                                                       diagnostics As List(Of Diagnostic),
+                                                 ByRef _codepage As Encoding,
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
@@ -223,7 +269,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function ChecksumAlgorithm(diagnostics As List(Of Diagnostic), ByRef _checksumAlgorithm As SourceHashAlgorithm, value As String) As Validation
+            Protected Friend Shared Function ChecksumAlgorithm(
+                                                                diagnostics As List(Of Diagnostic),
+                                                          ByRef _checksumAlgorithm As SourceHashAlgorithm,
+                                                                value As String
+                                                              ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If String.IsNullOrEmpty(value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
@@ -238,7 +288,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function RemoveIntChecks(diagnostics As List(Of Diagnostic), ByRef checkOverflow As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function RemoveIntChecks(
+                                                              diagnostics As List(Of Diagnostic),
+                                                        ByRef checkOverflow As Boolean,
+                                                              _arg As (name As String, value As String)
+                                                            ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
                 Else
@@ -252,10 +307,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
+
             ''' <summary>
             ''' The use of SQM is deprecated in the compiler but we still support the command line parsing for  back compat reasons.
             ''' </summary>
-            Protected Friend Shared Function SQMSessionGuid(diagnostics As List(Of Diagnostic), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function SQMSessionGuid(
+                                                             diagnostics As List(Of Diagnostic),
+                                                       ByRef _arg As (name As String, value As String)
+                                                           ) As Validation
                 ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
                 ' back compat reasons.
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
@@ -270,7 +329,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function PreferredUILang(diagnostics As List(Of Diagnostic), ByRef _preferredUILang As CultureInfo, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function PreferredUILang(
+                                                              diagnostics As List(Of Diagnostic),
+                                                        ByRef _preferredUILang As CultureInfo,
+                                                              _arg As (name As String, value As String)
+                                                            ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 If (String.IsNullOrEmpty(_arg.value)) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<string>")
@@ -291,7 +354,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function LibPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function LibPath(
+                                                      diagnostics As List(Of Diagnostic),
+                                                      Paths As (SDK As List(Of String),
+                                                                [LIB] As List(Of String),
+                                                                Source As List(Of String),
+                                                                KeyFileSearch As List(Of String),
+                                                                Response As List(Of String)),
+                                                      _arg As (name As String, value As String)
+                                                    ) As Validation
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<path_list>")
                 Else
@@ -300,7 +371,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Interactive(diagnostics As List(Of Diagnostic), ByRef interactiveMode As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Interactive(
+                                                          diagnostics As List(Of Diagnostic),
+                                                    ByRef interactiveMode As Boolean,
+                                                          _arg As (name As String, value As String)
+                                                        ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "i")
                 End If
@@ -313,9 +388,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function LoadPaths(diagnostics As List(Of Diagnostic),
-                                                Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)),
-                                               ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function LoadPaths(
+                                                        diagnostics As List(Of Diagnostic),
+                                                  ByRef Paths As (SDK As List(Of String),
+                                                                  [LIB] As List(Of String),
+                                                                  Source As List(Of String),
+                                                                  KeyFileSearch As List(Of String),
+                                                                  Response As List(Of String)),
+                                                        _arg As (name As String, value As String)
+                                                      ) As Validation
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<path_list>")
                 Else
@@ -324,13 +405,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Target(diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Target(
+                                                     diagnostics As List(Of Diagnostic),
+                                               ByRef Output As (UTF8 As Boolean,
+                                                                FileName As String,
+                                                                Directory As String,
+                                                                Kind As OutputKind),
+                                                     _arg As (name As String, value As String)
+                                                   ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 Output.Kind = ParseTarget(_arg.name, _arg.value, diagnostics)
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function ModuleAssemblyName(diagnostics As List(Of Diagnostic), ByRef _moduleAssemblyName As String, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function ModuleAssemblyName(
+                                                                 diagnostics As List(Of Diagnostic),
+                                                           ByRef _moduleAssemblyName As String,
+                                                                 _arg As (name As String, value As String)
+                                                               ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 Dim identity As AssemblyIdentity = Nothing
                 ' Note that native compiler also extracts public key, but Roslyn doesn't use it.
@@ -345,7 +437,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function RootNamespace(diagnostics As List(Of Diagnostic), ByRef _rootNamespace As String, value As String) As Validation
+            Protected Friend Shared Function RootNamespace(
+                                                            diagnostics As List(Of Diagnostic),
+                                                      ByRef _rootNamespace As String,
+                                                            value As String
+                                                          ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If String.IsNullOrEmpty(value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "rootnamespace", ":<string>")
@@ -354,7 +450,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function SDKPath(diagnostics As List(Of Diagnostic), Paths As (SDK As List(Of String), [LIB] As List(Of String), Source As List(Of String), KeyFileSearch As List(Of String), Response As List(Of String)), value As String) As Validation
+
+            Protected Friend Shared Function SDKPath(
+                                                      diagnostics As List(Of Diagnostic),
+                                                      Paths As (SDK As List(Of String),
+                                                                [LIB] As List(Of String),
+                                                                Source As List(Of String),
+                                                                KeyFileSearch As List(Of String),
+                                                                Response As List(Of String)),
+                                                      value As String) As Validation
                 If String.IsNullOrEmpty(value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sdkpath", ":<path>")
                 Else
@@ -363,7 +467,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function Instrument(diagnostics As List(Of Diagnostic), instrumentationKinds As ArrayBuilder(Of InstrumentationKind), value As String) As Validation
+
+            Protected Friend Shared Function Instrument(
+                                                         diagnostics As List(Of Diagnostic),
+                                                         instrumentationKinds As ArrayBuilder(Of InstrumentationKind),
+                                                         value As String
+                                                       ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If String.IsNullOrEmpty(value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "instrument", ":<string>")
@@ -377,7 +486,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function AddModule(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), value As String) As Validation
+
+            Protected Friend Shared Function AddModule(
+                                                        diagnostics As List(Of Diagnostic),
+                                                        metadataReferences As List(Of CommandLineReference),
+                                                        value As String
+                                                      ) As Validation
                 If String.IsNullOrEmpty(value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "addmodule", ":<file_list>")
                 Else
@@ -392,19 +506,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function Link(diagnostics As List(Of Diagnostic), metadataReferences As List(Of CommandLineReference), ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function Link(
+                                                   diagnostics As List(Of Diagnostic),
+                                                   metadataReferences As List(Of CommandLineReference),
+                                                   _arg As (name As String, value As String)
+                                                 ) As Validation
                 metadataReferences.AddRange(ParseAssemblyReferences(_arg.name, _arg.value, diagnostics, embedInteropTypes:=True))
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Resource(baseDirectory As String, diagnostics As List(Of Diagnostic), managedResources As List(Of ResourceDescription), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Resource(
+                                                       baseDirectory As String,
+                                                       diagnostics As List(Of Diagnostic),
+                                                       managedResources As List(Of ResourceDescription),
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 Dim embeddedResource = ParseResourceDescription(_arg.name, _arg.value, baseDirectory, diagnostics, embedded:=True)
                 If embeddedResource IsNot Nothing Then
                     managedResources.Add(embeddedResource)
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function LinkResource(baseDirectory As String, diagnostics As List(Of Diagnostic), managedResources As List(Of ResourceDescription), ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function LinkResource(
+                                                           baseDirectory As String,
+                                                           diagnostics As List(Of Diagnostic),
+                                                           managedResources As List(Of ResourceDescription),
+                                                           _arg As (name As String, value As String)
+                                                         ) As Validation
                 Dim linkedResource = ParseResourceDescription(_arg.name, _arg.value, baseDirectory, diagnostics, embedded:=False)
                 If linkedResource IsNot Nothing Then
                     managedResources.Add(linkedResource)
@@ -412,7 +542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Debug(diagnostics As List(Of Diagnostic), ByRef emitPdb As Boolean, ByRef debugInformationFormat As DebugInformationFormat, value As String) As Validation
+            Protected Friend Shared Function Debug(
+                                                    diagnostics As List(Of Diagnostic),
+                                              ByRef emitPdb As Boolean,
+                                              ByRef debugInformationFormat As DebugInformationFormat,
+                                                    value As String
+                                                  ) As Validation
                 ' parse only for backwards compat
                 value = RemoveQuotesAndSlashes(value)
                 If value IsNot Nothing Then
@@ -432,7 +567,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Debug(diagnostics As List(Of Diagnostic), ByRef emitPdb As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Debug(
+                                                    diagnostics As List(Of Diagnostic),
+                                              ByRef emitPdb As Boolean,
+                                                    _arg As (name As String, value As String)
+                                                  ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                 End If
@@ -440,12 +579,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case ch
                     Case "+"c : emitPdb = True
                     Case "-"c : emitPdb = False
-
                 End Select
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Optimize(diagnostics As List(Of Diagnostic), ByRef _optimize As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Optimize(
+                                                       diagnostics As List(Of Diagnostic),
+                                                 ByRef _optimize As Boolean,
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
                 Else
@@ -459,7 +601,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Parallel(diagnostics As List(Of Diagnostic), ByRef concurrentBuild As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Parallel(
+                                                       diagnostics As List(Of Diagnostic),
+                                                 ByRef concurrentBuild As Boolean,
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 Dim x = _arg.name.Length
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, If((x = 1 OrElse x = 8), _arg.name, _arg.name.Substring(0, _arg.name.Length - 1)))
@@ -467,15 +613,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim ch = _arg.name.Last
                     Select Case ch
                         Case "l"c,
-                         "p"c,
-                         "+"c : concurrentBuild = True
+                             "p"c,
+                             "+"c : concurrentBuild = True
                         Case "-"c : concurrentBuild = False
                     End Select
                 End If
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Deterministic(diagnostics As List(Of Diagnostic), ByRef _deterministic As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Deterministic(
+                                                            diagnostics As List(Of Diagnostic),
+                                                      ByRef _deterministic As Boolean,
+                                                            _arg As (name As String, value As String)
+                                                          ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, _arg.name)
                 Else
@@ -488,7 +638,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function WarnAsError(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic), value As String) As Validation
+
+            Protected Friend Shared Function WarnAsError(
+                                                    ByRef generalDiagnosticOption As ReportDiagnostic,
+                                                          specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic),
+                                                          specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic),
+                                                          specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic),
+                                                          value As String
+                                                        ) As Validation
                 If value Is Nothing Then
                     generalDiagnosticOption = ReportDiagnostic.Error
 
@@ -503,7 +660,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function WarnAsError_Minus(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), ByRef specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic), value As String) As Validation
+
+            Protected Friend Shared Function WarnAsError_Minus(
+                                                          ByRef generalDiagnosticOption As ReportDiagnostic,
+                                                                specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic),
+                                                                specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic),
+                                                          ByRef specificDiagnosticOptionsFromSpecificArguments As Dictionary(Of String, ReportDiagnostic),
+                                                                value As String
+                                                              ) As Validation
                 If value Is Nothing Then
                     If generalDiagnosticOption <> ReportDiagnostic.Suppress Then
                         generalDiagnosticOption = ReportDiagnostic.Default
@@ -522,7 +686,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function NoWarn(ByRef generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic), specificDiagnosticOptionsFromNoWarnArguments As Dictionary(Of String, ReportDiagnostic), value As String) As Validation
+            Protected Friend Shared Function NoWarn(
+                                               ByRef generalDiagnosticOption As ReportDiagnostic,
+                                                     specificDiagnosticOptionsFromRuleSet As Dictionary(Of String, ReportDiagnostic),
+                                                     specificDiagnosticOptionsFromGeneralArguments As Dictionary(Of String, ReportDiagnostic),
+                                                     specificDiagnosticOptionsFromNoWarnArguments As Dictionary(Of String, ReportDiagnostic),
+                                                     value As String
+                                                   ) As Validation
                 If value Is Nothing Then
                     generalDiagnosticOption = ReportDiagnostic.Suppress
 
@@ -538,7 +708,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function LangVersion(diagnostics As List(Of Diagnostic), ByRef languageVersion As LanguageVersion, value As String) As Validation
+            Protected Friend Shared Function LangVersion(
+                                                          diagnostics As List(Of Diagnostic),
+                                                    ByRef languageVersion As LanguageVersion,
+                                                          value As String
+                                                        ) As Validation
                 value = RemoveQuotesAndSlashes(value)
                 If value Is Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
@@ -571,7 +745,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function DelaySign(diagnostics As List(Of Diagnostic), ByRef delaySignSetting As Boolean?, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function DelaySign(
+                                                        diagnostics As List(Of Diagnostic),
+                                                  ByRef delaySignSetting As Boolean?,
+                                                        _arg As (name As String, value As String)
+                                                      ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
                 Else
@@ -584,7 +762,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-            Protected Friend Shared Function PublicSign(diagnostics As List(Of Diagnostic), ByRef _publicSign As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+
+            Protected Friend Shared Function PublicSign(
+                                                         diagnostics As List(Of Diagnostic),
+                                                   ByRef _publicSign As Boolean,
+                                                         _arg As (name As String, value As String)
+                                                       ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
                 Else
@@ -598,18 +781,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function KeyFile(diagnostics As List(Of Diagnostic), ByRef keyFileSetting As String, ByRef keyContainerSetting As String, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function KeyFile(
+                                                      diagnostics As List(Of Diagnostic),
+                                                ByRef keyFileSetting As String,
+                                                ByRef keyContainerSetting As String,
+                                                      _arg As (name As String, value As String)
+                                                    ) As Validation
                 Return Parse_Key_(diagnostics, keyFileSetting, keyContainerSetting, _arg, ":<file>")
             End Function
 
-            Protected Friend Shared Function KeyContainer(diagnostics As List(Of Diagnostic), ByRef keyFileSetting As String, ByRef keyContainerSetting As String, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function KeyContainer(
+                                                           diagnostics As List(Of Diagnostic),
+                                                     ByRef keyFileSetting As String,
+                                                     ByRef keyContainerSetting As String,
+                                                           _arg As (name As String, value As String)
+                                                         ) As Validation
                 Return Parse_Key_(diagnostics, keyContainerSetting, keyFileSetting, _arg, ":<string>")
             End Function
 
-            Protected Friend Shared Function Parse_Key_(diagnostics As List(Of Diagnostic),
-                                           ByRef SettingA As String,
-                                           ByRef SettingB As String,
-                                                       ByRef _arg As (name As String, value As String), param As String) As Validation
+            Protected Friend Shared Function Parse_Key_(
+                                                         diagnostics As List(Of Diagnostic),
+                                                   ByRef SettingA As String,
+                                                   ByRef SettingB As String,
+                                                         _arg As (name As String, value As String),
+                                                         param As String
+                                                       ) As Validation
 
                 ' NOTE: despite what MSDN says, Dev11 resets '/keycontainer' in this case:
                 '
@@ -631,7 +827,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function HighEntropyVA(ByRef _highEntropyVA As Boolean, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function HighEntropyVA(
+                                                      ByRef _highEntropyVA As Boolean,
+                                                            _arg As (name As String, value As String)
+                                                          ) As Validation
                 If _arg.value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -645,7 +844,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function NoLogo(ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function NoLogo(
+                                               ByRef display As (Logo As Boolean, Help As Boolean, Version As Boolean),
+                                                     _arg As (name As String, value As String)
+                                                   ) As Validation
                 If _arg.value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -659,7 +861,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function OutputLevel(ByRef _outputLevel As OutputLevel, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function OutputLevel(
+                                                    ByRef _outputLevel As OutputLevel,
+                                                          _arg As (name As String, value As String)
+                                                        ) As Validation
                 If _arg.value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -672,7 +877,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function Quiet(diagnostics As List(Of Diagnostic), ByRef outputLevel As OutputLevel, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Quiet(
+                                                    diagnostics As List(Of Diagnostic),
+                                              ByRef outputLevel As OutputLevel,
+                                                    _arg As (name As String, value As String)
+                                                  ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "quiet")
                 Else
@@ -685,7 +894,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Verbose(diagnostics As List(Of Diagnostic), ByRef outputLevel As OutputLevel, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Verbose(
+                                                      diagnostics As List(Of Diagnostic),
+                                                ByRef outputLevel As OutputLevel,
+                                                      _arg As (name As String, value As String)
+                                                    ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, _arg.name.Substring(0, _arg.name.Length - 1))
                 Else
@@ -698,7 +911,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function UTF8_Output(diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function UTF8_Output(
+                                                          diagnostics As List(Of Diagnostic),
+                                                    ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind),
+                                                          _arg As (name As String, value As String)
+                                                        ) As Validation
                 If _arg.value IsNot Nothing Then
                     AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
                 End If
@@ -711,7 +928,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Main(diagnostics As List(Of Diagnostic), ByRef mainTypeName As String, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Main(
+                                                   diagnostics As List(Of Diagnostic),
+                                             ByRef mainTypeName As String,
+                                                   _arg As (name As String, value As String)
+                                                 ) As Validation
                 ' MSBuild can result in maintypename being passed in quoted when Cyrillic namespace was being used resulting
                 ' in ERRID.ERR_StartupCodeNotFound1 diagnostic.   The additional quotes cause problems and quotes are not a 
                 ' valid character in typename.
@@ -724,7 +945,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function SubSystemVersion(diagnostics As List(Of Diagnostic), ByRef ssVersion As SubsystemVersion, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function SubSystemVersion(
+                                                               diagnostics As List(Of Diagnostic),
+                                                         ByRef ssVersion As SubsystemVersion,
+                                                               _arg As (name As String, value As String)
+                                                             ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 If String.IsNullOrEmpty(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<version>")
@@ -739,7 +964,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Flags.Validation.Success
             End Function
 
-            Protected Friend Shared Function TouchedFiles(diagnostics As List(Of Diagnostic), ByRef touchedFilesPath As String, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function TouchedFiles(
+                                                           diagnostics As List(Of Diagnostic),
+                                                     ByRef touchedFilesPath As String,
+                                                           _arg As (name As String, value As String)
+                                                         ) As Validation
                 Dim unquoted = RemoveQuotesAndSlashes(_arg.value)
                 If (String.IsNullOrEmpty(unquoted)) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<touchedfiles>")
@@ -749,7 +978,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function NoSTDLib(ByRef _noStdLib As Boolean, value As String) As Validation
+            Protected Friend Shared Function NoSTDLib(
+                                                 ByRef _noStdLib As Boolean,
+                                                       value As String
+                                                     ) As Validation
                 If value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -758,7 +990,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function VBRuntime(ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean), value As String) As Validation
+            Protected Friend Shared Function VBRuntime(
+                                                  ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean),
+                                                        value As String
+                                                      ) As Validation
                 If value Is Nothing Then
                     _VBRuntime = (_Path:=Nothing, IncludeReference:=True, EmbedCore:=False)
                 Else
@@ -768,7 +1003,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function VBRuntime(ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean), ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function VBRuntime(
+                                                  ByRef _VBRuntime As (_Path As String, IncludeReference As Boolean, EmbedCore As Boolean),
+                                                        _arg As (name As String, value As String)
+                                                      ) As Validation
                 If _arg.value IsNot Nothing Then
                     Return Validation.Failure
                 Else
@@ -782,7 +1020,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Function
 
-            Protected Friend Shared Function Platform(diagnostics As List(Of Diagnostic), ByRef _platform As Platform, ByRef _arg As (name As String, value As String)) As Validation
+            Protected Friend Shared Function Platform(
+                                                       diagnostics As List(Of Diagnostic),
+                                                 ByRef _platform As Platform,
+                                                       _arg As (name As String, value As String)
+                                                     ) As Validation
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
                 If _arg.value IsNot Nothing Then
                     _platform = ParsePlatform(_arg.name, _arg.value, diagnostics)
@@ -792,7 +1034,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Validation.Success
             End Function
 
-            Protected Friend Shared Function Features(_features As List(Of String), value As String) As Validation
+            Protected Friend Shared Function Features(
+                                                       _features As List(Of String),
+                                                       value As String
+                                                     ) As Validation
                 If value Is Nothing Then
                     _features.Clear()
                 Else
@@ -800,31 +1045,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Return Validation.Success
             End Function
-
-
-            Private Shared Sub AddWarnings(d As IDictionary(Of String, ReportDiagnostic), kind As ReportDiagnostic, items As IEnumerable(Of String))
-                For Each id In items
-                    Dim existing As ReportDiagnostic
-                    If d.TryGetValue(id, existing) Then
-                        ' Rewrite the existing value with the latest one unless it is for /nowarn.
-                        If existing <> ReportDiagnostic.Suppress Then
-                            d(id) = kind
-                        End If
-                    Else
-                        d.Add(id, kind)
-                    End If
-                Next
-            End Sub
-
-            Private Shared Sub UnimplementedSwitch(diagnostics As IList(Of Diagnostic), switchName As String)
-                AddDiagnostic(diagnostics, ERRID.WRN_UnimplementedCommandLineSwitch, "/" + switchName)
-            End Sub
-
-
-
-            Private Shared Sub AddDiagnostic(diagnostics As IList(Of Diagnostic), errorCode As ERRID, ParamArray arguments As Object())
-                diagnostics.Add(Diagnostic.Create(VisualBasic.MessageProvider.Instance, CInt(errorCode), arguments))
-            End Sub
 
         End Class
 
