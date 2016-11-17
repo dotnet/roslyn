@@ -68,21 +68,21 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyPropertyAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyPropertyAccess), defaultValue: false,
+        public static PerLanguageOption<bool> QualifyPropertyAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyPropertyAccess), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyPropertyAccess"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyMethodAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyMethodAccess), defaultValue: false,
+        public static PerLanguageOption<bool> QualifyMethodAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyMethodAccess), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyMethodAccess"));
 
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
         /// </summary>
         [Obsolete]
-        public static PerLanguageOption<bool> QualifyEventAccess{ get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyEventAccess), defaultValue: false,
+        public static PerLanguageOption<bool> QualifyEventAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(QualifyEventAccess), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.QualifyEventAccess"));
 
         /// <summary>
@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// and the level to which those rules should be enforced.
         /// </summary>
         internal static PerLanguageOption<SerializableNamingStylePreferencesInfo> NamingPreferences { get; } = new PerLanguageOption<SerializableNamingStylePreferencesInfo>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: SerializableNamingStylePreferencesInfo.Default,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
+            storageLocations: new OptionStorageLocation[]{
+                new NamingEditorConfigStorageLocation(),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")});
     }
 }

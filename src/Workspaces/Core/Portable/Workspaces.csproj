@@ -370,6 +370,11 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingRule.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingStyle.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.SymbolSpec.cs" />
+    <Compile Include="Options\NamingEditorConfigStorageLocation.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Forwarders.cs" />

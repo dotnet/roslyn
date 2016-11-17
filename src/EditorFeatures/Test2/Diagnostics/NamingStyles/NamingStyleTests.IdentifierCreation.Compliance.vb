@@ -145,49 +145,49 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #Region "Firstupper"
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperComplianceWithZeroWords()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameCompliance(namingStyle, "")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperComplianceWithOneConformingWord()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameCompliance(namingStyle, "First")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperNoncomplianceWithOneNonconformingWord()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameNoncomplianceAndFixedNames(namingStyle, "first", "First")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperComplianceWithCorrectCapitalizationOfFirstCharacters()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameCompliance(namingStyle, "Firstupper")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperNoncomplianceWithNoncapitalizationOfFirstCharacter()
-            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameNoncomplianceAndFixedNames(namingStyle, "first_upper", "First_upper")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperNoncomplianceWithCapitalizationOfFirstCharacterOfSubsequentWords()
-            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameNoncomplianceAndFixedNames(namingStyle, "First_Upper", "First_upper")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperIgnoresSeeminglyNoncompliantPrefixOrSuffix()
-            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", prefix:="t_", suffix:="_T", capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", prefix:="t_", suffix:="_T", capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameCompliance(namingStyle, "t_First_upper_T")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperIgnoresSeeminglyNoncompliantWordSeparator()
-            Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.FirstUpper)
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.FirstWordUpper)
             TestNameCompliance(namingStyle, "First_T_upper")
         End Sub
 #End Region

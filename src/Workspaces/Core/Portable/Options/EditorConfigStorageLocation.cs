@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
@@ -15,7 +16,29 @@ namespace Microsoft.CodeAnalysis.Options
 
         private Func<string, Type, object> _parseValue;
 
+        private Func<IReadOnlyDictionary<string, object>, object> _parseDictionary;
+
         public object ParseValue(string s, Type type) => _parseValue(s, type);
+
+        public bool TryParseReadonlyDictionary(IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        {
+            if (_parseValue != null && KeyName != null)
+            {
+                if (allRawConventions.TryGetValue(KeyName, out object value))
+                {
+                    result = _parseValue(value.ToString(), type);
+                    return true;
+                }
+            }
+            else if (_parseDictionary != null)
+            {
+                result = _parseDictionary(allRawConventions);
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
 
         public EditorConfigStorageLocation(string keyName)
         {
@@ -48,6 +71,11 @@ namespace Microsoft.CodeAnalysis.Options
 
             // If we're explicitly given a parsing function we can throw away the type when parsing
             _parseValue = (s, type) => parseValue(s);
+        }
+
+        public EditorConfigStorageLocation(Func<IReadOnlyDictionary<string, object>, object> parseDictionary)
+        {
+            _parseDictionary = parseDictionary;
         }
     }
 }

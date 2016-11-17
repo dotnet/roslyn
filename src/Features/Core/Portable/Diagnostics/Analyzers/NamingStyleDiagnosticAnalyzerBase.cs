@@ -5,10 +5,11 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal abstract class NamingStyleDiagnosticAnalyzerBase : 
+    internal abstract class NamingStyleDiagnosticAnalyzerBase :
         AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -36,25 +37,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(CompilationStartAction);
+            => context.RegisterSymbolAction(SymbolAction, _symbolKinds);
 
-        private void CompilationStartAction(CompilationStartAnalysisContext context)
+        private void SymbolAction(SymbolAnalysisContext context)
         {
-            var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Workspace;
-            var optionSet = (context.Options as WorkspaceAnalyzerOptions)?.Workspace.Options;
-            var viewModel = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
-
-            if (viewModel != null)
+            var preferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
+            if (preferences == null)
             {
-                var preferencesInfo = viewModel.GetPreferencesInfo();
-                context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
-                    _symbolKinds);
+                return;
             }
-        }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
-        {
             if (preferences.TryGetApplicableRule(context.Symbol, out var applicableRule))
             {
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&

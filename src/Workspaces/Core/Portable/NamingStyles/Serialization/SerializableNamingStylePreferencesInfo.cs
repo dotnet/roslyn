@@ -22,6 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public List<SerializableNamingRule> NamingRules;
         private readonly static int s_serializationVersion = 3;
 
+
+        internal SerializableNamingStylePreferencesInfo(List<SymbolSpecification> symbolSpecifications, List<NamingStyle> namingStyles, List<SerializableNamingRule> namingRules)
+        {
+            SymbolSpecifications = symbolSpecifications;
+            NamingStyles = namingStyles;
+            NamingRules = namingRules;
+        }
+
         internal SerializableNamingStylePreferencesInfo()
         {
             SymbolSpecifications = new List<SymbolSpecification>();
@@ -169,6 +177,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public static bool operator !=(SerializableNamingStylePreferencesInfo left, SerializableNamingStylePreferencesInfo right)
             => !(left == right);
+
+        public override int GetHashCode()
+            => this.CreateXElement().ToString().GetHashCode();
 
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""3"">

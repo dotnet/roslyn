@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -77,11 +78,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            Debug.Assert(optionSet != null, "Unable to get options naming styles");
             if (optionSet == null)
             {
                 return;
             }
-            
+
             var semanticModel = context.SemanticModel;
             var language = semanticModel.Language;
 

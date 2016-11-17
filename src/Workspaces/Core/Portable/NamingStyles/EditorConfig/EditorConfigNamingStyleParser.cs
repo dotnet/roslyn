@@ -1,0 +1,68 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+{
+    internal static partial class EditorConfigNamingStyleParser
+    {
+        /// <remarks>
+        /// The dictionary we get from the VS editorconfig API uses the same dictionary object if there are no changes, so we can cache based on dictionary
+        /// </remarks>
+        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, SerializableNamingStylePreferencesInfo> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, object>, SerializableNamingStylePreferencesInfo>();
+        private static readonly object _cacheLock = new object();
+
+        public static SerializableNamingStylePreferencesInfo GetNamingStylesStringFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        {
+            if (!_cache.TryGetValue(allRawConventions, out var value))
+            {
+                lock (_cacheLock)
+                {
+                    if (!_cache.TryGetValue(allRawConventions, out value))
+                    {
+                        value = ParseDictionary(allRawConventions);
+                        _cache.Add(allRawConventions, value);
+                    }
+                }
+            }
+            return value;
+        }
+
+        public static SerializableNamingStylePreferencesInfo ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        {
+            var symbolSpecifications = new List<SymbolSpecification>();
+            var namingStyles = new List<NamingStyle>();
+            var namingRules = new List<SerializableNamingRule>();
+            var trimmedDictionary = allRawConventions
+                .Select(x => new KeyValuePair<string, object>(x.Key.Trim(), x.Value))
+                .ToDictionary(x => x.Key, x => x.Value);
+            foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
+            {
+                if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec))
+                {
+                    symbolSpecifications.Add(symbolSpec);
+                }
+
+                if (TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle))
+                {
+                    namingStyles.Add(namingStyle);
+                }
+
+                if (TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule))
+                {
+                    namingRules.Add(serializableNamingRule);
+                }
+            }
+
+            return new SerializableNamingStylePreferencesInfo(symbolSpecifications, namingStyles, namingRules);
+        }
+
+        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, object> allRawConventions)
+            => (from kvp in allRawConventions
+                where kvp.Key.Trim().StartsWith("dotnet_naming_rule.")
+                let nameSplit = kvp.Key.Split('.')
+                where nameSplit.Length == 3
+                select nameSplit[1])
+                .Distinct();
+    }
+}

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        public class SymbolKindOrTypeKind
+        public class SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>
         {
             public SymbolKind? SymbolKind { get; set; }
             public TypeKind? TypeKind { get; set; }
@@ -228,9 +229,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 return new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
             }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as SymbolKindOrTypeKind);
+            }
+
+            public bool Equals(SymbolKindOrTypeKind other)
+            {
+                return other != null &&
+                       this.SymbolKind == other.SymbolKind &&
+                       this.TypeKind == other.TypeKind;
+            }
+
+            public override int GetHashCode()
+            {
+                if (this.SymbolKind.HasValue && this.TypeKind.HasValue)
+                {
+                    return Hash.Combine(this.SymbolKind.Value.GetHashCode(), this.TypeKind.Value.GetHashCode());
+                }
+                else if (this.SymbolKind.HasValue)
+                {
+                    return this.SymbolKind.Value.GetHashCode();
+                }
+
+                return this.TypeKind.Value.GetHashCode();
+            }
         }
 
-        public class AccessibilityKind
+        public struct AccessibilityKind : IEquatable<AccessibilityKind>
         {
             public Accessibility Accessibility { get; set; }
 
@@ -253,9 +280,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 return new AccessibilityKind((Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value));
             }
+
+            public override bool Equals(object obj)
+            {
+                return Equals((AccessibilityKind)obj);
+            }
+
+            public bool Equals(AccessibilityKind other)
+            {
+                return this.Accessibility == other.Accessibility;
+            }
+
+            public static bool operator ==(AccessibilityKind left, AccessibilityKind right)
+                => left.Equals(right);
+
+            public static bool operator !=(AccessibilityKind left, AccessibilityKind right)
+                => !left.Equals(right);
+
+            public override int GetHashCode()
+            {
+                return this.Accessibility.GetHashCode();
+            }
         }
 
-        public class ModifierKind
+        public struct ModifierKind : IEquatable<ModifierKind>
         {
             public ModifierKindEnum ModifierKindWrapper;
 
@@ -309,11 +357,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public ModifierKind(DeclarationModifiers modifier)
             {
+                ModifierKindWrapper = default(ModifierKindEnum);
+                _modifier = default(DeclarationModifiers);
                 this.Modifier = modifier;
             }
 
             public ModifierKind(ModifierKindEnum modifierKind)
             {
+                _modifier = default(DeclarationModifiers);
                 ModifierKindWrapper = modifierKind;
             }
 
@@ -355,6 +406,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             internal static ModifierKind FromXElement(XElement modifierElement)
             {
                 return new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals((ModifierKind)obj);
+            }
+
+            public bool Equals(ModifierKind other)
+            {
+                return this.Modifier == other.Modifier;
+            }
+
+            public static bool operator ==(ModifierKind left, ModifierKind right)
+                => left.Equals(right);
+
+            public static bool operator !=(ModifierKind left, ModifierKind right)
+                => !left.Equals(right);
+
+            public override int GetHashCode()
+            {
+                return this.Modifier.GetHashCode();
             }
         }
         public enum ModifierKindEnum
