@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this); // || !hostDocument.IsOpen;
 
             var needsUndoDisabled = false;
             if (needsSave)
