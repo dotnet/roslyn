@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     internal static class OptionExtensions
     {
+#if false
         internal static IDictionary<OptionKey, object> With(this IDictionary<OptionKey, object> options, OptionKey option, object value)
         {
             options.Add(option, value);
@@ -19,5 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             options.Add(new OptionKey(option, language), value);
             return options;
         }
+#endif
     }
 }

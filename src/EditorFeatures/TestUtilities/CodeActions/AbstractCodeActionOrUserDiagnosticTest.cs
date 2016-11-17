@@ -534,25 +534,68 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : new[] { a }).ToList();
         }
 
-        protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)
+        protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => throw new Exception();
+
+        protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => throw new Exception();
+
+        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => throw new Exception();
+
+        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => throw new Exception();
+
+        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle, string language)
+            => throw new Exception();
+
+        protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => OptionsSet(SingleOption(option, codeStyle));
+
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => OptionsSet(SingleOption(option, codeStyle));
+
+        protected IDictionary<OptionKey, object> OptionsSet(
+            params (OptionKey key, object value)[] options)
+        {
+            var result = new Dictionary<OptionKey, object>();
+            foreach (var option in options)
+            {
+                result.Add(option.key, option.value);
+            }
+
+            return result;
+        }
+
+#if false
+        protected IDictionary<OptionKey, object> SingleOption(IOption option, CodeStyleOption<bool> notification)
             => Option(option, notification.Value, notification.Notification);
 
-        protected IDictionary<OptionKey, object> Option(IOption option, bool value, NotificationOption notification)
-            => OptionsSet(Tuple.Create(option, value, notification));
+        protected IDictionary<OptionKey, object> SingleOption(IOption option, bool value, NotificationOption notification)
+            => Options((option, value, notification));
 
-        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<IOption, bool, NotificationOption>[] optionsToSet)
+        protected IDictionary<OptionKey, object> Options(params (IOption option, bool enabled, NotificationOption notification)[] optionsToSet)
+            => Options(optionsToSet.Select(vt => (
+                optionKey: new OptionKey(vt.option, vt.option.IsPerLanguage ? GetLanguage() : null),
+                value: (object)new CodeStyleOption<bool>(vt.enabled, vt.notification))).ToArray());
+
+        protected IDictionary<OptionKey, object> Options(
+            params (OptionKey key, object value)[] optionsToSet)
         {
             var options = new Dictionary<OptionKey, object>();
-            foreach (var triple in optionsToSet)
+            foreach (var option in optionsToSet)
             {
-                var option = triple.Item1;
-                var value = triple.Item2;
-                var notification = triple.Item3;
-                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
-                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
+                options.Add(option.key, option.value);
             }
 
             return options;
         }
+#endif
     }
 }
