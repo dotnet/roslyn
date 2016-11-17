@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// in that they watch the running document table, tracking open/close events, and also file
     /// change events while the file is closed.
     /// </summary>
-    internal partial class DocumentProvider : ForegroundThreadAffinitizedObject
+    internal sealed partial class DocumentProvider : ForegroundThreadAffinitizedObject
     {
         #region Immutable readonly fields/properties that can be accessed from foreground or background threads - do not need locking for access.
         private readonly object _gate = new object();
@@ -391,8 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
                     if (textBuffer != null)
                     {
-                        this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
-                        _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
+                        OnNonRoslynBufferOpened_NoLock(textBuffer, docCookie);
                     }
                     else
                     {
@@ -412,6 +411,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
+        }
+
+        private void OnNonRoslynBufferOpened_NoLock(ITextBuffer textBuffer, uint docCookie)
+        {
+            AssertIsForeground();
+            Contract.ThrowIfNull(textBuffer);
+            Contract.ThrowIfNull(_documentTrackingServiceOpt);
+
+            this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
+            _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
         }
 
         private void OnBeforeDocumentWindowShow(IVsWindowFrame frame, uint docCookie, bool firstShow)
@@ -540,7 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected virtual void OnHierarchyChanged(uint docCookie, IVsHierarchy pHierOld, uint itemidOld, IVsHierarchy pHierNew, uint itemidNew, bool itemidChanged)
+        private void OnHierarchyChanged(uint docCookie, IVsHierarchy pHierOld, uint itemidOld, IVsHierarchy pHierNew, uint itemidNew, bool itemidChanged)
         {
             AssertIsForeground();
 
@@ -563,7 +572,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected virtual void OnDocumentMonikerChanged(uint docCookie, string oldMoniker, string newMoniker)
+        private void OnDocumentMonikerChanged(uint docCookie, string oldMoniker, string newMoniker)
         {
             AssertIsForeground();
 
@@ -719,8 +728,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (documentKeyOpt == null)
             {
                 // Non-Roslyn document.
-                this._documentTrackingServiceOpt.OnNonRoslynBufferOpened(textBuffer);
-                _docCookiesToNonRoslynDocumentBuffers.Add(docCookie, textBuffer);
+                OnNonRoslynBufferOpened_NoLock(textBuffer, docCookie);
             }
             else
             {
