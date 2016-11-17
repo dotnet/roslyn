@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Finds the references for the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
-        Task FindReferencesAsync(Document document, int position, FindReferencesContext context);
+        Task FindReferencesAsync(Document document, int position, FindUsagesContext context);
     }
 }

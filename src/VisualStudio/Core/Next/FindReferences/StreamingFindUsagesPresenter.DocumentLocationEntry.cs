@@ -23,15 +23,15 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal partial class StreamingFindReferencesPresenter
+    internal partial class StreamingFindUsagesPresenter
     {
         private class DocumentSpanEntry : Entry
         {
             private static readonly object s_boxedProjectGuid = Guid.Empty;
 
-            private readonly TableDataSourceFindReferencesContext _context;
+            private readonly TableDataSourceFindUsagesContext _context;
 
             private readonly DocumentSpan _documentSpan;
             private readonly bool _isDefinitionLocation;
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
 
             public DocumentSpanEntry(
-                TableDataSourceFindReferencesContext context,
+                TableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 _classifiedSpans = classifiedSpans;
             }
 
-            private StreamingFindReferencesPresenter Presenter => _context.Presenter;
+            private StreamingFindUsagesPresenter Presenter => _context.Presenter;
 
             private Document Document => _documentSpan.Document;
             private TextSpan SourceSpan => _documentSpan.SourceSpan;
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
             }
 
             private static IList<System.Windows.Documents.Inline> GetHighlightedInlines(
-                StreamingFindReferencesPresenter presenter,
+                StreamingFindUsagesPresenter presenter,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlight,
                 bool isDefinition)

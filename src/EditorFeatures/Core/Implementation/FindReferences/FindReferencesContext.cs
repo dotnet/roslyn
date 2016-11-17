@@ -2,16 +2,16 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal abstract class FindReferencesContext
+    internal abstract class FindUsagesContext
     {
         public virtual CancellationToken CancellationToken { get; }
 
-        protected FindReferencesContext()
+        protected FindUsagesContext()
         {
         }
 

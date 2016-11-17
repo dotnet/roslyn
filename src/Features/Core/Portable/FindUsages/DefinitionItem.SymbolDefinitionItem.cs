@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindReferences
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal partial class DefinitionItem
     {

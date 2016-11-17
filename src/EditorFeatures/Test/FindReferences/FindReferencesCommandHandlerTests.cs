@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
                     SpecializedCollections.SingletonEnumerable(findReferencesPresenter),
-                    SpecializedCollections.EmptyEnumerable<Lazy<IStreamingFindReferencesPresenter>>(),
+                    SpecializedCollections.EmptyEnumerable<Lazy<IStreamingFindUsagesPresenter>>(),
                     workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var textView = workspace.Documents[0].GetTextView();

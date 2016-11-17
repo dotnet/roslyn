@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
 
         public async Task FindReferencesAsync(
-            Document document, int position, FindReferencesContext context)
+            Document document, int position, FindUsagesContext context)
         {
             // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
             // we return to the caller's context.  that's so the call to 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
 
         private async Task<ProgressAdapter> FindReferencesWorkerAsync(
-            Document document, int position, FindReferencesContext context)
+            Document document, int position, FindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();

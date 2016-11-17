@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.FindReferences
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
     /// Information about a symbol's definition that can be displayed in an editor
