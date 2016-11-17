@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
 
             var oldOptions = OptionService.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info.CreateXElement().ToString());
+            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
             OptionService.SetOptions(newOptions);
             OptionLogger.Log(oldOptions, newOptions);
         }
@@ -174,14 +174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             base.LoadSettings();
 
-            var options = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            if (string.IsNullOrEmpty(options))
+            var preferencesInfo = this.OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            if (preferencesInfo == null)
             {
                 return;
             }
 
-            var namingPreferencesXml = this.OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            var preferencesInfo = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(namingPreferencesXml));
             _viewModel = new NamingStyleOptionPageViewModel(preferencesInfo);
             this.DataContext = _viewModel;
         }
