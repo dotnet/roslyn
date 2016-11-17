@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            // Local functions are always valid in a stmt context
+            // Local functions are always valid in a statement context
             if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
             {
                 return true;
