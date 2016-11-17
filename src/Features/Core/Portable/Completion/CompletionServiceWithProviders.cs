@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // All the contexts should be non-empty.
-            Debug.Assert(triggeredCompletionContexts.All(cc => cc.Items.Count > 0));
+            Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
 
             // See if there was a completion context provided that was exclusive.  If so, then
             // that's all we'll return.
@@ -288,6 +288,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false);
         }
 
+        private static bool HasAnyItems(CompletionContext cc)
+        {
+            return cc.Items.Count > 0 || cc.SuggestionModeItem != null;
+        }
+
         private async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
             OptionSet options, TextSpan defaultItemSpan,
@@ -303,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-            var nonEmptyContexts = completionContexts.Where(cc => cc.Items.Count > 0).ToImmutableArray();
+            var nonEmptyContexts = completionContexts.Where(HasAnyItems).ToImmutableArray();
             return nonEmptyContexts;
         }
 
