@@ -435,10 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
-                if (node.OperatorToken.Kind() == SyntaxKind.MinusToken
+                if (node.OperatorToken.IsKind(SyntaxKind.MinusToken)
                     && !right.HasAnyErrors
                     && left.Kind == BoundKind.BadExpression
-                    && left.Type.Kind == SymbolKind.NamedType)
+                    && left.Type != null
+                    && left.Type.Kind == SymbolKind.NamedType
+                    && node.Left != null
+                    && node.Left.IsKind(SyntaxKind.ParenthesizedExpression)
+                    && ((node.Left as ParenthesizedExpressionSyntax)?.Expression?.IsKind(SyntaxKind.SimpleMemberAccessExpression) ?? false))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }

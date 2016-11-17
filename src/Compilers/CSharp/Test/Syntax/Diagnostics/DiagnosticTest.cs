@@ -2204,6 +2204,39 @@ public class A
             });
         }
 
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is only emitted if the left side is (would be) a cast expression.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastNotEmitted()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var y = ((System.ConsoleColor)) - 1;
+        var z = System.ConsoleColor - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var x = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
+                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var x = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
+                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var x = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
+                // (6,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = System.ConsoleColor - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 17),
+            });
+        }
+
         #region Mocks
         internal class CustomErrorInfo : DiagnosticInfo
         {
