@@ -88,6 +88,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             SyntaxKind.StructDeclaration,
         };
-
     }
 }
