@@ -572,30 +572,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             return result;
         }
-
-#if false
-        protected IDictionary<OptionKey, object> SingleOption(IOption option, CodeStyleOption<bool> notification)
-            => Option(option, notification.Value, notification.Notification);
-
-        protected IDictionary<OptionKey, object> SingleOption(IOption option, bool value, NotificationOption notification)
-            => Options((option, value, notification));
-
-        protected IDictionary<OptionKey, object> Options(params (IOption option, bool enabled, NotificationOption notification)[] optionsToSet)
-            => Options(optionsToSet.Select(vt => (
-                optionKey: new OptionKey(vt.option, vt.option.IsPerLanguage ? GetLanguage() : null),
-                value: (object)new CodeStyleOption<bool>(vt.enabled, vt.notification))).ToArray());
-
-        protected IDictionary<OptionKey, object> Options(
-            params (OptionKey key, object value)[] optionsToSet)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            foreach (var option in optionsToSet)
-            {
-                options.Add(option.key, option.value);
-            }
-
-            return options;
-        }
-#endif
     }
 }
