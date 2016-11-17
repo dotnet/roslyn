@@ -62,15 +62,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(SyntaxAnnotation callsiteAnnotation, CancellationToken cancellationToken);
 
             protected abstract TExpression CreateCallSignature();
-            protected abstract TStatement CreateDeclarationStatement(
-                VariableInfo variable, TExpression initialValue, OptionSet options, CancellationToken cancellationToken);
+            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
             protected abstract IEnumerable<TStatement> GetInitialStatementsForMethodDefinitions();
             #endregion
-
-            private OptionSet Options => this.SemanticDocument.Document.Project.Solution.Options;
 
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
             {
@@ -193,8 +190,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     Contract.ThrowIfFalse(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
 
                     var declarationStatement = CreateDeclarationStatement(
-                        variable, CreateCallSignature(),
-                        this.Options, cancellationToken).WithAdditionalAnnotations(this.CallSiteAnnotation);
+                        variable, CreateCallSignature(), cancellationToken).WithAdditionalAnnotations(this.CallSiteAnnotation);
 
                     return statements.Concat(declarationStatement);
                 }
@@ -208,13 +204,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
-                var options = this.Options;
 
                 foreach (var variable in variables)
                 {
                     list.Add(CreateDeclarationStatement(
-                        variable, initialValue: null, options: options, 
-                        cancellationToken: cancellationToken));
+                        variable, initialValue: null, cancellationToken: cancellationToken));
                 }
 
                 return list;
@@ -224,7 +218,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
-                var options = this.Options;
 
                 foreach (var variable in this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
                 {
@@ -234,8 +227,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     list.Add(CreateDeclarationStatement(
-                        variable, initialValue: null, options: options,
-                        cancellationToken: cancellationToken));
+                        variable, initialValue: null, cancellationToken: cancellationToken));
                 }
 
                 return list;

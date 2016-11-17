@@ -353,7 +353,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Protected Overrides Function CreateDeclarationStatement(
                     variable As VariableInfo,
                     givenInitializer As ExpressionSyntax,
-                    options As OptionSet,
                     cancellationToken As CancellationToken) As StatementSyntax
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso

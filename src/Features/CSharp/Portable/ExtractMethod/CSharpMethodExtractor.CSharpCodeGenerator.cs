@@ -604,16 +604,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,
                 ExpressionSyntax initialValue,
-                OptionSet options,
                 CancellationToken cancellationToken)
             {
+                // Convert to 'var' if appropriate.  Note: because we're extracting out
+                // to a method, the initialValue will be a method-call.  Types are not
+                // apperant with method calls (i.e. as opposed to a 'new XXX()' expression,
+                // where the type is apperant).
                 var type = variable.GetVariableType(this.SemanticDocument);
-                var typeNode = type.GenerateTypeSyntax();
-
-                if (initialValue != null)
-                {
-                    typeNode = typeNode.ConvertToVarIfDesired(options);
-                }
+                var typeNode = initialValue == null
+                    ? type.GenerateTypeSyntax()
+                    : type.GenerateTypeSyntaxOrVar(
+                          this.SemanticDocument.Document.Project.Solution.Options,
+                          typeIsApperant: false);
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 

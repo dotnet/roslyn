@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             Document document, SyntaxEditor editor, Diagnostic diagnostic, 
             OptionSet options, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Recover the nodes we care about.
@@ -120,8 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             // get the type that we want to put in the out-var-decl based on the user's options.
-            // i.e. prefer 'out var' if that is what the user wants.
-            var newType = declaration.Type.ConvertToVarIfDesired(options);
+            // i.e. prefer 'out var' if that is what the user wants.  Note: if we have:
+            //
+            //      Method(out var x)
+            //
+            // Then the type is not-apperant, and we shoudl not use var if the user only wants
+            // it for apperant types
+
+            // Switching to 'var' changed semantics.  Just use the original type of the local.
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -130,11 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
-            if (semanticsChanged)
+            if (semanticsChanged && newType.IsVar)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
 
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.

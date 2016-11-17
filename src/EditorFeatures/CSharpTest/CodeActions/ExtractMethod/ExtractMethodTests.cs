@@ -20,11 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
             => new ExtractMethodCodeRefactoringProvider();
 
         private IDictionary<OptionKey, object> DoNotUseVarOption => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false));
-
-        private IDictionary<OptionKey, object> UseVarOption => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, true),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.FalseWithNoneEnforcement),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.FalseWithNoneEnforcement),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.FalseWithNoneEnforcement));
 
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1267,7 +1266,55 @@ class C
 
         return v;
     }
-}", options: UseVarOption); 
+}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseVar2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        [|var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }|]
+
+        Console.WriteLine(v);
+    }
+}",
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        string v = {|Rename:NewMethod|}(i);
+
+        Console.WriteLine(v);
+    }
+
+    private static string NewMethod(int i)
+    {
+        var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }
+
+        return v;
+    }
+}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
     }
 }

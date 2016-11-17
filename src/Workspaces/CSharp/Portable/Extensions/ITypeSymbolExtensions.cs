@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -133,5 +135,96 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
             }
         }
+
+        public static TypeSyntax GenerateTypeSyntaxOrVar(
+            this ITypeSymbol symbol, OptionSet options, bool typeIsApperant)
+        {
+            var useVar = IsVarDesired(symbol, options, typeIsApperant);
+
+            return useVar
+                ? SyntaxFactory.IdentifierName("var")
+                : symbol.GenerateTypeSyntax();
+        }
+
+        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
+        {
+            // If they want "var" whenever possible, then use "var".
+            var useImplicitTypeWherePossible = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
+            if (useImplicitTypeWherePossible)
+            {
+                return true;
+            }
+
+            // If they want it for intrinsics, and this is an intrinsic, then use var.
+            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+            if (useImplicitTypeForIntrinsicTypes &&
+                type?.IsSpecialType() == true)
+            {
+                return true;
+            }
+
+            // If they want it only for apperant types, then only use "var" if the caller
+            // says the type was apperant.
+            var useImplicitTypeWhereApperant = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
+            if (useImplicitTypeWhereApperant && typeIsApperant)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
+#if false
+        public static TypeSyntax ConvertToVarIfDesired(
+            this TypeSyntax type, Compilation compilation, OptionSet options, bool typeIsApperant)
+        {
+            var useVar = IsVarDesired(type, compilation, options, typeIsApperant);
+
+            return useVar
+                ? SyntaxFactory.IdentifierName("var").WithTriviaFrom(type)
+                : type;
+        }
+
+        private static bool IsVarDesired(TypeSyntax type, Compilation compilation, OptionSet options, bool typeIsApperant)
+        {
+            // If they want "var" whenever possible, then use "var".
+            var useImplicitTypeWherePossible = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
+            if (useImplicitTypeWherePossible)
+            {
+                return true;
+            }
+
+            // If they want it for intrinsics, and this is an intrinsic, then use var.
+            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+            if (useImplicitTypeForIntrinsicTypes)
+            {
+                if (TypeStyleHelper.IsPredefinedType(type))
+                {
+                    return true;
+                }
+
+                var annotation = type.GetAnnotations(SymbolAnnotation.Kind).FirstOrDefault();
+                if (annotation != null)
+                {
+                    var symbol = SymbolAnnotation.GetSymbol(annotation, compilation) as ITypeSymbol;
+                    if (symbol?.IsSpecialType() == true)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // If they want it only for apperant types, then only use "var" if the caller
+            // says the type was apperant.
+            var useImplicitTypeWhereApperant = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
+            if (useImplicitTypeWhereApperant && typeIsApperant)
+            {
+                return true;
+            }
+
+            return false;
+        }
+#endif
     }
 }
