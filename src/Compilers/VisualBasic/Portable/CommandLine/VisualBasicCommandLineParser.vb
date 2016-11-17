@@ -1089,13 +1089,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Sub ParseGlobalImports(value As String, globalImports As List(Of GlobalImport), errors As List(Of Diagnostic))
             Dim importsArray = ParseSeparatedPaths(value)
-
-            Threading.Tasks.Parallel.ForEach(importsArray, Sub(importNamespace)
-                                                               Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                                                               Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
-                                                               errors.AddRange(importDiagnostics)
-                                                               globalImports.Add(import)
-                                                           End Sub)
+            For Each importNamespace In importsArray
+                Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+                Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
+                errors.AddRange(importDiagnostics)
+                globalImports.Add(import)
+            Next
+            'Threading.Tasks.Parallel.ForEach(importsArray, Sub(importNamespace)
+            '                                                   Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            '                                                   Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
+            '                                                   errors.AddRange(importDiagnostics)
+            '                                                   globalImports.Add(import)
+            '                                               End Sub)
         End Sub
 
         ''' <summary>
@@ -1109,19 +1114,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(CaseInsensitiveComparison.Comparer)
 
             If symbols IsNot Nothing Then
-                Try
-                    Dim ret = Threading.Tasks.Parallel.ForEach(symbols, Sub(symbol As KeyValuePair(Of String, Object))
-                                                                            Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
+                For Each symbol In symbols
+                    Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
 
-                                                                            If constant Is Nothing Then
-                                                                                Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
-                                                                            End If
+                    If constant Is Nothing Then
+                        Throw New ArgumentException(String.Format(ErrorFactory.IdToString(ERRID.IDS_InvalidPreprocessorConstantType, Culture), symbol.Key, symbol.Value.GetType()), parameterName)
+                    End If
 
-                                                                            result(symbol.Key) = constant
-                                                                        End Sub)
-                Catch e As AggregateException
-                    Throw e.InnerException
-                End Try
+                    result(symbol.Key) = constant
+                Next
+
             End If
 
             Return result.ToImmutable()
@@ -1556,24 +1558,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The value for the option.</param>
         Private Shared Function ParseWarnings(value As String) As IEnumerable(Of String)
             Dim values = ParseSeparatedPaths(value)
-            Dim results As New System.Collections.Concurrent.ConcurrentBag(Of String)
-            Threading.Tasks.Parallel.ForEach(values, Sub(id As String)
-                                                         Dim number As UShort
-                                                         If UShort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, number) AndAlso
-                                                            (VisualBasic.MessageProvider.Instance.GetSeverity(number) = DiagnosticSeverity.Warning) AndAlso
-                                                            (VisualBasic.MessageProvider.Instance.GetWarningLevel(number) = 1) Then
-                                                             ' The id refers to a compiler warning.
-                                                             ' Only accept real warnings from the compiler not including the command line warnings.
-                                                             ' Also only accept the numbers that are actually declared in the enum.
-                                                             results.Add(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(CInt(number)))
-                                                         Else
-                                                             ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
-                                                             ' whenever unrecognized warning codes were supplied in /nowarn or 
-                                                             ' /warnaserror. We no longer generate a warning in such cases.
-                                                             ' Instead we assume that the unrecognized id refers to a custom diagnostic.
-                                                             results.Add(id)
-                                                         End If
-                                                     End Sub)
+            Dim results As New List(Of String)
+            For Each id In values
+                Dim number As UShort
+                If UShort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, number) AndAlso
+               (VisualBasic.MessageProvider.Instance.GetSeverity(number) = DiagnosticSeverity.Warning) AndAlso
+               (VisualBasic.MessageProvider.Instance.GetWarningLevel(number) = 1) Then
+                    ' The id refers to a compiler warning.
+                    ' Only accept real warnings from the compiler not including the command line warnings.
+                    ' Also only accept the numbers that are actually declared in the enum.
+                    results.Add(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(CInt(number)))
+                Else
+                    ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
+                    ' whenever unrecognized warning codes were supplied in /nowarn or 
+                    ' /warnaserror. We no longer generate a warning in such cases.
+                    ' Instead we assume that the unrecognized id refers to a custom diagnostic.
+                    results.Add(id)
+                End If
+            Next
+            'Dim results As New System.Collections.Concurrent.ConcurrentBag(Of String)
+            'Threading.Tasks.Parallel.ForEach(values, Sub(id As String)
+            '                                             Dim number As UShort
+            '                                             If UShort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, number) AndAlso
+            '                                                (VisualBasic.MessageProvider.Instance.GetSeverity(number) = DiagnosticSeverity.Warning) AndAlso
+            '                                                (VisualBasic.MessageProvider.Instance.GetWarningLevel(number) = 1) Then
+            '                                                 ' The id refers to a compiler warning.
+            '                                                 ' Only accept real warnings from the compiler not including the command line warnings.
+            '                                                 ' Also only accept the numbers that are actually declared in the enum.
+            '                                                 results.Add(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(CInt(number)))
+            '                                             Else
+            '                                                 ' Previous versions of the compiler used to report warnings (BC2026, BC2014)
+            '                                                 ' whenever unrecognized warning codes were supplied in /nowarn or 
+            '                                                 ' /warnaserror. We no longer generate a warning in such cases.
+            '                                                 ' Instead we assume that the unrecognized id refers to a custom diagnostic.
+            '                                                 results.Add(id)
+            '                                             End If
+            '                                         End Sub)
             Return results
         End Function
 
