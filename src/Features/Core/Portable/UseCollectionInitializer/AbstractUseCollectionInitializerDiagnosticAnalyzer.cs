@@ -89,8 +89,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return;
             }
 
-            var matches = Analyze(objectCreationExpression);
-            if (matches.Length == 0)
+            var analyzer = new Analyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
+                GetSyntaxFactsService(), objectCreationExpression);
+            var matches = analyzer.Analyze();
+            if (matches == null || matches.Value.Length == 0)
             {
                 return;
             }
@@ -103,16 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 objectCreationExpression.GetLocation(),
                 additionalLocations: locations));
 
-            FadeOutCode(context, optionSet, matches, locations);
-        }
-
-        public ImmutableArray<TExpressionStatementSyntax> Analyze(TObjectCreationExpressionSyntax objectCreationExpression)
-        {
-            var syntaxFacts = GetSyntaxFactsService();
-
-            var analyzer = new Analyzer(syntaxFacts, objectCreationExpression);
-            var matches = analyzer.Analyze();
-            return matches;
+            FadeOutCode(context, optionSet, matches.Value, locations);
         }
 
         private void FadeOutCode(
@@ -156,64 +149,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-
-        public Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
-            // could be arbitrarily nested, we have to make sure that any edits we make
-            // to one Collection-Initializer are seen by any higher ones.  In order to do this
-            // we actually process each object-creation-node, one at a time, rewriting
-            // the tree for each node.  In order to do this effectively, we use the '.TrackNodes'
-            // feature to keep track of all the object creation nodes as we make edits to
-            // the tree.  If we didn't do this, then we wouldn't be able to find the 
-            // second object-creation-node after we make the edit for the first one.
-            var workspace = document.Project.Solution.Workspace;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var originalRoot = editor.OriginalRoot;
-
-            var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
-            foreach (var diagnostic in diagnostics)
-            {
-                var objectCreation = (TObjectCreationExpressionSyntax)originalRoot.FindNode(
-                    diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                originalObjectCreationNodes.Push(objectCreation);
-            }
-
-            // We're going to be continually editing this tree.  Track all the nodes we
-            // care about so we can find them across each edit.
-            var currentRoot = originalRoot.TrackNodes(originalObjectCreationNodes);
-
-            while (originalObjectCreationNodes.Count > 0)
-            {
-                var originalObjectCreation = originalObjectCreationNodes.Pop();
-                var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
-
-                var matches = Analyze(objectCreation);
-
-                var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                var newStatement = statement.ReplaceNode(
-                    objectCreation,
-                    GetNewObjectCreation(objectCreation, matches)).WithAdditionalAnnotations(Formatter.Annotation);
-
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
-
-                subEditor.ReplaceNode(statement, newStatement);
-                foreach (var match in matches)
-                {
-                    subEditor.RemoveNode(match);
-                }
-
-                currentRoot = subEditor.GetChangedRoot();
-            }
-
-            editor.ReplaceNode(originalRoot, currentRoot);
-            return SpecializedTasks.EmptyTask;
-        }
-
-        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            TObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<TExpressionStatementSyntax> matches);
     }
 }

@@ -135,12 +135,12 @@
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
-    <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.Analyzer.cs" />
     <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCollectionInitializer\Analyzer.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\Analyzer.cs" />
