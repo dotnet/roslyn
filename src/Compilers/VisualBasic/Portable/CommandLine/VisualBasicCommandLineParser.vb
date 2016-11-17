@@ -191,6 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     hasSourceFiles = True
                     Continue For
                 End If
+                Dim _arg As (name As String, value As String) = (name, value)
 
                 Select Case name
                     Case "?", "help"
@@ -200,49 +201,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         result = Flags.Version(value, display)
 
                     Case "r", "reference"
-                        result = Flags.Reference(diagnostics, metadataReferences, name, value)
+                        result = Flags.Reference(diagnostics, metadataReferences, _arg)' name, value)
 
                     Case "a", "analyzer"
-                        result = Flags.Analyzer(diagnostics, analyzers, name, value)
+                        result = Flags.Analyzer(diagnostics, analyzers, _arg)
 
                     Case "d", "define"
-                        result = Flags.Define(diagnostics, defines, name, value)
+                        result = Flags.Define(diagnostics, defines, _arg)
 
                     Case "imports", "import"
-                        result = Flags.Imports(diagnostics, globalImports, name, value)
+                        result = Flags.Imports(diagnostics, globalImports, _arg)
 
                     Case "optionstrict"
                         result = Flags.Option_Strict(diagnostics, _option, value)
 
                     Case "optionstrict+", "optionstrict-"
-                        result = Flags.Option_Strict(diagnostics, _option, name, value)
+                        result = Flags.Option_Strict(diagnostics, _option, _arg)
 
                     Case "optioncompare"
                         result = Flags.Option_Compare(diagnostics, _option, value)
 
                     Case "optionexplicit", "optionexplicit+", "optionexplicit-"
-                        result = Flags.Option_Explicit(diagnostics, _option, name, value)
+                        result = Flags.Option_Explicit(diagnostics, _option, _arg)
 
                     Case "optioninfer", "optioninfer+", "optioninfer-"
-                        result = Flags.Option_Infer(diagnostics, _option, name, value)
+                        result = Flags.Option_Infer(diagnostics, _option, _arg)
 
                     Case "codepage"
-                        result = Flags.CodePage(diagnostics, codepage, name, value)
+                        result = Flags.CodePage(diagnostics, codepage, _arg)
 
                     Case "checksumalgorithm"
                         result = Flags.ChecksumAlgorithm(diagnostics, checksumAlgorithm, value)
 
                     Case "removeintchecks", "removeintchecks+", "removeintchecks-"
-                        result = Flags.RemoveIntChecks(diagnostics, checkOverflow, name, value)
+                        result = Flags.RemoveIntChecks(diagnostics, checkOverflow, _arg)
 
                     Case "sqmsessionguid"
-                        result = Flags.SQMSessionGuid(diagnostics, name, value)
+                        result = Flags.SQMSessionGuid(diagnostics, _arg)
 
                     Case "preferreduilang"
-                        result = Flags.PreferredUILang(diagnostics, preferredUILang, name, value)
+                        result = Flags.PreferredUILang(diagnostics, preferredUILang, _arg)
 
                     Case "lib", "libpath", "libpaths"
-                        result = Flags.LibPath(diagnostics, Paths, name, value)
+                        result = Flags.LibPath(diagnostics, Paths, _arg)
 
 #If DEBUG Then
                     Case "attachdebugger"
@@ -261,10 +262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsScriptRunner Then
                     Select Case name
                         Case "i", "i+", "i-"
-                            result = Flags.Interactive(diagnostics, interactiveMode, name, value)
+                            result = Flags.Interactive(diagnostics, interactiveMode, _arg)
 
                         Case "loadpath", "loadpaths"
-                            result = Flags.LoadPaths(diagnostics, Paths, name, value)
+                            result = Flags.LoadPaths(diagnostics, Paths, _arg)
 
                     End Select
 
@@ -272,22 +273,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case name
                         Case "out"
-                            result = Parse_Out(baseDirectory, diagnostics, Output, name, value)
+                            result = Parse_Out(baseDirectory, diagnostics, Output, _arg)
 
                         Case "t", "target"
-                            result = Flags.Target(diagnostics, Output, name, value)
+                            result = Flags.Target(diagnostics, Output, _arg)
 
                         Case "moduleassemblyname"
-                            result = Flags.ModuleAssemblyName(diagnostics, moduleAssemblyName, arg, value)
+                            result = Flags.ModuleAssemblyName(diagnostics, moduleAssemblyName, _arg)
 
                         Case "rootnamespace"
                             result = Flags.RootNamespace(diagnostics, rootNamespace, value)
 
                         Case "doc"
-                            result = Parse_Doc(baseDirectory, GenerateFileNameForDocComment, diagnostics, _Documentation, value)
+                            result = Parse_Doc(baseDirectory, GenerateFileNameForDocComment, diagnostics, _Documentation, _arg)
 
                         Case "doc+", "doc-"
-                            result = Parse_Doc(GenerateFileNameForDocComment, diagnostics, _Documentation, name, value)
+                            result = Parse_Doc(GenerateFileNameForDocComment, diagnostics, _Documentation, _arg)
 
                         Case "errorlog"
                             result = Parse_ErrorLog(baseDirectory, diagnostics, errorLogPath, value)
@@ -309,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.AddModule(diagnostics, metadataReferences, value)
 
                         Case "l", "link"
-                            result = Flags.Link(diagnostics, metadataReferences, name, value)
+                            result = Flags.Link(diagnostics, metadataReferences, _arg)
 
                         Case "win32resource"
                             result = Flags.Win32.Resource(diagnostics, win32ResourceFile, value)
@@ -324,10 +325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.Win32.NoManifest(noWin32Manifest, value)
 
                         Case "res", "resource"
-                            result = Flags.Resource(baseDirectory, diagnostics, managedResources, name, value)
+                            result = Flags.Resource(baseDirectory, diagnostics, managedResources, _arg)
 
                         Case "linkres", "linkresource"
-                            result = Flags.LinkResource(baseDirectory, diagnostics, managedResources, name, value)
+                            result = Flags.LinkResource(baseDirectory, diagnostics, managedResources, _arg)
 
                         Case "sourcelink"
                             result = Parse_SourceLink(baseDirectory, diagnostics, sourceLink, value)
@@ -336,16 +337,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.Debug(diagnostics, emitPdb, debugInformationFormat, value)
 
                         Case "debug+", "debug-"
-                            result = Flags.Debug(diagnostics, emitPdb, name, value)
+                            result = Flags.Debug(diagnostics, emitPdb, _arg)
 
                         Case "optimize", "optimize+", "optimize-"
-                            result = Flags.Optimize(diagnostics, optimize, name, value)
+                            result = Flags.Optimize(diagnostics, optimize, _arg)
 
                         Case "parallel", "p", "parallel+", "p+", "parallel-", "p-"
-                            result = Flags.Parallel(diagnostics, concurrentBuild, name, value)
+                            result = Flags.Parallel(diagnostics, concurrentBuild, _arg)
 
                         Case "deterministic", "deterministic+", "deterministic-"
-                            result = Flags.Deterministic(diagnostics, deterministic, name, value)
+                            result = Flags.Deterministic(diagnostics, deterministic, _arg)
 
                         Case "warnaserror", "warnaserror+"
                             result = Flags.WarnAsError(generalDiagnosticOption, specificDiagnosticOptionsFromRuleSet, specificDiagnosticOptionsFromGeneralArguments, specificDiagnosticOptionsFromSpecificArguments, value)
@@ -360,34 +361,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.LangVersion(diagnostics, languageVersion, value)
 
                         Case "delaysign", "delaysign+", "delaysign-"
-                            result = Flags.DelaySign(diagnostics, delaySignSetting, name, value)
+                            result = Flags.DelaySign(diagnostics, delaySignSetting, _arg)
 
                         Case "publicsign", "publicsign+", "publicsign-"
-                            result = Flags.PublicSign(diagnostics, publicSign, name, value)
+                            result = Flags.PublicSign(diagnostics, publicSign, _arg)
 
                         Case "keycontainer"
-                            result = Flags.KeyContainer(diagnostics, keyFileSetting, keyContainerSetting, name, value)
+                            result = Flags.KeyContainer(diagnostics, keyFileSetting, keyContainerSetting, _arg)
 
                         Case "keyfile"
-                            result = Flags.KeyFile(diagnostics, keyFileSetting, keyContainerSetting, name, value)
+                            result = Flags.KeyFile(diagnostics, keyFileSetting, keyContainerSetting, _arg)
 
                         Case "highentropyva", "highentropyva+", "highentropyva-"
-                            result = Flags.HighEntropyVA(highEntropyVA, name, value)
+                            result = Flags.HighEntropyVA(highEntropyVA, _arg)
 
                         Case "nologo", "nologo+", "nologo-"
-                            result = Flags.NoLogo(display, name, value)
+                            result = Flags.NoLogo(display, _arg)
 
                         Case "quiet", "verbose"
-                            result = Flags.OutputLevel(outputLevel, name, value)
+                            result = Flags.OutputLevel(outputLevel, _arg)
 
                         Case "quiet+", "quiet-"
-                            result = Flags.Quiet(diagnostics, outputLevel, name, value)
+                            result = Flags.Quiet(diagnostics, outputLevel, _arg)
 
                         Case "verbose-", "verbose+"
-                            result = Flags.Verbose(diagnostics, outputLevel, name, value)
+                            result = Flags.Verbose(diagnostics, outputLevel, _arg)
 
                         Case "utf8output", "utf8output+", "utf8output-"
-                            result = Flags.UTF8_Output(diagnostics, Output, name, value)
+                            result = Flags.UTF8_Output(diagnostics, Output, _arg)
 
                         Case "noconfig"
                             ' It is already handled (see CommonCommandLineCompiler.cs).
@@ -409,13 +410,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.Validation.Success
 
                         Case "m", "main"
-                            result = Flags.Main(diagnostics, mainTypeName, name, value)
+                            result = Flags.Main(diagnostics, mainTypeName, _arg)
 
                         Case "subsystemversion"
-                            result = Flags.SubSystemVersion(diagnostics, ssVersion, name, value)
+                            result = Flags.SubSystemVersion(diagnostics, ssVersion, _arg)
 
                         Case "touchedfiles"
-                            result = Flags.TouchedFiles(diagnostics, touchedFilesPath, name, value)
+                            result = Flags.TouchedFiles(diagnostics, touchedFilesPath, _arg)
 
                         Case "fullpaths", "errorendlocation"
                             UnimplementedSwitch(diagnostics, name)
@@ -435,10 +436,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.VBRuntime(_VBRuntime, value)
 
                         Case "vbruntime+", "vbruntime-", "vbruntime*"
-                            result = Flags.VBRuntime(_VBRuntime, name, value)
+                            result = Flags.VBRuntime(_VBRuntime, _arg)
 
                         Case "platform"
-                            result = Flags.Platform(diagnostics, platform, name, value)
+                            result = Flags.Platform(diagnostics, platform, _arg)
 
                         Case "filealign"
                             fileAlignment = ParseFileAlignment(name, RemoveQuotesAndSlashes(value), diagnostics)
@@ -455,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             result = Flags.Features(features, value)
 
                         Case "additionalfile"
-                            result = Parse_AdditionalFile(baseDirectory, diagnostics, additionalFiles, name, value)
+                            result = Parse_AdditionalFile(baseDirectory, diagnostics, additionalFiles, _arg)
 
                         Case "embed"
                             result = Parse_Embed(baseDirectory, diagnostics, embeddedFiles, embedAllSourceFiles, value)
@@ -702,18 +703,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             }
         End Function
 
-        Private Function Parse_Out(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), name As String, value As String) As Flags.Validation
-            If String.IsNullOrWhiteSpace(value) Then
+        Private Function Parse_Out(baseDirectory As String, diagnostics As List(Of Diagnostic), ByRef Output As (UTF8 As Boolean, FileName As String, Directory As String, Kind As OutputKind), ByRef _arg As (name As String, value As String)) As Flags.Validation
+            If String.IsNullOrWhiteSpace(_arg.value) Then
                 ' When the value has " " (e.g., "/out: ")
                 ' the Roslyn VB compiler reports "BC 2006 : option 'out' requires ':<file>',
                 ' While the Dev11 VB compiler reports "BC2012 : can't open ' ' for writing,
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<file>")
             Else
                 ' Even when value is neither null or whitespace, the output file name still could be invalid. (e.g., "/out:sub\ ")
                 ' While the Dev11 VB compiler reports "BC2012: can't open 'sub\ ' for writing,
                 ' the Roslyn VB compiler reports "BC2032: File name 'sub\ ' is empty, contains invalid characters, ..."
                 ' which is generated by the following ParseOutputFile.
-                ParseOutputFile(value, diagnostics, baseDirectory, Output.FileName, Output.Directory)
+                ParseOutputFile(_arg.value, diagnostics, baseDirectory, Output.FileName, Output.Directory)
             End If
             Return Flags.Validation.Success
         End Function
@@ -743,15 +744,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     GenerateFileNameForDocComment As String,
                                     diagnostics As List(Of Diagnostic),
                               ByRef _Documentation As (_Path As String, ParseComments As Boolean),
-                                    value As String
+                                   ByRef _arg As (name As String, value As String)
                                   ) As Flags.Validation
-            value = RemoveQuotesAndSlashes(value)
+            _arg.value = RemoveQuotesAndSlashes(_arg.value)
             _Documentation.ParseComments = True
-            If value Is Nothing Then
+            If _arg.value Is Nothing Then
                 ' Illegal in C#, but works in VB
                 _Documentation._Path = GenerateFileNameForDocComment
             Else
-                Dim unquoted = RemoveQuotesAndSlashes(value)
+                Dim unquoted = RemoveQuotesAndSlashes(_arg.value)
                 If unquoted.Length = 0 Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "doc", ":<file>")
                 Else
@@ -769,13 +770,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            GenerateFileNameForDocComment As String,
                                            diagnostics As List(Of Diagnostic),
                                      ByRef _Documentation As (_Path As String, ParseComments As Boolean),
-                                           name As String,
-                                           value As String
+                                         ByRef _arg As (name As String, value As String)
                                          ) As Flags.Validation
-            If value IsNot Nothing Then
+            If _arg.value IsNot Nothing Then
                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
             End If
-            Dim ch = name.Last
+            Dim ch = _arg.name.Last
             Select Case ch
                 Case "+"c
                     ' Seems redundant with default values, but we need to clobber any preceding /doc switches
@@ -790,12 +790,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
-        Private Function Parse_AdditionalFile(baseDirectory As String, diagnostics As List(Of Diagnostic), additionalFiles As List(Of CommandLineSourceFile), name As String, value As String) As Flags.Validation
-            value = RemoveQuotesAndSlashes(value)
-            If String.IsNullOrEmpty(value) Then
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+        Private Function Parse_AdditionalFile(baseDirectory As String, diagnostics As List(Of Diagnostic), additionalFiles As List(Of CommandLineSourceFile), ByRef _arg As (name As String, value As String)) As Flags.Validation
+            _arg.value = RemoveQuotesAndSlashes(_arg.value)
+            If String.IsNullOrEmpty(_arg.value) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<file_list>")
             Else
-                additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                additionalFiles.AddRange(ParseSeparatedFileArgument(_arg.value, baseDirectory, diagnostics))
             End If
             Return Flags.Validation.Success
         End Function
@@ -996,17 +996,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Select(Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Assembly, embedInteropTypes:=embedInteropTypes)))
         End Function
 
-        Private Shared Function ParseAnalyzers(name As String, value As String, diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
-            If String.IsNullOrEmpty(value) Then
+        Private Shared Function ParseAnalyzers(ByRef _arg As (name As String, value As String), diagnostics As IList(Of Diagnostic)) As IEnumerable(Of CommandLineAnalyzerReference)
+            If String.IsNullOrEmpty(_arg.value) Then
                 ' TODO: localize <file_list>?
-                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, ":<file_list>")
                 Return SpecializedCollections.EmptyEnumerable(Of CommandLineAnalyzerReference)()
             End If
 
-            Return ParseSeparatedPaths(value).
-                   Select(Function(path)
-                              Return New CommandLineAnalyzerReference(path)
-                          End Function)
+            Return ParseSeparatedPaths(_arg.value).
+                   Select(Function(path) New CommandLineAnalyzerReference(path))
         End Function
 
         ' See ParseCommandLine in vbc.cpp.
