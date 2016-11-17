@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -8,6 +9,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal interface IDeclarationInfo
     {
-        IReadOnlyList<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
+        ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
     }
 }
