@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nodeKind = node.Kind;
             if (nodeKind == BoundKind.OutVariablePendingInference ||
                 nodeKind == BoundKind.OutDeconstructVarPendingInference ||
-                nodeKind == BoundKind.DiscardedExpression)
+                (nodeKind == BoundKind.DiscardedExpression && (object)node.Type == null))
             {
                 // Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration.
                 okToDowngradeToNeither = false;
@@ -2972,9 +2972,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
+            var argType = argument.Type;
             if (argument.Kind == BoundKind.OutVariablePendingInference ||
                 argument.Kind == BoundKind.OutDeconstructVarPendingInference ||
-                argument.Kind == BoundKind.DiscardedExpression)
+                (argument.Kind == BoundKind.DiscardedExpression && (object)argType == null))
             {
                 Debug.Assert(argRefKind != RefKind.None);
 
@@ -2989,7 +2990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conversion;
             }
 
-            var argType = argument.Type;
             if ((object)argType != null && Conversions.HasIdentityConversion(argType, parameterType))
             {
                 return Conversion.Identity;

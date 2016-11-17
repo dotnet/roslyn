@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
             {
-                var temps = ArrayBuilder<LocalSymbol>.GetInstance(1);
-                BoundLocal discard = MakeTempForDiscardedExpression((BoundDiscardedExpression)loweredPattern.VariableAccess, temps);
+                LocalSymbol temp;
+                BoundLocal discard = MakeTempForDiscardedExpression((BoundDiscardedExpression)loweredPattern.VariableAccess, out temp);
 
-                return _factory.Sequence(temps.ToImmutableAndFree(),
+                return _factory.Sequence(ImmutableArray.Create(temp),
                          sideEffects: ImmutableArray<BoundExpression>.Empty,
                          result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
             }

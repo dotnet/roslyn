@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var right = node.Right;
 
             bool isDeclaration = node.IsDeconstructionDeclaration();
-            Debug.Assert(isDeclaration || DeconstructionIsAssignment(left));
+            Debug.Assert(isDeclaration || !ContainsDeclarations(left));
             return BindDeconstruction(node, left, right, diagnostics, isDeclaration);
         }
 
@@ -45,20 +45,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        /// <summary>
-        /// Checks that the expression doesn't contain any declaration expressions.
-        /// </summary>
-        private bool DeconstructionIsAssignment(ExpressionSyntax expression)
+        private static bool ContainsDeclarations(ExpressionSyntax expression)
         {
             switch (expression.Kind())
             {
                 case SyntaxKind.DeclarationExpression:
-                    return false;
+                    return true;
                 case SyntaxKind.TupleExpression:
                     var tuple = (TupleExpressionSyntax)expression;
-                    return tuple.Arguments.All(a => DeconstructionIsAssignment(a.Expression));
+                    return tuple.Arguments.Any(a => ContainsDeclarations(a.Expression));
                 default:
-                    return true;
+                    return false;
             }
         }
 

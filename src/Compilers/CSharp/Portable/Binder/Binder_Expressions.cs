@@ -1174,9 +1174,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Is this is an _ identifier in a context where discards are allowed?
         /// </summary>
-        private bool FallBackOnDiscard(SimpleNameSyntax node, DiagnosticBag diagnostics)
+        private static bool FallBackOnDiscard(SimpleNameSyntax node, DiagnosticBag diagnostics)
         {
-            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            if (!node.IsKind(SyntaxKind.IdentifierName) || node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
             {
                 return false;
             }
@@ -1185,15 +1185,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
         }
 
-        private bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
+        private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
         {
             Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
 
             CSharpSyntaxNode parent = node.Parent;
-            return parent.Kind() == SyntaxKind.Argument &&
-                ((ArgumentSyntax)parent)?.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
+            return parent?.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword &&
                 (parent = parent.Parent)?.Kind() == SyntaxKind.ArgumentList &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.InvocationExpression;
+                ((parent = parent.Parent)?.Kind() == SyntaxKind.InvocationExpression ||
+                    parent?.Kind() == SyntaxKind.ObjectCreationExpression ||
+                    parent?.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                    parent?.Kind() == SyntaxKind.ThisConstructorInitializer);
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -2123,10 +2126,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
         }
 
-        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax decl, DiagnosticBag diagnostics)
+        private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
-            TypeSyntax typeSyntax = decl.Type;
-            VariableDesignationSyntax designation = decl.Designation;
+            TypeSyntax typeSyntax = declarationExpression.Type;
+            VariableDesignationSyntax designation = declarationExpression.Designation;
             switch (designation.Kind())
             {
                 case SyntaxKind.DiscardedDesignation:
@@ -2140,23 +2143,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundDiscardedExpression((DiscardedDesignationSyntax)designation, declType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
-                    return BindOutVariableArgument((SingleVariableDesignationSyntax)designation, typeSyntax, decl, diagnostics);
+                    return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
         }
 
-        private BoundExpression BindOutVariableArgument(
-             SingleVariableDesignationSyntax designation,
-             TypeSyntax typeSyntax,
+        private BoundExpression BindOutVariableDeclarationArgument(
              DeclarationExpressionSyntax declarationExpression,
              DiagnosticBag diagnostics)
         {
             bool isVar;
+            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            TypeSyntax typeSyntax = declarationExpression.Type;
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
-
             if ((object)localSymbol != null)
             {
                 if (InConstructorInitializer || InFieldInitializer)

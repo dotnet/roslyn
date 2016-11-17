@@ -745,6 +745,16 @@ public class Cls
                     .Where(p => IsOutVarDeclaration(p) && p.Identifier().ValueText == name);
         }
 
+        private static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+        }
+
         private static bool IsOutVarDeclaration(DeclarationExpressionSyntax p)
         {
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
@@ -17680,8 +17690,19 @@ public class Cls
 {
     public static void Main()
     {
-        var list = new Dictionary<int, long> { [out var x1] = 3 };
-        System.Console.WriteLine(x1);
+        var list = new Dictionary<int, long>
+        {
+            [out var x1] = 3,
+            [out var _] = 4,
+            [out _] = 5
+        };
+        System.Console.Write(x1);
+        System.Console.Write(_);
+
+        {
+            int _ = 1;
+            var list2 = new Dictionary<int, long> { [out _] = 6 };
+        }
     }
 }";
             var compilation = CreateCompilationWithMscorlib(text,
@@ -17695,12 +17716,24 @@ public class Cls
             VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
-                // (7,53): error CS1615: Argument 1 may not be passed with the 'out' keyword
-                //         var list = new Dictionary<int, long> { [out var x1] = 3 };
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(7, 53),
-                // (7,53): error CS0165: Use of unassigned local variable 'x1'
-                //         var list = new Dictionary<int, long> { [out var x1] = 3 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(7, 53)
+                // (9,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //             [out var x1] = 3,
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(9, 18),
+                // (10,22): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //             [out var _] = 4,
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(10, 22),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             [out _] = 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (14,30): error CS0103: The name '_' does not exist in the current context
+                //         System.Console.Write(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 30),
+                // (20,22): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //                 [out _] = 6
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(20, 22),
+                // (9,18): error CS0165: Use of unassigned local variable 'x1'
+                //             [out var x1] = 3,
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(9, 18)
                 );
         }
 
@@ -27314,11 +27347,21 @@ public class C
             var tree = comp.Compilation.SyntaxTrees.Single();
             var model = comp.Compilation.GetSemanticModel(tree);
 
-            // PROTOTYPE(wildcards) Add semantic validation
-            //var x1Decl = GetOutVarDeclaration(tree, "x1");
-            //var x1Ref = GetReference(tree, "x1");
-            //VerifyModelForOutVar(model, x1Decl, x1Ref);
-            //Assert.Equal("System.String", model.GetTypeInfo(x1Ref).Type.ToTestDisplayString());
+            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("int _", declaration1.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+
+            var discard3 = GetDiscardIdentifiers(tree).First();
+            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // PROTOTYPE(wildcards): returns null
+            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
 
             comp.VerifyIL("C.Main()", @"
 {
@@ -27334,7 +27377,245 @@ public class C
   IL_0015:  ret
 }
 ");
+        }
 
+        [Fact]
+        public void NamedOutVarDiscard()
+        {
+            var source =
+@"
+public class C
+{
+    static void Main()
+    {
+        M(y: out string _, x: out int _);
+        M(y: out var _, x: out var _);
+        M(y: out _, x: out _);
+    }
+
+    static void M(out int x, out string y) { x = 1; y = ""hello""; System.Console.Write(""M""); }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "MMM");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVarDiscardInCtor()
+        {
+            var source =
+    @"
+public class C
+{
+    public C(out int i) { i = 1; System.Console.Write(""C""); }
+    static void Main()
+    {
+        new C(out int i1);
+        new C(out int _);
+        new C(out var _);
+        new C(out _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "CCCC");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).ElementAt(0);
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("int _", declaration1.ToString());
+            //Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            //Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+
+            var discard3 = GetDiscardIdentifiers(tree).First();
+            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // PROTOTYPE(wildcards): returns null
+            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void OutVarDiscardInCtorInitializer()
+        {
+            var source =
+    @"
+public class C
+{
+    public C(out int i) { i = 1; System.Console.Write(""C ""); }
+    static void Main()
+    {
+        new Derived2(out int i2);
+        new Derived3(out int i3);
+        new Derived4();
+    }
+}
+public class Derived2 : C
+{
+    public Derived2(out int i) : base(out int _) { i = 2; System.Console.Write(""Derived2 ""); }
+}
+public class Derived3 : C
+{
+    public Derived3(out int i) : base(out var _) { i = 3; System.Console.Write(""Derived3 ""); }
+}
+public class Derived4 : C
+{
+    public Derived4(out int i) : base(out _) { i = 4; }
+    public Derived4() : this(out _) { System.Console.Write(""Derived4""); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics( );
+            CompileAndVerify(comp, expectedOutput: "C Derived2 C Derived3 C Derived4");
+        }
+
+        [Fact]
+        public void DiscardNotRecognizedInOtherScenarios()
+        {
+            var source =
+    @"
+public class C
+{
+    void M<T>()
+    {
+        _.ToString();
+        M(_);
+        _<T>.ToString();
+        (_<T>, _<T>) = (1, 2);
+        M<_>();
+        new C() { _ = 1 };
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0103: The name '_' does not exist in the current context
+                //         _.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 9),
+                // (7,11): error CS0103: The name '_' does not exist in the current context
+                //         M(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(7, 11),
+                // (8,9): error CS0103: The name '_' does not exist in the current context
+                //         _<T>.ToString();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_<T>").WithArguments("_").WithLocation(8, 9),
+                // (9,10): error CS0103: The name '_' does not exist in the current context
+                //         (_<T>, _<T>) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_<T>").WithArguments("_").WithLocation(9, 10),
+                // (9,16): error CS0103: The name '_' does not exist in the current context
+                //         (_<T>, _<T>) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_<T>").WithArguments("_").WithLocation(9, 16),
+                // (10,11): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         M<_>();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(10, 11),
+                // (11,19): error CS0117: 'C' does not contain a definition for '_'
+                //         new C() { _ = 1 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "_").WithArguments("C", "_").WithLocation(11, 19)
+                );
+        }
+
+        [Fact]
+        public void TypedDiscardInMethodTypeInference()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M<T>(out T t)
+    {
+        t = default(T);
+        System.Console.Write(t.GetType().ToString());
+    }
+    static void Main()
+    {
+        M(out int _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "System.Int32");
+        }
+
+        [Fact]
+        public void UntypedDiscardInMethodTypeInference()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M<T>(out T t)
+    {
+        t = default(T);
+    }
+    static void Main()
+    {
+        M(out var _);
+        M(out _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'C.M<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(out var _);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(out T)").WithLocation(10, 9),
+                // (11,9): error CS0411: The type arguments for method 'C.M<T>(out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(out _);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(out T)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void PickOverloadWithTypedDiscard()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M(out object x) { x = 1; }
+    static void M(out int x) { x = 2; System.Console.Write(""int returning M""); }
+    static void Main()
+    {
+        M(out int _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "int returning M");
+        }
+
+        [Fact]
+        public void CannotPickOverloadWithUntypedDiscard()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M(out object x) { x = 1; }
+    static void M(out int x) { x = 2; System.Console.Write(""int returning M""); }
+    static void Main()
+    {
+        M(out var _);
+        M(out _);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
+                //         M(out var _);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(8, 9),
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
+                //         M(out _);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(9, 9)
+                );
         }
     }
 

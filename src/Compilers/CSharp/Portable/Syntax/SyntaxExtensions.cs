@@ -380,30 +380,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parent = expr.Parent;
                 if (parent == null) { return null; }
 
-                if (parent.Kind() == SyntaxKind.Argument)
+                switch (parent.Kind())
                 {
-                    if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
-                    {
-                        expr = (TupleExpressionSyntax)parent.Parent;
-                        continue;
-                    }
-                    else
-                    {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
                         return null;
-                    }
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
                 }
-                else if (parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                        (object)((AssignmentExpressionSyntax)parent).Left == expr)
-                {
-                    return parent;
-                }
-                else if (parent.Kind() == SyntaxKind.ForEachVariableStatement &&
-                    (object)((ForEachVariableStatementSyntax)parent).Variable == expr)
-                {
-                    return parent;
-                }
-
-                return null;
             }
         }
     }

@@ -1724,12 +1724,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private static BoundExpression InferTypeForDiscard(BoundDiscardedExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundExpression InferTypeForDiscard(BoundDiscardedExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             if (op2.Type == null)
             {
-                Error(diagnostics, ErrorCode.ERR_DiscardVariableAssignedBadValue, op1.Syntax, op2.Syntax);
-                return new BoundDiscardedExpression(op2.Syntax, type: null, hasErrors: true);
+                Error(diagnostics, ErrorCode.ERR_DiscardVariableAssignedBadValue, op1.Syntax, op2.Display);
+                return op1.Update(this.CreateErrorType("var"));
             }
             else
             {
@@ -1869,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
                 case BoundKind.DiscardedExpression:
-                    Debug.Assert(valueKind == BindValueKind.Assignment);
+                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }
 

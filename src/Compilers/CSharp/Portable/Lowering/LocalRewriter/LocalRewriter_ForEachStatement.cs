@@ -528,9 +528,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ImmutableArray<LocalSymbol> GetLocalSymbols(ImmutableArray<BoundExpression> leftVariables)
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var variable in leftVariables.OfType<BoundLocal>())
+            foreach (var variable in leftVariables)
             {
-                builder.Add(variable.LocalSymbol);
+                if (variable.Kind == BoundKind.Local)
+                {
+                    builder.Add(((BoundLocal)variable).LocalSymbol);
+                }
             }
             return builder.ToImmutableAndFree();
         }
