@@ -20,7 +20,7 @@
     "Newtonsoft.Json": "8.0.3"
   },
   "frameworks": {
-    "NETCoreApp1.0": {
+    "NETCoreApp1.1": {
       "imports": [
         "portable-net452",
         "dotnet"
@@ -29,6 +29,7 @@
   },
   "runtimes": {
     "ubuntu.14.04-x64": {},
-    "osx.10.11-x64": {}
+    "osx.10.11-x64": {},
+    "osx.10.12-x64": {}
   }
 }
