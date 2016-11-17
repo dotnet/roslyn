@@ -19,12 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
             => new ExtractMethodCodeRefactoringProvider();
 
-        private IDictionary<OptionKey, object> DoNotUseVarOption => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.FalseWithNoneEnforcement),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.FalseWithNoneEnforcement),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.FalseWithNoneEnforcement));
-
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()
@@ -51,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         return b != true;
     }
 }",
-index: 0, options: DoNotUseVarOption); 
+index: 0); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -117,7 +111,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleO
         return t;
     }
 }",
-index: 0, options: DoNotUseVarOption); 
+index: 0); 
         }
 
         [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
@@ -138,7 +132,7 @@ class C
     label2:
         return;
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [WorkItem(540819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
@@ -179,7 +173,7 @@ class C
         return x * x;
     }
 }",
-index: 0, options: DoNotUseVarOption); 
+index: 0); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -204,7 +198,7 @@ index: 0, options: DoNotUseVarOption);
     {
         System.Console.WriteLine(4);
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -229,7 +223,7 @@ index: 0, options: DoNotUseVarOption);
     {
         System.Console.WriteLine(4);
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -254,7 +248,7 @@ index: 0, options: DoNotUseVarOption);
     {
         base.ToString();
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [WorkItem(545623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
@@ -294,7 +288,7 @@ class Program
     {
         return C.X;
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -335,7 +329,7 @@ class Program
     static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -376,7 +370,7 @@ class Program
     static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [WorkItem(530709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
@@ -619,7 +613,7 @@ parseOptions: Options.Regular);
     }
 }",
 
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -671,7 +665,7 @@ compareTokens: false, options: DoNotUseVarOption);
     }
 }",
 
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -720,7 +714,7 @@ compareTokens: false, options: DoNotUseVarOption);
     }
 }",
 
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -748,7 +742,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -776,7 +770,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -804,7 +798,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -832,7 +826,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (a: 1, b: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -860,7 +854,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (c: 1, d: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -888,7 +882,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (c: 1, d: 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -916,7 +910,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (c: 1, d: 2);
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -945,7 +939,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: ""hello"", b: ""world""));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -972,7 +966,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return (1, 2);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1001,7 +995,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         return 3;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs, options: DoNotUseVarOption); 
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1032,7 +1026,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         r = M1(out y, i);
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1063,7 +1057,7 @@ compareTokens: false, options: DoNotUseVarOption);
     {
         r = M1(3 is int {|Conflict:y|}, i);
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1095,7 +1089,7 @@ compareTokens: false, options: DoNotUseVarOption);
         r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
     }
 } ",
-compareTokens: false, options: DoNotUseVarOption); 
+compareTokens: false); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1135,7 +1129,7 @@ compareTokens: false, options: DoNotUseVarOption);
             System.Console.Write(y);
         }
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1175,7 +1169,7 @@ compareTokens: false, options: DoNotUseVarOption);
             System.Console.Write(y);
         }
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
@@ -1218,7 +1212,7 @@ class C
             Console.WriteLine(v);
         }
     }
-}", options: DoNotUseVarOption); 
+}"); 
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
