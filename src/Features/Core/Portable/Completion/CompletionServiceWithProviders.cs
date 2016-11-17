@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false); ;
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, 
+                document, caretPosition, trigger, options,
                 defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
 
             // If we didn't even get any back with items, then there's nothing to do.
@@ -289,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
-            Document document, int caretPosition, CompletionTrigger trigger, 
-            OptionSet options, TextSpan defaultItemSpan, 
+            Document document, int caretPosition, CompletionTrigger trigger,
+            OptionSet options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
             CancellationToken cancellationToken)
         {
