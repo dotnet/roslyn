@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
         /// <summary>
+        /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
+        /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArguments"/>
+        /// array.
+        /// </summary>
+        ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal);
+
+        /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.

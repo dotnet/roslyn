@@ -74,6 +74,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+        {
+            if (ordinal < 0 || ordinal >= Arity)
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+
+            return ImmutableArray.Create<CustomModifier>();
+        }
+
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
 
         public override string MetadataName

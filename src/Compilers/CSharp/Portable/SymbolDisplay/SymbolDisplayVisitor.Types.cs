@@ -147,15 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         symbol.TypeArguments[0].Accept(this.NotFirstVisitor);
-
-                        if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                        {
-                            var namedType = symbol as NamedTypeSymbol;
-                            if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
-                            {
-                                AddCustomModifiersIfRequired(namedType.TypeArgumentsCustomModifiers[0], leadingSpace: true, trailingSpace: false);
-                            }
-                        }
+                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -324,18 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-                    if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
-                    {
-                        var namedType = symbol as NamedTypeSymbol;
-                        if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
-                        {
-                            modifiers = namedType.TypeArgumentsCustomModifiers;
-                        }
-                    }
-
-                    AddTypeArguments(symbol.TypeArguments, modifiers);
+                    AddTypeArguments(symbol.TypeArguments, symbol);
 
                     AddDelegateParameters(symbol);
 
@@ -606,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //returns true if there are constraints
-        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<ImmutableArray<CustomModifier>> modifiers)
+        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, INamedTypeSymbol modifiersSourceOpt)
         {
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {
@@ -637,9 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArg.Accept(this.NotFirstVisitor);
                     }
 
-                    if (!modifiers.IsDefault)
+                    if (modifiersSourceOpt != null)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfRequired(modifiersSourceOpt.GetTypeArgumentCustomModifiers(i), leadingSpace: true, trailingSpace: false);
                     }
                 }
 

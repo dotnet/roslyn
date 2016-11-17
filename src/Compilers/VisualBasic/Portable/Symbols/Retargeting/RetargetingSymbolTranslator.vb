@@ -423,10 +423,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         Dim args = genericType.TypeArgumentsNoUseSiteDiagnostics
 
                         If genericType.HasTypeArgumentsCustomModifiers Then
-                            Dim modifiers = genericType.TypeArgumentsCustomModifiers
-
                             For i As Integer = 0 To arity - 1
-                                oldArguments.Add(New TypeWithModifiers(args(i), modifiers(i)))
+                                oldArguments.Add(New TypeWithModifiers(args(i), genericType.GetTypeArgumentCustomModifiers(i)))
                             Next
                         Else
                             For i As Integer = 0 To arity - 1

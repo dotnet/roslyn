@@ -288,10 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End While
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 Else
-                    ' TODO: Rewrite access to custom modifiers in terms of an interface
-                    AddTypeArguments(symbol.TypeArguments,
-                                     If(Me.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers),
-                                        TryCast(symbol, NamedTypeSymbol)?.TypeArgumentsCustomModifiers, Nothing).GetValueOrDefault())
+                    AddTypeArguments(symbol.TypeArguments, symbol)
                 End If
             End If
 
@@ -453,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol),
-                                     Optional modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing)
+                                     Optional modifiersSource As INamedTypeSymbol = Nothing)
             AddPunctuation(SyntaxKind.OpenParenToken)
             AddKeyword(SyntaxKind.OfKeyword)
             AddSpace()
@@ -481,8 +478,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     typeArg.Accept(Me.NotFirstVisitor())
                 End If
 
-                If Not modifiers.IsDefaultOrEmpty Then
-                    AddCustomModifiersIfRequired(modifiers(i))
+                If modifiersSource IsNot Nothing Then
+                    AddCustomModifiersIfRequired(modifiersSource.GetTypeArgumentCustomModifiers(i))
                 End If
             Next
 

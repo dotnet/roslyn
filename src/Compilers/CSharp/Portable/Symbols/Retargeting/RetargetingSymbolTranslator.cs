@@ -489,11 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                         if (genericType.HasTypeArgumentsCustomModifiers)
                         {
-                            var modifiers = genericType.TypeArgumentsCustomModifiers;
-
                             for (int i = 0; i < arity; i++)
                             {
-                                oldArguments.Add(new TypeWithModifiers(args[i], modifiers[i]));
+                                oldArguments.Add(new TypeWithModifiers(args[i], genericType.GetTypeArgumentCustomModifiers(i)));
                             }
                         }
                         else
