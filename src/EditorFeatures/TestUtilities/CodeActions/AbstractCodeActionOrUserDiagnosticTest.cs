@@ -534,14 +534,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : new[] { a }).ToList();
         }
 
-#if false
-         var option = triple.Item1;
- -                var value = triple.Item2;
- -                var notification = triple.Item3;
- -                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
- -                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
-#endif
-
         protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
             => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
 
