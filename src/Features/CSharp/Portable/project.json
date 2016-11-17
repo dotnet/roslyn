@@ -1,11 +1,9 @@
 {
-  "supports": {},
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1"
   },
   "frameworks": {
     "netstandard1.3": {
-      "imports": [ "dotnet", "portable-net45" ]
+      "imports": [ "portable-net45+win8", "dotnet" ]
     }
   }
 }

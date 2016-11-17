@@ -1,7 +1,5 @@
 ﻿{
-    "dependencies": { 
-      "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
-    },
+    "dependencies": { },
     "frameworks": {
         "net46": { }
     },
