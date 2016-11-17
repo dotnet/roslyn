@@ -473,6 +473,66 @@ class Variable
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceInIncompleteParenthesizedDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var as$$
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                ' Those completions are hard-selected because the suggestion mode never triggers on backspace
+                ' See issue https://github.com/dotnet/roslyn/issues/15302
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendTypeChars(", var as")
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendTypeChars(")")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("(var as, var as)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceInParenthesizedDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var as$$)
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                ' Those completions are hard-selected because the suggestion mode never triggers on backspace
+                ' See issue https://github.com/dotnet/roslyn/issues/15302
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendTypeChars(", var as")
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("(var as, var as)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
