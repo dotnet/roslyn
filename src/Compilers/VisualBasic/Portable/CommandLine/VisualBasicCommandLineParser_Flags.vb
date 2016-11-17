@@ -603,12 +603,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Friend Shared Function KeyContainer(diagnostics As List(Of Diagnostic), ByRef keyFileSetting As String, ByRef keyContainerSetting As String, ByRef _arg As (name As String, value As String)) As Validation
-                Return Parse_Key_(diagnostics, keyFileSetting, keyContainerSetting, _arg, ":<string>")
+                Return Parse_Key_(diagnostics, keyContainerSetting, keyFileSetting, _arg, ":<string>")
             End Function
 
             Protected Friend Shared Function Parse_Key_(diagnostics As List(Of Diagnostic),
-                                           ByRef keyFileSetting As String,
-                                           ByRef keyContainerSetting As String,
+                                           ByRef SettingA As String,
+                                           ByRef SettingB As String,
                                                        ByRef _arg As (name As String, value As String), param As String) As Validation
 
                 ' NOTE: despite what MSDN says, Dev11 resets '/keycontainer' in this case:
@@ -622,11 +622,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
                 ' MSDN: the key container will be valid.
                 _arg.value = RemoveQuotesAndSlashes(_arg.value)
-                keyContainerSetting = Nothing
+                SettingB = Nothing
                 If String.IsNullOrWhiteSpace(_arg.value) Then
                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, _arg.name, param)
                 Else
-                    keyFileSetting = RemoveQuotesAndSlashes(_arg.value)
+                    SettingA = RemoveQuotesAndSlashes(_arg.value)
                 End If
                 Return Validation.Success
             End Function
