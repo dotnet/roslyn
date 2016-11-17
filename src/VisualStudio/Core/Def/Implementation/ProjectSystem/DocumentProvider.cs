@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsTextManager _textManager;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly bool _isRoslynPackageInstalled;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly VisualStudioDocumentTrackingService _documentTrackingServiceOpt;
@@ -82,10 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // This can happen only in tests, bail out.
                 return;
             }
-
-            int installed;
-            Marshal.ThrowExceptionForHR(shell.IsPackageInstalled(Guids.RoslynPackageId, out installed));
-            _isRoslynPackageInstalled = installed != 0;
 
             var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
