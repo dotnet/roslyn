@@ -49,9 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(Document.SemanticModel, Me.InvocationExpression,
                                                objectAsDefault:=True, cancellationToken:=cancellationToken)
-                If State.IsInConditionalAccessExpression Then
-                    Return inferredType.RemoveNullableIfPresent
-                End If
                 Return inferredType
             End Function
 

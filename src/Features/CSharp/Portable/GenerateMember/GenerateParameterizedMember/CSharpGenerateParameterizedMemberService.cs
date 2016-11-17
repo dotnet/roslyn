@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var typeInference = this.Document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(this.Document.SemanticModel,
                     _invocationExpression, objectAsDefault: true, cancellationToken: cancellationToken);
-                if (State.IsInConditionalAccessExpression)
-                {
-                    return inferredType.RemoveNullableIfPresent();
-                }
-
                 return inferredType;
             }
 

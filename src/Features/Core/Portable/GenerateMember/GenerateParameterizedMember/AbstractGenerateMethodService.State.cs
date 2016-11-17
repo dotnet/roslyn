@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!service.TryDetermineTypeToGenerateIn(
-                    document, this.ContainingType, this.SimpleNameOrMemberAccessExpression, cancellationToken,
-                    out var typeToGenerateIn, out var isStatic))
+                        document, this.ContainingType, this.SimpleNameOrMemberAccessExpression, cancellationToken,
+                        out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
                 }
