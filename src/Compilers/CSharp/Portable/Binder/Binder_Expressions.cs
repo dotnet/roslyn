@@ -2120,12 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new OutVariablePendingInference(declarationExpression, localSymbol, null);
                 }
 
-                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                    && declType.IsRestrictedType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                }
+                CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
                 return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
             }
@@ -2157,6 +2152,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFieldAccess(declarationExpression,
                                         receiver,
                                         expressionVariableField, null, LookupResultKind.Viable, fieldType);
+        }
+
+        /// <summary>
+        /// Returns true if a bad special by ref local was found.
+        /// </summary>
+        internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            if (containingSymbol.Kind == SymbolKind.Method
+                && ((MethodSymbol)containingSymbol).IsAsync
+                && type.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
+                return true;
+            }
+            return false;
         }
 
         internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
