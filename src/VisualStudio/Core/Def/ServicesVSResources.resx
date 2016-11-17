@@ -816,6 +816,9 @@ Additional information: {1}</value>
   <data name="Prefer_null_propagation" xml:space="preserve">
     <value>Prefer null propagation</value>
   </data>
+  <data name="Prefer_explicit_tuple_name" xml:space="preserve">
+    <value>Prefer explicit tuple name</value>
+  </data>
   <data name="Description" xml:space="preserve">
     <value>Description</value>
   </data>

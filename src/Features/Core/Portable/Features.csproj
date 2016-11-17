@@ -140,6 +140,7 @@
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
@@ -684,6 +685,7 @@
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\ProjectCacheService.cs" />

@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferCollectionInitializer, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferExplicitTupleNames, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferNullPropagation, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
@@ -244,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCoalesceExpression, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCollectionInitializer, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferExplicitTupleNames, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferNullPropagation, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
