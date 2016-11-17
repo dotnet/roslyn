@@ -17822,6 +17822,52 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             CompileAndVerify(comp, expectedOutput:="(42, 42)")
         End Sub
 
+        <Fact>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        Public Sub InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
+            Dim src1 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Public Interface I1(Of T)
+End Interface
+
+Public Interface I2 
+    Inherits I1(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I3 
+    Inherits I1(Of (c As Integer, d As Integer))
+End Interface
+]]>
+                           </file>
+                       </compilation>
+
+            Dim src2 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Class C1 
+    Implements I2
+    Implements I1(Of (a As Integer, b As Integer))
+End Class
+Class C2
+    Implements I3
+    Implements I1(Of (c As Integer, d As Integer))
+End Class
+]]>
+                           </file>
+                       </compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib(src1, references:=s_valueTupleRefs)
+            AssertTheseDiagnostics(comp1)
+
+            Dim comp2 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference()})
+            AssertTheseDiagnostics(comp2)
+
+            Dim comp3 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference()})
+            AssertTheseDiagnostics(comp3)
+        End Sub
+
     End Class
 
 End Namespace
