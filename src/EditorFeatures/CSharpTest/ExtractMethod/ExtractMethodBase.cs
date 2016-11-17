@@ -118,9 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
 
-            workspace.Options = workspace.Options
-                                         .WithChangedOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, false);
-
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
 

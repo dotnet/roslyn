@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Then the type is not-apperant, and we shoudl not use var if the user only wants
             // it for apperant types
 
-            // Switching to 'var' changed semantics.  Just use the original type of the local.
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
             var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
 
