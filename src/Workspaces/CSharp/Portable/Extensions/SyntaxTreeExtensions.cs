@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this SyntaxTree syntaxTree,
             int position,
             SyntaxToken tokenOnLeftOfPosition,
-            CancellationToken cancellationToken) =>
-            syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var ignore);
+            CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, out int newPosition)
