@@ -1140,17 +1140,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             if (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true ||
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType) ||
                 tokenOnLeftOfPosition.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression, SyntaxKind.TupleType) == true)
+                    SyntaxKind.TupleExpression, SyntaxKind.TupleType))
             {
                 return true;
             }
 
             // (int a, i$$
             // ($$int a, int b
-            if (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParameterList) == true &&
-                tokenOnLeftOfPosition.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression) == true)
+            if (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParameterList) &&
+                tokenOnLeftOfPosition.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
             {
                 return true;
             }
@@ -1163,10 +1163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            if (token.Parent.IsKind(SyntaxKind.SingleVariableDesignation) == true)
+            if (token.Parent.IsKind(SyntaxKind.SingleVariableDesignation))
             {
                 var designation = (SingleVariableDesignationSyntax)token.Parent;
-                if (designation.IsParentKind(SyntaxKind.DeclarationExpression) == true)
+                if (designation.IsParentKind(SyntaxKind.DeclarationExpression))
                 {
                     var declaration = (DeclarationExpressionSyntax)designation.Parent;
                     return !declaration.Type.IsMissing && designation.Identifier == token;
