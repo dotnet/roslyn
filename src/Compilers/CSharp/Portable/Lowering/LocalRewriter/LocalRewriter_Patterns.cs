@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -67,14 +68,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
-            Debug.Assert(loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+            Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression) ||
+                         loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
 
             if (loweredPattern.IsVar)
             {
-                Debug.Assert(loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
-                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 var result = _factory.Literal(true);
+
+                if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
+                {
+                    return result;
+                }
+
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+
+                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
+            }
+
+            if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
+            {
+                var temps = ArrayBuilder<LocalSymbol>.GetInstance(1);
+                BoundLocal discard = MakeTempForDiscardedExpression((BoundDiscardedExpression)loweredPattern.VariableAccess, temps);
+
+                return _factory.Sequence(temps.ToImmutableAndFree(),
+                         sideEffects: ImmutableArray<BoundExpression>.Empty,
+                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
             }
 
             return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);

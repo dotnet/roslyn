@@ -197,17 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardedExpression:
                     {
-                        var temps = ArrayBuilder<LocalSymbol>.GetInstance(1);
-                        BoundLocal discard = MakeTempForDiscardedExpression((BoundDiscardedExpression)rewrittenLeft, temps);
-
-                        return _factory.Sequence(temps.ToImmutableAndFree(),
-                                            sideEffects: ImmutableArray<BoundExpression>.Empty,
-                                            result: new BoundAssignmentOperator(
-                                                         syntax,
-                                                         discard,
-                                                         rewrittenRight,
-                                                         type,
-                                                         refKind: refKind));
+                        return rewrittenRight;
                     }
 
                 default:
