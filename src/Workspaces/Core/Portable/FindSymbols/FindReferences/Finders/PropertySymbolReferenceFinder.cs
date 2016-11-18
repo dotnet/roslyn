@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsElementAccessExpression;
             }, cancellationToken);
         }
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsIndexerMemberCref;
             }, cancellationToken);
         }

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetIdentifierInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 foreach (var value in values)
                 {
                     if (!info.ProbablyContainsIdentifier(value))
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedType(predefinedType);
             }, cancellationToken);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return await FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedOperator(op);
             }, cancellationToken).ConfigureAwait(false);
         }
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsForEachStatement;
             }, cancellationToken);
         }
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
-            var syntaxTreeInfo = await SyntaxTreeInfo.GetContextInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            var syntaxTreeInfo = await SyntaxTreeInfo.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (syntaxTreeInfo.ContainsForEachStatement)
             {
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();

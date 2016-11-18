@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SyntaxTreeIdentifierInfo : AbstractSyntaxTreeInfo
+    internal partial class SyntaxTreeIdentifierInfo
     {
         public static bool TryGetIdentifierLocations(Document document, VersionStamp version, string identifier, List<int> positions, CancellationToken cancellationToken)
         {
