@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVariablePendingInference);
-                Debug.Assert(argument.Kind != BoundKind.DiscardedExpression);
+                Debug.Assert(argument.Kind != BoundKind.DiscardedExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
                 if (arguments.IsExtensionMethodThisArgument(arg))

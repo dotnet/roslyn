@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
-        ERR_DiscardVariableAssignedBadValue = 8183,
+        ERR_DiscardTypeInferenceFailed = 8183,
         ERR_MixedDeconstructionDisallowed = 8184,
 
         // Available  = 8185-8195

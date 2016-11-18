@@ -1728,12 +1728,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (op2.Type == null)
             {
-                Error(diagnostics, ErrorCode.ERR_DiscardVariableAssignedBadValue, op1.Syntax, op2.Display);
-                return op1.Update(this.CreateErrorType("var"));
+                return op1.FailInference(this, diagnostics);
             }
             else
             {
-                return op1.Update(op2.Type);
+                return op1.SetInferredType(op2.Type);
             }
         }
 
@@ -1868,6 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.OutDeconstructVarPendingInference:
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
+
                 case BoundKind.DiscardedExpression:
                     Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;

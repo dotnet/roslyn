@@ -5125,9 +5125,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8183: Cannot assign <null> to a discard variable
+                // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = null;
-                Diagnostic(ErrorCode.ERR_DiscardVariableAssignedBadValue, "_").WithArguments("<null>").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9)
                 );
         }
 

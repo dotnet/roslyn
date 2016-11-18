@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var pending = (BoundDiscardedExpression)variable.Single;
                                 if ((object)pending.Type == null)
                                 {
-                                    variables[i] = new DeconstructionVariable(pending.Update(foundTypes[i]), pending.Syntax);
+                                    variables[i] = new DeconstructionVariable(pending.SetInferredType(foundTypes[i]), pending.Syntax);
                                 }
                             }
                             break;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)pending.Type == null)
                             {
                                 Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
-                                variables[i] = new DeconstructionVariable(pending.Update(CreateErrorType("var")), pending.Syntax);
+                                variables[i] = new DeconstructionVariable(pending.FailInference(this, diagnostics), pending.Syntax);
                             }
                             break;
                     }
@@ -761,6 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)declType != null)
             {
                 TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
+                Debug.Assert(declType == fieldType);
                 return new BoundFieldAccess(designation,
                                             receiver,
                                             field,

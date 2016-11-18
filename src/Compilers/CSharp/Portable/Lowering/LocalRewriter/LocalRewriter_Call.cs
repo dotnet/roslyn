@@ -153,22 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nodeOpt: node);
         }
 
-        private BoundLocal MakeTempForDiscardedExpression(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
-        {
-            LocalSymbol temp;
-            BoundLocal result = MakeTempForDiscardedExpression(node, out temp);
-            temps.Add(temp);
-            return result;
-        }
-
-        private BoundLocal MakeTempForDiscardedExpression(BoundDiscardedExpression node, out LocalSymbol temp)
-        {
-            temp = new SynthesizedLocal(_factory.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
-
-            return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type)
-                        { WasCompilerGenerated = true };
-        }
-
         private BoundExpression MakeCall(
             SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
@@ -422,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            rewrittenArguments = MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
 
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
@@ -526,21 +510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKinds.Free();
 
             return actualArguments.AsImmutableOrNull();
-        }
-
-        private ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> rewrittenArguments, ArrayBuilder<LocalSymbol> builder)
-        {
-            var discardsCount = rewrittenArguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
-
-            if (discardsCount != 0)
-            {
-                rewrittenArguments = rewrittenArguments.SelectAsArray(
-                                            arg => arg.Kind == BoundKind.DiscardedExpression ?
-                                                MakeTempForDiscardedExpression((BoundDiscardedExpression)arg, builder) :
-                                                arg);
-            }
-
-            return rewrittenArguments;
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)

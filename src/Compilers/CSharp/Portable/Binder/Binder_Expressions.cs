@@ -2397,11 +2397,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
-                else if (argument.Kind == BoundKind.DiscardedExpression && (object)argument.Type == null)
+                else if (argument.Kind == BoundKind.DiscardedExpression && !argument.HasExpressionType())
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     Debug.Assert((object)parameterType != null);
-                    arguments[arg] = ((BoundDiscardedExpression)argument).Update(parameterType);
+                    arguments[arg] = ((BoundDiscardedExpression)argument).SetInferredType(parameterType);
                 }
             }
         }
@@ -6228,6 +6228,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (index.Kind == BoundKind.OutVariablePendingInference)
             {
                 return ((OutVariablePendingInference)index).FailInference(this, diagnostics);
+            }
+            else if (index.Kind == BoundKind.DiscardedExpression && !index.HasExpressionType())
+            {
+                return ((BoundDiscardedExpression)index).FailInference(this, diagnostics);
             }
 
             var result =

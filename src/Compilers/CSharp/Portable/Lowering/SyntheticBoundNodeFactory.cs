@@ -1274,5 +1274,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundNoOpStatement(Syntax, noOpStatementFlavor);
         }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
+        {
+            LocalSymbol temp;
+            BoundLocal result = MakeTempForDiscard(node, out temp);
+            temps.Add(temp);
+            return result;
+        }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, out LocalSymbol temp)
+        {
+            temp = new SynthesizedLocal(this.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
+
+            return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
+        }
+
+        internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
+        {
+            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+
+            if (discardsCount != 0)
+            {
+                arguments = arguments.SelectAsArray(
+                                            arg => arg.Kind == BoundKind.DiscardedExpression ?
+                                                this.MakeTempForDiscard((BoundDiscardedExpression)arg, builder) :
+                                                arg);
+            }
+
+            return arguments;
+        }
     }
 }

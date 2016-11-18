@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return string.Empty; }
+            get { return (object)this.Type ?? "_"; }
         }
     }
 

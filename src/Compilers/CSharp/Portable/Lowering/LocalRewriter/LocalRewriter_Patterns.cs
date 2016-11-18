@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardedExpression)
             {
                 LocalSymbol temp;
-                BoundLocal discard = MakeTempForDiscardedExpression((BoundDiscardedExpression)loweredPattern.VariableAccess, out temp);
+                BoundLocal discard = _factory.MakeTempForDiscard((BoundDiscardedExpression)loweredPattern.VariableAccess, out temp);
 
                 return _factory.Sequence(ImmutableArray.Create(temp),
                          sideEffects: ImmutableArray<BoundExpression>.Empty,
