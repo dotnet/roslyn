@@ -462,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
         public void NewForeach_04()
         {
+            // PROTOTYPE(wildcards): these should be semantic, not syntax errors
             UsingStatement("foreach ((1, 2) in e) {}",
                 // (1,1): error CS1073: Unexpected token ','
                 // foreach ((1, 2) in e) {}
@@ -631,14 +632,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingStatement("(1, 2) = e;");
         }
 
-        public void OutTuple()
+        public void OutTuple_01()
         {
             UsingStatement("M(out (1, 2));");
+        }
+
+        public void OutTuple_02()
+        {
+            UsingStatement("M(out (x, y));");
+        }
+
+        public void OutTuple_03()
+        {
+            UsingStatement("M(out (1, 2).Field);");
+        }
+
+        public void OutTuple_04()
+        {
+            UsingStatement("M(out (int x, int y));");
+        }
+
+        public void OutTuple_05()
+        {
+            UsingStatement("M(out (var x, var y));");
         }
 
         public void NamedTupleOnTheLeft()
         {
             UsingStatement("(x: 1, y: 2) = e;");
+        }
+
+        public void InvokeMethodNamedVar()
+        {
+            UsingStatement("var(1, 2) = e;");
         }
     }
 }
