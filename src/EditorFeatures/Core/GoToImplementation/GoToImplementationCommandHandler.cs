@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -68,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         private void ExecuteCommand(Document document, int caretPosition)
         {
-            var streamingService = document.Project.LanguageServices.GetService<IStreamingFindImplementationsService>();
-            var synchronousService = document.Project.LanguageServices.GetService<IGoToImplementationService>();
+            var streamingService = document.GetLanguageService<IStreamingFindImplementationsService>();
+            var synchronousService = document.GetLanguageService<IGoToImplementationService>();
 
             var streamingPresenter = GetStreamingPresenter();
 
