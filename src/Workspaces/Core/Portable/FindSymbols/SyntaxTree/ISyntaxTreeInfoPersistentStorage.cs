@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface ISyntaxTreeInfoPersistentStorage
     {
-        VersionStamp GetIdentifierSetVersion(Document document);
         bool ReadIdentifierPositions(Document document, VersionStamp version, string identifier, List<int> positions, CancellationToken cancellationToken);
-        bool WriteIdentifierLocations(Document document, VersionStamp version, SyntaxNode root, CancellationToken cancellationToken);
     }
 }

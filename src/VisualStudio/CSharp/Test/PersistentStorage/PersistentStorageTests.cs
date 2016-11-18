@@ -312,11 +312,7 @@ class A
                 var version = await document.GetSyntaxVersionAsync();
                 var root = await document.GetSyntaxRootAsync();
 
-                Assert.True(syntaxTreeStorage.WriteIdentifierLocations(document, version, root, CancellationToken.None));
-
-                Assert.Equal(version, syntaxTreeStorage.GetIdentifierSetVersion(document));
-
-                List<int> positions = new List<int>();
+                var positions = new List<int>();
                 Assert.True(syntaxTreeStorage.ReadIdentifierPositions(document, version, "Test", positions, CancellationToken.None));
 
                 Assert.Equal(1, positions.Count);
