@@ -172,25 +172,6 @@ namespace Microsoft.CodeAnalysis.Esent
             SharedPools.StringIgnoreCaseDictionary<List<int>>().ClearAndFree(map);
         }
 
-        private bool TrySaveIdentifierSetVersion(
-            EsentStorage.IdentifierLocationTableAccessor accessor, EsentStorage.Key key, VersionStamp version)
-        {
-            if (!TryGetIdentifierSetVersionId(out var identifierId))
-            {
-                return false;
-            }
-
-            accessor.PrepareBatchOneInsert();
-            using (var stream = accessor.GetWriteStream(key, identifierId))
-            using (var writer = new ObjectWriter(stream))
-            {
-                version.WriteTo(writer);
-            }
-
-            accessor.FinishBatchOneInsert();
-            return true;
-        }
-
         private bool ReadFrom(ObjectReader reader, List<int> result, CancellationToken cancellationToken)
         {
             var count = reader.ReadInt32();
