@@ -475,6 +475,14 @@ namespace Microsoft.CodeAnalysis
 
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
+
+            internal override TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var oldText = _oldDocumentState.GetTextSync(cancellationToken);
+                var version = _oldDocumentState.GetVersionSync(cancellationToken);
+
+                return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
+            }
         }
 
         private static TextAndVersion GetProperTextAndVersion(SourceText oldText, SourceText newText, VersionStamp version, string filePath)
