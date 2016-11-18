@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences, ContentTypeNames.RoslynContentType)]
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingFindReferences, document.Project.Language);
             if (streamingEnabled && streamingService != null && streamingPresenter != null)
             {
-                StreamingFindReferences(document, streamingService, streamingPresenter, caretPosition);
+                StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
                 return true;
             }
 
@@ -113,8 +113,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
 
         private async void StreamingFindReferences(
-            Document document, IStreamingFindReferencesService service,
-            IStreamingFindUsagesPresenter presenter, int caretPosition)
+            Document document, int caretPosition,
+            IStreamingFindReferencesService service,
+            IStreamingFindUsagesPresenter presenter)
         {
             try
             {

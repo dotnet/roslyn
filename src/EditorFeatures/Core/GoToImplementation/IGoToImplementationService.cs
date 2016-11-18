@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -13,5 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         /// <returns>True if navigating to the implementation of the symbol at the provided position succeeds.  False, otherwise.</returns>
         bool TryGoToImplementation(Document document, int position, CancellationToken cancellationToken, out string message);
+    }
+
+    internal interface IStreamingFindImplementationsService : ILanguageService
+    {
+        Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context);
     }
 }

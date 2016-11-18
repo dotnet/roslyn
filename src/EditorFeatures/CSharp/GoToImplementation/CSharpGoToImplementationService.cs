@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.GoToImplementation;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToImplementation
@@ -14,9 +14,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToImplementation
     {
         [ImportingConstructor]
         public CSharpGoToImplementationService(
-            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
-            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters) 
-            : base(presenters, streamingPresenters)
+            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters) 
+            : base(presenters)
+        {
+        }
+    }
+
+    [ExportLanguageService(typeof(IStreamingFindImplementationsService), LanguageNames.CSharp), Shared]
+    internal sealed class CSharpStreamingFindImplementationsService : AbstractGoToImplementationService
+    {
+        [ImportingConstructor]
+        public CSharpStreamingFindImplementationsService(
+            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters)
+            : base(presenters)
         {
         }
     }
