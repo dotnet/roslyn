@@ -40,6 +40,7 @@
 
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
+    <NuGetFinalPreReleaseVersion>$(NuGetPreReleaseVersion)-final</NuGetFinalPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
   
