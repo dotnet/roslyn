@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
-            private readonly FindUsagesContext _context;
+            private readonly IFindUsagesContext _context;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 
             private readonly Func<ISymbol, DefinitionItem> _definitionFactory;
 
-            public ProgressAdapter(Solution solution, FindUsagesContext context)
+            public ProgressAdapter(Solution solution, IFindUsagesContext context)
             {
                 _solution = solution;
                 _context = context;
