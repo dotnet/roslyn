@@ -12,6 +12,7 @@ Before Visual Studio 2015, it was difficult to create custom warnings that targe
 ### Documentation & Tools
 * [Documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers) - repo with documentation.
 * [API Source Code/Documentation](http://source.roslyn.io/) - allows you to browse the Roslyn source code online and easily navigate types.
+* [RoslynQuoter](http://roslynquoter.azurewebsites.net/) - a tool that for a given C# program shows syntax tree API calls to construct its syntax tree
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates) - provides the [Syntax Visualizer](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) which lets you inspect the syntax tree of any C# or VB code file that is open inside the Visual Studio IDE.
 
 ### Articles
