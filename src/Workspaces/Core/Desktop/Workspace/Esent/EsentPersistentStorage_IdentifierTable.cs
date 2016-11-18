@@ -189,22 +189,6 @@ namespace Microsoft.CodeAnalysis.Esent
             return true;
         }
 
-        private void WriteList(ObjectWriter writer, List<int> positions)
-        {
-            if (positions.Count > FlushThreshold)
-            {
-                writer.WriteInt32(NotSupported);
-                return;
-            }
-
-            writer.WriteInt32(positions.Count);
-
-            foreach (var position in positions)
-            {
-                writer.WriteInt32(position);
-            }
-        }
-
         private static Dictionary<string, List<int>> CreateIdentifierLocations(Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
