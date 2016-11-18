@@ -159,27 +159,5 @@ namespace Microsoft.CodeAnalysis.Esent
 
             return true;
         }
-
-        private static Dictionary<string, List<int>> CreateIdentifierLocations(Document document, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var identifierMap = SharedPools.StringIgnoreCaseDictionary<List<int>>().AllocateAndClear();
-            foreach (var token in root.DescendantTokens(descendIntoTrivia: true))
-            {
-                if (token.IsMissing || token.Span.Length == 0)
-                {
-                    continue;
-                }
-
-                if (syntaxFacts.IsIdentifier(token) || syntaxFacts.IsGlobalNamespaceKeyword(token))
-                {
-                    var valueText = token.ValueText;
-                    identifierMap.GetOrAdd(valueText, _ => SharedPools.BigDefault<List<int>>().AllocateAndClear()).Add(token.Span.Start);
-                }
-            }
-
-            return identifierMap;
-        }
     }
 }
