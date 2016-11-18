@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
+namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
         ContentTypeNames.RoslynContentType)]

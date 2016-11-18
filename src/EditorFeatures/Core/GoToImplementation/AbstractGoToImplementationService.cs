@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -13,7 +14,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
+namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
     internal abstract class AbstractGoToImplementationService : IGoToImplementationService
     {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(
+                if (GoToDefinitionHelpers.TryGoToDefinition(
                         mapping.Symbol, mapping.Project,
                         _navigableItemPresenters, _streamingPresenters, cancellationToken))
                 {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else if (implementations.Count == 1)
             {
-                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(
+                GoToDefinitionHelpers.TryGoToDefinition(
                     implementations.Single(), mapping.Project, 
                     _navigableItemPresenters, _streamingPresenters, cancellationToken);
                 message = null;

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
+namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
     internal abstract partial class AbstractFindReferencesService :
         ForegroundThreadAffinitizedObject, IFindReferencesService, IStreamingFindReferencesService
