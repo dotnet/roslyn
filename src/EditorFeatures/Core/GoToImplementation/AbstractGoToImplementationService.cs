@@ -127,16 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
                 return ImmutableArray.Create(symbol);
-                //if (GoToDefinitionHelpers.TryGoToDefinition(
-                //        symbol, project,
-                //        _navigableItemPresenters, _streamingPresenters, cancellationToken))
-                //{
-                //    message = null;
-                //    return true;
-                //}
-
-                //message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
-                //return false;
             }
         }
 
