@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 return null;
             }
 
-            var symbol = symbolAndProject.Item1;
-            var project = symbolAndProject.Item2;
+            var symbol = symbolAndProject?.symbol;
+            var project = symbolAndProject?.project;
 
             var displayName = GetDisplayName(symbol);
 
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 return null;
             }
 
-            var symbol = symbolAndProject.Item1;
-            var project = symbolAndProject.Item2;
+            var symbol = symbolAndProject?.symbol;
+            var project = symbolAndProject?.project;
 
             var displayName = GetDisplayName(symbol);
             context.SetSearchLabel(displayName);

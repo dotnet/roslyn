@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<Tuple<ISymbol, Project>> GetRelevantSymbolAndProjectAtPositionAsync(
+        public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return null;
             }
 
-            return Tuple.Create(mapping.Symbol, mapping.Project);
+            return (mapping.Symbol, mapping.Project);
         }
     }
 }

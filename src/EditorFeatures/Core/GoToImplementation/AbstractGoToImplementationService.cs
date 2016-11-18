@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             }
 
             return await FindImplementationsAsync(
-                symbolAndProject.Item1, symbolAndProject.Item2, cancellationToken).ConfigureAwait(false);
+                symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(ISymbol symbol, Project project, ImmutableArray<ISymbol> implementations, string message)?> FindImplementationsAsync(
