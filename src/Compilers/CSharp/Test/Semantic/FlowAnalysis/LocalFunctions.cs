@@ -1101,15 +1101,25 @@ class C
 {
     void M()
     {
-        Foo();
-        int x;
-        void Foo() => x++;
+        {
+            Foo();
+            int x = 0;
+            void Foo() => x++;
+        }
+        {
+            System.Action a = Foo;
+            int x = 0;
+            void Foo() => x++;
+        }
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,9): error CS0165: Use of unassigned local variable 'x'
-                //         Foo();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(6, 9));
+                // (7,13): error CS0165: Use of unassigned local variable 'x'
+                //             Foo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(7, 13),
+                // (12,31): error CS0165: Use of unassigned local variable 'x'
+                //             System.Action a = Foo;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo").WithArguments("x").WithLocation(12, 31));
         }
 
         [Fact]
