@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
     <ExportLanguageService(GetType(IFindUsagesService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicStreamingFindReferencesService
+    Friend Class VisualBasicFindUsagesService
         Inherits AbstractFindUsagesService
     End Class
 End Namespace
