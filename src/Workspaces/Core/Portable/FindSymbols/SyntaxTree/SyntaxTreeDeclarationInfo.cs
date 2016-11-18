@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class SyntaxTreeDeclarationInfo : AbstractSyntaxTreeInfo, IDeclarationInfo
+    internal class SyntaxTreeDeclarationInfo : AbstractSyntaxTreeInfo
     {
         private const string PersistenceName = "<SyntaxTreeInfoDeclarationPersistence>";
         private const string SerializationFormat = "3";
