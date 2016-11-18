@@ -18,6 +18,7 @@
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.0-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
+    <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.1-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>

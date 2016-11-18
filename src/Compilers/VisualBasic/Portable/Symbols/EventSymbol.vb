@@ -152,20 +152,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the list of custom modifiers, if any, associated with the return type of the event. 
-        ''' </summary>
-        Friend ReadOnly Property DelegateReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
-            Get
-                Dim invoke = DelegateInvokeMethod()
-                If invoke IsNot Nothing Then
-                    Return invoke.ReturnTypeCustomModifiers
-                Else
-                    Return ImmutableArray(Of CustomModifier).Empty
-                End If
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Can be null in error cases.
         ''' </summary>
         Private Function DelegateInvokeMethod() As MethodSymbol

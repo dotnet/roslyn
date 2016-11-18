@@ -41,6 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return Me._underlyingProperty.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 Dim isDefault As Boolean = Me._lazyParameters.IsDefault

@@ -291,13 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check for variable declaration errors.
                 hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                    && declType.IsRestrictedType()
-                    && !hasErrors)
+                if (!hasErrors)
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                    hasErrors = true;
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
