@@ -28,25 +28,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static async Task<bool> IdentifierSetPrecalculatedAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
-            {
-                var esentStorage = storage as ISyntaxTreeInfoPersistentStorage;
-                if (esentStorage == null)
-                {
-                    // basically, we don't support it. return true so that we don't try to precalculate it
-                    return true;
-                }
-
-                var persistedVersion = esentStorage.GetIdentifierSetVersion(document);
-                return document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistedVersion);
-            }
-        }
-
         public static async Task SaveIdentifierSetAsync(Document document, CancellationToken cancellationToken)
         {
             Contract.Requires(document.IsFromPrimaryBranch());
