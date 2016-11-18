@@ -180,7 +180,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         {
             var stdErr = p.StandardError.ReadToEnd();
             string message;
-            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have on a prerelease dependency."))
+            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))
             {
                 // If we are building release nugets and if any packages have dependencies on prerelease packages  
                 // then we want to ignore the error and allow the build to succeed.

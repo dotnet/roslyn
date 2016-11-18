@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
                 var initializer = variableDeclaration.Variables.Single().Initializer;
-                var initializerExpression = GetInitializerExpression(initializer);
+                var initializerExpression = GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
             }
@@ -97,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+                var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
-                return typeSyntax != null
-                     ? typeSyntax.IsTypeInferred(semanticModel) &&
-                        semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
-                     : false;
+                return typeSyntax != null &&
+                    typeSyntax.IsTypeInferred(semanticModel) &&
+                    semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)

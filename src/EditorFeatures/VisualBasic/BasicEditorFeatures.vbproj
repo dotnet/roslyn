@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</ProjectGuid>
@@ -78,7 +78,7 @@
     <Compile Include="BraceMatching\VisualBasicDirectiveTriviaBraceMatcher.vb" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.vb" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.vb" />
-    <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.vb" />
+    <Compile Include="ChangeSignature\VisualBasicChangeSignatureCommandHandler.vb" />
     <Compile Include="Classification\VisualBasicEditorClassificationService.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentUncommentService.vb" />
     <Compile Include="ContentType\ContentTypeDefinitions.vb" />
@@ -202,10 +202,11 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBEditorResources.resx">

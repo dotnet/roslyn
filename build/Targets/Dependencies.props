@@ -3,8 +3,12 @@
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
-    <MicrosoftBuildVersion>14.3.0-prerelease01</MicrosoftBuildVersion>
-    <MicrosoftBuildTasksCoreVersion>14.3.0-prerelease01</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildVersion>15.1.0-preview-000370-00</MicrosoftBuildVersion>
+    <MicrosoftBuild14Version>14.3.0</MicrosoftBuild14Version>
+    <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
+    <MicrosoftBuildRuntimeVersion>15.1.0-preview-000370-00</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000370-00</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildTasksCore14Version>14.3.0</MicrosoftBuildTasksCore14Version>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
@@ -12,7 +16,9 @@
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60831-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
+    <RoslynToolsMicrosoftLocateVSVersion>0.2.0-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
+    <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.1-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>

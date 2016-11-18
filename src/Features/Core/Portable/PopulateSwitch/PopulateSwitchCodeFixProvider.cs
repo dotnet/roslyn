@@ -22,11 +22,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+        Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds 
+            => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

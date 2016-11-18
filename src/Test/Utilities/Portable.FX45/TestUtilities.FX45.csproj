@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,7 +51,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -96,6 +95,7 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
@@ -106,6 +106,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
@@ -113,5 +114,4 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

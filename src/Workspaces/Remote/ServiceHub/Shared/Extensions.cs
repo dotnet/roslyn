@@ -6,8 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -38,12 +39,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     await task.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (IsCancelled(ex))
             {
-                // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
                 throw;
             }
         }
@@ -75,12 +73,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     return result;
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (IsCancelled(ex))
             {
-                // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
                 throw;
             }
         }
@@ -110,12 +105,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     await task.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (IsCancelled(ex))
             {
-                // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
                 throw;
             }
         }
@@ -147,14 +139,25 @@ namespace Microsoft.CodeAnalysis.Remote
                     return result;
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (IsCancelled(ex))
             {
-                // if cancelled due to us, throw cancellation exception.
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
                 throw;
             }
+        }
+
+        private static bool IsCancelled(Exception ex)
+        {
+            // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+            // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
+            // can cause this exception to happen. newer version supports cancellation token natively, but
+            // we can't use it now, so we will catch object disposed exception and check cancellation token
+            if (ex is ObjectDisposedException || ex is OperationCanceledException)
+            {
+                return true;
+            }
+
+            return FatalError.Report(ex);
         }
 
         private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource mergedCancellation, CancellationToken cancellationToken)

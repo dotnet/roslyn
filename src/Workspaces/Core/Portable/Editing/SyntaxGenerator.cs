@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
+        internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -1455,6 +1457,12 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Expressions
+
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
+        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
+        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+
         /// <summary>
         /// An expression that represents the default value of a type.
         /// This is typically a null value for reference types or a zero-filled value for value types.
@@ -1727,6 +1735,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a conditional evaluation operation.
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
+
+        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 

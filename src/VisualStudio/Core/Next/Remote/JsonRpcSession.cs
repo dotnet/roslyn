@@ -56,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
-            _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream);
-            _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget);
+            _snapshotClient = new SnapshotJsonRpcClient(this, snapshotStream, cancellationToken);
+            _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget, cancellationToken);
 
             // dispose session when cancellation has raised
             _cancellationRegistration = CancellationToken.Register(Dispose);
@@ -65,19 +65,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task InitializeAsync()
         {
-            // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
-        }
-
-        public override async Task InvokeAsync(string targetName, params object[] arguments)
-        {
             CancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await _serviceClient.InvokeAsync(
-                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray()).ConfigureAwait(false);
+                // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
+                await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+                await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -90,66 +84,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        public override async Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+        public override Task InvokeAsync(string targetName, params object[] arguments)
         {
-            CancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                return await _serviceClient.InvokeAsync<T>(
-                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray()).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                CancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
         }
 
-        public override async Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
-            CancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                await _serviceClient.InvokeAsync(
-                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(),
-                    funcWithDirectStreamAsync, CancellationToken).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                CancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray());
         }
 
-        public override async Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
-            CancellationToken.ThrowIfCancellationRequested();
+            return _serviceClient.InvokeAsync(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
+        }
 
-            try
-            {
-                return await _serviceClient.InvokeAsync<T>(
-                    targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(),
-                    funcWithDirectStreamAsync, CancellationToken).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
-                CancellationToken.ThrowIfCancellationRequested();
-                throw;
-            }
+        public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        {
+            return _serviceClient.InvokeAsync<T>(targetName, arguments.Concat(PinnedScope.SolutionChecksum.ToArray()).ToArray(), funcWithDirectStreamAsync);
         }
 
         protected override void OnDisposed()
@@ -171,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcClient(Stream stream, object callbackTarget)
-                : base(stream, callbackTarget, useThisAsCallback: false)
+            public ServiceJsonRpcClient(Stream stream, object callbackTarget, CancellationToken cancellationToken)
+                : base(stream, callbackTarget, useThisAsCallback: false, cancellationToken: cancellationToken)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
@@ -194,8 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly JsonRpcSession _owner;
             private readonly CancellationTokenSource _source;
 
-            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream)
-                : base(stream, callbackTarget: null, useThisAsCallback: true)
+            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
+                : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
             {
                 _owner = owner;
                 _source = new CancellationTokenSource();
@@ -215,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
                     using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
                     {
-                        using (var writer = new StreamObjectWriter(stream))
+                        using (var writer = new ObjectWriter(stream))
                         {
                             writer.WriteInt32(sessionId);
 

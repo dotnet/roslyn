@@ -184,6 +184,50 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
+            Await TestMissingAsync(
+"
+Class C
+    Sub M()
+        With New String()
+            Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+            x.Arguments = .Length.ToString()
+        End With
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
+            Await TestAsync(
+"                            
+Class C
+    Sub M()
+        Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+        x.Arguments = Sub()
+                         With New String()
+                            Dim a = .Length.ToString()
+                         End With
+                      End Sub()
+    End Sub
+End Class",
+"                            
+Class C
+    Sub M()
+        Dim x As ProcessStartInfo = New ProcessStartInfo() With {
+            .Arguments = Sub()
+                             With New String()
+                                 Dim a = .Length.ToString()
+                             End With
+                         End Sub()
+        }
+    End Sub
+End Class", compareTokens:=False)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
         Public Async Function TestFixAllInDocument() As Task
             Await TestAsync(
@@ -229,7 +273,6 @@ compareTokens:=False)
             Await TestAsync(
 "
 Class C
-{
     Dim i As Integer
     Dim j As Integer
     Sub M()
@@ -240,7 +283,6 @@ Class C
 End Class",
 "
 Class C
-{
     Dim i As Integer
     Dim j As Integer
     Sub M()

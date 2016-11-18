@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim errorMessage As String = Nothing
@@ -54,7 +54,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //o
+  .locals init ((Integer, Integer) V_0) //o
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)""
@@ -105,7 +105,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (System.ValueTuple(Of Integer, Integer) V_0) //o
+  .locals init ((Integer, Integer) V_0) //o
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""Sub System.ValueTuple(Of Integer, Integer)..ctor(Integer, Integer)""
@@ -125,8 +125,8 @@ End Class"
         (int A, int B) o = (1, 2);
     }
 }"
-            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef})
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim testData = New CompilationTestData()
@@ -173,8 +173,8 @@ class C
         const A<(int, int A)>.B<(object B, object)>[] c = null;
     }
 }"
-            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef})
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim testData = New CompilationTestData()
@@ -201,6 +201,82 @@ class C
   IL_0001:  ret
 }")
                     locals.Free()
+                End Sub)
+        End Sub
+
+        <WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")>
+        <Fact>
+        Public Sub LongTupleLocalElement_NoNames()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = (1, 2, 3, 4, 5, 6, 7, 8)
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression(
+                        "x.Item4 + x.Item8",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        errorMessage,
+                        testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init ((Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Item4 As Integer""
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_000c:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
+  IL_0011:  add.ovf
+  IL_0012:  ret
+}")
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub LongTupleLocalElement_Names()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = (1, 2, Three:=3, Four:=4, 5, 6, 7, Eight:=8)
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression(
+                        "x.Item8 + x.Eight",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        errorMessage,
+                        testData)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init ((Integer, Integer, Three As Integer, Four As Integer, Integer, Integer, Integer, Eight As Integer) V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0006:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0011:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
+  IL_0016:  add.ovf
+  IL_0017:  ret
+}")
                 End Sub)
         End Sub
 
@@ -240,7 +316,7 @@ End Class"
 "{
   // Code size       48 (0x30)
   .maxstack  4
-  .locals init (System.ValueTuple(Of Integer, Integer) V_0, //x
+  .locals init ((Integer, Integer) V_0, //x
                 System.Guid V_1)
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
@@ -257,7 +333,7 @@ End Class"
   IL_002e:  stind.ref
   IL_002f:  ret
 }")
-                End Sub)
+                            End Sub)
         End Sub
 
         <WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")>
@@ -269,8 +345,8 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -316,6 +392,67 @@ End Class"
   IL_000f:  ret
 }")
                     locals.Free()
+                End Sub)
+        End Sub
+
+        <WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")>
+        <Fact>
+        Public Sub AliasElement_NoNames()
+            Const source =
+"Class C
+    Shared F As (Integer, Integer)
+    Shared Sub M()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim [alias] = New [Alias](
+                        DkmClrAliasKind.Variable,
+                        "x",
+                        "x",
+                        "System.ValueTuple`8[" +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                            "[System.ValueTuple`2[" +
+                                "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]," +
+                                "[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], " +
+                            "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51]], " +
+                        "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51",
+                        Guid.Empty,
+                        Nothing)
+                    Dim errorMessage As String = Nothing
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression(
+                        "x.Item4 + x.Item8",
+                        DkmEvaluationFlags.TreatAsExpression,
+                        ImmutableArray.Create([alias]),
+                        errorMessage,
+                        testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  ldstr      ""x""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
+  IL_000a:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer))""
+  IL_000f:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)).Item4 As Integer""
+  IL_0014:  ldstr      ""x""
+  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
+  IL_001e:  unbox.any  ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer))""
+  IL_0023:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)).Rest As (Integer, Integer)""
+  IL_0028:  ldfld      ""System.ValueTuple(Of Integer, Integer).Item1 As Integer""
+  IL_002d:  add.ovf
+  IL_002e:  ret
+}")
                 End Sub)
         End Sub
 

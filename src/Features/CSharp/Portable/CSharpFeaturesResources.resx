@@ -494,4 +494,7 @@
   <data name="Make_method_async_remain_void" xml:space="preserve">
     <value>Make method async (stay void)</value>
   </data>
+  <data name="Add_this" xml:space="preserve">
+    <value>Add 'this.'</value>
+  </data>
 </root>

@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
+        private readonly string _errorMessage;
 
-        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject)
+        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage)
         {
             _loader = loader;
             _loadedProject = loadedProject;
+            _errorMessage = errorMessage;
         }
 
         ~ProjectFile()
@@ -43,6 +45,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _loadedProject.FullPath; }
         }
 
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+        }
+
         public string GetPropertyValue(string name)
         {
             return _loadedProject.GetPropertyValue(name);
@@ -52,22 +59,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
 
-        protected async Task<ProjectInstance> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
+        public struct BuildInfo
         {
-            // prepare for building
-            var buildTargets = new BuildTargets(_loadedProject, "Compile");
+            public readonly ProjectInstance Project;
+            public readonly string ErrorMessage;
 
-            // don't execute anything after CoreCompile target, since we've
-            // already done everything we need to compute compiler inputs by then.
-            buildTargets.RemoveAfter("CoreCompile", includeTargetInRemoval: false);
+            public BuildInfo(ProjectInstance project, string errorMessage)
+            {
+                this.Project = project;
+                this.ErrorMessage = errorMessage;
+            }
+        }
 
+        protected async Task<BuildInfo> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
+        {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var executedProject = _loadedProject.CreateProjectInstance();
 
             if (!executedProject.Targets.ContainsKey("Compile"))
             {
-                return executedProject;
+                return new BuildInfo(executedProject, null);
             }
 
             var hostServices = new Microsoft.Build.Execution.HostServices();
@@ -77,16 +89,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, buildTargets.Targets, hostServices);
+            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
 
-            var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            BuildResult result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
-            if (result.Exception != null)
+            if (result.OverallResult == BuildResultCode.Failure)
             {
-                throw result.Exception;
+                return new BuildInfo(executedProject, result.Exception?.Message ?? "");
             }
-
-            return executedProject;
+            else
+            {
+                return new BuildInfo(executedProject, null);
+            }
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
@@ -305,8 +319,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                int result;
-                int.TryParse(value, out result);
+                int.TryParse(value, out var result);
                 return result;
             }
         }
@@ -329,8 +342,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                ulong result;
-                ulong.TryParse(value, out result);
+                ulong.TryParse(value, out var result);
                 return result;
             }
         }
@@ -356,8 +368,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                TEnum result;
-                if (Enum.TryParse<TEnum>(value, out result))
+                if (Enum.TryParse<TEnum>(value, out var result))
                 {
                     return result;
                 }

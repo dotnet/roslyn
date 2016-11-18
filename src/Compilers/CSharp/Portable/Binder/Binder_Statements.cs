@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindLocalDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                    result = BindDeconstructionDeclarationStatement((DeconstructionDeclarationStatementSyntax)node, diagnostics);
-                    break;
                 case SyntaxKind.LocalFunctionStatement:
                     result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
                     break;
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindFor((ForStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     result = BindForEach((CommonForEachStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.BreakStatement:
@@ -283,7 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                     binder = this.GetBinder(node);
@@ -448,29 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = GetBinder(node);
-            Debug.Assert(binder != null);
-
-            return binder.BindLocalFunctionStatementParts(node, diagnostics);
-        }
-
-        private BoundStatement BindLocalFunctionStatementParts(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
-        {
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 
-            var hasErrors = false;
-
-            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
-            // This occurs through the semantic model.  In that case concoct a plausible result.
-            if (localSymbol == null)
-            {
-                localSymbol = new LocalFunctionSymbol(this, this.ContainingMemberOrLambda, node);
-            }
-            else
-            {
-                hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-            }
+            var hasErrors = localSymbol.ScopeBinder
+                .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
             BoundBlock block;
             if (node.Body != null)
@@ -485,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 block = null;
                 hasErrors = true;
-                // TODO: add a message for this?
+                // TODO(https://github.com/dotnet/roslyn/issues/14900): Better error message
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
@@ -904,11 +882,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declTypeOpt.IsRestrictedType())
+            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
             {
-                Error(localDiagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
                 hasErrors = true;
             }
 
@@ -1729,9 +1704,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
-            if (node.Left.Kind() == SyntaxKind.TupleExpression)
+            if (node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression)
             {
-                return BindDeconstructionAssignment(node, diagnostics);
+                return BindDeconstruction(node, diagnostics);
             }
 
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);

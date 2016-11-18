@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{849E516A-595F-474B-ADB4-E099F921CEDF}</ProjectGuid>
@@ -107,9 +107,10 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBInteractiveEditorResources.resx">

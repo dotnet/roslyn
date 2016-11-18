@@ -20,11 +20,12 @@ namespace Roslyn.Utilities
 
         public static IEnumerable<T> GetEnumerableMetadata<T>(this IReadOnlyDictionary<string, object> metadata, string name)
         {
-            object value = metadata.GetValueOrDefault(name);
-
-            return value.TypeSwitch((IEnumerable<T> enumerable) => enumerable,
-                                    (T s) => SpecializedCollections.SingletonEnumerable(s),
-                                    _ => SpecializedCollections.EmptyEnumerable<T>());
+            switch (metadata.GetValueOrDefault(name))
+            {
+                case IEnumerable<T> enumerable: return enumerable;
+                case T s: return SpecializedCollections.SingletonEnumerable(s);
+                default: return SpecializedCollections.EmptyEnumerable<T>();
+            }
         }
     }
 }

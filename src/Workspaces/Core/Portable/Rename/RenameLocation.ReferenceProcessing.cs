@@ -176,9 +176,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var target = ((IAliasSymbol)originalSymbol).Target;
 
-                    return target.TypeSwitch(
-                        (INamedTypeSymbol nt) => nt.ConstructedFrom.Equals(referencedSymbol),
-                        (INamespaceOrTypeSymbol s) => s.Equals(referencedSymbol));
+                    switch (target)
+                    {
+                        case INamedTypeSymbol nt: return nt.ConstructedFrom.Equals(referencedSymbol);
+                        case INamespaceOrTypeSymbol s: return s.Equals(referencedSymbol);
+                        default: return false;
+                    }
                 }
 
                 // cascade from property accessor to property (someone in C# renames base.get_X, or the accessor override)
@@ -298,7 +301,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     if (location.IsInSource)
                     {
-                        results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id, isRenamableAccessor: isRenamableAccessor));
+                        results.Add(new RenameLocation(
+                            location, 
+                            solution.GetDocument(location.SourceTree).Id, 
+                            isRenamableAccessor: isRenamableAccessor));
                     }
                 }
 
@@ -375,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         if (location.Alias.Name == referencedSymbol.Name)
                         {
                             results.Add(new RenameLocation(location.Location, location.Document.Id,
-                                isCandidateLocation: location.IsCandidateLocation, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
+                                candidateReason: location.CandidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                             // We also need to add the location of the alias itself
                             var aliasLocation = location.Alias.Locations.Single();
@@ -389,8 +395,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             location.Location,
                             location.Document.Id,
                             isWrittenTo: location.IsWrittenTo,
-                            isCandidateLocation: location.IsCandidateLocation,
-                            isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup,
+                            candidateReason: location.CandidateReason,
                             isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                     }
                 }

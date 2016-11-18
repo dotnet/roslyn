@@ -1470,14 +1470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this symbol represents a tuple type, get the types of the tuple's elements.
+        /// Returns fields that represent tuple elements for types that are tuples.
+        ///
+        /// If this type is not a tuple, then returns default.
         /// </summary>
-        ImmutableArray<ITypeSymbol> INamedTypeSymbol.TupleElementTypes => StaticCast<ITypeSymbol>.From(this.TupleElementTypes);
-
-        /// <summary>
-        /// If this symbol represents a tuple type, get the names of the tuple's elements.
-        /// </summary>
-        ImmutableArray<string> INamedTypeSymbol.TupleElementNames => this.TupleElementNames;
+        ImmutableArray<IFieldSymbol> INamedTypeSymbol.TupleElements => StaticCast<IFieldSymbol>.From(this.TupleElements);
 
         /// <summary>
         /// If this is a tuple type symbol, returns the symbol for its underlying type.

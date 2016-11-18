@@ -10,14 +10,15 @@
   <PropertyGroup>
     <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Configuration Condition="'$(Configuration)' ==''">Debug</Configuration>
+    <RunTestArgs>-nocache</RunTestArgs>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
-    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests*.dll</IncludePattern>
-    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests*.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
+    <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
@@ -104,29 +105,9 @@
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
     
-    <Exec Condition="'$(RunProcessWatchdog)' != 'true' AND '$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+    <Exec Condition="'$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
-    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
-
-    <PropertyGroup Condition="'$(RunProcessWatchdog)' == 'true'">
-      <ProcessWatchDogExe>$(OutputDirectory)\ProcessWatchdog\ProcessWatchdog.exe</ProcessWatchDogExe>
-      <ProcessWatchdogOutputDirectory Condition="'$(ProcessWatchdogOutputDirectory)' == ''">$(OutputDirectory)\ProcessWatchdogOutput</ProcessWatchdogOutputDirectory>
-      <ProcDumpExe Condition="'$(ProcDumpExe)' == ''">C:\Sysinternals\Procdump.exe</ProcDumpExe>
-
-      <!--
-      The time reserved for the process watchdog to kill all test processes and obtain crash
-      dumps from them, measure in seconds.
-      -->
-      <BufferTime>300</BufferTime>
-
-      <!--
-      The fully constructed command line which runs a PowerShell script that runs both the
-      Core CLR unit tests and the desktop unit tests under the control of the process watchdog.
-      -->
-      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
-    </PropertyGroup>
-
-    <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command="$(RunProcessWatchdogScriptCommand)" />
+    <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 
   </Target>
 

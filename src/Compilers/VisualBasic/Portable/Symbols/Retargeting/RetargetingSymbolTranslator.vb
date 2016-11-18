@@ -549,6 +549,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     Case SymbolKind.ErrorType, SymbolKind.NamedType
                         Dim namedType = DirectCast(symbol, NamedTypeSymbol)
+                        If namedType.IsTupleType Then
+                            namedType = namedType.TupleUnderlyingType
+                        End If
 
                         If symbol.OriginalDefinition.ContainingModule Is _retargetingModule.UnderlyingModule AndAlso
                             namedType.IsExplicitDefinitionOfNoPiaLocalType Then
@@ -946,6 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      method.ReturnsByRef,
                                                                      translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                                      translator.RetargetModifiers(method.ReturnTypeCustomModifiers, modifiersHaveChanged),
+                                                                     method.CountOfCustomModifiersPrecedingByRef,
                                                                      ImmutableArray(Of MethodSymbol).Empty)
 
                     For Each retargetedMember As Symbol In retargetedType.GetMembers(method.Name)
@@ -1050,7 +1054,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      targetParamsBuilder.ToImmutableAndFree(),
                                                                      [property].ReturnsByRef,
                                                                      Retarget([property].Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged))
+                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged),
+                                                                     [property].CountOfCustomModifiersPrecedingByRef)
 
                 For Each retargetedMember As Symbol In retargetedType.GetMembers([property].Name)
                     If retargetedMember.Kind = SymbolKind.Property Then

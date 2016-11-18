@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax) || (syntax is DeconstructionDeclarationStatementSyntax));
+            Debug.Assert((syntax == null) || (syntax is ExpressionSyntax) || (syntax is LocalDeclarationStatementSyntax) || (syntax is ExpressionStatementSyntax));
 
             // TODO: syntax.SyntaxTree should probably be added to the compilation,
             // but it isn't rooted by a CompilationUnitSyntax so it doesn't work (yet).

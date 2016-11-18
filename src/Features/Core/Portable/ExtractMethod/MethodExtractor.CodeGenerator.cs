@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(SyntaxAnnotation callsiteAnnotation, CancellationToken cancellationToken);
 
             protected abstract TExpression CreateCallSignature();
-            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, CancellationToken cancellationToken, TExpression initialValue = null);
+            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                 var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
 
-                var codeGenerationService = this.SemanticDocument.Document.Project.LanguageServices.GetService<ICodeGenerationService>();
+                var codeGenerationService = this.SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
                 var result = this.GenerateMethodDefinition(cancellationToken);
                 var newContainer = codeGenerationService.AddMethod(
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return null;
                 }
 
-                variables.Sort(VariableInfo.Compare);
+                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
                 return variables[0];
             }
 
@@ -188,8 +189,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // there must be one decl behavior when there is "return value and initialize" variable
                     Contract.ThrowIfFalse(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
 
-                    return statements.Concat(
-                        CreateDeclarationStatement(variable, cancellationToken, CreateCallSignature()).WithAdditionalAnnotations(this.CallSiteAnnotation));
+                    var declarationStatement = CreateDeclarationStatement(
+                        variable, CreateCallSignature(), cancellationToken).WithAdditionalAnnotations(this.CallSiteAnnotation);
+
+                    return statements.Concat(declarationStatement);
                 }
 
                 Contract.ThrowIfFalse(variable.ReturnBehavior == ReturnBehavior.Assignment);
@@ -197,19 +200,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(this.CallSiteAnnotation));
             }
 
-            protected IEnumerable<TStatement> CreateDeclarationStatements(IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
+            protected IEnumerable<TStatement> CreateDeclarationStatements(
+                IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
                 foreach (var variable in variables)
                 {
-                    list.Add(CreateDeclarationStatement(variable, cancellationToken));
+                    list.Add(CreateDeclarationStatement(
+                        variable, initialValue: null, cancellationToken: cancellationToken));
                 }
 
                 return list;
             }
 
-            protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+            protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
+                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
@@ -220,7 +226,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    list.Add(CreateDeclarationStatement(variable, cancellationToken));
+                    list.Add(CreateDeclarationStatement(
+                        variable, initialValue: null, cancellationToken: cancellationToken));
                 }
 
                 return list;

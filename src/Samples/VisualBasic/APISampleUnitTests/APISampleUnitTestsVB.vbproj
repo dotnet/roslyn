@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
@@ -34,8 +34,9 @@
     <ProjectGuid>{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>APISampleUnitTestsVB</RootNamespace>
-    <AssemblyName>APISampleUnitTestsVB</AssemblyName>
-    <VBRuntime></VBRuntime>
+    <AssemblyName>APISampleUnitTestsVB.UnitTests</AssemblyName>
+    <VBRuntime>
+    </VBRuntime>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -73,5 +74,4 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

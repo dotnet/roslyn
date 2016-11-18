@@ -115,6 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return False

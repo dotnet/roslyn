@@ -2930,7 +2930,7 @@ class C1 {
             Assert.Equal(expectedText, actualParts.ToDisplayString());
             if (expectedKinds.Length > 0)
             {
-                AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"SymbolDisplayPartKind.{p}");
+                AssertEx.Equal(expectedKinds, actualParts.Select(p => p.Kind), itemInspector: p => $"                SymbolDisplayPartKind.{p}");
             }
         }
 
@@ -4674,6 +4674,59 @@ class C
                 SymbolDisplayPartKind.PropertyName);
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleQualifiedNames()
+        {
+            var text =
+@"using NAB = N.A.B;
+namespace N
+{
+    class A
+    {
+        internal class B {}
+    }
+    class C<T>
+    {
+        // offset 1
+    }
+}
+class C
+{
+#pragma warning disable CS0169
+   (int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f;
+#pragma warning restore CS0169
+    // offset 2
+}";
+            var format = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+            var comp = CreateCompilationWithMscorlib(text, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            comp.VerifyDiagnostics();
+            var symbol = comp.GetMember("C.f");
+
+            // Fully qualified format.
+            Verify(
+                SymbolDisplay.ToDisplayParts(symbol, format),
+                "(int One, global::N.C<(object[], global::N.A.B Two)>, int, object Four, int, object, int, object, global::N.A Nine) f");
+
+            // Minimally qualified format.
+            Verify(
+                SymbolDisplay.ToDisplayParts(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "(int One, C<(object[], B Two)>, int, object Four, int, object, int, object, A Nine) C.f");
+
+            // ToMinimalDisplayParts.
+            var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 1"), format),
+                "(int One, C<(object[], NAB Two)>, int, object Four, int, object, int, object, A Nine) f");
+            Verify(
+                SymbolDisplay.ToMinimalDisplayParts(symbol, model, text.IndexOf("offset 2"), format),
+                "(int One, N.C<(object[], NAB Two)>, int, object Four, int, object, int, object, N.A Nine) f");
+        }
+
         /// <summary>
         /// This is a type symbol that claims to be a tuple symbol, but is not TupleTypeSymbol. Yet, it can still be displayed.
         /// </summary>
@@ -4681,11 +4734,11 @@ class C
         {
             public bool IsTupleType => true;
 
-            public ImmutableArray<string> TupleElementNames { get; set; }
+            public INamedTypeSymbol wrappedTuple { get; set; }
 
-            public ImmutableArray<ITypeSymbol> TupleElementTypes { get; set; }
+            public ImmutableArray<IFieldSymbol> TupleElements => wrappedTuple.TupleElements;
 
-            public INamedTypeSymbol TupleUnderlyingType { get; set; }
+            public INamedTypeSymbol TupleUnderlyingType => wrappedTuple.TupleUnderlyingType;
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
@@ -5179,16 +5232,16 @@ class C
         }
 
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
-        public void DisplayFakeTupleTypeSymbol()
+        public void NonTupleTypeSymbol()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
 
             var symbolWithNames = new FakeTupleTypeSymbol();
-            symbolWithNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
-            symbolWithNames.TupleElementNames = ImmutableArray.Create("Alice", "Bob");
-            symbolWithNames.TupleUnderlyingType = ((INamedTypeSymbol)comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2)).Construct(intType, stringType);
+            var types = ImmutableArray.Create(intType, stringType);
+            var names = ImmutableArray.Create("Alice", "Bob");
+            symbolWithNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types, names));
 
             var descriptionWithNames = symbolWithNames.ToDisplayParts();
 
@@ -5206,8 +5259,8 @@ class C
                 SymbolDisplayPartKind.Punctuation);
 
             var symbolWithoutNames = new FakeTupleTypeSymbol();
-            symbolWithoutNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
-            symbolWithoutNames.TupleUnderlyingType = symbolWithNames.TupleUnderlyingType;
+            types = ImmutableArray.Create(intType, stringType);
+            symbolWithoutNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types));
 
             var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
 

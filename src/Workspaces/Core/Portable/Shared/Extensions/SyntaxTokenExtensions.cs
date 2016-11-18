@@ -102,5 +102,69 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ? ((ICompilationUnitSyntax)token.Parent.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
                 : nextToken;
         }
+
+        public static SyntaxToken WithoutTrivia(
+            this SyntaxToken token)
+        {
+            if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
+            {
+                return token;
+            }
+
+            return token.With(new SyntaxTriviaList(), new SyntaxTriviaList());
+        }
+
+        public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
+        {
+            return token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);
+        }
+
+        public static SyntaxToken WithPrependedLeadingTrivia(
+            this SyntaxToken token,
+            params SyntaxTrivia[] trivia)
+        {
+            if (trivia.Length == 0)
+            {
+                return token;
+            }
+
+            return token.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+        }
+
+        public static SyntaxToken WithPrependedLeadingTrivia(
+            this SyntaxToken token,
+            SyntaxTriviaList trivia)
+        {
+            if (trivia.Count == 0)
+            {
+                return token;
+            }
+
+            return token.WithLeadingTrivia(trivia.Concat(token.LeadingTrivia));
+        }
+
+        public static SyntaxToken WithPrependedLeadingTrivia(
+            this SyntaxToken token,
+            IEnumerable<SyntaxTrivia> trivia)
+        {
+            var list = new SyntaxTriviaList();
+            list = list.AddRange(trivia);
+
+            return token.WithPrependedLeadingTrivia(list);
+        }
+
+        public static SyntaxToken WithAppendedTrailingTrivia(
+            this SyntaxToken token,
+            params SyntaxTrivia[] trivia)
+        {
+            return token.WithAppendedTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+        }
+
+        public static SyntaxToken WithAppendedTrailingTrivia(
+            this SyntaxToken token,
+            IEnumerable<SyntaxTrivia> trivia)
+        {
+            return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
+        }
     }
 }

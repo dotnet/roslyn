@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</ProjectGuid>
@@ -155,11 +155,6 @@
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
-    <Compile Include="Implementation\Watson\ErrorReportSettings.cs" />
-    <Compile Include="Implementation\Watson\ExceptionInfo.cs" />
-    <Compile Include="Implementation\Watson\NativeWin32Stubs.cs" />
-    <Compile Include="Implementation\Watson\Watson.cs" />
-    <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
     <Compile Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
@@ -170,7 +165,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
@@ -280,12 +274,14 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.CodeSense.Roslyn" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />

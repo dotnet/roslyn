@@ -47,12 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private BloomFilter(BitArray bitArray, int hashFunctionCount, bool isCaseSensitive)
         {
-            if (bitArray == null)
-            {
-                throw new ArgumentNullException(nameof(bitArray));
-            }
-
-            _bitArray = bitArray;
+            _bitArray = bitArray ?? throw new ArgumentNullException(nameof(bitArray));
             _hashFunctionCount = hashFunctionCount;
             _isCaseSensitive = isCaseSensitive;
         }

@@ -214,6 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return this.CountOfCustomModifiersPrecedingByRef;
+            }
+        }
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get

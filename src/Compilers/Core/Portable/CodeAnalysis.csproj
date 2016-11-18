@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
@@ -17,23 +17,6 @@
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -43,11 +26,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
-    <Compile Include="Serialization\FixedObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectData.cs" />
-    <Compile Include="Serialization\StreamObjectReader.cs" />
-    <Compile Include="Serialization\StreamObjectWriter.cs" />
-    <Compile Include="Serialization\TypeKey.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
@@ -440,9 +418,6 @@
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\UICultureUtilities.cs" />
-    <Compile Include="InternalUtilities\ValueTuple.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`2.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`3.cs" />
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
@@ -553,12 +528,18 @@
     <Compile Include="ReferenceManager\UnifiedAssembly.cs" />
     <Compile Include="ResourceDescription.cs" />
     <Compile Include="ResourceException.cs" />
-    <Compile Include="Serialization\RecordingObjectBinder.cs" />
+    <Compile Include="Serialization\ConcurrentRecordingObjectBinder.cs" />
+    <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
+    <Compile Include="Serialization\ObjectReaderData.cs" />
+    <Compile Include="Serialization\ObjectReaderWriterBase.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
+    <Compile Include="Serialization\ObjectWriterData.cs" />
+    <Compile Include="Serialization\RecordingObjectBinder.cs" />
+    <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
     <Compile Include="SpecialMember.cs" />

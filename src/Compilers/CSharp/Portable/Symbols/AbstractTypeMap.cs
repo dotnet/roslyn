@@ -151,26 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool IsPossiblyByRefTypeParameter(TypeSymbol type)
-        {
-            if (type.IsTypeParameter())
-            {
-                return true;
-            }
-
-            if (type.IsErrorType())
-            {
-                var byRefReturnType = type as ByRefReturnErrorTypeSymbol;
-
-                return ((object)byRefReturnType != null) && byRefReturnType.ReferencedType.IsTypeParameter();
-            }
-
-            return false;
-        }
-
         internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(TypeSymbol type, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (IsPossiblyByRefTypeParameter(type))
+            if (type.IsTypeParameter())
             {
                 return new TypeWithModifiers(type, customModifiers).SubstituteType(this).CustomModifiers;
             }

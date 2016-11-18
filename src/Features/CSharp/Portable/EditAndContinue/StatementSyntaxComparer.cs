@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ForEachStatement:
                     return Label.ForEachStatement;
 
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return Label.ForEachComponentStatement;
 
                 case SyntaxKind.UsingStatement:
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.DoStatement:

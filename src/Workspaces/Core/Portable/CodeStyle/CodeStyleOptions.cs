@@ -64,11 +64,35 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCollectionInitializer = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferCollectionInitializer),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer"));
+
         internal static readonly PerLanguageOption<bool> PreferObjectInitializer_FadeOutCode = new PerLanguageOption<bool>(
             nameof(CodeStyleOptions),
             nameof(PreferObjectInitializer_FadeOutCode),
             defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
+
+        internal static readonly PerLanguageOption<bool> PreferCollectionInitializer_FadeOutCode = new PerLanguageOption<bool>(
+            nameof(CodeStyleOptions),
+            nameof(PreferCollectionInitializer_FadeOutCode),
+            defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferCoalesceExpression),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCoalesceExpression"));
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferNullPropagation = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferNullPropagation),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferNullPropagation"));
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferInlinedVariableDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
@@ -76,5 +100,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration"));
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferExplicitTupleNames = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferExplicitTupleNames),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames"));
     }
 }

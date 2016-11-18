@@ -13,124 +13,70 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            string configFile;
-            string basePath;
-            List<string> solutionFilePaths;
-            if (!ParseCommandLine(args, out configFile, out basePath, out solutionFilePaths))
+            if (args.Length == 0)
             { 
                 Usage();
                 return 1;
             }
 
-            if (configFile != null)
-            {
-                var config = JsonConvert.DeserializeObject<BuildBossConfig>(File.ReadAllText(configFile));
-                foreach (var target in config.Targets)
-                {
-                    solutionFilePaths.Add(Path.IsPathRooted(target)
-                        ? target
-                        : Path.Combine(basePath, target));
-                }
-            }
-
             var allGood = true;
-            foreach (var solutionFilePath in solutionFilePaths)
+            foreach (var arg in args)
             {
-                allGood &= ProcessSolution(solutionFilePath);
+                if (SharedUtil.IsSolutionFile(arg))
+                {
+                    allGood &= ProcessSolution(arg);
+                }
+                else if (Path.GetExtension(arg) == ".xml")
+                {
+                    allGood &= ProcessStructuredLog(arg);
+                }
+                else
+                {
+                    allGood &= ProcessTargets(arg);
+                }
             }
 
             return allGood ? 0 : 1;
         }
 
-        private static bool ProcessSolution(string solutionFilePath)
+        private static bool CheckCore(ICheckerUtil util, string title)
         {
-            var solutionPath = Path.GetDirectoryName(solutionFilePath);
-            var projectDataList = SolutionUtil.ParseProjects(solutionFilePath);
-            var map = new Dictionary<ProjectKey, ProjectData>();
-            foreach (var projectEntry in projectDataList)
-            {
-                if (projectEntry.IsFolder)
-                {
-                    continue;
-                }
-
-                var projectFilePath = Path.Combine(solutionPath, projectEntry.RelativeFilePath);
-                var projectData = new ProjectData(projectFilePath);
-                map.Add(projectData.Key, projectData);
-            }
-
-            var allGood = true;
-            var count = 0;
-            foreach (var projectData in map.Values.OrderBy(x => x.FileName))
-            {
-                allGood &= ProcessProject(solutionPath, projectData, map);
-                count++;
-            }
-
-            var result = allGood ? "passed" : "FAILED";
-            Console.WriteLine($"Processing {Path.GetFileName(solutionFilePath)} ... {result} ({count} projects processed)");
-            return allGood;
-        }
-
-        private static bool ProcessProject(string solutionPath, ProjectData projectData, Dictionary<ProjectKey, ProjectData> map)
-        {
-            var util = new ProjectCheckerUtil(projectData, map);
+            Console.Write($"Processing {title} ... ");
             var textWriter = new StringWriter();
-            if (!util.CheckAll(textWriter))
+            if (util.Check(textWriter))
             {
-                Console.WriteLine($"Checking {projectData.FilePath} failed");
+                Console.WriteLine("passed");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("FAILED");
                 Console.WriteLine(textWriter.ToString());
                 return false;
             }
-
-            return true;
         }
 
-        private static bool ParseCommandLine(string[] args, out string configFile, out string basePath, out List<string> solutionFilePaths)
+        private static bool ProcessSolution(string solutionFilePath)
         {
-            configFile = null;
-            basePath = AppContext.BaseDirectory;
-            solutionFilePaths = new List<string>();
+            var util = new SolutionCheckerUtil(solutionFilePath);
+            return CheckCore(util, $"Solution {solutionFilePath}");
+        }
 
-            var i = 0;
-            while (i < args.Length)
-            {
-                var current = args[i];
-                switch (current.ToLower())
-                {
-                    case "-config":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("config requires an argument");
-                            return false;
-                        }
+        private static bool ProcessTargets(string targets)
+        {
+            var checker = new TargetsCheckerUtil(targets);
+            return CheckCore(checker, $"Targets {targets}");
+        }
 
-                        configFile = args[i + 1];
-                        i += 2;
-                        break;
-                    case "-basepath":
-                        if (i + 1 >= args.Length)
-                        {
-                            Console.WriteLine("basePath requise and argument");
-                            return false;
-                        }
-
-                        basePath = args[i + 1];
-                        i += 2;
-                        break;
-                    default:
-                        solutionFilePaths.Add(current);
-                        i++;
-                        break;
-                }
-            }
-
-            return true;
+        private static bool ProcessStructuredLog(string logFilePath)
+        {
+            var util = new StructuredLoggerCheckerUtil(XDocument.Load(logFilePath));
+            return CheckCore(util, $"Structured log {logFilePath}");
         }
 
         private static void Usage()
         {
-            Console.WriteLine($"BuildBoss [-config <config file path] [-basePath <base path>] <solution paths>");
+            Console.WriteLine($"BuildBoss <solution paths>");
         }
     }
 }

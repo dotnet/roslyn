@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -37,6 +37,22 @@
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>Microsoft.CodeAnalysis.EditorFeatures</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
+      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
+      <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
+      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
+      <Name>Workspaces.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
       <Name>UnitTestFramework</Name>
@@ -46,8 +62,10 @@
       <Name>ConvertToConditionalCS</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -65,5 +83,4 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

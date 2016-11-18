@@ -45,13 +45,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
         {
             var root = ParseNode(text, options);
+            UsingNode(root);
+            return root;
+        }
+
+        /// <summary>
+        /// Initializes a depth-first preorder enumerator for the given node.
+        /// </summary>
+        protected void UsingNode(CSharpSyntaxNode root)
+        {
             var nodes = EnumerateNodes(root);
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
             _treeEnumerator = nodes.GetEnumerator();
-
-            return root;
         }
 
         /// <summary>

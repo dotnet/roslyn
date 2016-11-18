@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
@@ -977,7 +977,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

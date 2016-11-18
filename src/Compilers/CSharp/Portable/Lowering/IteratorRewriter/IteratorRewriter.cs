@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(F.Local(resultVariable), F.This()),       // result = this;
                             method.IsStatic || method.ThisParameter.Type.IsReferenceType ?   // if this is a reference type, no need to copy it since it is not assignable
                                 F.Goto(thisInitialized) :                          // goto thisInitialized
-                                (BoundStatement)F.Block()),
+                                (BoundStatement)F.StatementList()),
                     elseClauseOpt:
                         makeIterator // else result = new IteratorClass(0)
                         );

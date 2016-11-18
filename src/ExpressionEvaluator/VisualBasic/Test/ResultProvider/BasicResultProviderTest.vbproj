@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -45,6 +45,14 @@
       <Name>ResultProviderTestUtilities</Name>
     </ProjectReference>
     <!-- This reference is only needed to ensure correct build ordering (we link in all the necessary files as source). -->
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -86,5 +94,4 @@
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
-  <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
 </Project>

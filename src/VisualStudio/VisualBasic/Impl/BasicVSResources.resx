@@ -267,4 +267,7 @@
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
+  <data name="nothing_checking_colon" xml:space="preserve">
+    <value>'nothing' checking:</value>
+  </data>
 </root>

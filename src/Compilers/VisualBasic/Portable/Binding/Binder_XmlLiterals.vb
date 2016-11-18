@@ -1691,6 +1691,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Private Function ReduceAccessorIfAny(methodOpt As MethodSymbol) As ReducedExtensionAccessorSymbol
             Return If(methodOpt Is Nothing, Nothing, New ReducedExtensionAccessorSymbol(Me, methodOpt))
         End Function
@@ -1930,6 +1936,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
                     Return _originalDefinition.ReturnTypeCustomModifiers
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                Get
+                    Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
-            SyntaxToken nextToken = lastToken.GetNextToken(includeSkipped: true);
+            var nextToken = lastToken.GetNextToken(includeSkipped: true);
             if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             Contract.ThrowIfNull(text);
             Contract.ThrowIfNull(prefix);
 
-            int prefixLength = prefix.Length;
+            var prefixLength = prefix.Length;
             return prefix + " " + text.Substring(prefixLength).Trim() + " " + Ellipsis;
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
             else if (comment.IsMultiLineComment())
             {
-                int lineBreakStart = comment.ToString().IndexOfAny(new char[] { '\r', '\n' });
+                var lineBreakStart = comment.ToString().IndexOfAny(new char[] { '\r', '\n' });
 
                 var text = comment.ToString();
                 if (lineBreakStart >= 0)
@@ -257,13 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                node,
-                syntaxToken,
-                node.GetLastToken(),
-                bannerText,
-                autoCollapse,
-                type,
-                isCollapsible);
+                node, syntaxToken, node.GetLastToken(),
+                bannerText, autoCollapse, type, isCollapsible);
         }
 
         public static BlockSpan? CreateBlockSpan(
@@ -282,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // of the next token so indentation in the tooltip is accurate.
 
             var span = TextSpan.FromBounds(GetCollapsibleStart(startToken), endPos);
-            var hintSpan = TextSpan.FromBounds(node.SpanStart, endPos);
+            var hintSpan = GetHintSpan(node, endPos);
 
             return CreateBlockSpan(
                 span,
@@ -293,19 +288,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 isCollapsible);
         }
 
+        private static TextSpan GetHintSpan(SyntaxNode node, int endPos)
+        {
+            // Don't include attributes in the BlockSpan for a node.  When the user
+            // hovers over the indent-guide we don't want to show them the line with
+            // the attributes, we want to show them the line with the start of the
+            // actual structure.
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.Kind() != SyntaxKind.AttributeList)
+                {
+                    return TextSpan.FromBounds(child.SpanStart, endPos);
+                }
+            }
+
+            return TextSpan.FromBounds(node.SpanStart, endPos);
+        }
+
         public static BlockSpan? CreateBlockSpan(
             SyntaxNode node, SyntaxToken startToken, 
             SyntaxToken endToken, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                node,
-                startToken,
-                GetCollapsibleEnd(endToken),
-                bannerText,
-                autoCollapse, 
-                type,
-                isCollapsible);
+                node, startToken, GetCollapsibleEnd(endToken),
+                bannerText, autoCollapse, type, isCollapsible);
         }
 
         public static BlockSpan CreateBlockSpan(

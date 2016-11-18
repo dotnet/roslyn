@@ -407,7 +407,7 @@ public class C
     }
 }";
 
-            var debug = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <methods>
@@ -429,7 +429,7 @@ public class C
   </methods>
 </symbols>");
 
-            var release = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <methods>

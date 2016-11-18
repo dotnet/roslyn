@@ -23,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
 
         Friend Overrides Function GetSpanForTagging(directive As DirectiveTriviaSyntax) As TextSpan
             Dim keywordToken = directive.TypeSwitch(
-                                           Function(context As IfDirectiveTriviaSyntax) context.IfOrElseIfKeyword,
-                                           Function(context As ElseDirectiveTriviaSyntax) context.ElseKeyword,
-                                           Function(context As EndIfDirectiveTriviaSyntax) context.IfKeyword,
-                                           Function(context As RegionDirectiveTriviaSyntax) context.RegionKeyword,
-                                           Function(context As EndRegionDirectiveTriviaSyntax) context.RegionKeyword)
+                Function(context As IfDirectiveTriviaSyntax) context.IfOrElseIfKeyword,
+                Function(context As ElseDirectiveTriviaSyntax) context.ElseKeyword,
+                Function(context As EndIfDirectiveTriviaSyntax) context.IfKeyword,
+                Function(context As RegionDirectiveTriviaSyntax) context.RegionKeyword,
+                Function(context As EndRegionDirectiveTriviaSyntax) context.RegionKeyword)
 
             Return TextSpan.FromBounds(directive.HashToken.SpanStart, keywordToken.Span.End)
         End Function

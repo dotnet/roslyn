@@ -1646,5 +1646,33 @@ End Class")
     end function
 end class")
         End Function
+
+        <WorkItem(13749, "https://github.com/dotnet/roslyn/issues/13749")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function Support_Readonly_Properties() As Task
+            Await TestAsync(
+"Class C
+    ReadOnly Property Prop As Integer
+End Class
+Module P
+    Sub M()
+        Dim prop = 42
+        Dim c = New C([|prop|])
+    End Sub
+End Module",
+"Class C
+    Public Sub New(prop As Integer)
+        Me.Prop = prop
+    End Sub
+
+    ReadOnly Property Prop As Integer
+End Class
+Module P
+    Sub M()
+        Dim prop = 42
+        Dim c = New C(prop)
+    End Sub
+End Module")
+        End Function
     End Class
 End Namespace

@@ -134,6 +134,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
+        ''' In order to avoid breaking interop scenarios, we need to support signatures
+        ''' with modifiers preceding ByRef.
+        ''' Should be 0 for non-ref returns.
+        ''' </summary>
+        Friend MustOverride ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+
+        ''' <summary>
         ''' Returns the list of attributes, if any, associated with the return type.
         ''' </summary>
         Public Overridable Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)

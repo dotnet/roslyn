@@ -163,7 +163,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
                 //         D<(int x, int y)> d = o => { };
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(6, 11),
+                // (6,11): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                //         D<(int x, int y)> d = o => { };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int x, int y)").WithArguments("System.ValueType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(6, 11),
+                // (7,11): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                //         d((0, 0));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(0, 0)").WithArguments("System.ValueType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(7, 11)
                 );
         }
 
@@ -193,7 +199,14 @@ class C
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
                 //     static (int x, int y) M() => (0, 0);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(4, 12),
+                // (4,12): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     static (int x, int y) M() => (0, 0);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int x, int y)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(4, 12),
+                // (4,34): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     static (int x, int y) M() => (0, 0);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(0, 0)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(4, 34)
+                );
         }
 
         [Fact]

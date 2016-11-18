@@ -1,37 +1,86 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal abstract class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider
+    internal abstract partial class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : 
+        AbstractAddPackageCodeFixProvider
         where TIdentifierNameSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Values for these parameters can be provided (during testing) for mocking purposes.
+        /// </summary> 
+        protected AbstractAddMissingReferenceCodeFixProvider(
+            IPackageInstallerService packageInstallerService = null,
+            ISymbolSearchService symbolSearchService = null)
+            : base(packageInstallerService, symbolSearchService)
+        {
+        }
+
+        protected override bool IncludePrerelease => false;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
+            var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
+
+            var assemblyNames = uniqueIdentities.Select(i => i.Name).ToSet();
+            var addPackageCodeActions = await GetAddPackagesCodeActionsAsync(context, assemblyNames).ConfigureAwait(false);
+            var addReferenceCodeActions = await GetAddReferencesCodeActionsAsync(context, uniqueIdentities).ConfigureAwait(false);
+
+            context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
+            context.RegisterFixes(addReferenceCodeActions, context.Diagnostics);
+        }
+
+        private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
+        {
+            var result = ArrayBuilder<CodeAction>.GetInstance();
+            foreach (var identity in uniqueIdentities)
+            {
+                var codeAction = await AddMissingReferenceCodeAction.CreateAsync(
+                    context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false);
+                result.Add(codeAction);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+        {
+            var cancellationToken = context.CancellationToken;
             var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+
             var uniqueIdentities = new HashSet<AssemblyIdentity>();
             foreach (var diagnostic in context.Diagnostics)
             {
                 var nodes = FindNodes(root, diagnostic);
-                var types = GetTypesForNodes(model, nodes, cancellationToken).Distinct();
+                var types = GetTypesForNodes(semanticModel, nodes, cancellationToken).Distinct();
                 var message = diagnostic.GetMessage();
-                AssemblyIdentity identity = GetAssemblyIdentity(types, message);
-                if (identity != null && !uniqueIdentities.Contains(identity) && !identity.Equals(model.Compilation.Assembly.Identity))
+                var identity = GetAssemblyIdentity(types, message);
+
+                if (identity != null &&
+                    !identity.Equals(compilation.Assembly.Identity))
                 {
                     uniqueIdentities.Add(identity);
-                    context.RegisterCodeFix(
-                        await AddMissingReferenceCodeAction.CreateAsync(context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false),
-                        diagnostic);
                 }
             }
+
+            return uniqueIdentities;
         }
 
         /// <summary>
@@ -88,6 +137,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
 
                     yield return propertySymbol.Type;
                 }
+
                 yield return symbol?.GetContainingTypeOrThis();
             }
         }

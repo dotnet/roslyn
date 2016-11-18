@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create(string kind, Checksum checksum)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 writer.WriteString(kind);
                 checksum.WriteTo(writer);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             where TChecksums : IEnumerable<Checksum>
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 writer.WriteString(kind);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create<T>(T value, string kind, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new StreamObjectWriter(stream))
+            using (var objectWriter = new ObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
                 serializer.Serialize(value, objectWriter, CancellationToken.None);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create(IObjectWritable @object, string kind)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new StreamObjectWriter(stream))
+            using (var objectWriter = new ObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
                 @object.WriteTo(objectWriter);

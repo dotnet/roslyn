@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.FindReferences
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults

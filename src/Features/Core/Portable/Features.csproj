@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</ProjectGuid>
@@ -62,9 +62,9 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
@@ -73,10 +73,12 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
@@ -84,6 +86,7 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.Roslyn" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
   </ItemGroup>
@@ -91,19 +94,29 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
+    <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
+    <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallNugetPackageOperation.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
+    <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
-    <Compile Include="AddMissingReference\CodeAction.cs" />
+    <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
     <Compile Include="NavigateTo\IRemoteNavigateToSearchService.cs" />
@@ -121,9 +134,19 @@
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
+    <Compile Include="UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
+    <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
+    <Compile Include="UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
+    <Compile Include="UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
-    <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="Structure\BlockTypes.cs" />
     <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
@@ -174,7 +197,7 @@
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\NamingStyle\AbstractNamingStyleCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
-    <Compile Include="CodeFixes\Qualify\AbstractQualifyMemberAccessCodeFixprovider.cs" />
+    <Compile Include="QualifyMemberAccess\AbstractQualifyMemberAccessCodeFixprovider.cs" />
     <Compile Include="CodeFixes\RoslynAssemblyHelper.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
@@ -206,7 +229,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
-    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\AbstractConvertToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
@@ -280,18 +303,18 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\PreferFrameworkTypeDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
+    <Compile Include="QualifyMemberAccess\AbstractQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentSpan.cs" />
-    <Compile Include="FindReferences\DefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.DocumentLocationDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.NonNavigatingDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.SymbolDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionsAndReferences.cs" />
-    <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />
-    <Compile Include="FindReferences\SourceReferenceItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.DocumentLocationDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.NonNavigatingDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.SymbolDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
+    <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
+    <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
@@ -405,7 +428,7 @@
     <Compile Include="Diagnostics\Analyzers\DocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\ProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
-    <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryImportsDiagnosticAnalyzerBase.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationComments\IDocumentationCommentFormattingService.cs" />
@@ -434,11 +457,9 @@
     <Compile Include="EditAndContinue\RudeEditKind.cs" />
     <Compile Include="EditAndContinue\RudeEditDiagnosticDescriptors.cs" />
     <Compile Include="EditAndContinue\SessionReadOnlyReason.cs" />
-    <Compile Include="EncapsulateField\AbstractEncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="EncapsulateField\AbstractEncapsulateFieldService.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldCodeAction.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldResult.cs" />
-    <Compile Include="ExtractInterface\AbstractExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\AbstractExtractInterfaceService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeAction.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceOptionsResult.cs" />
@@ -666,6 +687,7 @@
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\ProjectCacheService.cs" />

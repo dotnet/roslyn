@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8E2A252E-A140-45A6-A81A-2652996EA589}</ProjectGuid>
@@ -58,7 +58,7 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />

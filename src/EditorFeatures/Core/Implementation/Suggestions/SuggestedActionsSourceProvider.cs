@@ -159,36 +159,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var documentAndSnapshot = GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = GetMatchingDocumentAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return null;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
                     var fixes = GetCodeFixes(supportsFeatureService, requestedActionCategories, workspace, document, range, cancellationToken);
                     var refactorings = GetRefactorings(supportsFeatureService, requestedActionCategories, workspace, document, range, cancellationToken);
 
-                    var result = fixes == null ? refactorings : refactorings == null
-                                               ? fixes : fixes.Concat(refactorings);
+                    var result = fixes.Concat(refactorings);
 
-                    if (result == null)
+                    if (result.IsEmpty)
                     {
                         return null;
                     }
 
-                    var allActionSets = result.ToList();
-                    allActionSets = InlineActionSetsIfDesirable(allActionSets);
+                    var allActionSets = InlineActionSetsIfDesirable(result);
                     return allActionSets;
                 }
             }
 
-            private List<SuggestedActionSet> InlineActionSetsIfDesirable(List<SuggestedActionSet> allActionSets)
+            private ImmutableArray<SuggestedActionSet> InlineActionSetsIfDesirable(ImmutableArray<SuggestedActionSet> allActionSets)
             {
                 // If we only have a single set of items, and that set only has three max suggestion 
                 // offered.  Then we can consider inlining any nested actions into the top level list.
@@ -198,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return allActionSets;
                 }
 
-                return allActionSets.Select(InlineActions).ToList();
+                return allActionSets.SelectAsArray(InlineActions);
             }
 
             private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
@@ -223,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     newActions.ToImmutableAndFree(), actionSet.Title, actionSet.Priority, actionSet.ApplicableToSpan);
             }
 
-            private IEnumerable<SuggestedActionSet> GetCodeFixes(
+            private ImmutableArray<SuggestedActionSet> GetCodeFixes(
                 IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -251,15 +248,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
                 }
 
-                return null;
+                return ImmutableArray<SuggestedActionSet>.Empty;
             }
 
-            private List<CodeFixCollection> FilterOnUIThread(
+            private ImmutableArray<CodeFixCollection> FilterOnUIThread(
                 ImmutableArray<CodeFixCollection> collections, Workspace workspace)
             {
                 this.AssertIsForeground();
 
-                return collections.Select(c => FilterOnUIThread(c, workspace)).WhereNotNull().ToList();
+                return collections.Select(c => FilterOnUIThread(c, workspace)).WhereNotNull().ToImmutableArray();
             }
 
             private CodeFixCollection FilterOnUIThread(
@@ -268,10 +265,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                var applicableFixes = collection.Fixes.Where(f => IsApplicable(f.Action, workspace)).ToList();
-                return applicableFixes.Count == 0
+                var applicableFixes = collection.Fixes.WhereAsArray(f => IsApplicable(f.Action, workspace));
+                return applicableFixes.Length == 0
                     ? null
-                    : applicableFixes.Count == collection.Fixes.Length
+                    : applicableFixes.Length == collection.Fixes.Length
                         ? collection
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
                             collection.FixAllState, 
@@ -292,9 +289,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return action.IsApplicable(workspace);
             }
 
-            private List<CodeRefactoring> FilterOnUIThread(List<CodeRefactoring> refactorings, Workspace workspace)
+            private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
             {
-                return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToList();
+                return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
             }
 
             private CodeRefactoring FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
@@ -310,8 +307,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Arrange fixes into groups based on the issue (diagnostic being fixed) and prioritize these groups.
             /// </summary>
-            private IEnumerable<SuggestedActionSet> OrganizeFixes(
-                Workspace workspace, IEnumerable<CodeFixCollection> fixCollections,
+            private ImmutableArray<SuggestedActionSet> OrganizeFixes(
+                Workspace workspace, ImmutableArray<CodeFixCollection> fixCollections,
                 bool includeSuppressionFixes)
             {
                 var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
@@ -329,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// </summary>
             private void GroupFixes(
                 Workspace workspace,
-                IEnumerable<CodeFixCollection> fixCollections,
+                ImmutableArray<CodeFixCollection> fixCollections,
                 IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
                 ArrayBuilder<CodeFixGroupKey> order,
                 bool includeSuppressionFixes)
@@ -357,8 +354,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
                         workspace);
 
-                var nonSupressionCodeFixes = fixes.Where(f => !(f.Action is TopLevelSuppressionCodeAction));
-                var supressionCodeFixes = fixes.Where(f => f.Action is TopLevelSuppressionCodeAction);
+                var nonSupressionCodeFixes = fixes.WhereAsArray(f => !(f.Action is TopLevelSuppressionCodeAction));
+                var supressionCodeFixes = fixes.WhereAsArray(f => f.Action is TopLevelSuppressionCodeAction);
 
                 AddCodeActions(workspace, map, order, fixCollection, 
                     getFixAllSuggestedActionSet, nonSupressionCodeFixes);
@@ -375,8 +372,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private void AddCodeActions(
                 Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, 
                 ArrayBuilder<CodeFixGroupKey> order, CodeFixCollection fixCollection, 
-                Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet, 
-                IEnumerable<CodeFix> codeFixes)
+                Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet,
+                ImmutableArray<CodeFix> codeFixes)
             {
                 foreach (var fix in codeFixes)
                 {
@@ -432,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeAction action,
                 int actionCount,
                 FixAllState fixAllState,
-                IEnumerable<FixAllScope> supportedScopes,
+                ImmutableArray<FixAllScope> supportedScopes,
                 Diagnostic firstDiagnostic,
                 Workspace workspace)
             {
@@ -508,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private IEnumerable<SuggestedActionSet> GetRefactorings(
+            private ImmutableArray<SuggestedActionSet> GetRefactorings(
                 IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -530,24 +527,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
-                        return null;
+                        return ImmutableArray<SuggestedActionSet>.Empty;
                     }
 
+                    // It may seem strange that we kick off a task, but then immediately 'Wait' on 
+                    // it. However, it's deliberate.  We want to make sure that the code runs on 
+                    // the background so that no one takes an accidently dependency on running on 
+                    // the UI thread.
                     var refactorings = Task.Run(
-                        async () =>
-                        {
-                            var stream = await _owner._codeRefactoringService.GetRefactoringsAsync(
-                                document, selection.Value, cancellationToken).ConfigureAwait(false);
-                            return stream.ToList();
-                        },
+                        () => _owner._codeRefactoringService.GetRefactoringsAsync(
+                            document, selection.Value, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
-                    return filteredRefactorings.Select(r => OrganizeRefactorings(workspace, r));
+                    return filteredRefactorings.SelectAsArray(r => OrganizeRefactorings(workspace, r));
                 }
 
-                return null;
+                return ImmutableArray<SuggestedActionSet>.Empty;
             }
 
             /// <summary>
@@ -588,15 +585,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
-                    var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = await GetMatchingDocumentAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return false;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -730,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return translatedSpan.Span.ToTextSpan();
             }
 
-            private static async Task<ValueTuple<Document, ITextSnapshot>?> GetMatchingDocumentAndSnapshotAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
+            private static async Task<Document> GetMatchingDocumentAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
             {
                 var buffer = givenSnapshot.TextBuffer;
                 if (buffer == null)
@@ -765,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                return ValueTuple.Create(document, snapshot);
+                return document;
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)

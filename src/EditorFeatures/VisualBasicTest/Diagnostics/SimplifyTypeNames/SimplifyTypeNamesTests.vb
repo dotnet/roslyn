@@ -23,22 +23,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
         Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey, Object)
             Dim language = GetLanguage()
 
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language)
+            Return OptionsSet(
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error),
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
         End Function
 
         Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey, Object)
             Dim language = GetLanguage()
 
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithNone, language)
+            Return OptionsSet(
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error),
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithNone, language))
         End Function
 
         Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey, Object)
             Dim language = GetLanguage()
 
-            Return [Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption.Error).With(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language)
+            Return OptionsSet(
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption.Error),
+                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithNone, language))
         End Function
 
         Private ReadOnly onWithError = New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
@@ -2444,7 +2447,7 @@ End Class")
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticSeverityAndCountAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(Tuple.Create(DirectCast(CodeStyleOptions.QualifyPropertyAccess, IOption), False, NotificationOption.Error)),
+                options:=OptionsSet(SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
                 diagnosticCount:=1,
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)

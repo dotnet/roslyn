@@ -83,9 +83,9 @@ Microsoft.CodeAnalysis.Emit.EmitOptions.WithInstrumentationKinds(System.Collecti
 Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.None = 0 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage = 1 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
+Microsoft.CodeAnalysis.IFieldSymbol.CorrespondingTupleField.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
-Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementNames.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IFieldSymbol>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Semantics.OperationVisitor visitor) -> void
@@ -175,6 +175,7 @@ Microsoft.CodeAnalysis.OperationKind.VariableDeclarationStatement = 3 -> Microso
 Microsoft.CodeAnalysis.OperationKind.WithStatement = 82 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 12 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 16 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.PortableExecutableReference.GetMetadataId() -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 4 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -817,6 +818,7 @@ static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUna
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode>
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.WithoutTrivia(this Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1, bool throwIfBinaryDetected = false, bool canBeEmbedded = false) -> Microsoft.CodeAnalysis.Text.SourceText
 static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream stream, System.Text.Encoding encoding, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected) -> Microsoft.CodeAnalysis.Text.SourceText
 static Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.TextReader reader, int length, System.Text.Encoding encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.Text.SourceText

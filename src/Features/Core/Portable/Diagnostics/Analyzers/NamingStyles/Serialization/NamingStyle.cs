@@ -304,14 +304,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static NamingStyle FromXElement(XElement namingStyleElement)
         {
-            var result = new NamingStyle();
-            result.ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value);
-            result.Name = namingStyleElement.Attribute(nameof(Name)).Value;
-            result.Prefix = namingStyleElement.Attribute(nameof(Prefix)).Value;
-            result.Suffix = namingStyleElement.Attribute(nameof(Suffix)).Value;
-            result.WordSeparator = namingStyleElement.Attribute(nameof(WordSeparator)).Value;
-            result.CapitalizationScheme = (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value);
-            return result;
+            return new NamingStyle()
+            {
+                ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
+                Name = namingStyleElement.Attribute(nameof(Name)).Value,
+                Prefix = namingStyleElement.Attribute(nameof(Prefix)).Value,
+                Suffix = namingStyleElement.Attribute(nameof(Suffix)).Value,
+                WordSeparator = namingStyleElement.Attribute(nameof(WordSeparator)).Value,
+                CapitalizationScheme = (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value)
+            };
         }
     }
 }

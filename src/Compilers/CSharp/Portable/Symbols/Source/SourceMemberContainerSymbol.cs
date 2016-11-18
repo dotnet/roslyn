@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(DiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var conflictDict = new Dictionary<ValueTuple<string, int>, SourceNamedTypeSymbol>();
+            var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
             try
             {
                 foreach (var childDeclaration in declaration.Children)
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    var key = new ValueTuple<string, int>(t.Name, t.Arity);
+                    var key = (t.Name, t.Arity);
                     SourceNamedTypeSymbol other;
                     if (conflictDict.TryGetValue(key, out other))
                     {
@@ -3145,20 +3145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 switch (innerStatement.Kind())
                                 {
-                                    case SyntaxKind.DeconstructionDeclarationStatement:
-                                        var assignment = ((DeconstructionDeclarationStatementSyntax)innerStatement).Assignment;
-
-                                        CollectFieldsFromGlobalDeconstruction(builder.NonTypeNonIndexerMembers,
-                                            assignment.VariableComponent,
-                                            assignment);
-
-                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
-                                            assignment.Value,
-                                            this,
-                                            DeclarationModifiers.Private,
-                                            containingFieldOpt: null);
-                                        break;
-
                                     case SyntaxKind.LocalDeclarationStatement:
                                         // We shouldn't reach this place, but field declarations preceded with a label end up here.
                                         // This is tracked by https://github.com/dotnet/roslyn/issues/13712. Let's do our best for now.
@@ -3208,63 +3194,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
-        }
-
-        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableComponentSyntax variableComponent,
-                        VariableComponentAssignmentSyntax assignment)
-        {
-            switch (variableComponent.Kind())
-            {
-                case SyntaxKind.TypedVariableComponent:
-                    var typed = (TypedVariableComponentSyntax)variableComponent;
-                    CollectFieldsFromGlobalDeconstruction(
-                        builder,
-                        typed.Designation,
-                        typed.Type,
-                        assignment);
-                    break;
-
-                case SyntaxKind.ParenthesizedVariableComponent:
-                    foreach (VariableComponentSyntax variable in ((ParenthesizedVariableComponentSyntax)variableComponent).Variables)
-                    {
-                        CollectFieldsFromGlobalDeconstruction(builder, variable, assignment);
-                    }
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variableComponent.Kind());
-            }
-        }
-
-        private void CollectFieldsFromGlobalDeconstruction(ArrayBuilder<Symbol> builder, VariableDesignationSyntax designation,
-                        TypeSyntax type, VariableComponentAssignmentSyntax assignment)
-        {
-            switch (designation.Kind())
-            {
-                case SyntaxKind.SingleVariableDesignation:
-                    var single = (SingleVariableDesignationSyntax)designation;
-                    var field = GlobalExpressionVariable.Create(
-                        containingType: this,
-                        modifiers: DeclarationModifiers.Private,
-                        typeSyntax: type,
-                        name: single.Identifier.ValueText,
-                        syntax: designation,
-                        location: designation.Location,
-                        containingFieldOpt: null,
-                        nodeToBind: assignment);
-                    builder.Add(field);
-                    break;
-
-                case SyntaxKind.ParenthesizedVariableDesignation:
-                    foreach (VariableDesignationSyntax variable in ((ParenthesizedVariableDesignationSyntax)designation).Variables)
-                    {
-                        CollectFieldsFromGlobalDeconstruction(builder, variable, type, assignment);
-                    }
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
-            }
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

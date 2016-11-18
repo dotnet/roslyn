@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</ProjectGuid>
@@ -61,8 +61,9 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
+    <Compile Include="ChangeSignature\CSharpChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />

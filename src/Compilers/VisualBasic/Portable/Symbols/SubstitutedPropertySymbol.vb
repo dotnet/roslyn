@@ -221,6 +221,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
                 Return _originalDefinition.CallingConvention

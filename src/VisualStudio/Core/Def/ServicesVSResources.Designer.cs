@@ -371,6 +371,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collapse #regions when collapsing to definitions.
+        /// </summary>
+        internal static string Collapse_regions_when_collapsing_to_definitions {
+            get {
+                return ResourceManager.GetString("Collapse_regions_when_collapsing_to_definitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -475,6 +484,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Default_ {
             get {
                 return ResourceManager.GetString("Default_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string Description {
+            get {
+                return ResourceManager.GetString("Description", resourceCulture);
             }
         }
         
@@ -1366,6 +1384,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer coalesce expression.
+        /// </summary>
+        internal static string Prefer_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Prefer_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer collection initializer.
+        /// </summary>
+        internal static string Prefer_collection_initializer {
+            get {
+                return ResourceManager.GetString("Prefer_collection_initializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit tuple name.
+        /// </summary>
+        internal static string Prefer_explicit_tuple_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicit_tuple_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer framework type.
         /// </summary>
         internal static string Prefer_framework_type {
@@ -1384,6 +1429,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer null propagation.
+        /// </summary>
+        internal static string Prefer_null_propagation {
+            get {
+                return ResourceManager.GetString("Prefer_null_propagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer object initializer.
         /// </summary>
         internal static string Prefer_object_initializer {
@@ -1398,6 +1452,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preference.
+        /// </summary>
+        internal static string Preference {
+            get {
+                return ResourceManager.GetString("Preference", resourceCulture);
             }
         }
         

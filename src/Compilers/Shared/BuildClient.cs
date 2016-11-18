@@ -171,12 +171,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {
-            if (IsRunningOnWindows)
+            if (UseNativeArguments())
             {
                 return GetCommandLineWindows(args);
             }
 
             return args;
+        }
+
+        private static bool UseNativeArguments()
+        {
+            if (!IsRunningOnWindows)
+            {
+                return false;
+            }
+
+            if (Type.GetType("Mono.Runtime") != null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

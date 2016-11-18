@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
 
-        /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
+        /// <summary>
+        /// Values for these parameters can be provided (during testing) for mocking purposes.
+        /// </summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
             ISymbolSearchService symbolSearchService = null)
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract string TryGetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
+        protected abstract string TryGetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

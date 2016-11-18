@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
                     // followed by an option to "Find and install latest version."
-                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName);
+                    var installedVersions = reference._installerService.GetInstalledVersions(reference._packageName).NullToEmpty();
                     var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
                     // First add the actions to install a specific version.
@@ -118,8 +118,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     newDocument = await CleanupDocumentAsync(
                         newDocument, cancellationToken).ConfigureAwait(false);
 
-                    var installOperation = new InstallNugetPackageOperation(
-                        reference._installerService, document, reference._source, reference._packageName, versionOpt, isLocal);
+                    var installOperation = new InstallPackageDirectlyCodeActionOperation(
+                        reference._installerService, document, reference._source, 
+                        reference._packageName, versionOpt, 
+                        includePrerelease: false, isLocal: isLocal);
 
                     return new InstallPackageAndAddImportData(
                         oldDocument, newDocument, installOperation);

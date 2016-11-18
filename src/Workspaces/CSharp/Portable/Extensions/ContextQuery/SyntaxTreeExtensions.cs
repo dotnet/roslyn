@@ -292,6 +292,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLocalFunctionDeclarationContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // Local functions are always valid in a statement context
+            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
+            {
+                return true;
+            }
+
+            // Also valid after certain modifiers
+            var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
+
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(
+                position, token, out int beforeModifiersPosition);
+
+            if (modifierTokens.IsSubsetOf(validModifiers))
+            {
+                if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    // second appearance of "async" not followed by modifier: treat as type
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token, cancellationToken)
+                        .Contains(SyntaxKind.AsyncKeyword))
+                    {
+                        return false;
+                    }
+                }
+
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
+            }
+
+            return false;
+        }
+
         public static bool IsTypeDeclarationContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
@@ -924,9 +964,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: SyntaxFacts.IsInNamespaceOrTypeContext(name), cancellationToken: cancellationToken);
             return symbols.Any(s =>
-                s.TypeSwitch(
-                    (INamedTypeSymbol nt) => nt.Arity > 0,
-                    (IMethodSymbol m) => m.Arity > 0));
+            {
+                switch (s)
+                {
+                    case INamedTypeSymbol nt: return nt.Arity > 0;
+                    case IMethodSymbol m: return m.Arity > 0;
+                    default: return false;
+                }
+            });
         }
 
         public static bool IsParameterModifierContext(
@@ -2043,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.InKeyword))
             {
                 if (token.Parent.IsKind(SyntaxKind.ForEachStatement,
-                                        SyntaxKind.ForEachComponentStatement,
+                                        SyntaxKind.ForEachVariableStatement,
                                         SyntaxKind.FromClause,
                                         SyntaxKind.JoinClause))
                 {

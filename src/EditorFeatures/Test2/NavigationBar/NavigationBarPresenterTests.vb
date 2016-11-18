@@ -9,8 +9,7 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Public Class NavigationBarControllerTests
-        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)))
+        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)).WithPart(GetType(WorkspaceWaiter)))
 
         <[Shared]>
         <Export(GetType(IAsynchronousOperationListener))>
@@ -18,6 +17,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         <Export(GetType(NavigationBarWaiter))>
         <Feature(FeatureAttribute.NavigationBar)>
         Private Class NavigationBarWaiter
+            Inherits AsynchronousOperationListener
+        End Class
+
+        <[Shared]>
+        <Export(GetType(IAsynchronousOperationListener))>
+        <Export(GetType(IAsynchronousOperationWaiter))>
+        <Export(GetType(NavigationBarWaiter))>
+        <Feature(FeatureAttribute.Workspace)>
+        Private Class WorkspaceWaiter
             Inherits AsynchronousOperationListener
         End Class
 

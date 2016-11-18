@@ -251,6 +251,27 @@ class C
 }
 ";
 
+        private static readonly string s_preferCoalesceExpression = @"
+using System;
+
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+//[
+        // Prefer:
+        var v = x ?? y;
+
+        // Over:
+        var v = x != null ? x : y; // or
+        var v = x == null ? y : x;
+//]
+    }
+}
+";
+
         private static readonly string s_preferConditionalDelegateCall = @"
 using System;
 
@@ -269,6 +290,25 @@ class C
         {
             func(args);
         }
+//]
+    }
+}
+";
+
+    private static readonly string s_preferNullPropagation = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+//[
+        // Prefer:
+        var v = o?.ToString();
+
+        // Over:
+        var v = o == null ? null : o.ToString(); // or
+        var v = o != null ? o.ToString() : null;
 //]
     }
 }
@@ -335,6 +375,54 @@ class Customer
         // Over:
         var c = new Customer();
         c.Age = 21;
+//]
+    }
+}
+";
+
+        private static readonly string s_preferCollectionInitializer = @"
+using System.Collections.Generic;
+
+class Customer
+{
+    private int Age;
+
+    public Customer()
+    {
+//[
+        // Prefer:
+        var list = new List<int>
+        {
+            1,
+            2,
+            3
+        };
+
+        // Over:
+        var list = new List<int>();
+        list.Add(1);
+        list.Add(2);
+        list.Add(3);
+//]
+    }
+}
+";
+
+        private static readonly string s_preferExplicitTupleName = @"
+class Customer
+{
+    public Customer()
+    {
+//[
+        // Prefer:
+        (string name, int age) customer = GetCustomer();
+        var name = customer.name;
+        var age = customer.age;
+
+        // Over:
+        (string name, int age) customer = GetCustomer();
+        var name = customer.Item1;
+        var age = customer.Item2;
 //]
     }
 }
@@ -589,8 +677,10 @@ class List<T>
 
             // Expression preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
 
             // Variable preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
@@ -598,6 +688,8 @@ class List<T>
             // Null preferences.
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, s_preferThrowExpression, s_preferThrowExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3BED15FD-D608-4573-B432-1569C1026F6D}</ProjectGuid>
@@ -61,12 +61,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
+    <Reference Include="EnvDTE" />
+    <Reference Include="EnvDTE80" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

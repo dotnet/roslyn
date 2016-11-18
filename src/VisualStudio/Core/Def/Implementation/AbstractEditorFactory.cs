@@ -36,12 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected AbstractEditorFactory(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
 
             _editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();

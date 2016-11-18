@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
-  <Import Project="..\..\..\build\Targets\Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B617717C-7881-4F01-AB6D-B1B6CC0483A0}</ProjectGuid>
@@ -44,6 +44,13 @@
       <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
       <Name>ExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Source\FunctionResolver\FunctionResolver.csproj">
+      <Project>{6FC8E6F5-659C-424D-AEB5-331B95883E29}</Project>
+      <Name>FunctionResolver</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>

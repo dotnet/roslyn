@@ -698,9 +698,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
-                Dim memberType = memberSymbol.TypeSwitch(
-                    Function(method As IMethodSymbol) method.ReturnType,
-                    Function([property] As IPropertySymbol) [property].Type)
+                Dim memberType = If(TryCast(memberSymbol, IMethodSymbol)?.ReturnType,
+                                    TryCast(memberSymbol, IPropertySymbol)?.Type)
 
                 If TypeOf memberType Is INamedTypeSymbol Then
                     If memberType.OriginalDefinition.SpecialType = SpecialType.System_Collections_Generic_IEnumerable_T OrElse

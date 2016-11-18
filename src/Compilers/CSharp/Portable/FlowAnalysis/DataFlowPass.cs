@@ -613,6 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
+                case BoundKind.ConvertedTupleLiteral:
+                    return false;
                 default:
                     return true;
             }
@@ -1761,12 +1763,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
+            // Always visit the arguments first
+            var result = base.VisitCall(node);
+
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
                 var localFunc = (LocalFunctionSymbol)node.Method.OriginalDefinition;
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
-            return base.VisitCall(node);
+
+            return result;
         }
 
         public override BoundNode VisitConversion(BoundConversion node)
