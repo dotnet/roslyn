@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
         }
 
+        public virtual void ReportMessage(string message)
+        {
+        }
+
         public virtual void SetSearchLabel(string displayName)
         {
         }

@@ -9,6 +9,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         CancellationToken CancellationToken { get; }
 
+        /// <summary>
+        /// Report a message to be displayed to the user.
+        /// </summary>
+        void ReportMessage(string message);
+
+        /// <summary>
+        /// Set the title of the window that results are displayed in.
+        /// </summary>
         void SetSearchLabel(string displayName);
 
         Task OnDefinitionFoundAsync(DefinitionItem definition);
