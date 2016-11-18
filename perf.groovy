@@ -87,7 +87,9 @@ def generate_machine_test() {
         }
     }
 
-    Utilities.addPeriodicTrigger(myJob, "@daily", true /*always run*/)
+    Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
+    Utilities.addPeriodicTrigger(myJob, "0 0 * * *", true /*always run*/)
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-perf')
 }
 
 generate_perf_test(true)
