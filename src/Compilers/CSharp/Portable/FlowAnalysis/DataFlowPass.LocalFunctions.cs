@@ -193,7 +193,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(localFunc != null);
 
             var usages = GetOrCreateLocalFuncUsages(localFunc);
-            usages.ReadVars[slot] = true;
+
+            // If this slot is a struct with individually assignable
+            // fields we need to record each field assignment separately,
+            // since some fields may be assigned when this read is replayed
+            VariableIdentifier id = variableBySlot[slot];
+            var type = VariableType(id.Symbol);
+
+            Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
+            
+            if (EmptyStructTypeCache.IsTrackableStructType(type))
+            {
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
+                {
+                    int fieldSlot = GetOrCreateSlot(field, slot);
+                    if (fieldSlot > 0 && !State.IsAssigned(fieldSlot))
+                    {
+                        RecordReadInLocalFunction(fieldSlot);
+                    }
+                }
+            }
+            else
+            {
+                usages.ReadVars[slot] = true;
+            }
         }
 
         private bool RecordChangedVars(ref LocalState oldWrites,
