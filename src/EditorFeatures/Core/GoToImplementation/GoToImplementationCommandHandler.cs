@@ -117,6 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             CancellationToken cancellationToken,
             out string messageToShow)
         {
+            // We create our own context object, simply to capture all the definitions reported by 
+            // the individual IFindUsagesService.  Once we get the results back we'll then decide 
+            // what to do with them.  If we get only a single result back, then we'll just go 
+            // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
             var goToImplContext = new GoToImplementationContext(cancellationToken);
             findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
 

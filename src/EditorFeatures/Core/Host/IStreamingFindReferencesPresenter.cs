@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
     internal static class IStreamingFindUsagesPresenterExtensions
     {
+        /// <summary>
+        /// If there's only a single item, navigates to it.  Otherwise, presents all the
+        /// items to the user.
+        /// </summary>
         public static async Task NavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             string title, ImmutableArray<DefinitionItem> items)
