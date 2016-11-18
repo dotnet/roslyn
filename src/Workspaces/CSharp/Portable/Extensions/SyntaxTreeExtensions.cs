@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, out int newPosition)
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            out int positionBeforeModifiers)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
-            newPosition = token.FullSpan.End;
+            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 

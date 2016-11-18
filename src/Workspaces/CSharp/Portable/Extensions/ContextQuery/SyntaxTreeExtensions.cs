@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     // second appearance of "async" not followed by modifier: treat as type
                     if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token, cancellationToken)
-                        .Any(x => x == SyntaxKind.AsyncKeyword))
+                        .Contains(SyntaxKind.AsyncKeyword))
                     {
                         return false;
                     }

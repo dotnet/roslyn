@@ -6,7 +6,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class AsyncKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -150,6 +149,7 @@ class Foo
         [Fact]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2()
         {
             await VerifyKeywordAsync(@"
@@ -165,6 +165,7 @@ class Foo
         [Fact]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3()
         {
             await VerifyKeywordAsync(@"
@@ -180,6 +181,7 @@ class Foo
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4()
         {
             await VerifyKeywordAsync(@"
@@ -195,6 +197,7 @@ class Foo
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
             await VerifyKeywordAsync(@"
@@ -213,6 +216,7 @@ class Foo
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6()
         {
             await VerifyAbsenceAsync(@"
@@ -228,6 +232,7 @@ class Foo
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {
             await VerifyAbsenceAsync(@"
