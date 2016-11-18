@@ -91,21 +91,6 @@ namespace Microsoft.CodeAnalysis.Esent
             }
         }
 
-        public VersionStamp GetIdentifierSetVersion(Document document)
-        {
-            if (!PersistenceEnabled)
-            {
-                return VersionStamp.Default;
-            }
-
-            if (!TryGetProjectAndDocumentKey(document, out var key))
-            {
-                return VersionStamp.Default;
-            }
-
-            return GetIdentifierSetVersion(key);
-        }
-
         public bool ReadIdentifierPositions(Document document, VersionStamp syntaxVersion, string identifier, List<int> positions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(identifier));
@@ -164,101 +149,6 @@ namespace Microsoft.CodeAnalysis.Esent
             {
                 accessor.Delete(key, cancellationToken);
                 return accessor.ApplyChanges();
-            }
-        }
-
-        public bool WriteIdentifierLocations(Document document, VersionStamp version, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(root);
-
-            if (!PersistenceEnabled)
-            {
-                return false;
-            }
-
-            if (!TryGetProjectAndDocumentKey(document, out var key))
-            {
-                return false;
-            }
-
-            return EsentExceptionWrapper(key, document, version, root, WriteIdentifierLocations, cancellationToken);
-        }
-
-        private bool WriteIdentifierLocations(EsentStorage.Key key, Document document, VersionStamp version, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            // delete any existing data
-            if (!DeleteIdentifierLocations(key, cancellationToken))
-            {
-                return false;
-            }
-
-            var identifierMap = SharedPools.StringIgnoreCaseDictionary<int>().AllocateAndClear();
-
-            Dictionary<string, List<int>> map = null;
-            try
-            {
-                map = CreateIdentifierLocations(document, root, cancellationToken);
-
-                // okay, write new data
-                using (var accessor = _esentStorage.GetIdentifierLocationTableAccessor())
-                {
-                    // make sure I have all identifier ready before starting big insertion
-                    int identifierId;
-                    foreach (var identifier in map.Keys)
-                    {
-                        if (!TryGetUniqueIdentifierId(identifier, out identifierId))
-                        {
-                            return false;
-                        }
-
-                        identifierMap[identifier] = identifierId;
-                    }
-
-                    // save whole map
-                    var uncommittedCount = 0;
-
-                    foreach (var kv in map)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var identifier = kv.Key;
-                        var positions = kv.Value;
-
-                        if ((uncommittedCount + positions.Count) > FlushThreshold)
-                        {
-                            accessor.Flush();
-                            uncommittedCount = 0;
-                        }
-
-                        accessor.PrepareBatchOneInsert();
-
-                        identifierId = identifierMap[identifier];
-
-                        using (var stream = accessor.GetWriteStream(key, identifierId))
-                        using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                        {
-                            writer.WriteString(IdentifierSetSerializationVersion);
-                            WriteList(writer, positions);
-                        }
-
-                        accessor.FinishBatchOneInsert();
-
-                        uncommittedCount += positions.Count;
-                    }
-
-                    // save special identifier that indicates version for this document
-                    if (!TrySaveIdentifierSetVersion(accessor, key, version))
-                    {
-                        return false;
-                    }
-
-                    return accessor.ApplyChanges();
-                }
-            }
-            finally
-            {
-                SharedPools.StringIgnoreCaseDictionary<int>().ClearAndFree(identifierMap);
-                Free(map);
             }
         }
 
