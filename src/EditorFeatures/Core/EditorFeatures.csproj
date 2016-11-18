@@ -390,10 +390,10 @@
     <Compile Include="Implementation\Formatting\Indentation\AbstractSmartTokenFormatterCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="Implementation\Formatting\Indentation\WhitespaceExtensions.cs" />
-    <Compile Include="Implementation\GoToDefinition\AbstractGoToDefinitionService.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
-    <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionCommandHandler.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />

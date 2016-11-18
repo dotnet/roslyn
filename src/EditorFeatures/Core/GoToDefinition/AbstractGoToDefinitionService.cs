@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {

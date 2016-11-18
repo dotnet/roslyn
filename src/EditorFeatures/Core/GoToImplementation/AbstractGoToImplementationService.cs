@@ -7,9 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -19,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
-    internal abstract class AbstractGoToImplementationService : 
+    internal abstract class AbstractGoToImplementationService :
         IGoToImplementationService, IStreamingFindImplementationsService
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemPresenters;
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             else if (implementations.Length == 1)
             {
                 GoToDefinitionHelpers.TryGoToDefinition(
-                    implementations.Single(), project, _navigableItemPresenters,  
+                    implementations.Single(), project, _navigableItemPresenters,
                     SpecializedCollections.EmptyEnumerable<Lazy<IStreamingFindUsagesPresenter>>(),
                     cancellationToken);
                 message = null;

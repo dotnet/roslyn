@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                         {
                             StreamingGoToImplementation(
                                 document, caretPosition,
-                                streamingService, streamingPresenter, 
+                                streamingService, streamingPresenter,
                                 context.CancellationToken, out messageToShow);
                         }
                         else
