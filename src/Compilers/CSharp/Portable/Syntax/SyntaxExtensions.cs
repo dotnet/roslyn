@@ -207,35 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is this expression composed only of declaration expressions and discards nested in tuple expressions?
+        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
         /// </summary>
-        private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
+        internal static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax node)
         {
-            switch (self.Kind())
-            {
-                case SyntaxKind.DeclarationExpression:
-                    return true;
-                case SyntaxKind.TupleExpression:
-                    var tuple = (TupleExpressionSyntax)self;
-                    return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
-                case SyntaxKind.IdentifierName:
-                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
-                    var identifier = (IdentifierNameSyntax)self;
-                    return identifier.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the expression is composed only of nested tuple, declaration expressions and discards.
-        /// </summary>
-        internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
-        {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.TupleExpression:
-                    var arguments = ((Syntax.InternalSyntax.TupleExpressionSyntax)node).Arguments;
+                    var arguments = ((TupleExpressionSyntax)node).Arguments;
                     for (int i = 0; i < arguments.Count; i++)
                     {
                         if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
