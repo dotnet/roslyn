@@ -15,14 +15,4 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
             MyBase.New(presenters)
         End Sub
     End Class
-
-    <ExportLanguageService(GetType(IStreamingFindImplementationsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicStreamingGoToImplementationService
-        Inherits AbstractGoToImplementationService
-
-        <ImportingConstructor>
-        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
-            MyBase.New(presenters)
-        End Sub
-    End Class
 End Namespace

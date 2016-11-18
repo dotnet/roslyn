@@ -108,9 +108,11 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
+    <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
@@ -257,7 +259,7 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
-    <Compile Include="FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
     <Compile Include="GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />

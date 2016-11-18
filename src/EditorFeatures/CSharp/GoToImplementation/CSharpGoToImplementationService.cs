@@ -19,15 +19,4 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToImplementation
         {
         }
     }
-
-    [ExportLanguageService(typeof(IStreamingFindImplementationsService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpStreamingFindImplementationsService : AbstractGoToImplementationService
-    {
-        [ImportingConstructor]
-        public CSharpStreamingFindImplementationsService(
-            [ImportMany]IEnumerable<Lazy<INavigableItemsPresenter>> presenters)
-            : base(presenters)
-        {
-        }
-    }
 }

@@ -9,12 +9,12 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.FindReferences
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal abstract partial class AbstractFindReferencesService
+    internal abstract partial class AbstractFindUsagesService
     {
         /// <summary>
-        /// Forwards IFindReferencesProgress calls to a FindRefrencesContext instance.
+        /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
         private class ProgressAdapter : ForegroundThreadAffinitizedObject, IStreamingFindReferencesProgress
         {

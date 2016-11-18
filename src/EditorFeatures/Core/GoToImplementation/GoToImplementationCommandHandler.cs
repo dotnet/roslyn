@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         private void ExecuteCommand(Document document, int caretPosition)
         {
-            var streamingService = document.GetLanguageService<IStreamingFindImplementationsService>();
+            var streamingService = document.GetLanguageService<IFindUsagesService>();
             var synchronousService = document.GetLanguageService<IGoToImplementationService>();
 
             var streamingPresenter = GetStreamingPresenter();
@@ -116,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         private void StreamingGoToImplementation(
             Document document, int caretPosition,
-            IStreamingFindImplementationsService streamingService,
+            IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             out string messageToShow)
         {
             var goToImplContext = new GoToImplementationContext(cancellationToken);
-            streamingService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
+            findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
 
             // If finding implementations reported a message, then just stop and show that 
             // message to the user.
