@@ -20,6 +20,7 @@ namespace Runner
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
+            bool isMachineTest = false;
             string submissionName = null;
             string submissionType = null;
             string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
@@ -33,6 +34,7 @@ namespace Runner
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
+                {"machine-test", "add machine name to the benchview config", _ => isMachineTest = true},
                 {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
             };
             parameterOptions.Parse(args);
@@ -58,7 +60,7 @@ namespace Runner
             if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
-                UploadBenchviewReport(submissionType, submissionName, branch);
+                UploadBenchviewReport(submissionType, submissionName, branch, isMachineTest);
             }
 
             if (shouldUploadTrace)
