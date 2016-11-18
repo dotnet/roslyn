@@ -133,50 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 return;
             }
 
-            // Ignore any definitions that we can't navigate to.
-            var definitions = goToImplContext.GetDefinitionItems()
-                                             .WhereAsArray(d => d.CanNavigateTo());
+            var allItems = goToImplContext.GetDefinitionItems();
 
-            // See if there's a third party external item we can navigate to.  If so, defer 
-            // to that item and finish.
-            var externalItems = definitions.WhereAsArray(d => d.IsExternal);
-            foreach (var item in externalItems)
-            {
-                if (item.TryNavigateTo())
-                {
-                    return;
-                }
-            }
-
-            var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
-            if (nonExternalItems.Length == 0)
-            {
-                return;
-            }
-
-            if (nonExternalItems.Length == 1 &&
-                nonExternalItems[0].SourceSpans.Length <= 1)
-            {
-                // There was only one location to navigate to.  Just directly go to that location.
-                nonExternalItems[0].TryNavigateTo();
-                return;
-            }
-
-            // We have multiple definitions, or we have definitions with multiple locations.
-            // Present this to the user so they can decide where they want to go to.
-
-            var context = streamingPresenter.StartSearch(EditorFeaturesResources.Go_To_Implementation);
-            foreach (var definition in nonExternalItems)
-            {
-                context.OnDefinitionFoundAsync(definition).Wait(cancellationToken);
-            }
-
-            // Note: we don't need to put this in a finally.  The only time we might not hit
-            // this is if cancellation or another error gets thrown.  In the former case,
-            // that means that a new search has started.  We don't care about telling the
-            // context it has completed.  In the latter case somethign wrong has happened
-            // and we don't want to run any more code code in this particular context.
-            context.OnCompletedAsync().Wait(cancellationToken);
+            streamingPresenter.NavigateToOrPresentItemsAsync(
+                EditorFeaturesResources.Go_To_Implementation, allItems).Wait(cancellationToken);
         }
 
         private IStreamingFindUsagesPresenter GetStreamingPresenter()
