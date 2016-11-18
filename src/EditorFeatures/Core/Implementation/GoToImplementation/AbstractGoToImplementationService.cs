@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(mapping.Symbol, mapping.Project, _navigableItemPresenters, cancellationToken))
+                if (GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(
+                        mapping.Symbol, mapping.Project,
+                        _navigableItemPresenters, _streamingPresenters, cancellationToken))
                 {
                     message = null;
                     return true;
                 }
-                else
-                {
-                    message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
-                    return false;
-                }
+
+                message = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
+                return false;
             }
         }
 
@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else if (implementations.Count == 1)
             {
-                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(implementations.Single(), mapping.Project, _navigableItemPresenters, cancellationToken);
+                GoToDefinition.GoToDefinitionHelpers.TryGoToDefinition(
+                    implementations.Single(), mapping.Project, 
+                    _navigableItemPresenters, _streamingPresenters, cancellationToken);
                 message = null;
                 return true;
             }

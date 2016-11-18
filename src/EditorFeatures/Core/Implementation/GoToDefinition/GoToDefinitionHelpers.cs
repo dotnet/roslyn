@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             ISymbol symbol,
             Project project,
             IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             var displayParts = NavigableItemFactory.GetSymbolDisplayTaggedParts(project, symbol);
             var title = displayParts.JoinText();
 
-            if (!preferredSourceLocations.Any())
+            if (preferredSourceLocations.Length == 0)
             {
                 // If there are no visible source locations, then tell the host about the symbol and 
                 // allow it to navigate to it.  This will either navigate to any non-visible source
@@ -81,50 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
                     cancellationToken: cancellationToken);
             }
-
-            var navigableItems = preferredSourceLocations.Select(location =>
-                NavigableItemFactory.GetItemFromSymbolLocation(
-                    solution, symbol, location,
-                    displayTaggedParts: null)).ToImmutableArray();
-            return TryGoToDefinition(navigableItems, title, options, presenters, throwOnHiddenDefinition);
-        }
-
-        private static bool TryGoToDefinition(
-            ImmutableArray<INavigableItem> navigableItems,
-            string title,
-            OptionSet options,
-            IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
-            bool throwOnHiddenDefinition)
-        {
-            Contract.ThrowIfNull(options);
-
-            // If we have a single location, then just navigate to it.
-            if (navigableItems.Length == 1 && navigableItems[0].Document != null)
+            else if (preferredSourceLocations.Length == 1)
             {
-                var firstItem = navigableItems[0];
-                var workspace = firstItem.Document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-
-                if (navigationService.CanNavigateToSpan(workspace, firstItem.Document.Id, firstItem.SourceSpan))
-                {
-                    return navigationService.TryNavigateToSpan(
-                        workspace,
-                        documentId: firstItem.Document.Id,
-                        textSpan: firstItem.SourceSpan,
-                        options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
-                }
-                else
-                {
-                    if (throwOnHiddenDefinition)
-                    {
-                        const int E_FAIL = -2147467259;
-                        throw new COMException(EditorFeaturesResources.The_definition_of_the_object_is_hidden, E_FAIL);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+                var item = NavigableItemFactory.GetItemFromSymbolLocation(
+                        solution, symbol, preferredSourceLocations[0],
+                        displayTaggedParts: null);
+                return TryGoToSingleLocation(item, options, throwOnHiddenDefinition);
             }
             else
             {
@@ -132,13 +96,95 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 // will simply display the results to the user and allow them to choose where to 
                 // go.
 
-                if (presenters.Any())
-                {
-                    presenters.First().Value.DisplayResult(title, navigableItems);
-                    return true;
-                }
+                return TryPresentInFindUsagesPresenter(solution, symbol, streamingPresenters, cancellationToken) ||
+                       TryPresentInNavigableItemsPresenter(solution, symbol, presenters, title, preferredSourceLocations);
+            }
+        }
 
+        private static bool TryPresentInFindUsagesPresenter(
+            Solution solution, ISymbol symbol, 
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            CancellationToken cancellationToken)
+        {
+            var presenter = GetFindUsagesPresenter(streamingPresenters);
+            if (presenter == null)
+            {
                 return false;
+            }
+
+            var definition = symbol.ToDefinitionItem(solution);
+            var context = presenter.StartSearch(EditorFeaturesResources.Go_to_Definition);
+            try
+            {
+                context.OnDefinitionFoundAsync(definition).Wait(cancellationToken);
+            }
+            finally
+            {
+                context.OnCompletedAsync().Wait(cancellationToken);
+            }
+
+            return true;
+        }
+
+        private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        {
+            try
+            {
+                return streamingPresenters.FirstOrDefault()?.Value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static bool TryPresentInNavigableItemsPresenter(
+            Solution solution, ISymbol symbol,
+            IEnumerable<Lazy<INavigableItemsPresenter>> presenters, 
+            string title, Location[] locations)
+        {
+            var presenter = presenters.FirstOrDefault();
+            if (presenter != null)
+            {
+                var navigableItems = locations.Select(location =>
+                    NavigableItemFactory.GetItemFromSymbolLocation(
+                        solution, symbol, location,
+                        displayTaggedParts: null)).ToImmutableArray();
+
+                presenter.Value.DisplayResult(title, navigableItems);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryGoToSingleLocation(
+            INavigableItem navigableItem, OptionSet options, bool throwOnHiddenDefinition)
+        {
+            var firstItem = navigableItem;
+            var workspace = firstItem.Document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+
+            if (navigationService.CanNavigateToSpan(workspace, firstItem.Document.Id, firstItem.SourceSpan))
+            {
+                return navigationService.TryNavigateToSpan(
+                    workspace,
+                    documentId: firstItem.Document.Id,
+                    textSpan: firstItem.SourceSpan,
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+            }
+            else
+            {
+                if (throwOnHiddenDefinition)
+                {
+                    const int E_FAIL = -2147467259;
+                    throw new COMException(EditorFeaturesResources.The_definition_of_the_object_is_hidden, E_FAIL);
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 

@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
 
         [ImportingConstructor]
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(
@@ -46,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
 
             _navigableItemsPresenters = navigableItemsPresenters;
+            _streamingPresenters = streamingPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
@@ -179,9 +182,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             return true;
         }
 
-        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public override bool TryGoToDefinition(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_navigableItemsPresenters.Any())
+            if (!_navigableItemsPresenters.Any() &&
+                !_streamingPresenters.Any())
             {
                 return false;
             }
@@ -193,7 +198,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, 
+                _navigableItemsPresenters, _streamingPresenters, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
