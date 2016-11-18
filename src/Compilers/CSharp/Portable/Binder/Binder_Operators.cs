@@ -411,6 +411,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             int compoundStringLength = 0;
 
             BoundExpression result = BindExpression(current, diagnostics);
+
+            if (node.IsKind(SyntaxKind.SubtractExpression))
+            {
+                if (result.Kind == BoundKind.TypeExpression
+                    && !((current as ParenthesizedExpressionSyntax)?.Expression is ParenthesizedExpressionSyntax))
+                {
+                    Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                }
+                else if (result.Kind == BoundKind.BadExpression)
+                {
+                    var identifierName = (current as ParenthesizedExpressionSyntax)?.Expression as IdentifierNameSyntax;
+                    if (identifierName != null && identifierName.Identifier.ValueText == "dynamic")
+                        Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                }
+            }
+
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
@@ -435,18 +451,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
-                if (node.OperatorToken.IsKind(SyntaxKind.MinusToken)
-                    && !right.HasAnyErrors
-                    && left.Kind == BoundKind.BadExpression
-                    && left.Type != null
-                    && left.Type.Kind == SymbolKind.NamedType
-                    && node.Left != null
-                    && node.Left.IsKind(SyntaxKind.ParenthesizedExpression)
-                    && ((node.Left as ParenthesizedExpressionSyntax)?.Expression?.IsKind(SyntaxKind.SimpleMemberAccessExpression) ?? false))
-                {
-                    Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
-                }
-
                 // NOTE: no user-defined conversion candidates
                 return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Empty, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }

@@ -12,8 +12,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    using CodeAnalysis.Test.Utilities;
-
     public partial class DiagnosticTest : CSharpTestBase
     {
         /// <summary>
@@ -2234,6 +2232,39 @@ public class A
                 // (6,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var y = System.ConsoleColor - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 17),
+            });
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamic()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,18): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(5, 18),
+                // (5,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(dynamic) - 1").WithLocation(5, 17),
+                // (6,18): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@dynamic").WithArguments("dynamic").WithLocation(6, 18),
+                // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(@dynamic) - 1").WithLocation(6, 17)
             });
         }
 
