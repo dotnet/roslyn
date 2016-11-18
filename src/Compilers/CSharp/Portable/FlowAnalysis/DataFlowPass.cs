@@ -949,12 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
-            if (symbol.Kind == SymbolKind.Local && (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
-            {
-                // We've already reported the use of a local before its declaration.  No need to emit
-                // another diagnostic for the same issue.
-            }
-            else if (!_alreadyReported[slot] && VariableType(symbol)?.IsErrorType() != true)
+            if (!_alreadyReported[slot] && VariableType(symbol)?.IsErrorType() != true)
             {
                 // CONSIDER: could suppress this diagnostic in cases where the local was declared in a using
                 // or fixed statement because there's a special error code for not initializing those.
