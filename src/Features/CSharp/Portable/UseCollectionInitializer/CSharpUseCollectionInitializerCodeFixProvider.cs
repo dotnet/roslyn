@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
     internal class CSharpUseCollectionInitializerCodeFixProvider :
         AbstractUseCollectionInitializerCodeFixProvider<
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
