@@ -2884,7 +2884,7 @@ class C
   IL_0020:  ldarg.0
   IL_0021:  ldarg.0
   IL_0022:  ldfld      ""C C.<F>d__0.<>4__this""
-  IL_0027:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
+  IL_0027:  call       ""System.Collections.Generic.IEnumerable<int> C.F()""
   IL_002c:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
   IL_0031:  ldarg.0
   IL_0032:  ldc.i4.0
@@ -2989,7 +2989,7 @@ class C
    -IL_0012:  ldarg.0
     IL_0013:  ldarg.0
     IL_0014:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0019:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
+    IL_0019:  call       ""System.Threading.Tasks.Task<int> C.F()""
     IL_001e:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
     IL_0023:  ldarg.0
     IL_0024:  ldc.i4.0
@@ -3025,7 +3025,7 @@ class C
     IL_005b:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
    -IL_0060:  ldarg.0
     IL_0061:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0066:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
+    IL_0066:  call       ""System.Threading.Tasks.Task<int> C.F()""
     IL_006b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0070:  stloc.2
    ~IL_0071:  ldloca.s   V_2

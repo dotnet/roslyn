@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal sealed class StackOptimizerPass1 : BoundTreeRewriter
     {
         private readonly bool _debugFriendly;
-        private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
+        private readonly ArrayBuilder<(BoundExpression, ExprContext)> _evalStack;
 
         private int _counter;
         private ExprContext _context;
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void PushEvalStack(BoundExpression result, ExprContext context)
         {
             Debug.Assert(result != null || context == ExprContext.None);
-            _evalStack.Add(ValueTuple.Create(result, context));
+            _evalStack.Add((result, context));
         }
 
         private int StackDepth()

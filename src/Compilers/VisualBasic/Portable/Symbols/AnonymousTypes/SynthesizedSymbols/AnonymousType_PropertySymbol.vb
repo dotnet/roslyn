@@ -66,6 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                Get
+                    Return 0
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property SetMethod As MethodSymbol
                 Get
                     Return _setMethod

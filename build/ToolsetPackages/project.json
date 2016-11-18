@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "Microsoft.Build.Logging.StructuredLogger": "1.0.58",
     "MicroBuild.Core.Sentinel": "1.0.0",
     "MicroBuild.Core": "0.2.0",
     "MicroBuild.Plugins.SwixBuild": "1.0.71",
@@ -13,7 +14,8 @@
     "Roslyn.Build.Util": "0.9.4-portable",
     "RoslynDependencies.OptimizationData": "2.0.0-rc-61101-16",
     "RoslynTools.Microsoft.LocateVS": "0.2.0-beta",
-    "RoslynTools.Microsoft.SignTool": "0.2.0-beta"
+    "RoslynTools.Microsoft.SignTool": "0.2.0-beta",
+    "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.1-beta"
   },
   "frameworks": {
     "net461": {}

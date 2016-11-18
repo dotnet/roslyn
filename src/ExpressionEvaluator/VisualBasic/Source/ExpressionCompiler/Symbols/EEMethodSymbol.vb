@@ -301,6 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private int _skipRenameForComplexification;
             private bool _isProcessingComplexifiedSpans;
-            private List<ValueTuple<TextSpan, TextSpan>> _modifiedSubSpans;
+            private List<(TextSpan oldSpan, TextSpan newSpan)> _modifiedSubSpans;
             private SemanticModel _speculativeModel;
             private int _isProcessingTrivia;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else
                 {
-                    _modifiedSubSpans.Add(ValueTuple.Create(oldSpan, newSpan));
+                    _modifiedSubSpans.Add((oldSpan, newSpan));
                 }
             }
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
             {
                 _isProcessingComplexifiedSpans = true;
-                _modifiedSubSpans = new List<ValueTuple<TextSpan, TextSpan>>();
+                _modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
 
                 var annotation = new SyntaxAnnotation();
                 newNode = newNode.WithAdditionalAnnotations(annotation);
@@ -560,7 +560,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 if (isAttributeName)
                 {
-                    Debug.Assert(_renamedSymbol.IsAttribute() || _aliasSymbol.Target.IsAttribute());
                     if (oldIdentifier != _renamedSymbol.Name)
                     {
                         string withoutSuffix;

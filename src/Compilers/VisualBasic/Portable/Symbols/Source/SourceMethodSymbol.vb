@@ -1265,6 +1265,12 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Debug.Assert(Me.MethodKind <> MethodKind.EventAdd,
@@ -1305,7 +1311,7 @@ lReportErrorOnTwoTokens:
                 If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
                 Else
-                    Return overridden.ReturnTypeCustomModifiers
+                    Return overridden.ConstructIfGeneric(TypeArguments).ReturnTypeCustomModifiers
                 End If
             End Get
         End Property
@@ -2103,6 +2109,7 @@ lReportErrorOnTwoTokens:
                                                                             returnsByRef:=False,
                                                                             returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            countOfCustomModifiersPrecedingByRef:=0,
                                                                             explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If

@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Select Case signatureHeader.RawValue And SignatureHeader.CallingConventionOrKindMask
                     Case SignatureCallingConvention.Default, SignatureCallingConvention.VarArgs
                         Dim typeParamCount As Integer
-                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount, allowByRefReturn := False)
+                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
                         Return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo)
 
                     Case SignatureKind.Field
@@ -229,12 +229,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim candidateReturnType As TypeSymbol = candidateMethod.ReturnType
             Dim targetReturnType As TypeSymbol = targetReturnParam.Type
 
-            ' CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            If candidateReturnType <> targetReturnType Then
+            ' No special handling for error types.  Right now, we expect they'll just fail to match.
+            If candidateReturnType <> targetReturnType OrElse candidateMethod.ReturnsByRef <> targetReturnParam.IsByRef Then
                 Return False
             End If
 
-            If Not CustomModifiersMatch(candidateMethod.ReturnTypeCustomModifiers, targetReturnParam.CustomModifiers) Then
+            If Not CustomModifiersMatch(candidateMethod.ReturnTypeCustomModifiers, targetReturnParam.CustomModifiers) OrElse
+               candidateMethod.CountOfCustomModifiersPrecedingByRef <> targetReturnParam.CountOfCustomModifiersPrecedingByRef Then
                 Return False
             End If
 

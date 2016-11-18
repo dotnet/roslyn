@@ -120,6 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
+            internal override ushort CountOfCustomModifiersPrecedingByRef
+            {
+                get { return 0; }
+            }
+
             public override Symbol AssociatedSymbol
             {
                 get { return null; }

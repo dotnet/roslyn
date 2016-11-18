@@ -698,6 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AliasSymbol alias;
                         TypeSymbol declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == ((object)declType == null));
+                        CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, component.Type);
+
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
                             // An explicit is not allowed with a parenthesized designation

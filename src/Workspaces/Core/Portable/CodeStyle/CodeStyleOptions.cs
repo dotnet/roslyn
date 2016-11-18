@@ -99,5 +99,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferInlinedVariableDeclaration),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration"));
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferExplicitTupleNames = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferExplicitTupleNames),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames"));
     }
 }

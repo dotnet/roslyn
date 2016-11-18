@@ -585,7 +585,13 @@ Friend Class MockMethodSymbol
 
     Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
         Get
-            Return ImmutableArray.Create(Of CustomModifier)()
+            Return ImmutableArray(Of CustomModifier).Empty
+        End Get
+    End Property
+
+    Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Get
+            Return 0
         End Get
     End Property
 

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
 
         /// <summary>
@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(
+                        g.Key.displayText, g.Key.insertionText, g.ToList(), context, 
+                        invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -68,7 +70,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(
+                        g.Key.displayText, g.Key.insertionText, g.ToList(),
+                        originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }

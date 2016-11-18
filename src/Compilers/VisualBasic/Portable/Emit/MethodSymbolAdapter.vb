@@ -172,6 +172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ISignatureCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+            Get
+                Return Me.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
                 Return ReturnsByRef
