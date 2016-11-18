@@ -134,11 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
-            // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this); // || !hostDocument.IsOpen;
-
             var needsUndoDisabled = false;
+
+            // Do not save the file if is open and there is not a global undo transaction.
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
             if (needsSave)
             {
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))

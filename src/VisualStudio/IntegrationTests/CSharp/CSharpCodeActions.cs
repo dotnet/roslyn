@@ -27,8 +27,7 @@ public class Foo
 {
 }
 ");
-            Editor.MessageBox("Attach Now");
-
+ 
             SetUpEditor(@"
 using System;
 

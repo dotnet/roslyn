@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.25914.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -300,6 +300,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioTestSetup", "src\VisualStudio\TestSetup\VisualStudioTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioTestUtilities", "src\VisualStudio\TestUtilities\VisualStudioTestUtilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
