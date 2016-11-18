@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -30,54 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             _navigableItemPresenters = navigableItemPresenters;
         }
 
-        /// <summary>
-        /// Common helper for both the synchronous and streaming versions of FAR. 
-        /// It returns the symbol we want to search for and the solution we should
-        /// be searching.
-        /// 
-        /// Note that the <see cref="Solution"/> returned may absolutely *not* be
-        /// the same as <code>document.Project.Solution</code>.  This is because 
-        /// there may be symbol mapping involved (for example in Metadata-As-Source
-        /// scenarios).
-        /// </summary>
-        private async Task<Tuple<ISymbol, Project>> GetRelevantSymbolAndProjectAtPositionAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return null;
-            }
-
-            // If this document is not in the primary workspace, we may want to search for results
-            // in a solution different from the one we started in. Use the starting workspace's
-            // ISymbolMappingService to get a context for searching in the proper solution.
-            var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
-
-            var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-            if (mapping == null)
-            {
-                return null;
-            }
-
-            return Tuple.Create(mapping.Symbol, mapping.Project);
-        }
-
         private async Task<Tuple<IEnumerable<ReferencedSymbol>, Solution>> FindReferencedSymbolsAsync(
             Document document, int position, IWaitContext waitContext)
         {
             var cancellationToken = waitContext.CancellationToken;
 
-            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProject == null)
             {
                 return null;
             }
 
-            var symbol = symbolAndProject.Item1;
-            var project = symbolAndProject.Item2;
+            var symbol = symbolAndProject?.symbol;
+            var project = symbolAndProject?.project;
 
             var displayName = GetDisplayName(symbol);
 
@@ -164,15 +129,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProject == null)
             {
                 return null;
             }
 
-            var symbol = symbolAndProject.Item1;
-            var project = symbolAndProject.Item2;
+            var symbol = symbolAndProject?.symbol;
+            var project = symbolAndProject?.project;
 
             var displayName = GetDisplayName(symbol);
             context.SetSearchLabel(displayName);

@@ -109,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
