@@ -292,6 +292,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLocalFunctionDeclarationContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            CancellationToken cancellationToken)
+        {
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // Local functions are always valid in a statement context
+            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
+            {
+                return true;
+            }
+
+            // Also valid after certain modifiers
+            var validModifiers = SyntaxKindSet.LocalFunctionModifiers;
+
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(
+                position, token, out int beforeModifiersPosition);
+
+            if (modifierTokens.IsSubsetOf(validModifiers))
+            {
+                if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    // second appearance of "async" not followed by modifier: treat as type
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token, cancellationToken)
+                        .Contains(SyntaxKind.AsyncKeyword))
+                    {
+                        return false;
+                    }
+                }
+
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
+            }
+
+            return false;
+        }
+
         public static bool IsTypeDeclarationContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
