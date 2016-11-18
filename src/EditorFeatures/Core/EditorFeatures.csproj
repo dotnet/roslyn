@@ -113,6 +113,7 @@
     <Compile Include="FindUsages\FindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
+    <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />

@@ -2,30 +2,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.GoToImplementation,
         ContentTypeNames.RoslynContentType)]
-    internal sealed class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
+    internal partial class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
@@ -121,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             // the individual IFindUsagesService.  Once we get the results back we'll then decide 
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
-            var goToImplContext = new GoToImplementationContext(cancellationToken);
+            var goToImplContext = new SimpleFindUsagesContext(cancellationToken);
             findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
 
             // If finding implementations reported a message, then just stop and show that 
@@ -132,10 +125,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 return;
             }
 
-            var allItems = goToImplContext.GetDefinitionItems();
+            var definitionItems = goToImplContext.GetDefinitions();
 
             streamingPresenter.NavigateToOrPresentItemsAsync(
-                EditorFeaturesResources.Go_To_Implementation, allItems).Wait(cancellationToken);
+                EditorFeaturesResources.Go_To_Implementation, definitionItems).Wait(cancellationToken);
         }
 
         private IStreamingFindUsagesPresenter GetStreamingPresenter()
@@ -147,43 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             catch
             {
                 return null;
-            }
-        }
-
-        private class GoToImplementationContext : FindUsagesContext
-        {
-            private readonly object _gate = new object();
-            private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
-                ImmutableArray.CreateBuilder<DefinitionItem>();
-
-            public override CancellationToken CancellationToken { get; }
-
-            public GoToImplementationContext(CancellationToken cancellationToken)
-            {
-                CancellationToken = cancellationToken;
-            }
-
-            public string Message { get; private set; }
-
-            public override void ReportMessage(string message)
-                => Message = message;
-
-            public ImmutableArray<DefinitionItem> GetDefinitionItems()
-            {
-                lock (_gate)
-                {
-                    return _definitionItems.ToImmutableArray();
-                }
-            }
-
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
-            {
-                lock (_gate)
-                {
-                    _definitionItems.Add(definition);
-                }
-
-                return SpecializedTasks.EmptyTask;
             }
         }
     }
