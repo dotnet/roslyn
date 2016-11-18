@@ -58,7 +58,7 @@ def generate_machine_test() {
     def projectName = GithubProject
     def defaultBranch = "9bec6b5"
 
-    def jobName = Utilities.getFullJobName(projectName, "perf_machine_test", false /* isPr */)
+    def jobName = Utilities.getFullJobName(projectName, "perf_machine_test")
     def myJob = job(jobName) {
         description('perf machine test')
 
@@ -89,7 +89,6 @@ def generate_machine_test() {
 
     Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
     Utilities.addPeriodicTrigger(myJob, "0 0 * * *", true /*always run*/)
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-perf')
 }
 
 generate_perf_test(true)
