@@ -2,12 +2,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindUsages;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal abstract class FindUsagesContext
+    internal abstract class FindUsagesContext : IFindUsagesContext
     {
         public virtual CancellationToken CancellationToken { get; }
 

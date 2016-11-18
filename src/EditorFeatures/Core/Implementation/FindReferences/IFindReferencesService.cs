@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -22,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Finds the references for the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
-        Task FindReferencesAsync(Document document, int position, FindUsagesContext context);
+        Task FindReferencesAsync(Document document, int position, IFindUsagesContext context);
     }
 }

@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {

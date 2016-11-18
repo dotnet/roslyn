@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
 
         public async Task FindReferencesAsync(
-            Document document, int position, FindUsagesContext context)
+            Document document, int position, IFindUsagesContext context)
         {
             // NOTE: All ConFigureAwaits in this method need to pass 'true' so that
             // we return to the caller's context.  that's so the call to 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
         }
 
         private async Task<ProgressAdapter> FindReferencesWorkerAsync(
-            Document document, int position, FindUsagesContext context)
+            Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
