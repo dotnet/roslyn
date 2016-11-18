@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
             IWaitIndicator waitIndicator,
