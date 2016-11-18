@@ -649,7 +649,6 @@
     <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
     <Compile Include="FindSymbols\SyntaxTree\ISyntaxTreeInfoPersistentStorage.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo_Set.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeInfo.cs" />
     <Compile Include="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="Formatting\Context\FormattingContext.AnchorData.cs" />

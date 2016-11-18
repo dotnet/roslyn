@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 version, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
         }
 
-        public Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
+        private Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
             => SaveAsync(document, s_cache, PersistenceName, SerializationFormat, cancellationToken);
 
         private async Task<bool> SaveAsync(
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return persisted;
         }
 
-        public static Task<SyntaxTreeIndex> LoadAsync(Document document, CancellationToken cancellationToken)
+        private static Task<SyntaxTreeIndex> LoadAsync(Document document, CancellationToken cancellationToken)
             => LoadAsync(document, ReadFrom, s_cache, PersistenceName, SerializationFormat, cancellationToken);
 
         private static async Task<SyntaxTreeIndex> LoadAsync(
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        public static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
+        private static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
             => PrecalculatedAsync(document, PersistenceName, SerializationFormat, cancellationToken);
 
         private static ConditionalWeakTable<DocumentId, SyntaxTreeIndex> GetInfoTable(

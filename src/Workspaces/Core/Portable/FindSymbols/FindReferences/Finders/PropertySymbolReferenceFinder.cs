@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsElementAccessExpression;
             }, cancellationToken);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetIndexAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsIndexerMemberCref;
             }, cancellationToken);
         }

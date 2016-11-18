@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
-            var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
             var result = CreateSymbolAndProjectIdSet();

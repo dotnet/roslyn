@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        public static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
