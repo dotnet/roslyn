@@ -21,6 +21,7 @@ if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseAr
 if /I "%1" == "/testBuildCorrectness" set TestBuildCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testPerfMachines" set TestPerfMachines=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
@@ -103,6 +104,11 @@ if defined TestPerfRun (
             ) else (
                 set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --benchview-submission-type rolling"
             )
+
+            if defined testPerfMachines (
+                set "EXTRA_PERF_RUNNER_ARGS=!EXTRA_PERF_RUNNER_ARGS! --machine-test"
+            )
+
             mkdir ".\Binaries\%BuildConfiguration%\tools\"
             REM Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
             call "%RoslynRoot%\build\scripts\install_benchview_tools.cmd" ".\Binaries\%BuildConfiguration%\tools\" || goto :BuildFailed
