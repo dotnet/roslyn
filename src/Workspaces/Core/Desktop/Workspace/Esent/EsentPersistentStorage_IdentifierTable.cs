@@ -152,26 +152,6 @@ namespace Microsoft.CodeAnalysis.Esent
             }
         }
 
-        private void Free(Dictionary<string, List<int>> map)
-        {
-            if (map == null)
-            {
-                return;
-            }
-
-            foreach (var value in map.Values)
-            {
-                if (value == null)
-                {
-                    continue;
-                }
-
-                SharedPools.BigDefault<List<int>>().ClearAndFree(value);
-            }
-
-            SharedPools.StringIgnoreCaseDictionary<List<int>>().ClearAndFree(map);
-        }
-
         private bool ReadFrom(ObjectReader reader, List<int> result, CancellationToken cancellationToken)
         {
             var count = reader.ReadInt32();
