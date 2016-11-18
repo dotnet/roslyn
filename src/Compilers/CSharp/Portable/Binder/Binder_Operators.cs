@@ -412,18 +412,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindExpression(current, diagnostics);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression))
+            if (node.IsKind(SyntaxKind.SubtractExpression)
+                && current.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 if (result.Kind == BoundKind.TypeExpression
-                    && !((current as ParenthesizedExpressionSyntax)?.Expression is ParenthesizedExpressionSyntax))
+                    && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var identifierName = (current as ParenthesizedExpressionSyntax)?.Expression as IdentifierNameSyntax;
-                    if (identifierName != null && identifierName.Identifier.ValueText == "dynamic")
+                    var parenthesizedExpression = (ParenthesizedExpressionSyntax) current;
+
+                    if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
+                        && ((IdentifierNameSyntax) parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
+                    {
                         Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                    }
                 }
             }
 

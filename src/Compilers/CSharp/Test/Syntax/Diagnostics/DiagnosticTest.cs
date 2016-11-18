@@ -2156,10 +2156,12 @@ public class A
         [Fact]
         public void PossibleBadNegCast()
         {
-            var source = @"class Program
+            var source = @"using System;
+class Program
 {
     static void Main()
     {
+        var y = (ConsoleColor) - 1;
         var z = (System.ConsoleColor) - 1;
     }
 }";
@@ -2167,15 +2169,24 @@ public class A
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(new[]
             {
-                // (5,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
+                // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(ConsoleColor) - 1").WithLocation(6, 17),
+                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = (ConsoleColor) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
+                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 18),
-                // (5,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18),
+                // (7,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 18),
-                // (5,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17),
+                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18)
             });
         }
 
@@ -2185,10 +2196,12 @@ public class A
         [Fact]
         public void PossibleBadNegCastFixed()
         {
-            var source = @"class Program
+            var source = @"using System;
+class Program
 {
     static void Main()
     {
+        var y = (ConsoleColor) (- 1);
         var z = (System.ConsoleColor) (- 1);
     }
 }";
@@ -2196,9 +2209,12 @@ public class A
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(new[]
             {
-                // (5,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                // (6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         var y = (ConsoleColor) (- 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // (7,13): warning CS0219: The variable 'z' is assigned but its value is never used
                 //         var z = (System.ConsoleColor) (- 1);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(5, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(7, 13)
             });
         }
 
@@ -2208,10 +2224,14 @@ public class A
         [Fact]
         public void PossibleBadNegCastNotEmitted()
         {
-            var source = @"class Program
+            var source = @"using System;
+
+class Program
 {
     static void Main()
     {
+        var w = ((ConsoleColor)) - 1;
+        var x = ConsoleColor - 1;
         var y = ((System.ConsoleColor)) - 1;
         var z = System.ConsoleColor - 1;
     }
@@ -2220,18 +2240,30 @@ public class A
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(new[]
             {
-                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var x = ((System.ConsoleColor)) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
-                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var x = ((System.ConsoleColor)) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
-                // (5,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var x = ((System.ConsoleColor)) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(5, 19),
-                // (6,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var y = System.ConsoleColor - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 17),
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (7,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var w = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 19),
+                // (8,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var x = ConsoleColor - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(8, 17),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (9,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((System.ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(9, 19),
+                // (10,17): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var z = System.ConsoleColor - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(10, 17)
             });
         }
 
@@ -2265,6 +2297,55 @@ public class A
                 // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var z = (@dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(@dynamic) - 1").WithLocation(6, 17)
+            });
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts when a local variable called 'dynamic' is defined.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamicWithLocal()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var dynamic = 1;
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        ///    Tests if CS0075 - "To cast a negative value, you must enclose the value in parentheses" is also emitted for dynamic casts when a method called 'dynamic' is defined.
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastDynamicWithMethod()
+        {
+            var source = @"class Program
+{
+    static void Main()
+    {
+        var y = (dynamic) - 1;
+        var z = (@dynamic) - 1;
+    }
+
+    static void dynamic() {}
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (5,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
+                //         var y = (dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(5, 17),
+                // (6,17): error CS0019: Operator '-' cannot be applied to operands of type 'method group' and 'int'
+                //         var z = (@dynamic) - 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(@dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(6, 17)
             });
         }
 
