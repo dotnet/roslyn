@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
             Return GoToTestHelpers.TestAsync(workspaceDefinition, shouldSucceed,
                 Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
                     Dim service = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToImplementationService(presenters), IGoToImplementationService),
-                        New VisualBasicGoToImplementationService(presenters))
+                        DirectCast(New CSharpGoToImplementationService(presenters, {}), IGoToImplementationService),
+                        New VisualBasicGoToImplementationService(presenters, {}))
 
                     Dim message As String = Nothing
                     Return service.TryGoToImplementation(document, cursorPosition, CancellationToken.None, message)

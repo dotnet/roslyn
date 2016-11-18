@@ -11,8 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
         Inherits AbstractGoToImplementationService
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
-            MyBase.New(presenters)
+        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)),
+                       <ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
+            MyBase.New(presenters, streamingPresenters)
         End Sub
     End Class
 End Namespace
