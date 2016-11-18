@@ -143,15 +143,6 @@ namespace Microsoft.CodeAnalysis.Esent
             }
         }
 
-        private bool DeleteIdentifierLocations(EsentStorage.Key key, CancellationToken cancellationToken)
-        {
-            using (var accessor = _esentStorage.GetIdentifierLocationTableAccessor())
-            {
-                accessor.Delete(key, cancellationToken);
-                return accessor.ApplyChanges();
-            }
-        }
-
         private bool ReadFrom(ObjectReader reader, List<int> result, CancellationToken cancellationToken)
         {
             var count = reader.ReadInt32();
