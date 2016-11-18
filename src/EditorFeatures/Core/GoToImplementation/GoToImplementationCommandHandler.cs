@@ -29,19 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
         {
             _waitIndicator = waitIndicator;
             _streamingPresenters = streamingPresenters;
-
-            _asyncListener = new AggregateAsynchronousOperationListener(
-                asyncListeners, FeatureAttribute.GoToImplementation);
         }
 
         public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
