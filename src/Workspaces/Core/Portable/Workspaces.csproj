@@ -642,10 +642,8 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\ISyntaxTreeInfoPersistentStorage.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeContextInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo_Set.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeInfo.cs" />
     <Compile Include="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="Formatting\BottomUpBaseIndentationFinder.cs" />

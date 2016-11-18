@@ -283,43 +283,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             countdown.Wait();
         }
 
-        [Fact]
-        public async Task PersistentService_IdentifierSet()
-        {
-            var solution = CreateOrOpenSolution();
-
-            var newId = DocumentId.CreateNewId(solution.ProjectIds[0]);
-
-            string documentFile = Path.Combine(Path.GetDirectoryName(solution.FilePath), "IdentifierSet.cs");
-
-            File.WriteAllText(documentFile, @"
-class A
-{
-    public int Test(int i, A a)
-    {
-        return a;
-    }
-}");
-
-            var newSolution = solution.AddDocument(DocumentInfo.Create(newId, "IdentifierSet", loader: new FileTextLoader(documentFile, Encoding.UTF8), filePath: documentFile));
-
-            using (var storage = GetStorage(newSolution))
-            {
-                var syntaxTreeStorage = storage as ISyntaxTreeInfoPersistentStorage;
-                Assert.NotNull(syntaxTreeStorage);
-
-                var document = newSolution.GetDocument(newId);
-                var version = await document.GetSyntaxVersionAsync();
-                var root = await document.GetSyntaxRootAsync();
-
-                var positions = new List<int>();
-                Assert.True(syntaxTreeStorage.ReadIdentifierPositions(document, version, "Test", positions, CancellationToken.None));
-
-                Assert.Equal(1, positions.Count);
-                Assert.Equal(29, positions[0]);
-            }
-        }
-
         private Solution CreateOrOpenSolution()
         {
             string solutionFile = Path.Combine(_persistentFolder, "Solution1.sln");
