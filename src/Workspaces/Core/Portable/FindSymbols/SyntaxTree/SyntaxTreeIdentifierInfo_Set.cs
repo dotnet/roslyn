@@ -27,26 +27,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return esentStorage.ReadIdentifierPositions(document, version, identifier, positions, cancellationToken);
             }
         }
-
-        public static async Task SaveIdentifierSetAsync(Document document, CancellationToken cancellationToken)
-        {
-            Contract.Requires(document.IsFromPrimaryBranch());
-
-            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
-            {
-                var esentStorage = storage as ISyntaxTreeInfoPersistentStorage;
-                if (esentStorage == null)
-                {
-                    return;
-                }
-
-                var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                esentStorage.WriteIdentifierLocations(document, version, root, cancellationToken);
-            }
-        }
     }
 }
