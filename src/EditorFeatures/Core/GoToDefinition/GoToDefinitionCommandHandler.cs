@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
        ContentTypeNames.RoslynContentType)]

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
