@@ -4206,12 +4206,43 @@ int (x, y) = (1, 2);
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (2,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
+                );
+
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Int32", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InvalidDeconstructionInScript_2()
+        {
+            var source =
+@"
+(int (x, y), int z) = ((1, 2), 3);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
                 // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // int (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(2, 6),
-                // (2,9): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // int (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(2, 9)
+                // (int (x, y), int z) = ((1, 2), 3);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
 
 
@@ -4499,15 +4530,9 @@ System.Console.Write($""{x1} {x2} {x3}"");
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // (3,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(3, 6),
-                // (3,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(3, 11),
-                // (3,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, (x2, x3))").WithLocation(3, 5)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -4546,15 +4571,9 @@ System.Console.Write($""{x1} {x2} {x3}"");
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // (6,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 6),
-                // (6,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 11),
-                // (6,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, (x2, x3))").WithLocation(6, 5)
                 );
 
             var tree = comp.SyntaxTrees.First();

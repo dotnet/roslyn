@@ -28,6 +28,7 @@
     </Content>
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Symbols\IDiscardedSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />

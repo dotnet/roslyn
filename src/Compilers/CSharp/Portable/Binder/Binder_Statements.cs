@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(
-                declarationNode.Kind() == SyntaxKind.SingleVariableDesignation ||
+                declarationNode is VariableDesignationSyntax ||
                 declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
                 declarationNode.Kind() == SyntaxKind.DeclarationExpression);
 
