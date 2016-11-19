@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -47,22 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Note: if using 'var' would cause a problem, we will use the actual type
             // of hte local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
-            var useVarWhenDeclaringLocals = options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals);
-            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await AddEditsAsync(document, editor, diagnostic, 
-                    useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, 
-                    cancellationToken).ConfigureAwait(false);
+                await AddEditsAsync(
+                    document, editor, diagnostic, 
+                    options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task AddEditsAsync(
             Document document, SyntaxEditor editor, Diagnostic diagnostic, 
-            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, CancellationToken cancellationToken)
+            OptionSet options, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Recover the nodes we care about.
@@ -121,8 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             // get the type that we want to put in the out-var-decl based on the user's options.
-            // i.e. prefer 'out var' if that is what the user wants.
-            var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
+            // i.e. prefer 'out var' if that is what the user wants.  Note: if we have:
+            //
+            //      Method(out var x)
+            //
+            // Then the type is not-apperant, and we shoudl not use var if the user only wants
+            // it for apperant types
+
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -131,11 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
-            if (semanticsChanged)
+            if (semanticsChanged && newType.IsVar)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
 
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
@@ -275,7 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Inline_variable_declaration, createChangedDocument)
+                : base(FeaturesResources.Inline_variable_declaration,
+                       createChangedDocument,
+                       FeaturesResources.Inline_variable_declaration)
             {
             }
         }

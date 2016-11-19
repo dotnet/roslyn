@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SyntaxTreeInfo.PrecalculateAsync(document, cancellationToken);
+                return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);
             }
         }
     }

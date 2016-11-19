@@ -1402,6 +1402,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit tuple name.
+        /// </summary>
+        internal static string Prefer_explicit_tuple_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicit_tuple_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer framework type.
         /// </summary>
         internal static string Prefer_framework_type {

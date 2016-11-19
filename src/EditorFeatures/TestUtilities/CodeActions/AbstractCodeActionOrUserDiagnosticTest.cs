@@ -530,29 +530,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected static IList<CodeAction> FlattenActions(IEnumerable<CodeAction> codeActions)
         {
             return codeActions?.SelectMany(a => a.NestedCodeActions.Length > 0
-                ? a.NestedCodeActions.ToArray() 
+                ? a.NestedCodeActions.ToArray()
                 : new[] { a }).ToList();
         }
 
-        protected IDictionary<OptionKey, object> Option(IOption option, CodeStyleOption<bool> notification)
-            => Option(option, notification.Value, notification.Notification);
+        protected (OptionKey, object) SingleOption(Option<bool> option, bool enabled)
+            => (new OptionKey(option), enabled);
 
-        protected IDictionary<OptionKey, object> Option(IOption option, bool value, NotificationOption notification)
-            => OptionsSet(Tuple.Create(option, value, notification));
+        protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
 
-        protected IDictionary<OptionKey, object> OptionsSet(params Tuple<IOption, bool, NotificationOption>[] optionsToSet)
+        protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => (new OptionKey(option), codeStyle);
+
+        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
+
+        protected (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => SingleOption(option, codeStyle, language: GetLanguage());
+
+        protected static (OptionKey, object) SingleOption(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle, string language)
+            => (new OptionKey(option, language), codeStyle);
+
+        protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option(Option<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => OptionsSet(SingleOption(option, codeStyle));
+
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
+            => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
+            => OptionsSet(SingleOption(option, codeStyle));
+
+        protected static IDictionary<OptionKey, object> OptionsSet(
+            params (OptionKey key, object value)[] options)
         {
-            var options = new Dictionary<OptionKey, object>();
-            foreach (var triple in optionsToSet)
+            var result = new Dictionary<OptionKey, object>();
+            foreach (var option in options)
             {
-                var option = triple.Item1;
-                var value = triple.Item2;
-                var notification = triple.Item3;
-                var optionKey = new OptionKey(option, option.IsPerLanguage ? GetLanguage() : null);
-                options.Add(optionKey, new CodeStyleOption<bool>(value, notification));
+                result.Add(option.key, option.value);
             }
 
-            return options;
+            return result;
         }
     }
 }
