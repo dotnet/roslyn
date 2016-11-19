@@ -613,10 +613,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return false;
             }
 
-            private Task<IList<SymbolReference>> GetNamespacesForDesconstructAsync(SearchScope searchScope)
+            private async Task<IList<SymbolReference>> GetNamespacesForDesconstructAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                return SpecializedTasks.Default<IList<SymbolReference>>();
+
+                if (!_owner.CanAddImportForDeconstruct(_diagnostic, _node))
+                {
+                    return null;
+                }
+
+                var type = _owner.GetDeconstructInfo(_semanticModel, _node, searchScope.CancellationToken);
+                if (type == null)
+                {
+                    return null;
+                }
+
+                // Note: we could check that the extension methods have the right number of out-params.  
+                // But that would involve figuring out what we're trying to deconstruct into.  For now
+                // we'll just be permissive, with the assumption that there won't be that many matching
+                // 'Deconstruct' extension methods for the type of node that we're on.
+                return await FindExtensionMethodReferencesAsync(
+                    searchScope, type, "Deconstruct").ConfigureAwait(false);
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
@@ -628,19 +645,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                ITypeSymbol type = _owner.GetQueryClauseInfo(_semanticModel, _node, searchScope.CancellationToken);
+                var type = _owner.GetQueryClauseInfo(_semanticModel, _node, searchScope.CancellationToken);
                 if (type == null)
                 {
                     return null;
                 }
 
-                // find extension methods named "Select"
-                var symbols = await searchScope.FindDeclarationsAsync("Select", nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+                // Look for an extension called 'Select', it's a good proxy to indicate that this 
+                // type supports most query operators.
+                return await FindExtensionMethodReferencesAsync(
+                    searchScope, type, nameof(Enumerable.Select)).ConfigureAwait(false);
+            }
+
+            private async Task<IList<SymbolReference>> FindExtensionMethodReferencesAsync(
+                SearchScope searchScope, ITypeSymbol type, string extensionName)
+            {
+                var symbols = await searchScope.FindDeclarationsAsync(
+                    extensionName, nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
 
                 // Note: there is no "desiredName" when doing this.  We're not going to do any
-                // renames of the user code.  We're just looking for an extension method called 
-                // "Select", but that name has no bearing on the code in question that we're
-                // trying to fix up.
+                // renames of the user code.  We're just looking for an extension method with 
+                // the specific name provided, but that name has no bearing on the code in question
+                // that we're trying to fix up.
                 var extensionMethodSymbols = OfType<IMethodSymbol>(symbols)
                     .Where(s => s.Symbol.IsExtensionMethod && _owner.IsViableExtensionMethod(s.Symbol, type))
                     .Select(s => s.WithDesiredName(null))
