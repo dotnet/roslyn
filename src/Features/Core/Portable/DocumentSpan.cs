@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         {
             var workspace = Document.Project.Solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToPosition(workspace, Document.Id, SourceSpan.Start);
+            return service.CanNavigateToSpan(workspace, Document.Id, SourceSpan);
         }
 
         public bool TryNavigateTo()
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             var solution = Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, Document.Id, SourceSpan.Start,
+            return service.TryNavigateToSpan(workspace, Document.Id, SourceSpan,
                 options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
         }
     }
