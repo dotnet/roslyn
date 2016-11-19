@@ -22,31 +22,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals((DocumentSpan)obj);
-        }
+            => Equals((DocumentSpan)obj);
 
         public bool Equals(DocumentSpan obj)
-        {
-            return this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
-        }
+            => this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
 
         public static bool operator ==(DocumentSpan d1, DocumentSpan d2)
-        {
-            return d1.Equals(d2);
-        }
+            => d1.Equals(d2);
 
         public static bool operator !=(DocumentSpan d1, DocumentSpan d2)
-        {
-            return !(d1 == d2);
-        }
+            => !(d1 == d2);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(
+            => Hash.Combine(
                 this.Document,
                 this.SourceSpan.GetHashCode());
-        }
 
         public bool CanNavigateTo()
         {
@@ -57,9 +47,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryNavigateTo()
         {
-            var workspace = Document.Project.Solution.Workspace;
+            var solution = Document.Project.Solution;
+            var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, Document.Id, SourceSpan.Start);
+            return service.TryNavigateToPosition(workspace, Document.Id, SourceSpan.Start,
+                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
         }
     }
 }
