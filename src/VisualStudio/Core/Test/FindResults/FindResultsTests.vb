@@ -150,7 +150,8 @@ using System.Threading;
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
 
                 Dim factory = workspace.Services.GetService(Of IDefinitionsAndReferencesFactory)
-                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(workspace.CurrentSolution, result)
+                Dim definitionsAndReferences = factory.CreateDefinitionsAndReferences(
+                    workspace.CurrentSolution, result, includeHiddenLocations:=False)
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(definitionsAndReferences)
 
                 ' We cannot control the ordering of top-level nodes in the Find Symbol References window, so do not consider ordering of these items here.

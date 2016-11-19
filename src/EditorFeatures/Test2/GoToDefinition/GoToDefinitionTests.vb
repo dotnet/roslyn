@@ -1069,7 +1069,7 @@ class C
 
         <WorkItem(989476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/989476")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Async Function TestCSharpPreferNongeneratedSourceLocations() As Task
+        Public Async Function TestCSharpDoNotFilterGeneratedSourceLocations() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1083,7 +1083,7 @@ partial class [|C|]
 }
         </Document>
         <Document FilePath="Generated.g.i.cs">
-partial class C
+partial class [|C|]
 {
 }
         </Document>

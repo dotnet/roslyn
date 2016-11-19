@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var implementation in tuple.Value.implementations)
             {
-                var definitionItem = implementation.ToDefinitionItem(project.Solution);
+                var definitionItem = implementation.ToDefinitionItem(
+                    project.Solution, includeHiddenLocations: false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }

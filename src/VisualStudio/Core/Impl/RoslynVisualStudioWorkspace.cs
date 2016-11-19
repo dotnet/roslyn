@@ -230,7 +230,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
+                solution, referencedSymbols, includeHiddenLocations: false);
 
             foreach (var presenter in _referencedSymbolsPresenters)
             {
