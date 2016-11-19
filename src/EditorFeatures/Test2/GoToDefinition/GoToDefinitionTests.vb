@@ -15,14 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Friend Async Function TestAsync(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of INavigableItemsPresenter)), Boolean)) As System.Threading.Tasks.Task
+                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), Boolean)) As System.Threading.Tasks.Task
             Using workspace = Await TestWorkspace.CreateAsync(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
-
-                Dim items As IList(Of INavigableItem) = Nothing
 
                 ' Set up mocks. The IDocumentNavigationService should be called if there is one,
                 ' location and the INavigableItemsPresenter should be called if there are 
@@ -38,8 +36,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim presenter = New MockNavigableItemsPresenter(Sub(i) items = i)
-                Dim presenters = {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}
+                Dim presenterCalled As Boolean = False
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
+                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
                 Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
 
                 Assert.Equal(expectedResult, actualResult)
@@ -54,6 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 expectedLocations.Sort()
 
+                Dim context = presenter.Context
                 If expectedResult Then
                     If mockDocumentNavigationService._triedNavigationToSpan Then
                         Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
@@ -61,16 +61,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                         Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
 
                         ' The INavigableItemsPresenter should not have been called
-                        Assert.Null(items)
+                        Assert.False(presenterCalled)
                     Else
                         Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
                         Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
-                        Assert.NotEmpty(items)
+                        Assert.True(presenterCalled)
 
                         Dim actualLocations As New List(Of FilePathAndSpan)
 
+                        Dim items = context.GetDefinitions()
+
                         For Each location In items
-                            actualLocations.Add(New FilePathAndSpan(location.Document.FilePath, location.SourceSpan))
+                            For Each docSpan In location.SourceSpans
+                                actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                            Next
                         Next
 
                         actualLocations.Sort()
@@ -81,17 +85,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                     End If
                 Else
                     Assert.Null(mockDocumentNavigationService._documentId)
-                    Assert.True(items Is Nothing OrElse items.Count = 0)
+                    Assert.False(presenterCalled)
                 End If
             End Using
         End Function
 
         Private Function TestAsync(workspaceDefinition As XElement, Optional expectedResult As Boolean = True) As Tasks.Task
             Return TestAsync(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters, {}), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters, {}))
+                        DirectCast(New CSharpGoToDefinitionService(presenters), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

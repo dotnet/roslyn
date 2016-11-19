@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task NavigateToOrPresentItemsAsync(
+        public static async Task<bool> NavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             string title, ImmutableArray<DefinitionItem> items)
         {
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             {
                 if (item.TryNavigateTo())
                 {
-                    return;
+                    return true;
                 }
             }
 
             var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
             if (nonExternalItems.Length == 0)
             {
-                return;
+                return false;
             }
 
             if (nonExternalItems.Length == 1 &&
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             {
                 // There was only one location to navigate to.  Just directly go to that location.
                 nonExternalItems[0].TryNavigateTo();
-                return;
+                return true;
             }
 
             // We have multiple definitions, or we have definitions with multiple locations.
@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             // context it has completed.  In the latter case somethign wrong has happened
             // and we don't want to run any more code code in this particular context.
             await context.OnCompletedAsync().ConfigureAwait(false);
+            return true;
         }
     }
 }

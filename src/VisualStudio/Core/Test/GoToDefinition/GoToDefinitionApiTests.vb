@@ -34,13 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.NotNull(symbolInfo.Symbol)
 
-                Dim presenter = New MockNavigableItemsPresenter(Sub() Exit Sub)
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub () Exit sub)
 
                 WpfTestCase.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a WaitAndGetResult call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
                     symbolInfo.Symbol, document.Project,
-                    {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, {},
-                    thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
+                    thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
+                    cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
