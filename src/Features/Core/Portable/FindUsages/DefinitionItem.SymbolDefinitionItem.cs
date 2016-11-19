@@ -43,14 +43,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             public override bool CanNavigateTo()
-            {
-                return TryNavigateTo((symbol, project, service) => true);
-            }
+                => TryNavigateTo((symbol, project, service) => true);
 
             public override bool TryNavigateTo()
             {
                 return TryNavigateTo((symbol, project, service) =>
-                    service.TryNavigateToSymbol(symbol, project));
+                    service.TryNavigateToSymbol(
+                        symbol, project, project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)));
             }
 
             private bool TryNavigateTo(Func<ISymbol, Project, ISymbolNavigationService, bool> action)
@@ -61,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
                 }
 
-                var project = projectAndSymbol.Value.Item1;
-                var symbol = projectAndSymbol.Value.Item2;
+                var project = projectAndSymbol?.project;
+                var symbol = projectAndSymbol?.symbol;
                 if (symbol == null || project == null)
                 {
                     return false;
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return action(symbol, project, navigationService);
             }
 
-            private ValueTuple<Project, ISymbol>? ResolveSymbolInCurrentSolution()
+            private (Project project, ISymbol symbol)? ResolveSymbolInCurrentSolution()
             {
                 var project = _workspace.CurrentSolution
                     .ProjectsWithReferenceToAssembly(_symbolAssemblyIdentity)
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                 var compilation = project.GetCompilationAsync(CancellationToken.None)
                                          .WaitAndGetResult(CancellationToken.None);
-                return ValueTuple.Create(project, _symbolKey.Resolve(compilation).Symbol);
+                return (project, _symbolKey.Resolve(compilation).Symbol);
             }
         }
     }
