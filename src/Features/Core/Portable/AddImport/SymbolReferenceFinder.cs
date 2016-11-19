@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     tasks.Add(this.GetNamespacesForCollectionInitializerMethodsAsync(searchScope));
                     tasks.Add(this.GetNamespacesForQueryPatternsAsync(searchScope));
+                    tasks.Add(this.GetNamespacesForDesconstructAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -610,6 +611,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 return false;
+            }
+
+            private Task<IList<SymbolReference>> GetNamespacesForDesconstructAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+                return SpecializedTasks.Default<IList<SymbolReference>>();
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
