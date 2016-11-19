@@ -261,7 +261,6 @@
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
-    <Compile Include="GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />

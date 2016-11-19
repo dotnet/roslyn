@@ -120,7 +120,6 @@
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
-    <Compile Include="GoToImplementation\CSharpGoToImplementationService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />

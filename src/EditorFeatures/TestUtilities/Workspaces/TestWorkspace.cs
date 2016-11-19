@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
-        public TestHostDocument DocumentWithCursor { get { return Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile); } }
+        public TestHostDocument DocumentWithCursor 
+            => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
         protected override void OnDocumentTextChanged(Document document)
         {
