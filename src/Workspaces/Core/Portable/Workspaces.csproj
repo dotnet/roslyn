@@ -360,6 +360,13 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Forwarders.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Create.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.ContextInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.DeclarationInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
@@ -528,8 +535,6 @@
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="Formatting\FormattingOptionsProvider.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
@@ -642,9 +647,6 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeContextInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeInfo.cs" />
     <Compile Include="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="Formatting\Context\FormattingContext.AnchorData.cs" />

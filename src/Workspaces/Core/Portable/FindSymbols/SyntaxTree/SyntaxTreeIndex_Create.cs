@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -13,98 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SyntaxTreeInfo
+    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
     {
-        /// <summary>
-        /// snapshot based cache to guarantee same info is returned without re-calculating for same solution snapshot.
-        /// since document will be re-created per new solution, this should go away as soon as there is any change on workspace.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo> s_identifierSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeIdentifierInfo>();
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeContextInfo> s_contextSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeContextInfo>();
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo> s_declaredSymbolsSnapshotCache = new ConditionalWeakTable<Document, SyntaxTreeDeclarationInfo>();
-
-        public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
-        {
-            Contract.Requires(document.IsFromPrimaryBranch());
-
-            await PrecalculateBasicInfoAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task PrecalculateBasicInfoAsync(Document document, CancellationToken cancellationToken)
-        {
-            // we already have information. move on
-            if (await SyntaxTreeIdentifierInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false) &&
-                await SyntaxTreeContextInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false) &&
-                await SyntaxTreeDeclarationInfo.PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
-
-            await data.Item1.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.Item2.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.Item3.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<T> GetInfoAsync<T>(
-            Document document,
-            ConditionalWeakTable<Document, T> cache,
-            Func<Document, CancellationToken, Task<T>> generator,
-            Func<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo), T> selector,
-            CancellationToken cancellationToken)
-            where T : class
-        {
-            if (cache.TryGetValue(document, out var info))
-            {
-                return info;
-            }
-
-            info = await generator(document, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-            {
-                return cache.GetValue(document, _ => info);
-            }
-
-            // alright, we don't have cached information, re-calculate them here.
-            var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
-
-            // okay, persist this info
-            await data.identifierInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.contextInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-            await data.declarationInfo.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-
-            info = selector(data);
-            return cache.GetValue(document, _ => info);
-        }
-
-        public static Task<SyntaxTreeContextInfo> GetContextInfoAsync(Document document, CancellationToken cancellationToken)
-        {
-            return GetInfoAsync(document, s_contextSnapshotCache, SyntaxTreeContextInfo.LoadAsync, tuple => tuple.Item2, cancellationToken);
-        }
-
-        public static Task<SyntaxTreeIdentifierInfo> GetIdentifierInfoAsync(Document document, CancellationToken cancellationToken)
-        {
-            return GetInfoAsync(document, s_identifierSnapshotCache, SyntaxTreeIdentifierInfo.LoadAsync, tuple => tuple.Item1, cancellationToken);
-        }
-
-        private static Func<Document, CancellationToken, Task<SyntaxTreeDeclarationInfo>> s_loadAsync 
-            = SyntaxTreeDeclarationInfo.LoadAsync;
-        private static Func<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo), SyntaxTreeDeclarationInfo> s_getThirdItem 
-            = tuple => tuple.Item3;
-
-        public static Task<SyntaxTreeDeclarationInfo> GetDeclarationInfoAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            return GetInfoAsync(
-                document, s_declaredSymbolsSnapshotCache, s_loadAsync, 
-                s_getThirdItem, cancellationToken);
-        }
-
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        private static async Task<(SyntaxTreeIdentifierInfo identifierInfo, SyntaxTreeContextInfo contextInfo, SyntaxTreeDeclarationInfo declarationInfo)> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
@@ -203,12 +116,12 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                return (new SyntaxTreeIdentifierInfo(
-                            version,
-                            new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
-                            new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
-                        new SyntaxTreeContextInfo(
-                            version,
+                return new SyntaxTreeIndex(
+                    version,
+                    new IdentifierInfo(
+                        new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
+                        new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
+                    new ContextInfo(
                             predefinedTypes,
                             predefinedOperators,
                             containsForEachStatement,
@@ -219,8 +132,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsBaseConstructorInitializer,
                             containsElementAccess,
                             containsIndexerMemberCref),
-                        new SyntaxTreeDeclarationInfo(
-                            version,
+                    new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()));
             }
             finally
