@@ -389,7 +389,8 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ReducedExtensionMethod);
                     ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
                 }
-                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction)
+                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction ||
+                         methodSymbol.MethodKind == MethodKind.LocalFunction)
                 {
                     WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
                     AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
