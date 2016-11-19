@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return false;
             }
 
-            var definition = symbol.ToDefinitionItem(solution);
+            var definition = symbol.ToDefinitionItem(solution, includeHiddenLocations: false);
             var context = presenter.StartSearch(EditorFeaturesResources.Go_to_Definition);
             try
             {

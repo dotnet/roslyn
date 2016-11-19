@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 var solution = result.Item2;
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
                 var definitionsAndReferences = factory.CreateDefinitionsAndReferences(
-                    solution, result.Item1);
+                    solution, result.Item1, includeHiddenLocations: false);
 
                 foreach (var presenter in _referenceSymbolPresenters)
                 {
