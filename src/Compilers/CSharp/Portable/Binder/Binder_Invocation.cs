@@ -1192,8 +1192,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     case BoundKind.OutVariablePendingInference:
-                    case BoundKind.DiscardedExpression when !argument.HasExpressionType():
+                    case BoundKind.DiscardedExpression:
                         {
+                            if (argument.HasExpressionType())
+                            {
+                                break;
+                            }
+
                             // See if all applicable applicable parameters have the same type
                             TypeSymbol candidateType = null;
                             foreach (var parameterList in parameterListList)
