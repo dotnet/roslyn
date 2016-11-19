@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                         return DefinitionItem.CreateMetadataDefinition(
                             tags, displayParts, solution, definition, displayIfNoReferences);
                     }
-                    else
+                    else if (location.IsInSource)
                     {
                         if (!location.IsVisibleSourceLocation() &&
                             !includeHiddenLocations)
