@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task<bool> NavigateToOrPresentItemsAsync(
+        public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             string title, ImmutableArray<DefinitionItem> items)
         {
@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location.
-                nonExternalItems[0].TryNavigateTo();
-                return true;
+                return nonExternalItems[0].TryNavigateTo();
             }
 
             // We have multiple definitions, or we have definitions with multiple locations.

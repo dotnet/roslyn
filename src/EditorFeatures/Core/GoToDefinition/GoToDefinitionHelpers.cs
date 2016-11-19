@@ -69,11 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
 
             var presenter = GetFindUsagesPresenter(streamingPresenters);
-            presenter.NavigateToOrPresentItemsAsync(
+            return presenter.TryNavigateToOrPresentItemsAsync(
                 EditorFeaturesResources.Go_to_Definition,
-                definitions.ToImmutableAndFree()).Wait(cancellationToken);
-
-            return true;
+                definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
