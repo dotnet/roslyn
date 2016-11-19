@@ -285,8 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // documents we consider to be "generated" to give external language services the best
             // chance of participating.
 
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            var generatedDocuments = documents.Where(d => generatedCodeRecognitionService.IsGeneratedCode(d));
+            var generatedDocuments = documents.Where(d => d.IsGeneratedCode());
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
             if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))

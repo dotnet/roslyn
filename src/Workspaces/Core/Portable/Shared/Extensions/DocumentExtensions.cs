@@ -14,15 +14,14 @@ using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
-        {
-            return document?.Project?.LanguageServices?.GetService<TLanguageService>();
-        }
+            => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
         public static bool IsOpen(this Document document)
         {
@@ -191,6 +190,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public static bool IsGeneratedCode(this Document document)
+        {
+            var solution = document.Project.Solution;
+            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            return generatedCodeRecognitionService != null && generatedCodeRecognitionService.IsGeneratedCode(document);
         }
     }
 }
