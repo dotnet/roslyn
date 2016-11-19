@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
@@ -22,12 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// </summary>
     internal interface ITypeInferenceService : ILanguageService
     {
-        IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
-        IEnumerable<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
+        ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string nameOpt, CancellationToken cancellationToken);
 
-        IEnumerable<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-
-        IEnumerable<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
+        ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, int position, string nameOpt, CancellationToken cancellationToken);
+        ImmutableArray<TypeInferenceInfo> GetTypeInferenceInfo(SemanticModel semanticModel, SyntaxNode expression, string nameOpt, CancellationToken cancellationToken);
     }
 
     internal struct TypeInferenceInfo

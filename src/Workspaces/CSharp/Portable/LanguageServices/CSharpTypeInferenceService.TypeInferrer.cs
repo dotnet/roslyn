@@ -751,8 +751,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentTypes = InferTypes(arrayType);
                 for (var i = 0; i < arrayType.RankSpecifiers.Count; i++)
                 {
-                    currentTypes = currentTypes.Where(c => c.InferredType is IArrayTypeSymbol)
-                        .Select(c => new TypeInferenceInfo(((IArrayTypeSymbol)c.InferredType).ElementType));
+                    currentTypes = currentTypes.WhereAsArray(c => c.InferredType is IArrayTypeSymbol)
+                                               .SelectAsArray(c => new TypeInferenceInfo(((IArrayTypeSymbol)c.InferredType).ElementType));
                 }
                 return currentTypes;
             }

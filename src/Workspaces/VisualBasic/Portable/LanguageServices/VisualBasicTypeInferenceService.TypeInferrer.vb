@@ -352,8 +352,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim currentTypes = InferTypes(arrayType)
                 Dim i = 0
                 While i < arrayType.RankSpecifiers.Count
-                    currentTypes = currentTypes.Where(Function(c) TypeOf c.InferredType Is IArrayTypeSymbol) _
-                        .Select(Function(c) New TypeInferenceInfo(DirectCast(c.InferredType, IArrayTypeSymbol).ElementType))
+                    currentTypes = currentTypes.WhereAsArray(Function(c) TypeOf c.InferredType Is IArrayTypeSymbol).
+                                                SelectAsArray(Function(c) New TypeInferenceInfo(DirectCast(c.InferredType, IArrayTypeSymbol).ElementType))
 
                     i = i + 1
                 End While
