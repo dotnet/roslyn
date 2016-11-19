@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (thirdPartyNavigationAllowed )
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory.GetThirdPartyDefinitionItem(solution, symbol);
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol);
                 definitions.AddIfNotNull(thirdPartyItem);
             }
 
