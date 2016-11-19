@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool preferNonGeneratedLocations);
 
         DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
     }
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         public DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool preferNonGeneratedLocations)
         {
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
             var references = ArrayBuilder<SourceReferenceItem>.GetInstance();
@@ -39,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
                 ProcessReferencedSymbol(
-                    solution, referencedSymbol, definitions, references, uniqueLocations);
+                    solution, referencedSymbol, definitions, references,
+                    preferNonGeneratedLocations, uniqueLocations);
             }
 
             return new DefinitionsAndReferences(
@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<DefinitionItem> definitions,
             ArrayBuilder<SourceReferenceItem> references,
+            bool preferNonGeneratedLocations,
             HashSet<DocumentSpan> uniqueSpans)
         {
             // See if this is a symbol we even want to present to the user.  If not,
@@ -95,12 +96,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return;
             }
 
-            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueSpans);
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(
+                solution, preferNonGeneratedLocations, uniqueSpans);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
             // for this definition.
-            CreateReferences(referencedSymbol, references, definitionItem, uniqueSpans);
+            CreateReferences(
+                referencedSymbol, references, definitionItem,
+                preferNonGeneratedLocations, uniqueSpans);
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
@@ -125,11 +129,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<SourceReferenceItem> references,
             DefinitionItem definitionItem,
+            bool preferNonGeneratedLocations,
             HashSet<DocumentSpan> uniqueSpans)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
-                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(definitionItem);
+                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(
+                    definitionItem, preferNonGeneratedLocations);
                 if (sourceReferenceItem == null)
                 {
                     continue;
@@ -148,6 +154,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem ToDefinitionItem(
             this ISymbol definition,
             Solution solution,
+            bool preferNonGeneratedLocations,
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
@@ -156,65 +163,103 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            var allSourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            var nonGeneratedLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
-            // If it's a namespace, don't create any normal lcoation.  Namespaces
-            // come from many different sources, but we'll only show a single 
-            // root definition node for it.  That node won't be navigable.
-            if (definition.Kind != SymbolKind.Namespace)
+            try
             {
-                foreach (var location in definition.Locations)
+                // If it's a namespace, don't create any normal lcoation.  Namespaces
+                // come from many different sources, but we'll only show a single 
+                // root definition node for it.  That node won't be navigable.
+                if (definition.Kind != SymbolKind.Namespace)
                 {
-                    if (location.IsInMetadata)
+                    foreach (var location in definition.Locations)
                     {
-                        return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, solution, definition, displayIfNoReferences);
-                    }
-                    else if (location.IsVisibleSourceLocation())
-                    {
-                        var document = solution.GetDocument(location.SourceTree);
-                        if (document != null)
+                        if (location.IsInMetadata)
                         {
-                            var documentLocation = new DocumentSpan(document, location.SourceSpan);
-                            if (sourceLocations.Count == 0)
+                            return DefinitionItem.CreateMetadataDefinition(
+                                tags, displayParts, solution, definition, displayIfNoReferences);
+                        }
+                        else if (location.IsVisibleSourceLocation())
+                        {
+                            var document = solution.GetDocument(location.SourceTree);
+                            if (document != null)
                             {
-                                sourceLocations.Add(documentLocation);
-                            }
-                            else
-                            {
-                                if (uniqueSpans == null ||
-                                    uniqueSpans.Add(documentLocation))
+                                var documentLocation = new DocumentSpan(document, location.SourceSpan);
+                                var isGenerated = document.IsGeneratedCode();
+
+                                allSourceLocations.Add(documentLocation);
+                                if (!isGenerated)
                                 {
-                                    sourceLocations.Add(documentLocation);
+                                    nonGeneratedLocations.Add(documentLocation);
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if (sourceLocations.Count == 0)
+                // If the user wants only non-generated locations and we have any non-generated locatoins
+                // then prefer those.  Otherwise, fall back to all the source locations.
+                var preferredLocations = preferNonGeneratedLocations && nonGeneratedLocations.Count > 0
+                    ? nonGeneratedLocations.ToImmutable()
+                    : allSourceLocations.ToImmutable();
+
+                var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+
+                foreach (var documentLocation in preferredLocations)
+                {
+                    // Always add at least one location per symbol, even if we're already seen
+                    // that location for some other symbol.
+                    if (sourceLocations.Count == 0)
+                    {
+                        sourceLocations.Add(documentLocation);
+                    }
+                    else
+                    {
+                        // If we've seen at least one location for this symbol, then only add
+                        // others if we haven't already seen that location for some other symbol.
+                        if (uniqueSpans == null ||
+                            uniqueSpans.Add(documentLocation))
+                        {
+                            sourceLocations.Add(documentLocation);
+                        }
+                    }
+                }
+
+                if (sourceLocations.Count == 0)
+                {
+                    // If we got no definition locations, then create a sentinel one
+                    // that we can display but which will not allow navigation.
+                    return DefinitionItem.CreateNonNavigableItem(
+                        tags, displayParts,
+                        DefinitionItem.GetOriginationParts(definition),
+                        displayIfNoReferences);
+                }
+
+                return DefinitionItem.Create(
+                    tags, displayParts, sourceLocations.ToImmutableAndFree(), displayIfNoReferences);
+            }
+            finally
             {
-                // If we got no definition locations, then create a sentinel one
-                // that we can display but which will not allow navigation.
-                return DefinitionItem.CreateNonNavigableItem(
-                    tags, displayParts,
-                    DefinitionItem.GetOriginationParts(definition),
-                    displayIfNoReferences);
+                allSourceLocations.Free();
+                nonGeneratedLocations.Free();
             }
-
-            return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(), displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
             this ReferenceLocation referenceLocation,
-            DefinitionItem definitionItem)
+            DefinitionItem definitionItem,
+            bool preferNonGeneratedLocations)
         {
             var location = referenceLocation.Location;
 
             Debug.Assert(location.IsInSource);
             if (!location.IsVisibleSourceLocation())
+            {
+                return null;
+            }
+
+            if (preferNonGeneratedLocations && referenceLocation.Document.IsGeneratedCode())
             {
                 return null;
             }

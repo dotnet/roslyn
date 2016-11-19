@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             /// We will hear about definition symbols many times while performing FAR.  We'll
             /// here about it first when the FAR engine discovers the symbol, and then for every
             /// reference it finds to the symbol.  However, we only want to create and pass along
-            /// a single instance of <see cref="INavigableItem" /> for that definition no matter
+            /// a single instance of <see cref="DefinitionItem" /> for that definition no matter
             /// how many times we see it.
             /// 
             /// This dictionary allows us to make that mapping once and then keep it around for
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 _solution = solution;
                 _context = context;
-                _definitionFactory = s => s.ToDefinitionItem(solution);
+                _definitionFactory = s => s.ToDefinitionItem(solution, preferNonGeneratedLocations: false);
             }
 
             // Do nothing functions.  The streaming far service doesn't care about
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
 
                 var referenceItem = location.TryCreateSourceReferenceItem(
-                    GetDefinitionItem(definition));
+                    GetDefinitionItem(definition), preferNonGeneratedLocations: false);
 
                 if (referenceItem != null)
                 {
