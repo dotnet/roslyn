@@ -9,24 +9,50 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal abstract class AbstractSyntaxTreeInfo : AbstractPersistableState, IObjectWritable
+    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
     {
-        protected AbstractSyntaxTreeInfo(VersionStamp version)
-            : base(version)
+        private const string PersistenceName = "<TreeInfoPersistence>";
+        private const string SerializationFormat = "1";
+
+        /// <summary>
+        /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch
+        /// 
+        /// this is not snapshot based so multiple versions of snapshots can re-use same data as long as it is relevant.
+        /// </summary>
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>> s_cache =
+            new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>>();
+
+        public void WriteTo(ObjectWriter writer)
         {
+            _identifierInfo.WriteTo(writer);
+            _contextInfo.WriteTo(writer);
+            _declarationInfo.WriteTo(writer);
         }
 
-        public abstract void WriteTo(ObjectWriter writer);
+        private static SyntaxTreeIndex ReadFrom(ObjectReader reader, VersionStamp version)
+        {
+            var identifierInfo = IdentifierInfo.ReadFrom(reader);
+            var contextInfo = ContextInfo.ReadFrom(reader);
+            var declarationInfo = DeclarationInfo.ReadFrom(reader);
 
-        public abstract Task<bool> SaveAsync(Document document, CancellationToken cancellationToken);
+            if (identifierInfo == null || contextInfo == null || declarationInfo == null)
+            {
+                return null;
+            }
 
-        protected async Task<bool> SaveAsync<TSyntaxTreeInfo>(
+            return new SyntaxTreeIndex(
+                version, identifierInfo.Value, contextInfo.Value, declarationInfo.Value);
+        }
+
+        private Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
+            => SaveAsync(document, s_cache, PersistenceName, SerializationFormat, cancellationToken);
+
+        private async Task<bool> SaveAsync(
             Document document,
-            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>> cache,
+            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>> cache,
             string persistenceName,
             string serializationFormat,
             CancellationToken cancellationToken)
-            where TSyntaxTreeInfo : AbstractSyntaxTreeInfo
         {
             var workspace = document.Project.Solution.Workspace;
             var infoTable = GetInfoTable(document.Project.Solution.BranchId, workspace, cache);
@@ -35,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false))
             {
                 infoTable.Remove(document.Id);
-                infoTable.GetValue(document.Id, _ => (TSyntaxTreeInfo)this);
+                infoTable.GetValue(document.Id, _ => this);
                 return false;
             }
 
@@ -45,27 +71,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var primaryInfoTable = GetInfoTable(workspace.PrimaryBranchId, workspace, cache);
                 primaryInfoTable.Remove(document.Id);
-                primaryInfoTable.GetValue(document.Id, _ => (TSyntaxTreeInfo)this);
+                primaryInfoTable.GetValue(document.Id, _ => this);
             }
 
             return persisted;
         }
 
-        protected static async Task<TSyntaxTreeInfo> LoadAsync<TSyntaxTreeInfo>(
+        private static Task<SyntaxTreeIndex> LoadAsync(Document document, CancellationToken cancellationToken)
+            => LoadAsync(document, ReadFrom, s_cache, PersistenceName, SerializationFormat, cancellationToken);
+
+        private static async Task<SyntaxTreeIndex> LoadAsync(
             Document document,
-            Func<ObjectReader, VersionStamp, TSyntaxTreeInfo> reader,
-            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>> cache,
+            Func<ObjectReader, VersionStamp, SyntaxTreeIndex> reader,
+            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>> cache,
             string persistenceName,
             string serializationFormat,
             CancellationToken cancellationToken)
-            where TSyntaxTreeInfo : AbstractSyntaxTreeInfo
         {
-            var infoTable = cache.GetValue(document.Project.Solution.BranchId, _ => new ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>());
+            var infoTable = cache.GetValue(
+                document.Project.Solution.BranchId, 
+                _ => new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>());
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
             // first look to see if we already have the info in the cache
-            TSyntaxTreeInfo info;
-            if (infoTable.TryGetValue(document.Id, out info) && info.Version == version)
+            if (infoTable.TryGetValue(document.Id, out var info) && info.Version == version)
             {
                 return info;
             }
@@ -76,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // check primary cache to see whether we have valid info there
             var primaryInfoTable = cache.GetValue(
                 document.Project.Solution.Workspace.PrimaryBranchId,
-                _ => new ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>());
+                _ => new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>());
             if (primaryInfoTable.TryGetValue(document.Id, out info) && info.Version == version)
             {
                 return info;
@@ -96,11 +124,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return null;
         }
 
-        private static ConditionalWeakTable<DocumentId, TSyntaxTreeInfo> GetInfoTable<TSyntaxTreeInfo>(
+        private static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
+            => PrecalculatedAsync(document, PersistenceName, SerializationFormat, cancellationToken);
+
+        private static ConditionalWeakTable<DocumentId, SyntaxTreeIndex> GetInfoTable(
             BranchId branchId,
             Workspace workspace,
-            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>> cache)
-            where TSyntaxTreeInfo : AbstractSyntaxTreeInfo
+            ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>> cache)
         {
             return cache.GetValue(branchId, id =>
             {
@@ -113,8 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             return;
                         }
 
-                        ConditionalWeakTable<DocumentId, TSyntaxTreeInfo> infoTable;
-                        if (cache.TryGetValue(e.Document.Project.Solution.BranchId, out infoTable))
+                        if (cache.TryGetValue(e.Document.Project.Solution.BranchId, out var infoTable))
                         {
                             // remove closed document from primary branch from live cache.
                             infoTable.Remove(e.Document.Id);
@@ -122,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     };
                 }
 
-                return new ConditionalWeakTable<DocumentId, TSyntaxTreeInfo>();
+                return new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>();
             });
         }
     }
