@@ -90,7 +90,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCastType2()
         {
-            // Locally could be a deconstruction
+            // Could be a deconstruction
             await VerifyKeywordAsync(AddInsideMethod(
 @"var str = (($$)items) as string;"));
         }
