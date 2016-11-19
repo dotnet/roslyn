@@ -62,11 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             var streamingPresenter = GetStreamingPresenter();
 
-            // See if we're running on a host that can provide streaming results.
-            // We'll both need a FAR service that can stream results to us, and 
-            // a presenter that can accept streamed results.
             var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingGoToImplementation, document.Project.Language);
-            var canUseStreamingWindow = streamingEnabled && streamingService != null && streamingPresenter != null;
+            var canUseStreamingWindow = streamingEnabled && streamingService != null;
             var canUseSynchronousWindow = synchronousService != null;
 
             if (canUseStreamingWindow || canUseSynchronousWindow)
