@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols);
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool includeHiddenLocations);
 
         DefinitionItem GetThirdPartyDefinitionItem(Solution solution, ISymbol definition);
     }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         public DefinitionsAndReferences CreateDefinitionsAndReferences(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols, bool includeHiddenLocations)
         {
             var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
             var references = ArrayBuilder<SourceReferenceItem>.GetInstance();
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             foreach (var referencedSymbol in referencedSymbols.OrderBy(GetPrecedence))
             {
                 ProcessReferencedSymbol(
-                    solution, referencedSymbol, definitions, references, uniqueLocations);
+                    solution, referencedSymbol, definitions, references,
+                    includeHiddenLocations, uniqueLocations);
             }
 
             return new DefinitionsAndReferences(
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<DefinitionItem> definitions,
             ArrayBuilder<SourceReferenceItem> references,
+            bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans)
         {
             // See if this is a symbol we even want to present to the user.  If not,
@@ -95,12 +97,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return;
             }
 
-            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(solution, uniqueSpans);
+            var definitionItem = referencedSymbol.Definition.ToDefinitionItem(
+                solution, includeHiddenLocations, uniqueSpans);
             definitions.Add(definitionItem);
 
             // Now, create the SourceReferenceItems for all the reference locations
             // for this definition.
-            CreateReferences(referencedSymbol, references, definitionItem, uniqueSpans);
+            CreateReferences(
+                referencedSymbol, references, definitionItem,
+                includeHiddenLocations, uniqueSpans);
 
             // Finally, see if there are any third parties that want to add their
             // own result to our collection.
@@ -125,11 +130,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ReferencedSymbol referencedSymbol,
             ArrayBuilder<SourceReferenceItem> references,
             DefinitionItem definitionItem,
+            bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans)
         {
             foreach (var referenceLocation in referencedSymbol.Locations)
             {
-                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(definitionItem);
+                var sourceReferenceItem = referenceLocation.TryCreateSourceReferenceItem(
+                    definitionItem, includeHiddenLocations);
                 if (sourceReferenceItem == null)
                 {
                     continue;
@@ -148,6 +155,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem ToDefinitionItem(
             this ISymbol definition,
             Solution solution,
+            bool includeHiddenLocations,
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
@@ -170,8 +178,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
                         return DefinitionItem.CreateMetadataDefinition(
                             tags, displayParts, solution, definition, displayIfNoReferences);
                     }
-                    else if (location.IsVisibleSourceLocation())
+                    else
                     {
+                        if (!location.IsVisibleSourceLocation() &&
+                            !includeHiddenLocations)
+                        {
+                            continue;
+                        }
+
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
@@ -209,12 +223,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
             this ReferenceLocation referenceLocation,
-            DefinitionItem definitionItem)
+            DefinitionItem definitionItem,
+            bool includeHiddenLocations)
         {
             var location = referenceLocation.Location;
 
             Debug.Assert(location.IsInSource);
-            if (!location.IsVisibleSourceLocation())
+            if (!location.IsVisibleSourceLocation() &&
+                !includeHiddenLocations)
             {
                 return null;
             }
