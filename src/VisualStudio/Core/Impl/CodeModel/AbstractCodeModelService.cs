@@ -634,8 +634,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             //     1. Prefer source files that we don't heuristically flag as generated code.
             //     2. If all of the source files are generated code, pick the first one.
 
-            var generatedCodeRecognitionService = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-
             Compilation compilation = null;
             Tuple<DocumentId, Location> generatedCode = null;
 
@@ -652,7 +650,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     {
                         var document = project.GetDocument(location.SourceTree);
 
-                        if (generatedCodeRecognitionService?.IsGeneratedCode(document) == false)
+                        if (document.IsGeneratedCode() == false)
                         {
                             chosenLocation = location;
                             chosenDocumentId = document.Id;
