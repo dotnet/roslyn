@@ -92,10 +92,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 document.Project.Solution.BranchId, 
                 _ => new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>());
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
             // first look to see if we already have the info in the cache
-            SyntaxTreeIndex info;
-            if (infoTable.TryGetValue(document.Id, out info) && info.Version == version)
+            if (infoTable.TryGetValue(document.Id, out var info) && info.Version == version)
             {
                 return info;
             }
@@ -145,8 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             return;
                         }
 
-                        ConditionalWeakTable<DocumentId, SyntaxTreeIndex> infoTable;
-                        if (cache.TryGetValue(e.Document.Project.Solution.BranchId, out infoTable))
+                        if (cache.TryGetValue(e.Document.Project.Solution.BranchId, out var infoTable))
                         {
                             // remove closed document from primary branch from live cache.
                             infoTable.Remove(e.Document.Id);
