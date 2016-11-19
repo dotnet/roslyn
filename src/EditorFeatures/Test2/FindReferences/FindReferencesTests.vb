@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                     Assert.NotNull(startDocument)
 
-                    Dim findRefsService = startDocument.GetLanguageService(Of IStreamingFindReferencesService)
+                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
                     Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
 

@@ -1,12 +1,25 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
@@ -15,12 +28,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     internal sealed class GoToImplementationCommandHandler : ICommandHandler<GoToImplementationCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         [ImportingConstructor]
         public GoToImplementationCommandHandler(
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
         {
             _waitIndicator = waitIndicator;
+            _streamingPresenters = streamingPresenters;
         }
 
         public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
@@ -38,33 +54,137 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var service = document.Project.LanguageServices.GetService<IGoToImplementationService>();
-
-                    if (service != null)
-                    {
-                        // We have all the cheap stuff, so let's do expensive stuff now
-                        string messageToShow = null;
-                        bool succeeded = false;
-                        _waitIndicator.Wait(
-                            EditorFeaturesResources.Go_To_Implementation,
-                            EditorFeaturesResources.Locating_implementations,
-                            allowCancel: true,
-                            action: context => succeeded = service.TryGoToImplementation(document, caret.Value, context.CancellationToken, out messageToShow));
-
-                        if (messageToShow != null)
-                        {
-                            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                            notificationService.SendNotification(messageToShow,
-                                title: EditorFeaturesResources.Go_To_Implementation,
-                                severity: NotificationSeverity.Information);
-                        }
-                    }
-
+                    ExecuteCommand(document, caret.Value);
                     return;
                 }
             }
 
             nextHandler();
+        }
+
+        private void ExecuteCommand(Document document, int caretPosition)
+        {
+            var streamingService = document.GetLanguageService<IFindUsagesService>();
+            var synchronousService = document.GetLanguageService<IGoToImplementationService>();
+
+            var streamingPresenter = GetStreamingPresenter();
+
+            // See if we're running on a host that can provide streaming results.
+            // We'll both need a FAR service that can stream results to us, and 
+            // a presenter that can accept streamed results.
+            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingGoToImplementation, document.Project.Language);
+            var canUseStreamingWindow = streamingEnabled && streamingService != null && streamingPresenter != null;
+            var canUseSynchronousWindow = synchronousService != null;
+
+            if (canUseStreamingWindow || canUseSynchronousWindow)
+            {
+                // We have all the cheap stuff, so let's do expensive stuff now
+                string messageToShow = null;
+                _waitIndicator.Wait(
+                    EditorFeaturesResources.Go_To_Implementation,
+                    EditorFeaturesResources.Locating_implementations,
+                    allowCancel: true,
+                    action: context =>
+                    {
+                        if (canUseStreamingWindow)
+                        {
+                            StreamingGoToImplementation(
+                                document, caretPosition,
+                                streamingService, streamingPresenter,
+                                context.CancellationToken, out messageToShow);
+                        }
+                        else
+                        {
+                            synchronousService.TryGoToImplementation(
+                                document, caretPosition, context.CancellationToken, out messageToShow);
+                        }
+                    });
+
+                if (messageToShow != null)
+                {
+                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(messageToShow,
+                        title: EditorFeaturesResources.Go_To_Implementation,
+                        severity: NotificationSeverity.Information);
+                }
+            }
+        }
+
+        private void StreamingGoToImplementation(
+            Document document, int caretPosition,
+            IFindUsagesService findUsagesService,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            out string messageToShow)
+        {
+            // We create our own context object, simply to capture all the definitions reported by 
+            // the individual IFindUsagesService.  Once we get the results back we'll then decide 
+            // what to do with them.  If we get only a single result back, then we'll just go 
+            // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
+            var goToImplContext = new GoToImplementationContext(cancellationToken);
+            findUsagesService.FindImplementationsAsync(document, caretPosition, goToImplContext).Wait(cancellationToken);
+
+            // If finding implementations reported a message, then just stop and show that 
+            // message to the user.
+            messageToShow = goToImplContext.Message;
+            if (messageToShow != null)
+            {
+                return;
+            }
+
+            var allItems = goToImplContext.GetDefinitionItems();
+
+            streamingPresenter.NavigateToOrPresentItemsAsync(
+                EditorFeaturesResources.Go_To_Implementation, allItems).Wait(cancellationToken);
+        }
+
+        private IStreamingFindUsagesPresenter GetStreamingPresenter()
+        {
+            try
+            {
+                return _streamingPresenters.FirstOrDefault()?.Value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private class GoToImplementationContext : FindUsagesContext
+        {
+            private readonly object _gate = new object();
+            private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
+                ImmutableArray.CreateBuilder<DefinitionItem>();
+
+            public override CancellationToken CancellationToken { get; }
+
+            public GoToImplementationContext(CancellationToken cancellationToken)
+            {
+                CancellationToken = cancellationToken;
+            }
+
+            public string Message { get; private set; }
+
+            public override void ReportMessage(string message)
+                => Message = message;
+
+            public ImmutableArray<DefinitionItem> GetDefinitionItems()
+            {
+                lock (_gate)
+                {
+                    return _definitionItems.ToImmutableArray();
+                }
+            }
+
+            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            {
+                lock (_gate)
+                {
+                    _definitionItems.Add(definition);
+                }
+
+                return SpecializedTasks.EmptyTask;
+            }
         }
     }
 }
