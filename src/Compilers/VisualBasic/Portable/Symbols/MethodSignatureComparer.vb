@@ -338,9 +338,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim origDef2 = method2.OriginalDefinition
                 results = results Or DetailedReturnTypeCompare(origDef1.ReturnsByRef,
                                                                New TypeWithModifiers(origDef1.ReturnType, origDef1.ReturnTypeCustomModifiers),
+                                                               origDef1.CountOfCustomModifiersPrecedingByRef,
                                                                typeSubstitution1.Value,
                                                                origDef2.ReturnsByRef,
                                                                New TypeWithModifiers(origDef2.ReturnType, origDef2.ReturnTypeCustomModifiers),
+                                                               origDef2.CountOfCustomModifiersPrecedingByRef,
                                                                typeSubstitution2.Value,
                                                                comparisons,
                                                                stopIfAny)
@@ -430,9 +432,11 @@ Done:
         Public Shared Function DetailedReturnTypeCompare(
             returnsByRef1 As Boolean,
             type1 As TypeWithModifiers,
+            countOfCustomModifiersPrecedingByRef1 As UShort,
             typeSubstitution1 As TypeSubstitution,
             returnsByRef2 As Boolean,
             type2 As TypeWithModifiers,
+            countOfCustomModifiersPrecedingByRef2 As UShort,
             typeSubstitution2 As TypeSubstitution,
             comparisons As SymbolComparisonResults,
             Optional stopIfAny As SymbolComparisonResults = 0
@@ -459,7 +463,8 @@ Done:
             End If
 
             If (comparisons And SymbolComparisonResults.CustomModifierMismatch) <> 0 AndAlso
-                   Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                   (Not type1.IsSameType(type2, TypeCompareKind.AllIgnoreOptionsForVB And Not TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) OrElse
+                    countOfCustomModifiersPrecedingByRef1 <> countOfCustomModifiersPrecedingByRef2) Then
                 result = result Or SymbolComparisonResults.CustomModifierMismatch
                 If (stopIfAny And SymbolComparisonResults.CustomModifierMismatch) <> 0 Then
                     GoTo Done
@@ -761,6 +766,10 @@ Done:
             End If
 
             If method1.ReturnsByRef <> method2.ReturnsByRef Then
+                Return False
+            End If
+
+            If considerCustomModifiers AndAlso method1.CountOfCustomModifiersPrecedingByRef <> method2.CountOfCustomModifiersPrecedingByRef Then
                 Return False
             End If
 

@@ -496,15 +496,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Camel Case.
-        /// </summary>
-        internal static string Camel_Case {
-            get {
-                return ResourceManager.GetString("Camel_Case", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to can&apos;t not construct final tree.
         /// </summary>
         internal static string can_t_not_construct_final_tree {
@@ -2131,6 +2122,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_tuple_element_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -3070,6 +3070,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_coalesce_expression {
             get {
                 return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicitly provided tuple name.
+        /// </summary>
+        internal static string Use_explicitly_provided_tuple_name {
+            get {
+                return ResourceManager.GetString("Use_explicitly_provided_tuple_name", resourceCulture);
             }
         }
         

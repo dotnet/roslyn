@@ -239,9 +239,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext, options As OptionSet) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext, options As OptionSet) As (displayText As String, insertionText As String)
             If IsGlobal(symbol) Then
-                Return ValueTuple.Create("Global", "Global")
+                Return ("Global", "Global")
             End If
 
             If IsGenericType(symbol) Then

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -381,13 +382,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // return survived var decls
                     if (list.Count > 0)
                     {
-                        yield return
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    declarationStatement.Modifiers,
-                                        SyntaxFactory.VariableDeclaration(
-                                            declarationStatement.Declaration.Type,
-                                            SyntaxFactory.SeparatedList(list)),
-                                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
+                        yield return SyntaxFactory.LocalDeclarationStatement(
+                            declarationStatement.Modifiers,
+                            SyntaxFactory.VariableDeclaration(
+                                declarationStatement.Declaration.Type,
+                                SyntaxFactory.SeparatedList(list)),
+                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
                         triviaList.Clear();
                     }
 
@@ -603,11 +603,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,
-                CancellationToken cancellationToken,
-                ExpressionSyntax initialValue = null)
+                ExpressionSyntax initialValue,
+                CancellationToken cancellationToken)
             {
+                // Convert to 'var' if appropriate.  Note: because we're extracting out
+                // to a method, the initialValue will be a method-call.  Types are not
+                // apperant with method calls (i.e. as opposed to a 'new XXX()' expression,
+                // where the type is apperant).
                 var type = variable.GetVariableType(this.SemanticDocument);
-                var typeNode = type.GenerateTypeSyntax();
+                var typeNode = initialValue == null
+                    ? type.GenerateTypeSyntax()
+                    : type.GenerateTypeSyntaxOrVar(
+                          this.SemanticDocument.Document.Project.Solution.Options,
+                          typeIsApperant: false);
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 

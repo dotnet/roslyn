@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.ISignature.CountOfCustomModifiersPrecedingByRef
             Get
-                Return CUShort(If(ReturnsByRef, ReturnTypeCustomModifiers.Length, 0))
+                Return Me.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

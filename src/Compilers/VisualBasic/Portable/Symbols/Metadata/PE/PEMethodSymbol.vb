@@ -871,6 +871,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return Signature.ReturnParam.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return Signature.ReturnParam.GetAttributes()
         End Function

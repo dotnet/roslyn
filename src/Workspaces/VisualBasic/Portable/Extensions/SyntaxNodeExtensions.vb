@@ -855,35 +855,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetBraces(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
+        Public Function GetBraces(node As SyntaxNode) As (openBrace As SyntaxToken, closeBrace As SyntaxToken)
             Return node.TypeSwitch(
-                Function(n As TypeParameterMultipleConstraintClauseSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As ObjectMemberInitializerSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As CollectionInitializerSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As SyntaxNode) CType(Nothing, ValueTuple(Of SyntaxToken, SyntaxToken)))
+                Function(n As TypeParameterMultipleConstraintClauseSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As ObjectMemberInitializerSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As CollectionInitializerSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As SyntaxNode) CType(Nothing, (SyntaxToken, SyntaxToken)))
         End Function
 
         <Extension()>
         Public Function GetParentheses(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
             Return node.TypeSwitch(
-                Function(n As TypeParameterListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ParameterListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ArrayRankSpecifierSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ParenthesizedExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As GetTypeExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As GetXmlNamespaceExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As CTypeExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As DirectCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TryCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As PredefinedCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As BinaryConditionalExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TernaryConditionalExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ArgumentListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As FunctionAggregationSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TypeArgumentListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ExternalSourceDirectiveTriviaSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ExternalChecksumDirectiveTriviaSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As SyntaxNode) CType(Nothing, ValueTuple(Of SyntaxToken, SyntaxToken)))
+                Function(n As TypeParameterListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ParameterListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ArrayRankSpecifierSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ParenthesizedExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As GetTypeExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As GetXmlNamespaceExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As CTypeExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As DirectCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TryCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As PredefinedCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As BinaryConditionalExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TernaryConditionalExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ArgumentListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As FunctionAggregationSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TypeArgumentListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ExternalSourceDirectiveTriviaSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ExternalChecksumDirectiveTriviaSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As SyntaxNode) CType(Nothing, (SyntaxToken, SyntaxToken)))
         End Function
 
         <Extension>

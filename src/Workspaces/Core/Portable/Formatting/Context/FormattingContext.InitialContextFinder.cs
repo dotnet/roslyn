@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _lastToken = lastToken;
             }
 
-            public ValueTuple<List<IndentBlockOperation>, List<SuppressOperation>> Do(SyntaxToken startToken, SyntaxToken endToken)
+            public (List<IndentBlockOperation> indentOperations, List<SuppressOperation> suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
             {
                 // we are formatting part of document, try to find initial context that formatting will be based on such as
                 // initial indentation and etc.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                                      o.TextSpan.Contains(endToken.SpanStart)));
                     }
 
-                    return ValueTuple.Create(initialIndentationOperations, initialSuppressOperations);
+                    return (initialIndentationOperations, initialSuppressOperations);
                 }
             }
 

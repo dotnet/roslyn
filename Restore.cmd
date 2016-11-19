@@ -1,4 +1,4 @@
-@echo off
+@if not defined EchoOn @echo off
 @setlocal enabledelayedexpansion
 
 set RoslynRoot=%~dp0

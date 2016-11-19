@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(ImmutableArray.Create((ISymbol)type));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
             ISymbol symbol, SyntaxContext context, OptionSet options)
         {
             return _completionFormat.GetMinimalDisplayAndInsertionText(symbol, context, options);

@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseObjectInitializer), [Shared]>
     Friend Class VisualBasicUseObjectInitializerCodeFixProvider
         Inherits AbstractUseObjectInitializerCodeFixProvider(Of
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
         Protected Overrides Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
-                matches As ImmutableArray(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
             Dim initializer = SyntaxFactory.ObjectMemberInitializer(
                 CreateFieldInitializers(matches))
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         End Function
 
         Private Function CreateFieldInitializers(
-                matches As ImmutableArray(Of Match(Of AssignmentStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
+                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 
             For i = 0 To matches.Length - 1

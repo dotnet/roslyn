@@ -406,7 +406,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 If TypeOf expression Is ObjectCreationExpressionSyntax Then
                     leftExpression = expression
                 Else
-                    leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
+                    leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(
+                        expression, allowImplicitTarget:=True)
                     If leftExpression Is Nothing Then
                         Return False
                     End If

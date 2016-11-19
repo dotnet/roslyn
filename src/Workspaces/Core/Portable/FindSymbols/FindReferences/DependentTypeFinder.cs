@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // models and DeclaredSymbolInfo for hte documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();
-            var cachedInfos = new ConcurrentSet<IDeclarationInfo>();
+            var cachedInfos = new ConcurrentSet<SyntaxTreeIndex>();
 
             var finalResult = CreateSymbolAndProjectIdSet();
 
@@ -609,11 +609,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels, 
-            ConcurrentSet<IDeclarationInfo> cachedInfos, 
+            ConcurrentSet<SyntaxTreeIndex> cachedInfos, 
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
-            var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
             var result = CreateSymbolAndProjectIdSet();
