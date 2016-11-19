@@ -249,6 +249,7 @@
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
+    <Compile Include="Workspaces\WorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

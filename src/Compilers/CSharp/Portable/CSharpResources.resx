@@ -4411,7 +4411,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                generation but may be used by analyzers for producing
                                errors or warnings.
  /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specfic files the PDB
+ /embed:&lt;file list&gt;            Embed specific files in the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)

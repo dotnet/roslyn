@@ -28,26 +28,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.Requires(document.IsFromPrimaryBranch());
 
             await PrecalculateBasicInfoAsync(document, cancellationToken).ConfigureAwait(false);
-
-            // for now, don't put identifier locations in esent db
-            //// await PrecalculateAdvancedInfoAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task PrecalculateAdvancedInfoAsync(Document document, CancellationToken cancellationToken)
-        {
-            // we do not support precalculating opened file.
-            if (document.IsOpen())
-            {
-                return;
-            }
-
-            // we already have information. move on
-            if (await SyntaxTreeIdentifierInfo.IdentifierSetPrecalculatedAsync(document, cancellationToken).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            await SyntaxTreeIdentifierInfo.SaveIdentifierSetAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task PrecalculateBasicInfoAsync(Document document, CancellationToken cancellationToken)
