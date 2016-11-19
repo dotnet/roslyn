@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Editor.GoToImplementation
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
         Inherits AbstractGoToImplementationService
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), <ImportMany> externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
-            MyBase.New(presenters, externalDefinitionProviders)
+        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
+            MyBase.New(presenters)
         End Sub
     End Class
 End Namespace
