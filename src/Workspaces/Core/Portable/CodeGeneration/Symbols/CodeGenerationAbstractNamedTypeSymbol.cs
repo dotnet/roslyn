@@ -32,13 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override void Accept(SymbolVisitor visitor)
         {
@@ -99,9 +93,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ISymbol AssociatedSymbol { get; internal set; }
 
-        public bool MightContainExtensionMethods
-        {
-            get { return false; }
-        }
+        public bool MightContainExtensionMethods => false;
+
+        public bool IsComImport => false;
     }
 }
