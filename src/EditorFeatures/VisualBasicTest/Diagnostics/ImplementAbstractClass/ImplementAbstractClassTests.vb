@@ -517,46 +517,56 @@ End Class",
 Imports System.Globalization
 Class x
     Inherits EastAsianLunisolarCalendar
+
     Public Overrides ReadOnly Property Eras As Integer()
         Get
             Throw New NotImplementedException()
         End Get
     End Property
-    Friend Overrides ReadOnly Property CalEraInfo As EraInfo()
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-    Friend Overrides ReadOnly Property MaxCalendarYear As Integer
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-    Friend Overrides ReadOnly Property MaxDate As Date
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+
     Friend Overrides ReadOnly Property MinCalendarYear As Integer
         Get
             Throw New NotImplementedException()
         End Get
     End Property
+
+    Friend Overrides ReadOnly Property MaxCalendarYear As Integer
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
+    Friend Overrides ReadOnly Property CalEraInfo As EraInfo()
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property MinDate As Date
         Get
             Throw New NotImplementedException()
         End Get
     End Property
+
+    Friend Overrides ReadOnly Property MaxDate As Date
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Public Overrides Function GetEra(time As Date) As Integer
         Throw New NotImplementedException()
     End Function
-    Friend Overrides Function GetGregorianYear(year As Integer, era As Integer) As Integer
+
+    Friend Overrides Function GetYearInfo(LunarYear As Integer, Index As Integer) As Integer
         Throw New NotImplementedException()
     End Function
+
     Friend Overrides Function GetYear(year As Integer, time As Date) As Integer
         Throw New NotImplementedException()
     End Function
-    Friend Overrides Function GetYearInfo(LunarYear As Integer, Index As Integer) As Integer
+
+    Friend Overrides Function GetGregorianYear(year As Integer, era As Integer) As Integer
         Throw New NotImplementedException()
     End Function
 End Class")
