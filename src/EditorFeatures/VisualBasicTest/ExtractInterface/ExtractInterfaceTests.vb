@@ -585,12 +585,12 @@ End Class</text>.NormalizedValue()
             Dim expectedInterfaceCode = <text>Imports System.Collections.Generic
 
 Public Interface ITestClass(Of A, B, C, E As F, F, G, H)
+    Sub Foo1(a As A)
+    Function Foo2() As B
+    Sub Foo3(list As List(Of C))
+    Event Foo4 As Action
     WriteOnly Property Prop As List(Of E)
     Default WriteOnly Property Item(list As List(Of List(Of H))) As List(Of G)
-    Event Foo4 As Action
-    Sub Foo1(a As A)
-    Sub Foo3(list As List(Of C))
-    Function Foo2() As B
     Sub Bar1()
 End Interface
 </text>.NormalizedValue()

@@ -160,19 +160,21 @@ Interface I
 End Interface
 Class C
     Implements I
+
+    Private Property M As Integer
+        Get
+            Return 5
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+
     Private Property I_M As Integer Implements I.M
         Get
             Throw New NotImplementedException()
         End Get
         Set(value As Integer)
             Throw New NotImplementedException()
-        End Set
-    End Property
-    Private Property M As Integer
-        Get
-            Return 5
-        End Get
-        Set(value As Integer)
         End Set
     End Property
 End Class")
@@ -4409,8 +4411,8 @@ End Interface
 Public MustInherit Class C
     Implements IFace
 
-    Public MustOverride Sub IFace_M() Implements IFace.M
     Public MustOverride Sub M()
+    Public MustOverride Sub IFace_M() Implements IFace.M
 End Class",
 index:=1)
         End Function
