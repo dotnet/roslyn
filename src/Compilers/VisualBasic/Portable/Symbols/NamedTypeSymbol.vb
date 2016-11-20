@@ -1189,6 +1189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_IsComImport As Boolean Implements INamedTypeSymbol.IsComImport
+            Get
+                Return IsComImport
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"
