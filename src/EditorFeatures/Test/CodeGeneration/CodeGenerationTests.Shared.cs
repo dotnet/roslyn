@@ -708,12 +708,11 @@ namespace N
 
                 var initialVB = "Namespace [|N|] End Namespace";
                 var expectedVB = @"
+Namespace N 
 Namespace N
-Namespace N
-    Public Class A 
+    Public Class A
         Public Shared MustOverride ReadOnly Property Property1 As String
         Public Overridable ReadOnly Property [Property] As String
-
         Public MustOverride Shared Sub Method2()
         Public Overridable Sub Method1()
     End Class

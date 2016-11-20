@@ -1010,7 +1010,6 @@ public class [|C|]
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
-' <in-memory assembly>
 #End Region
 
 Imports System
@@ -1018,7 +1017,7 @@ Imports System.Reflection
 Imports System.Runtime.CompilerServices
 
 <DefaultMember(""Item"")>
-Public Class C
+Public Class [|C|]
     Public field1 As Integer
     Public field2 As Integer
 
