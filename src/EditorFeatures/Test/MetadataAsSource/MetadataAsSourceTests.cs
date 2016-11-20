@@ -1326,5 +1326,39 @@ Public Class [|Program|]
     Public Shared Operator +(p1 As Program, p2 As Program) As Program
 End Class");
         }
-    }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestComImport1()
+        {
+            var metadataSource = @"
+using System.Runtime.InteropServices;
+
+[ComImport]
+[Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
+public interface IComImport
+{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop { get; }
+}";
+            var symbolName = "IComImport";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+using System.Runtime.InteropServices;
+
+[Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
+public interface [|IComImport|]
+{{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop {{ get; }}
+}}");
+        }
+        }
 }
