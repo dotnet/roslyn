@@ -2027,8 +2027,8 @@ End Class",
     End Sub
 End Module
 Friend Class Customer
-    Public Property Age As Object
     Public Property Name As String
+    Public Property Age As Object
 End Class")
         End Function
 
