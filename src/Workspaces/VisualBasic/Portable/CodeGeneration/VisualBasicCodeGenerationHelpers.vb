@@ -149,93 +149,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             before = BeforeDeclaration(declarationList, options, before)
 
             Dim index = GetInsertionIndex(
-                declarationList, declaration, options, availableIndices, after, before)
+                declarationList, declaration, options, availableIndices,
+                VisualBasicDeclarationComparer.WithoutNamesInstance,
+                VisualBasicDeclarationComparer.WithNamesInstance,
+                after, before)
 
             If availableIndices IsNot Nothing Then
                 availableIndices.Insert(index, True)
             End If
 
             Return declarationList.Insert(index, declaration)
-        End Function
-
-        Private Function GetInsertionIndex(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
-            declaration As TDeclaration,
-            options As CodeGenerationOptions,
-            availableIndices As IList(Of Boolean),
-            after As Func(Of SyntaxList(Of TDeclaration), TDeclaration),
-            before As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Integer
-
-            If options IsNot Nothing Then
-                ' Try to use AfterThisLocation 
-                If options.AfterThisLocation IsNot Nothing Then
-                    Dim afterMember = declarationList.LastOrDefault(Function(m) m.SpanStart <= options.AfterThisLocation.SourceSpan.Start)
-                    If afterMember IsNot Nothing Then
-                        Dim index = declarationList.IndexOf(afterMember)
-                        index = GetPreferredIndex(index + 1, availableIndices, forward:=True)
-                        If index <> -1 Then
-                            Return index
-                        End If
-                    End If
-                End If
-
-                ' Try to use BeforeThisLocation
-                If options.BeforeThisLocation IsNot Nothing Then
-                    Dim beforeMember = declarationList.FirstOrDefault(Function(m) m.Span.End >= options.BeforeThisLocation.SourceSpan.End)
-                    If beforeMember IsNot Nothing Then
-                        Dim index = declarationList.IndexOf(beforeMember)
-                        index = GetPreferredIndex(index, availableIndices, forward:=False)
-                        If index <> -1 Then
-                            Return index
-                        End If
-                    End If
-                End If
-
-                If options.AutoInsertionLocation Then
-                    Dim declarations = declarationList.ToArray()
-                    If (declarations.Length = 0) Then
-                        Return 0
-                    End If
-
-                    Dim desiredIndex = TryGetDesiredIndexIfGrouped(
-                        declarationList, declaration, availableIndices,
-                        VisualBasicDeclarationComparer.WithoutNamesInstance,
-                        VisualBasicDeclarationComparer.WithNamesInstance)
-                    If desiredIndex.HasValue Then
-                        Return desiredIndex.Value
-                    End If
-
-                    If after IsNot Nothing Then
-                        Dim member = after(declarationList)
-                        If member IsNot Nothing Then
-                            Dim index = declarationList.IndexOf(member)
-                            index = GetPreferredIndex(index + 1, availableIndices, forward:=True)
-                            If index <> -1 Then
-                                Return index
-                            End If
-                        End If
-                    End If
-
-                    If before IsNot Nothing Then
-                        Dim member = before(declarationList)
-                        If member IsNot Nothing Then
-                            Dim index = declarationList.IndexOf(member)
-                            index = GetPreferredIndex(index, availableIndices, forward:=False)
-                            If index <> -1 Then
-                                Return index
-                            End If
-                        End If
-                    End If
-                End If
-            End If
-
-            ' Otherwise, add the method to the end.
-            Dim index1 = GetPreferredIndex(declarationList.Count, availableIndices, forward:=False)
-            If index1 <> -1 Then
-                Return index1
-            End If
-
-            Return declarationList.Count
         End Function
 
         Public Function GetDestination(destination As SyntaxNode) As CodeGenerationDestination
