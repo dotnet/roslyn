@@ -187,8 +187,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     unimplementedMembers,
                     cancellationToken);
 
+                // Only group the members in the destination if the user wants that *and* 
+                // it's not a ComImport interface.  Member ordering in ComImport interfaces 
+                // matters, so we don't want to much with them.
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var groupMembers = options.GetOption(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types);
+                var groupMembers = !isComImport && options.GetOption(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types);
 
                 result = await CodeGenerator.AddMemberDeclarationsAsync(
                     result.Project.Solution, classOrStructType, memberDefinitions,
