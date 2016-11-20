@@ -136,9 +136,9 @@ namespace N
     {
         public const string FConst;
         public static string FStatic;
-        public string FAccessE;
-        public string FNotConst;
         public string FNotStatic;
+        public string FNotConst;
+        public string FAccessE;
         protected string FAccessC;
         protected internal string FAccessD;
         internal string FAccessB;
@@ -156,41 +156,41 @@ namespace N
         public int this[int index1, int index2] { get; }
 
         public static int PStatic { get; }
-        public int PAccessE { get; }
         public int PNotStatic { get; }
+        public int PAccessE { get; }
         protected int PAccessD { get; }
         protected internal int PAccessC { get; }
         internal int PAccessB { get; }
         private int PAccessA { get; }
 
         public static event Action EFStatic;
-        public event Action EFAccessE;
         public event Action EFNotStatic;
+        public event Action EFAccessE;
         protected event Action EFAccessC;
         protected internal event Action EFAccessD;
         internal event Action EFAccessB;
         private event Action EFAccessA;
 
-        public static void MStatic();
         public static int M2Static();
-        public void MNotStatic();
-        public void MAccessE();
-        public void MGeneric<T1, T2>();
-        public void MGeneric<T>(int param);
-        public void MGeneric<T>();
-        public int M2NotStatic();
+        public static void MStatic();
         public int M2AccessE();
         public int M2Generic<T1, T2>();
         public int M2Generic<T>(int param);
         public int M2Generic<T>();
-        protected void MAccessD();
+        public int M2NotStatic();
+        public void MAccessE();
+        public void MGeneric<T1, T2>();
+        public void MGeneric<T>(int param);
+        public void MGeneric<T>();
+        public void MNotStatic();
         protected int M2AccessD();
-        protected internal void MAccessC();
+        protected void MAccessD();
         protected internal int M2AccessC();
-        internal void MAccessB();
+        protected internal void MAccessC();
         internal int M2AccessB();
-        private void MAccessA();
+        internal void MAccessB();
         private int M2AccessA();
+        private void MAccessA();
 
         public static C operator +(C c);
         public static C operator !(C c);
@@ -199,11 +199,11 @@ namespace N
         {
         }
 
-        public enum ENameA
+        public enum ENameB
         {
         }
 
-        public enum ENameB
+        public enum ENameA
         {
         }
 
@@ -263,11 +263,11 @@ namespace N
         {
         }
 
-        public struct SNameA
+        public struct SNameB
         {
         }
 
-        public struct SNameB
+        public struct SNameA
         {
         }
 
@@ -291,6 +291,10 @@ namespace N
         {
         }
 
+        public class CNotStatic
+        {
+        }
+
         public class CAccessE
         {
         }
@@ -300,10 +304,6 @@ namespace N
         }
 
         public class CGeneric<T>
-        {
-        }
-
-        public class CNotStatic
         {
         }
 

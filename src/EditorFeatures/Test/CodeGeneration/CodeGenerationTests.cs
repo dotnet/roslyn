@@ -911,7 +911,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
                         if (_compareTokens)
                         {
-                            var actual = string.Join(" ", Simplifier.ReduceAsync(this.Document, Simplifier.Annotation).Result.GetSyntaxRootAsync().Result.DescendantTokens());
+                            var reduced = Simplifier.ReduceAsync(this.Document, Simplifier.Annotation).Result;
+                            var formatted = Formatter.FormatAsync(reduced).Result.GetSyntaxRootAsync().Result;
+
+                            var root = reduced.GetSyntaxRootAsync().Result;
+                            var actual = string.Join(" ", root.DescendantTokens());
                             TokenUtilities.AssertTokensEqual(_expected, actual, _language);
                         }
                         else
