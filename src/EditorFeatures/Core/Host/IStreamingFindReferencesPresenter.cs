@@ -61,27 +61,25 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 return nonExternalItems[0].TryNavigateTo();
             }
 
-            if (presenter == null)
+            if (presenter != null)
             {
-                // Don't have any way to present these items.
-                return false;
+                // We have multiple definitions, or we have definitions with multiple locations.
+                // Present this to the user so they can decide where they want to go to.
+
+                var context = presenter.StartSearch(title);
+                foreach (var definition in nonExternalItems)
+                {
+                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                }
+
+                // Note: we don't need to put this in a finally.  The only time we might not hit
+                // this is if cancellation or another error gets thrown.  In the former case,
+                // that means that a new search has started.  We don't care about telling the
+                // context it has completed.  In the latter case somethign wrong has happened
+                // and we don't want to run any more code code in this particular context.
+                await context.OnCompletedAsync().ConfigureAwait(false);
             }
 
-            // We have multiple definitions, or we have definitions with multiple locations.
-            // Present this to the user so they can decide where they want to go to.
-
-            var context = presenter.StartSearch(title);
-            foreach (var definition in nonExternalItems)
-            {
-                await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
-            }
-
-            // Note: we don't need to put this in a finally.  The only time we might not hit
-            // this is if cancellation or another error gets thrown.  In the former case,
-            // that means that a new search has started.  We don't care about telling the
-            // context it has completed.  In the latter case somethign wrong has happened
-            // and we don't want to run any more code code in this particular context.
-            await context.OnCompletedAsync().ConfigureAwait(false);
             return true;
         }
     }
