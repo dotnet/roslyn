@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task NavigateToOrPresentItemsAsync(
+        public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
             string title, ImmutableArray<DefinitionItem> items)
         {
@@ -44,39 +44,43 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             {
                 if (item.TryNavigateTo())
                 {
-                    return;
+                    return true;
                 }
             }
 
             var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
             if (nonExternalItems.Length == 0)
             {
-                return;
+                return false;
             }
 
             if (nonExternalItems.Length == 1 &&
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location.
-                nonExternalItems[0].TryNavigateTo();
-                return;
+                return nonExternalItems[0].TryNavigateTo();
             }
 
-            // We have multiple definitions, or we have definitions with multiple locations.
-            // Present this to the user so they can decide where they want to go to.
-
-            var context = presenter.StartSearch(title);
-            foreach (var definition in nonExternalItems)
+            if (presenter != null)
             {
-                await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                // We have multiple definitions, or we have definitions with multiple locations.
+                // Present this to the user so they can decide where they want to go to.
+
+                var context = presenter.StartSearch(title);
+                foreach (var definition in nonExternalItems)
+                {
+                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                }
+
+                // Note: we don't need to put this in a finally.  The only time we might not hit
+                // this is if cancellation or another error gets thrown.  In the former case,
+                // that means that a new search has started.  We don't care about telling the
+                // context it has completed.  In the latter case somethign wrong has happened
+                // and we don't want to run any more code code in this particular context.
+                await context.OnCompletedAsync().ConfigureAwait(false);
             }
 
-            // Note: we don't need to put this in a finally.  The only time we might not hit
-            // this is if cancellation or another error gets thrown.  In the former case,
-            // that means that a new search has started.  We don't care about telling the
-            // context it has completed.  In the latter case somethign wrong has happened
-            // and we don't want to run any more code code in this particular context.
-            await context.OnCompletedAsync().ConfigureAwait(false);
+            return true;
         }
     }
 }
