@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 return nonExternalItems[0].TryNavigateTo();
             }
 
+            if (presenter == null)
+            {
+                // Don't have any way to present these items.
+                return false;
+            }
+
             // We have multiple definitions, or we have definitions with multiple locations.
             // Present this to the user so they can decide where they want to go to.
 
