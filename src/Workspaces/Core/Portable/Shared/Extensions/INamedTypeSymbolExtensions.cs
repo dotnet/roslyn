@@ -232,21 +232,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
-                IsImplemented,
-                ImplementationExists,
-                interfaceMemberGetter,
-                allowReimplementation: false,
-                cancellationToken: cancellationToken);
-        }
-
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
