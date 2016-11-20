@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (typeArgsChanged || containerChanged)
             {
                 var newTypeArgs = type.HasTypeArgumentsCustomModifiers
-                    ? decodedArgs.ZipAsArray(type.TypeArgumentsCustomModifiers, (t, m) => new TypeWithModifiers(t, m))
+                    ? decodedArgs.SelectAsArray((t, i, m) => new TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type)
                     : decodedArgs.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
                 if (containerChanged)

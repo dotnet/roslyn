@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+            {
+                return _symbol.GetTypeArgumentCustomModifiers(ordinal);
+            }
+
             public IMethodSymbol DelegateInvokeMethod
             {
                 get
