@@ -541,13 +541,13 @@ interface IInterface1
 
 class Class : IInterface1
 {
+    public void Method1(string i)
+    {
+    }
+
     public void Method1(int i)
     {
         throw new NotImplementedException();
-    }
-
-    public void Method1(string i)
-    {
     }
 }");
         }
@@ -930,6 +930,8 @@ interface I1
 
 class Test : I1
 {
+    int Prop { get; set; }
+
     int I1.Prop
     {
         get
@@ -942,8 +944,6 @@ class Test : I1
             throw new NotImplementedException();
         }
     }
-
-    int Prop { get; set; }
 }
 
 interface I1
@@ -1057,12 +1057,12 @@ interface @IInterface
 
 class Class : @IInterface
 {
+    string M();
+
     void IInterface.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1089,12 +1089,12 @@ interface @IInterface
 
 class Class : @IInterface
 {
+    string M();
+
     void IInterface.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1121,12 +1121,12 @@ interface @int
 
 class Class : @int
 {
+    string M();
+
     void @int.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1153,12 +1153,12 @@ interface @int
 
 class Class : @int
 {
+    string @bool();
+
     void @int.@bool()
     {
         throw new NotImplementedException();
     }
-
-    string @bool();
 }");
         }
 
@@ -6107,13 +6107,13 @@ class Program : [|IDisposable|]
 
 class Program : IDisposable
 {
+    public void Dispose(bool flag)
+    {
+    }
+
     public void Dispose()
     {
         throw new NotImplementedException();
-    }
-
-    public void Dispose(bool flag)
-    {
     }
 }", index: 0);
         }
