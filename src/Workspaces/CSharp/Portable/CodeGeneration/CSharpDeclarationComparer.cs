@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         };
 
         public static readonly CSharpDeclarationComparer WithNamesInstance = new CSharpDeclarationComparer(includeName: true);
-        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new CSharpDeclarationComparer(includeName: true);
+        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new CSharpDeclarationComparer(includeName: false);
 
         private readonly bool _includeName;
 
