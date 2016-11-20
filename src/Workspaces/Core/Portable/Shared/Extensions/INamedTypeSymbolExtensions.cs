@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
-    this INamedTypeSymbol classOrStructType,
-    IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             CancellationToken cancellationToken)
         {
             return classOrStructType.GetAllUnimplementedMembers(
