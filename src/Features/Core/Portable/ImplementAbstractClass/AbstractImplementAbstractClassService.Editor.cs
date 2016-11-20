@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 _state = state;
             }
 
-            public async Task<Document> GetEditAsync(CancellationToken cancellationToken)
+            public Task<Document> GetEditAsync(CancellationToken cancellationToken)
             {
                 var unimplementedMembers = _state.UnimplementedMembers;
 
@@ -39,15 +39,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     unimplementedMembers,
                     cancellationToken);
 
-                var result = await CodeGenerator.AddMemberDeclarationsAsync(
+                return CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
                     memberDefinitions,
                     new CodeGenerationOptions(_state.Location.GetLocation()),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                return result;
+                    cancellationToken);
             }
 
             private IList<ISymbol> GenerateMembers(
