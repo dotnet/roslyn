@@ -904,6 +904,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement Interface or Abstract Class.
+        /// </summary>
+        internal static string Implement_Interface_or_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Interface_or_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implemented By.
         /// </summary>
         internal static string Implemented_By {
@@ -1019,6 +1028,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Invalid_access {
             get {
                 return ResourceManager.GetString("Invalid_access", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep properties, events and methods grouped when implementing types.
+        /// </summary>
+        internal static string Keep_properties_events_and_methods_grouped_when_implementing_types {
+            get {
+                return ResourceManager.GetString("Keep_properties_events_and_methods_grouped_when_implementing_types", resourceCulture);
             }
         }
         

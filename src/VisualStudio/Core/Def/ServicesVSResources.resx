@@ -825,4 +825,10 @@ Additional information: {1}</value>
   <data name="Preference" xml:space="preserve">
     <value>Preference</value>
   </data>
+  <data name="Implement_Interface_or_Abstract_Class" xml:space="preserve">
+    <value>Implement Interface or Abstract Class</value>
+  </data>
+  <data name="Keep_properties_events_and_methods_grouped_when_implementing_types" xml:space="preserve">
+    <value>Keep properties, events and methods grouped when implementing types</value>
+  </data>
 </root>

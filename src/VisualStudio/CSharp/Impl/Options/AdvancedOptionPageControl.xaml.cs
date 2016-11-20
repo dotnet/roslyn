@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -40,9 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
+            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, LanguageNames.CSharp);
+
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
             BindToOption(AllowMovingDeclaration, ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.CSharp);
-            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, LanguageNames.CSharp);
+
+            BindToOption(Keep_properties_events_and_methods_grouped_when_implementing_types, ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, LanguageNames.CSharp);
         }
     }
 }

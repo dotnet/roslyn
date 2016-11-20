@@ -95,6 +95,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
+                <StackPanel>
+                    <CheckBox x:Name="Keep_properties_events_and_methods_grouped_when_implementing_types"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Keep_properties_events_and_methods_grouped_when_implementing_types}" />
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

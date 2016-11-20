@@ -48,9 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_ExtractMethod
-        {
-            get { return CSharpVSResources.Extract_Method; }
-        }
+            => CSharpVSResources.Extract_Method;
+
+        public static string Option_Implement_Interface_or_Abstract_Class
+            => ServicesVSResources.Implement_Interface_or_Abstract_Class;
+
+        public static string Option_Keep_properties_events_and_methods_grouped_when_implementing_types
+            => ServicesVSResources.Keep_properties_events_and_methods_grouped_when_implementing_types;
 
         public static string Option_GenerateXmlDocCommentsForTripleSlash
         {

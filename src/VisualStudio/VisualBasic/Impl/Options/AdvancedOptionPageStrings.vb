@@ -75,6 +75,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
+            ServicesVSResources.Implement_Interface_or_Abstract_Class
+
+        Public ReadOnly Property Option_Keep_properties_events_and_methods_grouped_when_implementing_types As String =
+            ServicesVSResources.Keep_properties_events_and_methods_grouped_when_implementing_types
+
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
             Get
                 Return BasicVSResources.Generate_XML_documentation_comments_for
