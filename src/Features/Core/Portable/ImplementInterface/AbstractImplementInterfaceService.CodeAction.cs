@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -164,13 +165,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
-                var unimplementedMembers = Explicitly ? State.UnimplementedExplicitMembers : State.UnimplementedMembers;
+                var unimplementedMembers = Explicitly 
+                    ? State.UnimplementedExplicitMembers 
+                    : State.UnimplementedMembers;
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 
             public virtual async Task<Document> GetUpdatedDocumentAsync(
                 Document document,
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 INamedTypeSymbol classOrStructType,
                 SyntaxNode classOrStructDecl,
                 CancellationToken cancellationToken)
@@ -178,6 +181,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+                var isComImport = unimplementedMembers.Any(t => t.Item1.IsComImport);
                 var memberDefinitions = GenerateMembers(
                     compilation,
                     unimplementedMembers,
@@ -197,9 +201,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return result;
             }
 
-            private IList<ISymbol> GenerateMembers(
+            private ImmutableArray<ISymbol> GenerateMembers(
                 Compilation compilation,
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 CancellationToken cancellationToken)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
@@ -217,12 +221,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // signature otherwise.  i.e. if we chose to implement IFoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
                 var implementedVisibleMembers = new List<ISymbol>();
-                var implementedMembers = new List<ISymbol>();
+                var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (var tuple in unimplementedMembers)
                 {
-                    var interfaceType = tuple.Item1;
-                    var unimplementedInterfaceMembers = tuple.Item2;
+                    var interfaceType = tuple.type;
+                    var unimplementedInterfaceMembers = tuple.members;
 
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
@@ -239,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                return implementedMembers;
+                return implementedMembers.ToImmutableAndFree();
             }
 
             private bool IsReservedName(string name)
