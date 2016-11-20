@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1035,7 +1036,7 @@ public class x : EastAsianLunisolarCalendar
         }
     }
 
-    internal override EraInfo[] CalEraInfo
+    internal override int MinCalendarYear
     {
         get
         {
@@ -1051,15 +1052,7 @@ public class x : EastAsianLunisolarCalendar
         }
     }
 
-    internal override DateTime MaxDate
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal override int MinCalendarYear
+    internal override EraInfo[] CalEraInfo
     {
         get
         {
@@ -1068,6 +1061,14 @@ public class x : EastAsianLunisolarCalendar
     }
 
     internal override DateTime MinDate
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override DateTime MaxDate
     {
         get
         {
