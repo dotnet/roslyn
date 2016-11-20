@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports System.Composition
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementInterface
+Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ImplementInterface), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementAbstractClass)>
-    Friend Class ImplementInterfaceCodeFixProvider
+    Friend Class VisualBasicImplementInterfaceCodeFixProvider
         Inherits CodeFixProvider
 
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub foo()' for interface 'ifoo'.

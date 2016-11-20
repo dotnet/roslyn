@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass;
+using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
-    public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class ImplementAbstractClassTests
     {
         #region "Fix all occurrences tests"
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
-            var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
+            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
             var input = @"
 <Workspace>
@@ -121,7 +121,7 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
+            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
             var input = @"
 <Workspace>
@@ -237,7 +237,7 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
+            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
             var input = @"
 <Workspace>
@@ -366,7 +366,7 @@ class B3 : A1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
         {
-            var fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
+            var fixAllActionId = CSharpImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "global::A1");
 
             var input = @"
 <Workspace>

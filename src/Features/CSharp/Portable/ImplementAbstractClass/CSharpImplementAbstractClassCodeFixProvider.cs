@@ -5,16 +5,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
-    internal class ImplementAbstractClassCodeFixProvider : 
+    internal class CSharpImplementAbstractClassCodeFixProvider : 
         AbstractImplementAbstractClassCodeFixProvider<ClassDeclarationSyntax>
     {
         private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Foo.bar()'
 
-        public ImplementAbstractClassCodeFixProvider() : base(CS0534)
+        public CSharpImplementAbstractClassCodeFixProvider()
+            : base(CS0534)
         {
         }
     }

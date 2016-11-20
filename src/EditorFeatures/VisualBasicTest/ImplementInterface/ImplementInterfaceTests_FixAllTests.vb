@@ -1,47 +1,45 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
+Imports ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ImplementAbstractClass
-    Partial Public Class ImplementAbstractClassTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
+    Partial Public Class ImplementInterfaceTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
-            Dim fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "Global.A1")
+            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
 End Interface
 
-Class {|FixAllInDocument:B1|}
-    Inherits A1
-    Implements I1
+Public Interface I2
+    Sub F1()
+End Interface
+
+Class B1
+    Implements {|FixAllInDocument:I1|}
+    Implements I2
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
                                 <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -50,12 +48,12 @@ End Class]]>
                                 <ProjectReference>Assembly1</ProjectReference>
                                 <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -65,27 +63,27 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B1
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -93,12 +91,12 @@ End Class]]>
                                    </Document>
                                    <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                    </Document>
@@ -107,56 +105,56 @@ End Class]]>
                                    <ProjectReference>Assembly1</ProjectReference>
                                    <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
-            Dim fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "Global.A1")
+            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
 End Interface
 
-Class {|FixAllInProject:B1|}
-    Inherits A1
-    Implements I1
+Public Interface I2
+    Sub F1()
+End Interface
+
+Class B1
+    Implements {|FixAllInProject:I1|}
+    Implements I2
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
                                 <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -165,12 +163,12 @@ End Class]]>
                                 <ProjectReference>Assembly1</ProjectReference>
                                 <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -180,27 +178,27 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B1
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -208,18 +206,18 @@ End Class]]>
                                    </Document>
                                    <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -230,56 +228,56 @@ End Class]]>
                                    <ProjectReference>Assembly1</ProjectReference>
                                    <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
-            Dim fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "Global.A1")
+            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
 End Interface
 
-Class {|FixAllInSolution:B1|}
-    Inherits A1
-    Implements I1
+Public Interface I2
+    Sub F1()
+End Interface
+
+Class B1
+    Implements {|FixAllInSolution:I1|}
+    Implements I2
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
                                 <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -288,12 +286,12 @@ End Class]]>
                                 <ProjectReference>Assembly1</ProjectReference>
                                 <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -303,27 +301,27 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B1
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -331,18 +329,18 @@ End Class]]>
                                    </Document>
                                    <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -353,18 +351,18 @@ End Class]]>
                                    <ProjectReference>Assembly1</ProjectReference>
                                    <Document><![CDATA[
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -373,65 +371,65 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_DifferentAssemblyWithSameTypeName() As Task
-            Dim fixAllActionId = ImplementAbstractClassCodeFixProvider.GetCodeActionId("Assembly1", "Global.A1")
+            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
 End Interface
 
-Class {|FixAllInSolution:B1|}
-    Inherits A1
-    Implements I1
+Public Interface I2
+    Sub F1()
+End Interface
+
+Class B1
+    Implements {|FixAllInSolution:I1|}
+    Implements I2
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
                                 <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
                             </Project>
                             <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
                                 <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                 </Document>
@@ -441,27 +439,27 @@ End Class]]>
             Dim expected = <Workspace>
                                <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                    <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B1
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C1
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -469,18 +467,18 @@ End Class]]>
                                    </Document>
                                    <Document><![CDATA[
 Class B2
-    Inherits A1
     Implements I1
+    Implements I2
 
-    Public Overrides Sub F1()
+    Public Sub F1() Implements I1.F1
         Throw New NotImplementedException()
     End Sub
 
     Private Class C2
-        Inherits A1
         Implements I1
+        Implements I2
 
-        Public Overrides Sub F1()
+        Public Sub F1() Implements I1.F1
             Throw New NotImplementedException()
         End Sub
     End Class
@@ -489,28 +487,28 @@ End Class]]>
                                </Project>
                                <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
                                    <Document><![CDATA[
-Public MustInherit Class A1
-    Public MustOverride Sub F1()
-End Class
-
 Public Interface I1
-    Sub F2()
+    Sub F1()
+End Interface
+
+Public Interface I2
+    Sub F1()
 End Interface
 
 Class B3
-    Inherits A1
     Implements I1
+    Implements I2
 
     Private Class C3
-        Inherits A1
         Implements I1
+        Implements I2
     End Class
 End Class]]>
                                    </Document>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
     End Class
 End Namespace

@@ -5,9 +5,9 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementInterface
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
-    public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class ImplementInterfaceTests
     {
         #region "Fix all occurrences tests"
 
