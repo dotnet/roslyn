@@ -912,37 +912,40 @@ public class [|C|]
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
+
 Imports System
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 
-<DefaultMember(""Item"")>
-<Obsolete>
+<DefaultMember(""Item"")> <Obsolete>
 Public Class [|C|]
-    <Obsolete>
-    <ThreadStatic>
+    <Obsolete> <ThreadStatic>
     Public field1 As Integer
+
     <Obsolete>
     Public Sub New()
-    <Obsolete>
-    Default Public Property Item(x As Integer) As Integer
+
     <Obsolete>
     Public Property prop1 As Integer
     <Obsolete>
     Public Property prop2 As Integer
     <Obsolete>
+    Default Public Property Item(x As Integer) As Integer
+
+    <Obsolete>
     Public Event event1 As Action
     <Obsolete>
     Public Event event2 As Action
+
     <Obsolete>
     Public Sub method1()
     Public Sub method2(<CallerMemberName> Optional name As String = """")
     <Obsolete>
     Protected Overrides Sub Finalize()
+
     <Obsolete>
     Public Shared Operator +(c1 As C, c2 As C) As C
-End Class
-";
+End Class";
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
@@ -1007,6 +1010,7 @@ public class [|C|]
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
+' <in-memory assembly>
 #End Region
 
 Imports System
@@ -1014,15 +1018,15 @@ Imports System.Reflection
 Imports System.Runtime.CompilerServices
 
 <DefaultMember(""Item"")>
-Public Class [|C|]
+Public Class C
     Public field1 As Integer
     Public field2 As Integer
 
     Public Sub New()
 
-    Default Public Property Item(x As Integer) As Integer
     Public Property prop1 As Integer
     Public Property prop2 As Integer
+    Default Public Property Item(x As Integer) As Integer
 
     Public Event event1 As Action
     Public Event event2 As Action
