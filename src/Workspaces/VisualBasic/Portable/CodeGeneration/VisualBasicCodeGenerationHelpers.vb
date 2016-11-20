@@ -195,12 +195,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim declarations = declarationList.ToArray()
                     If (declarations.Length = 0) Then
                         Return 0
-                    ElseIf declarations.IsSorted(VisualBasicDeclarationComparer.Instance) Then
-                        Dim result = Array.BinarySearch(Of TDeclaration)(declarations, declaration, VisualBasicDeclarationComparer.Instance)
-                        Dim index = GetPreferredIndex(If(result < 0, Not result, result), availableIndices, forward:=True)
-                        If index <> -1 Then
-                            Return index
-                        End If
+                    End If
+
+                    Dim desiredIndex = TryGetDesiredIndexIfGrouped(
+                        declarationList, declaration, availableIndices,
+                        VisualBasicDeclarationComparer.WithoutNamesInstance,
+                        VisualBasicDeclarationComparer.WithNamesInstance)
+                    If desiredIndex.HasValue Then
+                        Return desiredIndex.Value
                     End If
 
                     If after IsNot Nothing Then

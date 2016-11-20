@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         protected override IComparer<SyntaxNode> GetMemberComparer()
-            => new CSharpDeclarationComparer(includeName: false);
+            => CSharpDeclarationComparer.WithoutNamesInstance;
 
         protected override AbstractImportsAdder CreateImportsAdder(
             Document document)

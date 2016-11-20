@@ -55,9 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.FalseKeyword, 21 },
         };
 
+        public static readonly CSharpDeclarationComparer WithNamesInstance = new CSharpDeclarationComparer(includeName: true);
+        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new CSharpDeclarationComparer(includeName: true);
+
         private readonly bool _includeName;
 
-        public CSharpDeclarationComparer(bool includeName)
+        private CSharpDeclarationComparer(bool includeName)
         {
             _includeName = includeName;
         }
