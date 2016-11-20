@@ -304,6 +304,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
             where TDeclarationSyntax : SyntaxNode
         {
+            var result = TryGetDesiredIndexIfGroupedWorker(declarationList, declaration, availableIndices);
+            if (result == null)
+            {
+                return null;
+            }
+
+            result = GetPreferredIndex(result.Value, availableIndices, forward: true);
+            if (result == -1)
+            {
+                return null;
+            }
+
+            return result;
+        }
+
+        private static int? TryGetDesiredIndexIfGroupedWorker<TDeclarationSyntax>(
+            SyntaxList<TDeclarationSyntax> declarationList,
+            TDeclarationSyntax declaration,
+            IList<bool> availableIndices)
+            where TDeclarationSyntax : SyntaxNode
+        {
             var comparerWithoutNameCheck = new CSharpDeclarationComparer(includeName: false);
 
             if (!declarationList.IsSorted(comparerWithoutNameCheck))
