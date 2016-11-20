@@ -965,8 +965,8 @@ interface I
 }",
 @"class Class
 {
-    private object foo;
     int i;
+    private object foo;
 
     void Method()
     {
@@ -2419,8 +2419,8 @@ compareTokens: false);
 }",
 @"class Program
 {
-    private static int A;
     private static int P;
+    private static int A;
 
     static void Main(string[] args)
     {
@@ -2449,8 +2449,8 @@ compareTokens: false);
 }",
 @"class Program
 {
-    public static int A { get; private set; }
     public static int P { get; private set; }
+    public static int A { get; private set; }
 
     static void Main(string[] args)
     {
@@ -2506,7 +2506,12 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConstantInParameterValue()
         {
-            const string Initial = @"class C { const int y = 1 ; public void Foo ( bool x = [|undeclared|] ) { } } ";
+            const string Initial = 
+@"class C
+{   
+    const int y = 1 ; 
+    public void Foo ( bool x = [|undeclared|] ) { }
+} ";
 
             await TestActionCountAsync(
 Initial,
@@ -2516,8 +2521,8 @@ count: 1);
 Initial,
 @"class C
 {
-    private const bool undeclared;
     const int y = 1;
+    private const bool undeclared;
 
     public void Foo(bool x = undeclared)
     {
@@ -6279,9 +6284,9 @@ index: 1);
 }",
 @"class Program
 {
-    public int y { get; private set; }
-
     public int Y => y;
+
+    public int y { get; private set; }
 }",
 index: 2);
         }
