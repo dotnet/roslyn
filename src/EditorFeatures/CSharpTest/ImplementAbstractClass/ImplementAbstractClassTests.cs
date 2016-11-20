@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,10 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
     public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new CSharpImplementAbstractClassCodeFixProvider());
-        }
+
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
              new Dictionary<OptionKey, object>
              {
@@ -1487,6 +1487,35 @@ class T : A
         set => throw new NotImplementedException();
         }
     }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+        }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithGroupingOff1()
+        {
+            await TestAsync(
+@"abstract class Base
+{
+    public abstract int Prop { get; }
+}
+
+class [|Derived|] : Base
+{
+    void Foo() { }
+}",
+@"using System;
+
+abstract class Base
+{
+    public abstract int Prop { get; }
+}
+
+class Derived : Base
+{
+    void Foo() { }
+
+    public int Prop => throw new NotImplementedException();
+}", options: Option(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, false));
         }
     }
 }
