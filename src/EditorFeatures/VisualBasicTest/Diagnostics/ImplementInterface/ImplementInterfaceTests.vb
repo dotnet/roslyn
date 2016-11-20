@@ -3769,27 +3769,24 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposableNonApplicable2() As Task
             Await TestAsync(
-<Text>Imports System
+"Imports System
 Class Program
     Implements [|IDisposable|]
 
     Public Sub Dispose(flag As Boolean)
     End Sub
-End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
+End Class",
+"Imports System
 Class Program
     Implements IDisposable
+
+    Public Sub Dispose(flag As Boolean)
+    End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
-
-    Public Sub Dispose(flag As Boolean)
-    End Sub
-End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4175,10 +4172,6 @@ Class _
     C
     Implements I(Of System.Exception, System.AggregateException)
 
-    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
-        Throw New NotImplementedException()
-    End Function
-
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4186,12 +4179,48 @@ Class _
     Public Function M(Of TT, UU As TT)(a As Dictionary(Of TT, List(Of UU)), b As TT, c As UU) As List(Of UU) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
-{DisposePattern("Overridable ")}
+
+    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
+        Throw New NotImplementedException()
+    End Function
+
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' To detect redundant calls
+
+    ' IDisposable
+    Protected Overridable Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                ' TODO: dispose managed state (managed objects).
+            End If
+
+            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
+            ' TODO: set large fields to null.
+        End If
+        disposedValue = True
+    End Sub
+
+    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+    'Protected Overrides Sub Finalize()
+    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' This code added by Visual Basic to correctly implement the disposable pattern.
+    Public Sub Dispose() Implements IDisposable.Dispose
+        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+        Dispose(True)
+        ' TODO: uncomment the following line if Finalize() is overridden above.
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region
 End Class
 
 Partial Class C
     Implements IDisposable
-End Class", index:=1, compareTokens:=False)
+End Class",
+ index:=1, compareTokens:=False)
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
