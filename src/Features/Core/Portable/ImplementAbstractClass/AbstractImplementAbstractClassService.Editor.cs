@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 _state = state;
             }
 
-            public Task<Document> GetEditAsync(CancellationToken cancellationToken)
+            public async Task<Document> GetEditAsync(CancellationToken cancellationToken)
             {
                 var unimplementedMembers = _state.UnimplementedMembers;
 
@@ -39,12 +40,18 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     unimplementedMembers,
                     cancellationToken);
 
-                return CodeGenerator.AddMemberDeclarationsAsync(
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var groupMembers = options.GetOption(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types);
+
+                return await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
                     memberDefinitions,
-                    new CodeGenerationOptions(_state.Location.GetLocation()),
-                    cancellationToken);
+                    new CodeGenerationOptions(
+                        _state.Location.GetLocation(),
+                        autoInsertionLocation: groupMembers, 
+                        sortMembers: groupMembers),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             private IList<ISymbol> GenerateMembers(
