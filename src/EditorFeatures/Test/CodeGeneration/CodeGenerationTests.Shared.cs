@@ -136,115 +136,113 @@ namespace N
     }
 }";
                 var expected = @"
-namespace N
-{
-    public class C
-    {
-        public const string FConst;
-        public static string FStatic;
-        public string FAccessE;
-        public string FNotConst;
-        public string FNotStatic;
-        protected string FAccessC;
-        protected internal string FAccessD;
-        internal string FAccessB;
-        private string FAccessA;
+namespace N { 
+    public class C { 
+        public const string FConst ; 
+        public static string FStatic ; 
+        public string FNotStatic ; 
+        public string FNotConst ; 
+        public string FAccessE ; 
+        protected string FAccessC ; 
+        protected internal string FAccessD ; 
+        internal string FAccessB ; 
+        private string FAccessA ; 
 
-        public C();
-        public C(int a);
-        public C(int a, int b);
-        protected C(char c);
-        protected internal C(short s);
-        internal C(long l);
-        private C(string s);
+        public C ( ) ; 
+        public C ( int a ) ; 
+        public C ( int a , int b ) ; 
+        protected C ( char c ) ; 
+        protected internal C ( short s ) ; 
+        internal C ( long l ) ; 
+        private C ( string s ) ; 
 
-        public int this[int index] { get; }
-        public int this[int index1, int index2] { get; }
+        public int this [ int index ] { get ; } 
+        public int this [ int index1 , int index2 ] { get ; } 
 
-        public static int PStatic { get; }
-        public int PAccessE { get; }
-        public int PNotStatic { get; }
-        protected int PAccessD { get; }
-        protected internal int PAccessC { get; }
-        internal int PAccessB { get; }
-        private int PAccessA { get; }
+        public static int PStatic { get ; } 
+        public int PNotStatic { get ; } 
+        public int PAccessE { get ; } 
+        protected int PAccessD { get ; } 
+        protected internal int PAccessC { get ; } 
+        internal int PAccessB { get ; } 
+        private int PAccessA { get ; } 
 
-        public static event Action EFStatic;
-        public event Action EFAccessE;
-        public event Action EFNotStatic;
-        protected event Action EFAccessC;
-        protected internal event Action EFAccessD;
-        internal event Action EFAccessB;
-        private event Action EFAccessA;
+        public static event Action EFStatic ; 
+        public event Action EFNotStatic ;
+         public event Action EFAccessE ;
+         protected event Action EFAccessC ;
+         protected internal event Action EFAccessD ; 
+        internal event Action EFAccessB ; 
+        private event Action EFAccessA ; 
 
-        public static int M2Static();
-        public static void MStatic();
-        public int M2AccessE();
-        public int M2Generic<T>();
-        public int M2Generic<T>(int param);
-        public int M2Generic<T1, T2>();
-        public int M2NotStatic();
-        public void MAccessE();
-        public void MGeneric<T>();
-        public void MGeneric<T>(int param);
-        public void MGeneric<T1, T2>();
-        public void MNotStatic();
-        protected int M2AccessD();
-        protected void MAccessD();
-        protected internal int M2AccessC();
-        protected internal void MAccessC();
-        internal int M2AccessB();
-        internal void MAccessB();
-        private int M2AccessA();
-        private void MAccessA();
+        public static int M2Static ( ) ; 
+        public static void MStatic ( ) ; 
+        public int M2AccessE ( ) ; 
+        public int M2Generic < T1 , T2 > ( ) ;
+        public int M2Generic < T > ( int param ) ;
+        public int M2Generic < T > ( ) ; 
+        public int M2NotStatic ( ) ; 
+        public void MAccessE ( ) ; 
+        public void MGeneric < T1 , T2 > ( ) ; 
+        public void MGeneric < T > ( int param ) ;
+        public void MGeneric < T > ( ) ;
+        public void MNotStatic ( ) ; 
+        protected int M2AccessD ( ) ; 
+        protected void MAccessD ( ) ; 
+        protected internal int M2AccessC ( ) ; 
+        protected internal void MAccessC ( ) ; 
+        internal int M2AccessB ( ) ; 
+        internal void MAccessB ( ) ; 
+        private int M2AccessA ( ) ; 
+        private void MAccessA ( ) ; 
 
-        public static C operator +(C c);
-        public static C operator !(C c);
+        public static C operator + ( C c ) ; 
+        public static C operator ! ( C c ) ; 
 
-        public enum EAccessE { }
-        public enum ENameA { }
-        public enum ENameB { }
-        protected enum EAccessD { }
-        protected internal enum EAccessC { }
-        internal enum EAccessB { }
-        private enum EAccessA { }
+        public enum EAccessE { } 
+        public enum ENameB { } 
+        public enum ENameA { } 
+        protected enum EAccessD { } 
+        protected internal enum EAccessC { } 
+        internal enum EAccessB { } 
+        private enum EAccessA { } 
 
-        public interface IAccessE { }
-        public interface IGeneric<T> { }
-        public interface IGeneric<T1, T2> { }
-        protected interface IAccessD { }
-        protected internal interface IAccessC { }
-        internal interface IAccessB { }
-        private interface IAccessA { }
+        public interface IAccessE { } 
+        public interface IGeneric < T1 , T2 > { } 
+        public interface IGeneric < T > { } 
+        protected interface IAccessD { } 
+        protected internal interface IAccessC { } 
+        internal interface IAccessB { } 
+        private interface IAccessA { } 
 
-        public struct SAccessE { }
-        public struct SGeneric<T> { }
-        public struct SGeneric<T1, T2> { }
-        public struct SNameA { }
-        public struct SNameB { }
-        protected struct SAccessD { }
-        protected internal struct SAccessC { }
-        internal struct SAccessB { }
-        private struct SAccessA { }
+        public struct SAccessE { } 
+        public struct SGeneric < T1 , T2 > { } 
+        public struct SGeneric < T > { } 
+        public struct SNameB { } 
+        public struct SNameA { } 
+        protected struct SAccessD { } 
+        protected internal struct SAccessC { } 
+        internal struct SAccessB { } 
+        private struct SAccessA { } 
+        public static class CStatic { } 
 
-        public static class CStatic { }
-        public class CAccessE { }
-        public class CGeneric<T> { }
-        public class CGeneric<T1, T2> { }
-        public class CNotStatic { }
-        protected class CAccessD { }
-        protected internal class CAccessC { }
-        internal class CAccessB { }
-        private class CAccessA { }
+        public class CNotStatic { } 
+        public class CAccessE { } 
+        public class CGeneric < T1 , T2 > { } 
+        public class CGeneric < T > { } 
+        protected class CAccessD { } 
+        protected internal class CAccessC { } 
+        internal class CAccessB { } 
+        private class CAccessA { } 
 
-        public delegate void DAccessE();
-        public delegate void DGeneric<T>(T t, int i);
-        public delegate void DGeneric<T1, T2>(T1 a, T2 b);
-        protected delegate void DAccessD();
-        protected internal delegate void DAccessC();
-        internal delegate void DAccessB();
-        private delegate void DAccessA();
-    }
+        public delegate void DAccessE ( ) ; 
+        public delegate void DGeneric < T1 , T2 > ( T1 a , T2 b ) ; 
+        public delegate void DGeneric < T > ( T t , int i ) ; 
+        protected delegate void DAccessD ( ) ; 
+        protected internal delegate void DAccessC ( ) ; 
+        internal delegate void DAccessB ( ) ; 
+        private delegate void DAccessA ( ) ; 
+    } 
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
