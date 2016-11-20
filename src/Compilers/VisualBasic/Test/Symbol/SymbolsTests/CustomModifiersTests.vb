@@ -56,6 +56,101 @@ End Class
 
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
+            Dim test = compilation.GetTypeByMetadataName("Test1").GetMember(Of MethodSymbol)("Test")
+            Dim type = DirectCast(test.Parameters.First().Type, INamedTypeSymbol)
+            Assert.Equal("System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong))", type.ToTestDisplayString())
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(-1))
+
+            Dim nullable = type.OriginalDefinition
+            Assert.Equal("System.Nullable(Of T)", nullable.ToTestDisplayString())
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(-1))
+
+            Dim i = DirectCast(type.TypeArguments.First(), INamedTypeSymbol)
+            Assert.Equal("System.Int32", i.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() i.GetTypeArgumentCustomModifiers(0))
+
+            nullable = nullable.Construct(i)
+            Assert.Equal("System.Nullable(Of System.Int32)", nullable.ToTestDisplayString())
+            Assert.True(nullable.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(1))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() nullable.GetTypeArgumentCustomModifiers(-1))
+
+            CompileAndVerify(compilation, expectedOutput:="Test")
+        End Sub
+
+        <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
+        Public Sub ModifiedTypeArgument_02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit Test1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Test1::.ctor
+
+  .method public hidebysig static void Test(class [mscorlib] System.Collections.Generic.Dictionary`2<int32, int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong) modopt([mscorlib]System.Runtime.CompilerServices.IsConst)> x) cil managed
+  {
+    // Code size       11 (0xb)
+    .maxstack  1
+    IL_0000:  ldstr      "Test"
+    IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000a:  ret
+  } // end of method Test1::Test
+  
+} // end of class Test1
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Test1.Test(Nothing)
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            Dim test = compilation.GetTypeByMetadataName("Test1").GetMember(Of MethodSymbol)("Test")
+            Dim type = DirectCast(test.Parameters.First().Type, INamedTypeSymbol)
+            Assert.Equal("System.Collections.Generic.Dictionary(Of System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong))",
+                         type.ToTestDisplayString())
+            Assert.True(type.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Dim modifiers = type.GetTypeArgumentCustomModifiers(1)
+            Assert.Equal(2, modifiers.Length)
+            Assert.Equal("System.Runtime.CompilerServices.IsConst", modifiers.First().Modifier.ToTestDisplayString())
+            Assert.Equal("System.Runtime.CompilerServices.IsLong", modifiers.Last().Modifier.ToTestDisplayString())
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() type.GetTypeArgumentCustomModifiers(-1))
+
+            Dim dictionary = type.OriginalDefinition
+            Assert.Equal("System.Collections.Generic.Dictionary(Of TKey, TValue)", dictionary.ToTestDisplayString())
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(-1))
+
+            Dim i = type.TypeArguments.First()
+            dictionary = dictionary.Construct(i, i)
+            Assert.Equal("System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)", dictionary.ToTestDisplayString())
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(0).IsEmpty)
+            Assert.True(dictionary.GetTypeArgumentCustomModifiers(1).IsEmpty)
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(2))
+            Assert.Throws(Of System.IndexOutOfRangeException)(Sub() dictionary.GetTypeArgumentCustomModifiers(-1))
+
             CompileAndVerify(compilation, expectedOutput:="Test")
         End Sub
 
@@ -1238,7 +1333,7 @@ End Class
             Assert.Equal("Sub Module1.Test(x As System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)))", test.ToTestDisplayString())
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
-            Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).TypeArgumentsCustomModifiers.First.First.Modifier.ContainingAssembly)
+            Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
             Dim compilation2 = CreateCompilationWithMscorlib45({}, references:={New VisualBasicCompilationReference(compilation1)})
 
@@ -1247,7 +1342,7 @@ End Class
 
             Assert.IsType(Of VisualBasic.Symbols.Retargeting.RetargetingAssemblySymbol)(test.ContainingAssembly)
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
-            Assert.Same(compilation2.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).TypeArgumentsCustomModifiers.First.First.Modifier.ContainingAssembly)
+            Assert.Same(compilation2.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary())
         End Sub

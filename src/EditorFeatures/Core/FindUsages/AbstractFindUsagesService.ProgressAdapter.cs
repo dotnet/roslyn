@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 _solution = solution;
                 _context = context;
-                _definitionFactory = s => s.ToDefinitionItem(solution);
+                _definitionFactory = s => s.ToDefinitionItem(solution, includeHiddenLocations: false);
             }
 
             // Do nothing functions.  The streaming far service doesn't care about
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
 
                 var referenceItem = location.TryCreateSourceReferenceItem(
-                    GetDefinitionItem(definition));
+                    GetDefinitionItem(definition), includeHiddenLocations: false);
 
                 if (referenceItem != null)
                 {

@@ -190,11 +190,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-            End Get
-        End Property
+        Public Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get
@@ -419,21 +417,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Shared Function ReplaceRestExtensionType(tupleCompatibleType As NamedTypeSymbol, typeArgumentsBuilder As ArrayBuilder(Of TypeWithModifiers), extensionTuple As TupleTypeSymbol) As NamedTypeSymbol
-            Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
             Dim hasTypeArgumentsCustomModifiers As Boolean = tupleCompatibleType.HasTypeArgumentsCustomModifiers
-
-            If hasTypeArgumentsCustomModifiers Then
-                modifiers = tupleCompatibleType.TypeArgumentsCustomModifiers
-            End If
 
             Dim typeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol) = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics
             typeArgumentsBuilder.Clear()
 
             For i As Integer = 0 To TupleTypeSymbol.RestPosition - 1 - 1
-                typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i), GetModifiers(modifiers, i)))
+                typeArgumentsBuilder.Add(New TypeWithModifiers(typeArgumentsNoUseSiteDiagnostics(i),
+                                                               If(hasTypeArgumentsCustomModifiers, tupleCompatibleType.GetTypeArgumentCustomModifiers(i), Nothing)))
             Next
 
-            typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple, GetModifiers(modifiers, TupleTypeSymbol.RestPosition - 1)))
+            typeArgumentsBuilder.Add(New TypeWithModifiers(extensionTuple,
+                                                           If(hasTypeArgumentsCustomModifiers, tupleCompatibleType.GetTypeArgumentCustomModifiers(TupleTypeSymbol.RestPosition - 1), Nothing)))
 
             Dim definition = tupleCompatibleType.ConstructedFrom
             Dim subst = TypeSubstitution.Create(definition, definition.TypeParameters, typeArgumentsBuilder.ToImmutable(), False)

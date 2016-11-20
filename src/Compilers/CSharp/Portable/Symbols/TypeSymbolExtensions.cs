@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ImmutableArray.Create(
                             new TypeWithModifiers(
                                 type.TypeArgumentsNoUseSiteDiagnostics[0],
-                                type.HasTypeArgumentsCustomModifiers ? type.TypeArgumentsCustomModifiers[0] : default(ImmutableArray<CustomModifier>))),
+                                type.HasTypeArgumentsCustomModifiers ? type.GetTypeArgumentCustomModifiers(0) : default(ImmutableArray<CustomModifier>))),
                         unbound: false);
                 hasChanged = true;
             }

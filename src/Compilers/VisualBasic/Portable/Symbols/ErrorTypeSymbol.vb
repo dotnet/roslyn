@@ -189,11 +189,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
-            End Get
-        End Property
+        Public Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get

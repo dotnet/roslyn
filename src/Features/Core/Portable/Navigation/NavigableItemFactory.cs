@@ -43,11 +43,10 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             var sourceLocations = GetPreferredSourceLocations(symbol);
 
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             var candidateLocationGroups = from c in sourceLocations
                                           let doc = solution.GetDocument(c.SourceTree)
                                           where doc != null
-                                          group c by generatedCodeRecognitionService.IsGeneratedCode(doc);
+                                          group c by doc.IsGeneratedCode();
 
             var generatedSourceLocations = candidateLocationGroups.SingleOrDefault(g => g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
             var nonGeneratedSourceLocations = candidateLocationGroups.SingleOrDefault(g => !g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
@@ -69,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public static IEnumerable<INavigableItem> GetPreferredNavigableItems(Solution solution, IEnumerable<INavigableItem> navigableItems)
         {
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode());
             return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document))
-                : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document));
+                ? navigableItems.Where(n => !n.Document.IsGeneratedCode())
+                : navigableItems.Where(n => n.Document.IsGeneratedCode());
         }
 
         public static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(Project project, ISymbol symbol)

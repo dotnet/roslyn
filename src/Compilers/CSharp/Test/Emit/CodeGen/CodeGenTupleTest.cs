@@ -8673,7 +8673,6 @@ class C
             Assert.Null(m1Tuple.ComImportCoClass);
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers);
             Assert.False(m1Tuple.IsComImport);
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty);
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty);
             Assert.True(m1Tuple.GetAttributes().IsEmpty);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString());
@@ -9934,7 +9933,6 @@ class C
             Assert.Null(m1Tuple.ComImportCoClass);
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers);
             Assert.False(m1Tuple.IsComImport);
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty);
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty);
             Assert.True(m1Tuple.GetAttributes().IsEmpty);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString());

@@ -5109,6 +5109,11 @@ class C
                 }
             }
 
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
             public TypeKind TypeKind
             {
                 get

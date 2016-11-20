@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 CSharpDeclarationComparer.WithoutNamesInstance,
                 CSharpDeclarationComparer.WithNamesInstance,
                 after, before);
+
             if (availableIndices != null)
             {
                 availableIndices.Insert(index, true);
