@@ -908,15 +908,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     if (!_ignoreResult)
                     {
                         this.Document = this.Result;
+
                         if (_compareTokens)
                         {
-                            var actual = string.Join(" ", Simplifier.ReduceAsync(this.Document, Simplifier.Annotation).Result.GetSyntaxRootAsync().Result.DescendantTokens());
+                            var actual = Formatter.FormatAsync(Simplifier.ReduceAsync(this.Document, Simplifier.Annotation).Result).Result
+                                .GetSyntaxRootAsync().Result.ToFullString();
+
                             TokenUtilities.AssertTokensEqual(_expected, actual, _language);
                         }
                         else
                         {
                             var actual = Formatter.FormatAsync(Simplifier.ReduceAsync(this.Document, Simplifier.Annotation).Result, Formatter.Annotation).Result
                                 .GetSyntaxRootAsync().Result.ToFullString();
+
                             Assert.Equal(_expected, actual);
                         }
                     }
