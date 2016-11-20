@@ -6755,9 +6755,9 @@ interface IComInterface
 
 class Class : IComInterface
 {
-    public void MOverload() => throw new NotImplementedException();
-    public void X() => throw new NotImplementedException();
-    public void MOverload(int i) => throw new NotImplementedException();
+    public void MOverload() { throw new NotImplementedException(); }
+    public void X() { throw new NotImplementedException(); }
+    public void MOverload(int i) { throw new NotImplementedException(); }
     public int Prop => throw new NotImplementedException();
 }");
         }

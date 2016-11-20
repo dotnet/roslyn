@@ -344,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 generateMethodBodies: options.GenerateMethodBodies,
                 generateDocumentationComments: options.GenerateDocumentationComments,
                 autoInsertionLocation: options.AutoInsertionLocation,
-                reuseSyntax: options.ReuseSyntax);
+                reuseSyntax: options.ReuseSyntax,
+                sortMembers: options.SortMembers);
             return options;
         }
 
