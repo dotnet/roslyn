@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             var definitionItems = goToImplContext.GetDefinitions();
 
-            streamingPresenter.NavigateToOrPresentItemsAsync(
+            streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 EditorFeaturesResources.Go_To_Implementation, definitionItems).Wait(cancellationToken);
         }
 
