@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
-        }
+            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
@@ -6689,6 +6688,36 @@ class Class : IInterface<(int, string), int>
     }
 }",
 parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithGroupingOff1()
+        {
+            await TestAsync(
+@"interface IInterface
+{
+    int Prop { get; }
+}
+
+class Class : [|IInterface|]
+{
+    void M() { }
+}",
+@"using System;
+
+interface IInterface
+{
+    int Prop { get; }
+}
+
+class Class : IInterface
+{
+    void M() { }
+
+    public int Prop => throw new NotImplementedException();
+    
+}", options: Option(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, false));
         }
     }
 }
