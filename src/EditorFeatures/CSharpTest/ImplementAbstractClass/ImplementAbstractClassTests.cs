@@ -1490,7 +1490,7 @@ class T : A
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestWithGroupingOff1()
         {
             await TestAsync(
@@ -1514,7 +1514,7 @@ class Derived : Base
 {
     void Foo() { }
 
-    public int Prop => throw new NotImplementedException();
+    public override int Prop => throw new NotImplementedException();
 }", options: Option(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, false));
         }
     }
