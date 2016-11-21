@@ -2680,21 +2680,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            if (UnreferencedAssemblyIdentityDiagnosticCodes.Contains(diagnostic.Code))
+            if (!UnreferencedAssemblyIdentityDiagnosticCodes.Contains(diagnostic.Code))
             {
-                return ExtractAssemblyIdenties(diagnostic);
+                return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            return ImmutableArray<AssemblyIdentity>.Empty;
-        }
-
-        /// <summary>
-        /// For testing purposes.
-        /// </summary>
-        internal abstract ImmutableArray<int> UnreferencedAssemblyIdentityDiagnosticCodes { get; }
-
-        internal static ImmutableArray<AssemblyIdentity> ExtractAssemblyIdenties(Diagnostic diagnostic)
-        {
             var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
 
             foreach (var argument in diagnostic.Arguments)
@@ -2707,5 +2697,7 @@ namespace Microsoft.CodeAnalysis
 
             return builder.ToImmutableAndFree();
         }
+
+        internal abstract ImmutableArray<int> UnreferencedAssemblyIdentityDiagnosticCodes { get; }
     }
 }
