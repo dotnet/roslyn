@@ -726,9 +726,7 @@ class C {
 
         private async Task VerifyWorkerAsync(string markup, bool isBuilder)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
