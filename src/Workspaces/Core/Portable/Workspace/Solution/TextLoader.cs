@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
-        internal virtual TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal virtual TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
+            // this implementation exists in case a custom derived type does not have access to internals
             return LoadTextAndVersionAsync(workspace, documentId, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                 return Task.FromResult(_textAndVersion);
             }
 
-            internal override TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 return _textAndVersion;
             }
@@ -90,10 +91,10 @@ namespace Microsoft.CodeAnalysis
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(LoadTextAndVersion(workspace, documentId, cancellationToken));
+                return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
             }
 
-            internal override TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 return TextAndVersion.Create(_container.CurrentText, _version, _filePath);
             }

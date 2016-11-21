@@ -66,10 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(LoadTextAndVersion(workspace, documentId, cancellationToken));
+                    return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
                 }
 
-                internal override TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 {
                     return TextAndVersion.Create(_text, VersionStamp.Create());
                 }

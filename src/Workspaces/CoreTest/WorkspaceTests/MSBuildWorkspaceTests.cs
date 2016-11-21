@@ -2272,10 +2272,10 @@ class C1
                 var infos = loader.LoadProjectInfoAsync(projectFullPath).Result;
 
                 var doc = infos[0].Documents[0];
-                var tav = doc.TextLoader.LoadTextAndVersion(ws, doc.Id, CancellationToken.None);
+                var tav = doc.TextLoader.LoadTextAndVersionSynchronously(ws, doc.Id, CancellationToken.None);
 
                 var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-                var atav = adoc.TextLoader.LoadTextAndVersion(ws, adoc.Id, CancellationToken.None);
+                var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(ws, adoc.Id, CancellationToken.None);
                 Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
             }
         }

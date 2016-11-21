@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new AsyncLazy<TextAndVersion>(
                 asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c), 
-                synchronousComputeFunction: c => LoadTextSync(loader, documentId, services, reportInvalidDataException, c),
+                synchronousComputeFunction: c => LoadTextSynchronously(loader, documentId, services, reportInvalidDataException, c),
                 cacheResult: true);
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
             return new RecoverableTextAndVersion(
                 new AsyncLazy<TextAndVersion>(
                     asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c),
-                    synchronousComputeFunction: c => LoadTextSync(loader, documentId, services, reportInvalidDataException, c),
+                    synchronousComputeFunction: c => LoadTextSynchronously(loader, documentId, services, reportInvalidDataException, c),
                     cacheResult: false),
                 services.TemporaryStorage);
         }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected static TextAndVersion LoadTextSync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
+        protected static TextAndVersion LoadTextSynchronously(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
             int retries = 0;
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     using (ExceptionHelpers.SuppressFailFast())
                     {
-                        var result = loader.LoadTextAndVersion(services.Workspace, documentId, cancellationToken);
+                        var result = loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
                         return result;
                     }
                 }

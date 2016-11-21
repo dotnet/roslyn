@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
-        internal override TextAndVersion LoadTextAndVersion(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
