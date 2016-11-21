@@ -231,6 +231,27 @@ namespace Roslyn.Utilities
             {
                 GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.remove_AssemblyResolve);
             }
+
+            private static class _Thread
+            {
+                internal static readonly Type Type = ReflectionUtilities.TryGetType("System.Threading.Thread");
+
+                internal static readonly MethodInfo Sleep = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("Sleep", typeof(TimeSpan));
+            }
+
+            private static Action<TimeSpan> s_sleepfn;
+
+            internal static void Sleep(TimeSpan timeSpan)
+            {
+                if (s_sleepfn == null)
+                {
+                    s_sleepfn = (Action<TimeSpan>)_Thread.Sleep.CreateDelegate(typeof(Action<TimeSpan>));
+                }
+
+                s_sleepfn(timeSpan);
+            }
         }
     }
 }
