@@ -741,8 +741,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static PatternMatch? TryMatchSingleWordPattern(string candidate, string pattern)
         {
-            IList<TextSpan> spans;
-            MarkupTestFile.GetSpans(candidate, out candidate, out spans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out IList<TextSpan> spans);
 
             var match = new PatternMatcher(pattern).MatchSingleWordPattern_ForTestingOnly(candidate);
 
@@ -760,8 +759,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            IList<TextSpan> expectedSpans;
-            MarkupTestFile.GetSpans(candidate, out candidate, out expectedSpans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out IList<TextSpan> expectedSpans);
 
             var matches = new PatternMatcher(pattern).GetMatches(candidate, includeMatchSpans: true);
 
