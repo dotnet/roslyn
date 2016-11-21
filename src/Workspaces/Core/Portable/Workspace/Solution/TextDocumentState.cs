@@ -191,8 +191,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            TextAndVersion textAndVersion;
-            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 text = textAndVersion.Text;
                 return true;
@@ -213,8 +212,7 @@ namespace Microsoft.CodeAnalysis
                 return versionable.TryGetTextVersion(out version);
             }
 
-            TextAndVersion textAndVersion;
-            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 version = textAndVersion.Version;
                 return true;
@@ -246,14 +244,12 @@ namespace Microsoft.CodeAnalysis
         public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
         {
             // try fast path first
-            VersionStamp version;
-            if (TryGetTextVersion(out version))
+            if (TryGetTextVersion(out var version))
             {
                 return version;
             }
 
-            TextAndVersion textAndVersion;
-            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion.Version;
             }
@@ -319,8 +315,7 @@ namespace Microsoft.CodeAnalysis
 
         private VersionStamp GetNewerVersion()
         {
-            TextAndVersion textAndVersion;
-            if (this.textAndVersionSource.TryGetValue(out textAndVersion))
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }

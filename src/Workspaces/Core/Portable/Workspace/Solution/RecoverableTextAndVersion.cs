@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool TryGetValue(out TextAndVersion value)
         {
-            SourceText text;
-            if (_text != null && _text.TryGetValue(out text))
+            if (_text != null && _text.TryGetValue(out var text))
             {
                 value = TextAndVersion.Create(text, _version, _filePath);
                 return true;
@@ -58,8 +57,7 @@ namespace Microsoft.CodeAnalysis
             // then try to get version from cached value.
             if (version == default(VersionStamp))
             {
-                TextAndVersion textAndVersion;
-                if (this.TryGetValue(out textAndVersion))
+                if (this.TryGetValue(out var textAndVersion))
                 {
                     version = textAndVersion.Version;
                 }

@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private void Append(HashSet<Checksum> searchingChecksumsLeft, Dictionary<Checksum, object> result)
             {
                 // only solution with checksum can be in asset storage
-                SolutionStateChecksums stateChecksums;
-                Contract.ThrowIfFalse(_state.TryGetStateChecksums(out stateChecksums));
+                Contract.ThrowIfFalse(_state.TryGetStateChecksums(out var stateChecksums));
 
                 stateChecksums.Find(_state, searchingChecksumsLeft, result, _cancellationToken);
             }

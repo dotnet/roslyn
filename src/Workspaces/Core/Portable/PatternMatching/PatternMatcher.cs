@@ -260,8 +260,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return null;
             }
 
-            ImmutableArray<PatternMatch> ignored;
-            return MatchSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored, fuzzyMatch: false) ??
+            return MatchSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out var ignored, fuzzyMatch: false) ??
                    MatchSegment(candidate, inludeMatchSpans, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored, fuzzyMatch: true);
         }
 
@@ -451,9 +450,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return ImmutableArray<PatternMatch>.Empty;
             }
 
-            ImmutableArray<PatternMatch> matches;
             var singleMatch = MatchSegment(candidate, includeMatchSpans, segment, 
-                wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out matches);
+                wantAllMatches: true, fuzzyMatch: fuzzyMatch, allMatches: out var matches);
             if (singleMatch.HasValue)
             {
                 return ImmutableArray.Create(singleMatch.Value);
