@@ -54,12 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssertIsForeground();
 
-                if (_pushedProjects.Contains(project))
-                {
-                    return;
-                }
-
-                if (!visited.Add(project))
+                // Bail out if any of the following is true:
+                //  1. We have already started pushing changes for this project OR
+                //  2. We have removed the project from the tracker on the UI thread
+                //  3. We have already visited this project in a prior recursive call                
+                if (_pushedProjects.Contains(project) || !_tracker.ContainsProject(project) || !visited.Add(project))
                 {
                     return;
                 }

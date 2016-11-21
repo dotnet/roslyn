@@ -298,6 +298,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal bool ContainsProject(AbstractProject project)
+        {
+            lock (_gate)
+            {
+                return _projectMap.ContainsKey(project.Id);
+            }
+        }
+
         /// <summary>
         /// Add a project to the workspace.
         /// If invoked on the foreground thread, the add is executed right away.
