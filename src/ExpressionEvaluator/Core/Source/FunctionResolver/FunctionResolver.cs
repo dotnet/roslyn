@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmRuntimeFunctionResolver,
         IDkmModuleInstanceLoadNotification,
         IDkmModuleInstanceUnloadNotification,
-        IDkmModuleModifiedNotification
+        IDkmModuleModifiedNotification,
+        IDkmModuleSymbolsLoadedNotification
     {
         void IDkmRuntimeFunctionResolver.EnableResolution(DkmRuntimeFunctionResolutionRequest request, DkmWorkList workList)
         {
@@ -42,15 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         void IDkmModuleInstanceLoadNotification.OnModuleInstanceLoad(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptorS eventDescriptor)
         {
-            var module = moduleInstance as DkmClrModuleInstance;
-            Debug.Assert(module != null); // <Filter><RuntimeId RequiredValue="DkmRuntimeId.Clr"/></Filter> should ensure this.
-            if (module == null)
-            {
-                // Only interested in managed modules.
-                return;
-            }
-
-            OnModuleLoad(module.Process, module);
+            OnModuleLoad(moduleInstance);
         }
 
         void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
@@ -65,6 +59,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Implementing IDkmModuleModifiedNotification
             // (with Synchronized="true" in .vsdconfigxml) prevents
             // caller from modifying modules while binding.
+        }
+
+        void IDkmModuleSymbolsLoadedNotification.OnModuleSymbolsLoaded(DkmModuleInstance moduleInstance, DkmModule module, bool isReload, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+        {
+            OnModuleLoad(moduleInstance);
+        }
+
+        private void OnModuleLoad(DkmModuleInstance moduleInstance)
+        {
+            var module = moduleInstance as DkmClrModuleInstance;
+            Debug.Assert(module != null); // <Filter><RuntimeId RequiredValue="DkmRuntimeId.Clr"/></Filter> should ensure this.
+            if (module == null)
+            {
+                // Only interested in managed modules.
+                return;
+            }
+
+            if (module.Module == null)
+            {
+                // Only resolve breakpoints if symbols have been loaded.
+                return;
+            }
+
+            OnModuleLoad(module.Process, module);
         }
 
         internal override bool ShouldEnableFunctionResolver(DkmProcess process)

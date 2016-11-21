@@ -34,7 +34,14 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var cancellationTokan = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
             var severity = option.Notification.Value;
             if (severity == DiagnosticSeverity.Hidden)
