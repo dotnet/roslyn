@@ -2801,6 +2801,27 @@ End Class]]></Document>)
             End Using
         End Function
 
+        <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SymbolAndObejctPreselectionUnification() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As ProcessStartInfo = New $$
+    End Sub
+
+End Module
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Dim psi = state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(i) i.DisplayText.Contains("ProcessStartInfo")).ToArray()
+                Assert.Equal(1, psi.Length)
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
 		Friend Class MockSnippetInfoService
 			Implements ISnippetInfoService
