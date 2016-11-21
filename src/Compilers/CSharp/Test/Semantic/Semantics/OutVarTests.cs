@@ -17555,9 +17555,9 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (7,23): error CS0103: The name '_' does not exist in the current context
+                // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out _];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(7, 23)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 23)
                 );
         }
 
@@ -17878,13 +17878,13 @@ class B
     {{
         A a = new A();
         IA ia = a;
-        Console.WriteLine(ia.P[out int _]);
+        Console.WriteLine(ia.P[out {0} _]);
         ia.P[out {0} _] = 4;
-        Console.WriteLine(ia[out int _]);
+        Console.WriteLine(ia[out {0} _]);
         ia[out {0} _] = 4;
     }}
 }}";
-            string[] fillIns = new[] { "int", "var" };
+            string[] fillIns = new[] { "int", "var", "" };
             foreach (var fillIn in fillIns)
             {
                 var source2 = string.Format(source2Template, fillIn);
@@ -17976,9 +17976,9 @@ public class Cls
                 // (10,22): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out var _] = 4,
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(10, 22),
-                // (11,18): error CS0103: The name '_' does not exist in the current context
+                // (11,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out _] = 5
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(11, 18),
                 // (14,30): error CS0103: The name '_' does not exist in the current context
                 //         System.Console.Write(_);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 30),

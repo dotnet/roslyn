@@ -3320,15 +3320,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to a discard.
-        /// </summary>
-        internal static string ERR_DiscardVariableAssignedBadValue {
-            get {
-                return ResourceManager.GetString("ERR_DiscardVariableAssignedBadValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic type..
         /// </summary>
         internal static string ERR_DllImportOnGenericMethod {
