@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private RemotableData GetRemotableDataFromAdditionalAssets(Checksum checksum)
             {
-                CustomAsset asset;
-                if (_additionalAssets.TryGetValue(checksum, out asset))
+                if (_additionalAssets.TryGetValue(checksum, out var asset))
                 {
                     return asset;
                 }
