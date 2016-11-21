@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_01()
         {
             UsingStatement("foreach ((var x, var y) in e) {}");
@@ -353,6 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_02()
         {
             UsingStatement("foreach ((int x, int y) in e) {}");
@@ -409,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_03()
         {
             UsingStatement("foreach ((int x, int y) v in e) {}");
@@ -460,40 +463,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_04()
         {
             // PROTOTYPE(wildcards): these should be semantic, not syntax errors
-            UsingStatement("foreach ((1, 2) in e) {}",
-                // (1,1): error CS1073: Unexpected token ','
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach ((1").WithArguments(",").WithLocation(1, 1),
-                // (1,10): error CS8124: Tuple must contain at least two elements.
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(1, 10),
-                // (1,11): error CS1031: Type expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(1, 11),
-                // (1,11): error CS1026: ) expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(1, 11),
-                // (1,11): error CS1001: Identifier expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "1").WithLocation(1, 11),
-                // (1,11): error CS1515: 'in' expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_InExpected, "1").WithLocation(1, 11),
-                // (1,12): error CS1026: ) expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ",").WithLocation(1, 12),
-                // (1,12): error CS1525: Invalid expression term ','
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12),
-                // (1,12): error CS1002: ; expected
-                // foreach ((1, 2) in e) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(1, 12)
-                );
+            UsingStatement("foreach ((1, 2) in e) {}");
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
+        [Fact]
         public void NewForeach_05()
         {
             UsingStatement("foreach (var (x, y) in e) {}");
@@ -537,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_06()
         {
             UsingStatement("foreach ((int x, var (y, z)) in e) {}");
@@ -603,68 +618,481 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact]
         public void NewForeach_07()
         {
-            UsingStatement("foreach ((var (x, y), z) in e) {}",
-                // (1,23): error CS1031: Type expected
-                // foreach ((var (x, y), z) in e) {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "z").WithLocation(1, 23)
-                );
+            // PROTOTYPE(wildcards): SHOULD BE some kind of *semantic* error here
+            UsingStatement("foreach ((var (x, y), z) in e) {}");
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "z");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
+        [Fact]
         public void NewForeach_08()
         {
+            // PROTOTYPE(wildcards): SHOULD BE some kind of syntax error here
             UsingStatement("foreach (x in e) {}");
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
+        [Fact]
         public void NewForeach_09()
         {
             UsingStatement("foreach (_ in e) {}");
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "_");
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
+        [Fact]
         public void NewForeach_10()
         {
+            // PROTOTYPE(wildcards): SHOULD BE some kind of syntax error here
             UsingStatement("foreach (a.b in e) {}");
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
+        [Fact]
         public void TupleOnTheLeft()
         {
             UsingStatement("(1, 2) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.TupleExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
+        [Fact]
         public void OutTuple_01()
         {
             UsingStatement("M(out (1, 2));");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.OutKeyword);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
+        [Fact]
         public void OutTuple_02()
         {
             UsingStatement("M(out (x, y));");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.OutKeyword);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
+        [Fact]
         public void OutTuple_03()
         {
             UsingStatement("M(out (1, 2).Field);");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.OutKeyword);
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.TupleExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Field");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
+        [Fact]
         public void OutTuple_04()
         {
-            UsingStatement("M(out (int x, int y));");
+            UsingStatement("M(out (int x, int y));",
+                // (1,21): error CS1003: Syntax error, '=>' expected
+                // M(out (int x, int y));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(1, 21),
+                // (1,21): error CS1525: Invalid expression term ')'
+                // M(out (int x, int y));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21)
+                );
         }
 
+        [Fact]
         public void OutTuple_05()
         {
-            UsingStatement("M(out (var x, var y));");
+            UsingStatement("M(out (var x, var y));",
+                // (1,21): error CS1003: Syntax error, '=>' expected
+                // M(out (var x, var y));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(1, 21),
+                // (1,21): error CS1525: Invalid expression term ')'
+                // M(out (var x, var y));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21)
+                );
         }
 
+        [Fact]
         public void NamedTupleOnTheLeft()
         {
             UsingStatement("(x: 1, y: 2) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.TupleExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
+        [Fact]
         public void InvokeMethodNamedVar()
         {
-            UsingStatement("var(1, 2) = e;");
+            UsingStatement("var(1, 2) = e;",
+                // (1,1): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                // var(1, 2) = e;
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(1, 2)").WithLocation(1, 1)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
     }
 }

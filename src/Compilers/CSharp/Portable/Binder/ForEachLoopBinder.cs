@@ -162,12 +162,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
-            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+            CSharpSyntaxNode declaration = null;
+            CSharpSyntaxNode expression = null;
+            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                     variables,
                                                                     variables,
                                                                     right: null,
                                                                     diagnostics: diagnostics,
-                                                                    rightPlaceholder: valuePlaceholder);
+                                                                    rightPlaceholder: valuePlaceholder,
+                                                                    declaration: ref declaration,
+                                                                    expression: ref expression);
+
             return new BoundExpressionStatement(_syntax, deconstruction);
         }
 
@@ -228,12 +233,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var variables = node.Variable;
                         var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+                        CSharpSyntaxNode declaration = null;
+                        CSharpSyntaxNode expression = null;
+                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                                 variables,
                                                                                 variables,
                                                                                 right: null,
                                                                                 diagnostics: diagnostics,
-                                                                                rightPlaceholder: valuePlaceholder);
+                                                                                rightPlaceholder: valuePlaceholder,
+                                                                                declaration: ref declaration,
+                                                                                expression: ref expression);
+
+                        if (expression != null)
+                        {
+                            // a foreach loop should not deconstruct into existing variables.
+                            // Error(diagnostics, ErrorCode.)
+                        }
 
                         deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);

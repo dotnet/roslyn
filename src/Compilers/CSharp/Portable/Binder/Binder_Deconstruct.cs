@@ -16,26 +16,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        /// <summary>
-        /// Only handles assignment-only or declaration-only deconstructions at this point.
-        /// Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions
-        /// </summary>
         private BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var left = node.Left;
             var right = node.Right;
-
-            if (node.IsDeconstructionDeclaration())
+            CSharpSyntaxNode declaration = null;
+            CSharpSyntaxNode expression = null;
+            var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression);
+            if (declaration != null && expression != null)
             {
-                return BindDeconstructionDeclaration(node, left, right, diagnostics);
+                // We only allow assignment-only or declaration-only deconstructions at this point.
+                // Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions.
+                // For now we give an error when you mix.
+                Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
             }
 
-            AssertDeconstructionIsAssignment(left);
-
-            var tuple = (TupleExpressionSyntax)left;
-            ArrayBuilder<DeconstructionVariable> checkedVariables = BindDeconstructionAssignmentVariables(tuple.Arguments, tuple, diagnostics);
-            var result = BindDeconstructionAssignment(node, node.Right, checkedVariables, diagnostics, isDeclaration: false);
-            FreeDeconstructionVariables(checkedVariables);
             return result;
         }
 
@@ -496,38 +491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns a list of variables, where some may be nested variables (BoundDeconstructionVariables).
-        /// Checks that all the variables are assignable to.
-        /// The caller is responsible for releasing the nested ArrayBuilders.
-        /// </summary>
-        private ArrayBuilder<DeconstructionVariable> BindDeconstructionAssignmentVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
-        {
-            int numElements = arguments.Count;
-            Debug.Assert(numElements >= 2); // this should not have parsed as a tuple.
-
-            // bind the variables and check they can be assigned to
-            var checkedVariablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(numElements);
-
-            foreach (var argument in arguments)
-            {
-                if (argument.Expression.Kind() == SyntaxKind.TupleExpression) // nested tuple case
-                {
-                    var nested = (TupleExpressionSyntax)argument.Expression;
-                    checkedVariablesBuilder.Add(new DeconstructionVariable(BindDeconstructionAssignmentVariables(nested.Arguments, nested, diagnostics), syntax));
-                }
-                else
-                {
-                    var boundVariable = BindExpression(argument.Expression, diagnostics, invoked: false, indexed: false);
-                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
-
-                    checkedVariablesBuilder.Add(new DeconstructionVariable(checkedVariable, argument));
-                }
-            }
-
-            return checkedVariablesBuilder;
-        }
-
-        /// <summary>
         /// Figures out how to assign from inputPlaceholder into receivingVariable and bundles the information (leaving holes for the actual source and receiver) into an AssignmentInfo.
         /// </summary>
         private BoundDeconstructionAssignmentStep MakeDeconstructionAssignmentStep(
@@ -668,30 +631,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
-        internal BoundDeconstructionAssignmentOperator BindDeconstructionDeclaration(CSharpSyntaxNode node, ExpressionSyntax declaration, ExpressionSyntax right,
-                                                        DiagnosticBag diagnostics, BoundDeconstructValuePlaceholder rightPlaceholder = null)
+        internal BoundDeconstructionAssignmentOperator BindDeconstruction(
+            CSharpSyntaxNode deconstruction,
+            ExpressionSyntax left,
+            ExpressionSyntax right,
+            DiagnosticBag diagnostics,
+            ref CSharpSyntaxNode declaration,
+            ref CSharpSyntaxNode expression,
+            BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
-            DeconstructionVariable locals = BindDeconstructionDeclarationVariables(declaration, diagnostics);
+            DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.HasNestedVariables);
-            var result = BindDeconstructionAssignment(node, right, locals.NestedVariables, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
+            var result = BindDeconstructionAssignment(deconstruction, right, locals.NestedVariables, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals.NestedVariables);
             return result;
         }
 
         /// <summary>
-        /// Prepares locals (or fields in global statement) corresponding to the variables of the declaration.
-        /// The locals/fields are kept in a tree which captures the nesting of variables.
+        /// Prepares locals (or fields in global statement) and lvalue expressions corresponding to the variables of the declaration.
+        /// The locals/fields/lvalues are kept in a tree which captures the nesting of variables.
         /// Each local or field is either a simple local or field access (when its type is known) or a deconstruction variable pending inference.
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
-        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+        private DeconstructionVariable BindDeconstructionVariables(
             ExpressionSyntax node,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            ref CSharpSyntaxNode declaration,
+            ref CSharpSyntaxNode expression)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DeclarationExpression:
                     {
+                        if (declaration == null)
+                        {
+                            declaration = node;
+                        }
+
                         var component = (DeclarationExpressionSyntax)node;
                         bool isVar;
                         bool isConst = false;
@@ -712,13 +688,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Arguments.Count);
                         foreach (var arg in component.Arguments)
                         {
-                            builder.Add(BindDeconstructionDeclarationVariables(arg.Expression, diagnostics));
+                            builder.Add(BindDeconstructionVariables(arg.Expression, diagnostics, ref declaration, ref expression));
                         }
 
                         return new DeconstructionVariable(builder, node);
                     }
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    var boundVariable = BindExpression(node, diagnostics, invoked: false, indexed: false);
+                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
+                    if (expression == null && checkedVariable.Kind != BoundKind.DiscardedExpression)
+                    {
+                        expression = node;
+                    }
+
+                    return new DeconstructionVariable(checkedVariable, node);
             }
         }
 

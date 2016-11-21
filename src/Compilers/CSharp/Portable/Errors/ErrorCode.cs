@@ -1386,7 +1386,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
         ERR_ExpressionTreeContainsTupleConversion = 8144,
-
         #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
@@ -1426,12 +1425,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
+        #region stragglers for C# 7
         ERR_PredefinedValueTupleTypeNotFound = 8179,
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
+        ERR_MixedDeconstructionUnsupported = 8183,
+        #endregion stragglers for C# 7
 
-        // Available  = 8183-8195
+        // Available  = 8184-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

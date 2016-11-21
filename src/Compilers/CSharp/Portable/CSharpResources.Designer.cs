@@ -6128,6 +6128,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A deconstruction cannot mix declarations and expressions on the left-hand-side..
+        /// </summary>
+        internal static string ERR_MixedDeconstructionUnsupported {
+            get {
+                return ResourceManager.GetString("ERR_MixedDeconstructionUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement &apos;{1}&apos; because &apos;{2}&apos; is a Windows Runtime event and &apos;{3}&apos; is a regular .NET event..
         /// </summary>
         internal static string ERR_MixingWinRTEventWithRegular {

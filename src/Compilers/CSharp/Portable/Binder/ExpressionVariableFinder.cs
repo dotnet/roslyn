@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
         {
-            if (node.IsDeconstructionDeclaration())
+            if (node.IsDeconstruction())
             {
                 CollectVariablesFromDeconstruction(node.Left, node);
             }
@@ -283,14 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void CollectVariablesFromDeconstruction(
-            ExpressionSyntax declaration,
+            ExpressionSyntax possibleTupleDeclaration,
             AssignmentExpressionSyntax deconstruction)
         {
-            switch (declaration.Kind())
+            switch (possibleTupleDeclaration.Kind())
             {
                 case SyntaxKind.TupleExpression:
                     {
-                        var tuple = (TupleExpressionSyntax)declaration;
+                        var tuple = (TupleExpressionSyntax)possibleTupleDeclaration;
                         foreach (var arg in tuple.Arguments)
                         {
                             CollectVariablesFromDeconstruction(arg.Expression, deconstruction);
@@ -299,12 +299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.DeclarationExpression:
                     {
-                        var declarationExpression = (DeclarationExpressionSyntax)declaration;
+                        var declarationExpression = (DeclarationExpressionSyntax)possibleTupleDeclaration;
                         CollectVariablesFromDeconstruction(declarationExpression.Designation, declarationExpression.Type, deconstruction);
                         break;
                     }
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+                    {
+                        Visit(possibleTupleDeclaration);
+                        break;
+                    }
             }
         }
 
