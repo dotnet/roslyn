@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // Go through the set of owning nodes in leaf to root chain.
             foreach (var owningNode in GetOwningNodes(root, position))
             {
-                SyntaxToken lastToken;
-                if (!TryGetLastToken(text, position, owningNode, out lastToken))
+                if (!TryGetLastToken(text, position, owningNode, out var lastToken))
                 {
                     // If we can't get last token, there is nothing more to do, just skip
                     // the other owning nodes and return.
