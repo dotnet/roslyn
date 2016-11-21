@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // try again after a delay
-                CorLightup.Desktop.Sleep(RetryDelay);
+                Thread.Sleep(RetryDelay);
             }
         }
 
