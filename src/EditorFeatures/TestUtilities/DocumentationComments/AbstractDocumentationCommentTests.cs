@@ -150,10 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                     workspace.GetService<ITextUndoHistoryRegistry>(),
                     workspace.GetService<IEditorOperationsFactoryService>(),
                     workspace.GetService<IAsyncCompletionService>());
-
-                string expectedCode;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedMarkup, out expectedCode, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 
