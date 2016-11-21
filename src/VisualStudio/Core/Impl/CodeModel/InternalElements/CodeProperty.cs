@@ -145,8 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         private bool HasAccessorNode(MethodKind methodKind)
         {
-            SyntaxNode accessorNode;
-            return CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out accessorNode);
+            return CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out var accessorNode);
         }
 
         public EnvDTE.CodeFunction Getter

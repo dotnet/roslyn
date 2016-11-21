@@ -202,8 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 FileCodeModel.AddBase(LookupNode(), @base, position);
 
                 var codeElements = this.Bases as ICodeElements;
-                EnvDTE.CodeElement element;
-                var hr = codeElements.Item(1, out element);
+                var hr = codeElements.Item(1, out var element);
 
                 if (ErrorHandler.Succeeded(hr))
                 {
@@ -221,8 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 var name = FileCodeModel.AddImplementedInterface(LookupNode(), @base, position);
 
                 var codeElements = this.ImplementedInterfaces as ICodeElements;
-                EnvDTE.CodeElement element;
-                var hr = codeElements.Item(name, out element);
+                var hr = codeElements.Item(name, out var element);
 
                 if (ErrorHandler.Succeeded(hr))
                 {
