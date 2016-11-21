@@ -78,8 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                string codeActionEquivalenceKey;
-                var node = GetNodeToSimplify(root, model, diagnostic, options, out codeActionEquivalenceKey, cancellationToken);
+                var node = GetNodeToSimplify(root, model, diagnostic, options,
+                    out var codeActionEquivalenceKey, cancellationToken);
+
                 if (node != null && fixAllState.CodeActionEquivalenceKey == codeActionEquivalenceKey)
                 {
                     nodesToSimplify.Add(node);
