@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 TClassSyntax node,
                 CancellationToken cancellationToken)
             {
-                INamedTypeSymbol classType, abstractClassType;
                 if (!service.TryInitializeState(document, model, node, cancellationToken,
-                    out classType, out abstractClassType))
+                    out var classType, out var abstractClassType))
                 {
                     return null;
                 }

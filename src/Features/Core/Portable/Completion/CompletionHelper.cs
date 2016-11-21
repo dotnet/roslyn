@@ -127,15 +127,13 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             lock (_gate)
             {
-                Dictionary<string, PatternMatcher> innerMap;
-                if (!map.TryGetValue(culture, out innerMap))
+                if (!map.TryGetValue(culture, out var innerMap))
                 {
                     innerMap = new Dictionary<string, PatternMatcher>();
                     map[culture] = innerMap;
                 }
 
-                PatternMatcher patternMatcher;
-                if (!innerMap.TryGetValue(value, out patternMatcher))
+                if (!innerMap.TryGetValue(value, out var patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,

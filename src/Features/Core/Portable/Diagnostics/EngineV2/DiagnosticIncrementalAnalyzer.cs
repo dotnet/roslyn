@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
-            DiagnosticAnalysisResult result;
-            if (map.TryGetValue(analyzer, out result))
+            if (map.TryGetValue(analyzer, out var result))
             {
                 return result;
             }

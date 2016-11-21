@@ -133,11 +133,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             // may have consumed a brace that was intended for a higher level construct.
             // So balance the tree first, then do the switch replacement.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            SyntaxNode newRoot;
-            SyntaxNode newSwitchNode;
             syntaxFacts.AddFirstMissingCloseBrace(
-                root, switchNode, out newRoot, out newSwitchNode);
+                root, switchNode, out var newRoot, out var newSwitchNode);
 
             root = newRoot;
             switchNode = newSwitchNode;

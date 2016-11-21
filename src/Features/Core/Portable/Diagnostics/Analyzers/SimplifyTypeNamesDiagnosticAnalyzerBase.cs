@@ -93,10 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             diagnostic = default(Diagnostic);
 
             var optionSet = analyzerOptions.GetOptionSet();
-            string diagnosticId;
-
-            TextSpan issueSpan;
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out var diagnosticId, cancellationToken))
             {
                 return false;
             }

@@ -105,12 +105,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
-
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            string diagnosticId;
-            DiagnosticSeverity diagnosticSeverity;
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out diagnosticId, out diagnosticSeverity))
+            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var diagnosticId, out var diagnosticSeverity))
             {
                 var descriptor = new DiagnosticDescriptor(diagnosticId,
                         s_preferFrameworkTypeTitle,

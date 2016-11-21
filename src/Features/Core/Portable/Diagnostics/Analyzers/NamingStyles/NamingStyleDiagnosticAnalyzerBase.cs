@@ -61,12 +61,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
         {
-            NamingRule applicableRule;
-            if (preferences.TryGetApplicableRule(context.Symbol, out applicableRule))
+            if (preferences.TryGetApplicableRule(context.Symbol, out var applicableRule))
             {
-                string failureReason;
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
-                    !applicableRule.IsNameCompliant(context.Symbol.Name, out failureReason))
+                    !applicableRule.IsNameCompliant(context.Symbol.Name, out var failureReason))
                 {
                     var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
                          s_localizableTitleNamingStyle,

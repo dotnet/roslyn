@@ -58,10 +58,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
@@ -78,9 +76,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);

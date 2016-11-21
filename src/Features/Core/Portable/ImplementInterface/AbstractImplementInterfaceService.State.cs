@@ -40,11 +40,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 SyntaxNode interfaceNode,
                 CancellationToken cancellationToken)
             {
-                SyntaxNode classOrStructDecl;
-                INamedTypeSymbol classOrStructType;
-                IEnumerable<INamedTypeSymbol> interfaceTypes;
                 if (!service.TryInitializeState(document, model, interfaceNode, cancellationToken,
-                    out classOrStructDecl, out classOrStructType, out interfaceTypes))
+                    out var classOrStructDecl, out var classOrStructType, out var interfaceTypes))
                 {
                     return null;
                 }
