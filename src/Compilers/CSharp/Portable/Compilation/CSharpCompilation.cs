@@ -1523,6 +1523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override ImmutableArray<int> UnreferencedAssemblyIdentityDiagnosticCodes { get; }
+            = ImmutableArray.Create((int)ErrorCode.ERR_NoTypeDef);
+
         internal class EntryPoint
         {
             public readonly MethodSymbol MethodSymbol;

@@ -2668,5 +2668,44 @@ namespace Microsoft.CodeAnalysis
         }
         
         internal abstract bool IsIOperationFeatureEnabled();
+
+        /// <summary>
+        /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns
+        /// the actual <see cref="AssemblyIdentity"/> instances that were not referenced.
+        /// </summary>
+        public ImmutableArray<AssemblyIdentity> GetUnreferencedAssemblyIdentities(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (UnreferencedAssemblyIdentityDiagnosticCodes.Contains(diagnostic.Code))
+            {
+                return ExtractAssemblyIdenties(diagnostic);
+            }
+
+            return ImmutableArray<AssemblyIdentity>.Empty;
+        }
+
+        /// <summary>
+        /// For testing purposes.
+        /// </summary>
+        internal abstract ImmutableArray<int> UnreferencedAssemblyIdentityDiagnosticCodes { get; }
+
+        internal static ImmutableArray<AssemblyIdentity> ExtractAssemblyIdenties(Diagnostic diagnostic)
+        {
+            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
+
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is AssemblyIdentity id)
+                {
+                    builder.Add(id);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

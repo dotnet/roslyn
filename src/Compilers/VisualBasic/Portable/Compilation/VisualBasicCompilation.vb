@@ -2702,6 +2702,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
+
+        Friend Overrides ReadOnly Property UnreferencedAssemblyIdentityDiagnosticCodes As ImmutableArray(Of Integer) =
+            ImmutableArray.Create(Of Integer)(
+                ERRID.ERR_UnreferencedAssemblyEvent3,
+                ERRID.ERR_UnreferencedModuleBase3,
+                ERRID.ERR_UnreferencedModuleImplements3,
+                ERRID.ERR_UnreferencedAssembly3)
+
 #End Region
 
         Private Class SymbolSearcher

@@ -97,6 +97,19 @@ namespace Microsoft.CodeAnalysis
         {
             var diagnostics = c.GetDiagnostics();
             diagnostics.Verify(expected);
+
+            // At this point we've verified that the expected and actual diagnostics are the same.
+            var unreferencedAssemblyDiagnosticIds = c.UnreferencedAssemblyIdentityDiagnosticCodes;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (unreferencedAssemblyDiagnosticIds.Contains(diagnostic.Code))
+                {
+                    // Ensure that this diagnostic contains at least one assembly id.
+                    var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
+                    Assert.True(assemblyIds.Length > 0);
+                }
+            }
+
             return c;
         }
 
