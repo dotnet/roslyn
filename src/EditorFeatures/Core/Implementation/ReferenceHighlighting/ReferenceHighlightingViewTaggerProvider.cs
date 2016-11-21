@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             var caretPosition = context.CaretPosition.Value;
-
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out workspace))
+            if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
             {
                 return SpecializedTasks.EmptyTask;
             }
