@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var previousTokens = node.GetAnnotatedNodesAndTokens(previousMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
                 var nextTokens = node.GetAnnotatedNodesAndTokens(nextMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
-
+                
                 // Check whether we can use the tokens we got back from the node.
-                TextSpan span;
-                if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens, out span))
+                if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
+                        out var span))
                 {
                     yield return span;
                 }
@@ -324,13 +324,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
 
-                SyntaxToken startToken;
-                SyntaxToken endToken;
-                TextSpan spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out startToken, out endToken);
-
-                SyntaxToken previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-                SyntaxToken nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                var previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                var nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
 
                 // Make sure the previous and next tokens we found do not overlap with any existing spans. If they do, merge two spans.
                 previousToken = (previousToken.RawKind == 0) ? root.GetFirstToken(includeZeroWidth: true) : previousToken;
