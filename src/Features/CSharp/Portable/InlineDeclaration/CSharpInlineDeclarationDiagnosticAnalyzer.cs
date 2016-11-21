@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -157,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // Find the scope that the out-declaration variable will live in after we
             // rewrite things.
-            var outArgumentScope = containingStatement.Parent is BlockSyntax
-                ? (BlockSyntax)containingStatement.Parent
-                : containingStatement;
+            var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
             // Make sure that variable is not accessed outside of that scope.
             var dataFlow = semanticModel.AnalyzeDataFlow(outArgumentScope);
@@ -198,6 +198,42 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
+        }
+
+        private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
+        {
+            for (var current = argumentExpression; current != null; current = current.Parent)
+            {
+                if (current.Parent is LambdaExpressionSyntax lambda &&
+                    current == lambda.Body)
+                {
+                    // We were in a lambda.  The lambda body will be the new scope of the 
+                    // out var.
+                    return current;
+                }
+
+                if (current is StatementSyntax)
+                {
+                    // We hit a statement containing the out-argument.  Statements can have one of 
+                    // two forms.  They're either parented by a block, or by another statement 
+                    // (i.e. they're an embedded statement).  If we're parented by a block, then
+                    // that block will be the scope of the new out-var.
+                    //
+                    // However, if our containing statement is not parented by a block, then that
+                    // means we have something like:
+                    //
+                    //      if (x)
+                    //          if (Try(out y))
+                    //
+                    // In this case, there is a 'virtual' block scope surrounding the embedded 'if'
+                    // statement, and that will be the scope the out-var goes into.
+                    return current.IsParentKind(SyntaxKind.Block)
+                        ? current.Parent
+                        : current;
+                }
+            }
+
+            return null;
         }
 
         private bool IsAccessed(
