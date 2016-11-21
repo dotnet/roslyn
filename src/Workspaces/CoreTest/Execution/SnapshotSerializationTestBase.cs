@@ -130,9 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifySolutionStateSerializationAsync(ISolutionSynchronizationService service, Solution solution, Checksum solutionChecksum)
         {
             var solutionObjectFromSyncObject = await service.GetValueAsync<SolutionStateChecksums>(solutionChecksum);
-
-            SolutionStateChecksums solutionObjectFromSolution;
-            Assert.True(solution.State.TryGetStateChecksums(out solutionObjectFromSolution));
+            Assert.True(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(service, solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
