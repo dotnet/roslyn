@@ -2281,7 +2281,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestGetTextSync()
+        public void TestGetTextSynchronously()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
 
@@ -2293,10 +2293,10 @@ class C1
                 var proj = ws.OpenProjectAsync(projectFullPath).Result;
 
                 var doc = proj.Documents.First();
-                var text = doc.State.GetTextSync(CancellationToken.None);
+                var text = doc.State.GetTextSynchronously(CancellationToken.None);
 
                 var adoc = proj.AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-                var atext = adoc.State.GetTextSync(CancellationToken.None);
+                var atext = adoc.State.GetTextSynchronously(CancellationToken.None);
                 Assert.Contains("Window", atext.ToString(), StringComparison.Ordinal);
             }
         }

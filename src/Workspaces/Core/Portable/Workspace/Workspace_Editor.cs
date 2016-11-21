@@ -478,8 +478,8 @@ namespace Microsoft.CodeAnalysis
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                var oldText = _oldDocumentState.GetTextSync(cancellationToken);
-                var version = _oldDocumentState.GetVersionSync(cancellationToken);
+                var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
+                var version = _oldDocumentState.GetVersionSynchronously(cancellationToken);
 
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }

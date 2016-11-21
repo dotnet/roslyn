@@ -287,13 +287,13 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Text;
         }
 
-        public SourceText GetTextSync(CancellationToken cancellationToken)
+        public SourceText GetTextSynchronously(CancellationToken cancellationToken)
         {
             var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Text;
         }
 
-        public VersionStamp GetVersionSync(CancellationToken cancellationToken)
+        public VersionStamp GetVersionSynchronously(CancellationToken cancellationToken)
         {
             var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Version;
