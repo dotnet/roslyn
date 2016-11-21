@@ -276,8 +276,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new TextSpan(text.Length, 0);
             }
 
-            int startLine, startColumn, endLine, endColumn;
-            AdjustBoundaries(dataLocation, lines, out startLine, out startColumn, out endLine, out endColumn);
+            AdjustBoundaries(dataLocation, lines, 
+                out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
             var endLinePosition = new LinePosition(endLine, endColumn);
@@ -379,10 +379,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            TextSpan sourceSpan;
-            FileLinePositionSpan mappedLineInfo;
-            FileLinePositionSpan originalLineInfo;
-            GetLocationInfo(document, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);
+            GetLocationInfo(document, location, out var sourceSpan, out var originalLineInfo, out var mappedLineInfo);
 
             var mappedStartLine = mappedLineInfo.StartLinePosition.Line;
             var mappedStartColumn = mappedLineInfo.StartLinePosition.Character;
@@ -485,8 +482,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         internal bool IsBuildDiagnostic()
         {
-            string value;
-            return this.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value) &&
+            return this.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
                 value == WellKnownDiagnosticTags.Build;
         }
     }
