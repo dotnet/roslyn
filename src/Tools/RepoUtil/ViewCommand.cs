@@ -131,7 +131,7 @@ namespace RepoUtil
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
 
                 // Need to verify the contents of the generated file are correct.
-                var fileName = new FileName(_sourcesPath, data.RelativeFileName);
+                var fileName = new FileName(_sourcesPath, data.RelativeFilePath);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
                 if (actualContent != expectedContent)
