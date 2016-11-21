@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (trigger.Kind == CompletionTriggerKind.Insertion)
+            if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
