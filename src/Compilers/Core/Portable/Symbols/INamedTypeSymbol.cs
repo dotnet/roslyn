@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
         /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArguments"/>
-        /// array.
+        /// array. Returns an empty array if there are no modifiers.
         /// </summary>
         ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal);
 

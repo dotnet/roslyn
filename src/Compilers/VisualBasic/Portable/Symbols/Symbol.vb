@@ -928,19 +928,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return errorInfo
             End If
 
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
+            Dim refModifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.RefCustomModifiers)
 
-            If modifiersErrorInfo IsNot Nothing Then
-                If modifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                    Return modifiersErrorInfo
-                End If
-
-                If errorInfo Is Nothing Then
-                    Return modifiersErrorInfo
-                End If
+            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = highestPriorityUseSiteError Then
+                Return refModifiersErrorInfo
             End If
 
-            Return errorInfo
+            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
+
+            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = highestPriorityUseSiteError Then
+                Return modifiersErrorInfo
+            End If
+
+            Return If(errorInfo, If(refModifiersErrorInfo, modifiersErrorInfo))
         End Function
 
         Friend Function DeriveUseSiteErrorInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As DiagnosticInfo
@@ -1012,7 +1012,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function GetUnificationUseSiteDiagnosticRecursive(parameters As ImmutableArray(Of ParameterSymbol), owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
             For Each parameter In parameters
                 Dim info = If(parameter.Type.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes),
-                              GetUnificationUseSiteDiagnosticRecursive(parameter.CustomModifiers, owner, checkedTypes))
+                              If(GetUnificationUseSiteDiagnosticRecursive(parameter.RefCustomModifiers, owner, checkedTypes),
+                                    GetUnificationUseSiteDiagnosticRecursive(parameter.CustomModifiers, owner, checkedTypes)))
 
                 If info IsNot Nothing Then
                     Return info

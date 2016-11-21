@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.CountOfCustomModifiersPrecedingByRef);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -312,9 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return 0; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
             }
 
             if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)

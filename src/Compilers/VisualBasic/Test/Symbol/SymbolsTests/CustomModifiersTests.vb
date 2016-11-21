@@ -657,12 +657,12 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
-            Assert.Equal("Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() ByRef As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P ByRef As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
-            Assert.Equal("Function CL1(Of T1).Test() ByRef As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of T1).P ByRef As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef Function CL1(Of T1).Test() As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of T1).P As T1 modopt(System.Runtime.CompilerServices.IsConst)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:=
 "Test
@@ -752,12 +752,12 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
-            Assert.Equal("Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() ByRef modopt(System.Runtime.CompilerServices.IsConst) As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P ByRef modopt(System.Runtime.CompilerServices.IsConst) As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
-            Assert.Equal("Function CL1(Of T1).Test() ByRef modopt(System.Runtime.CompilerServices.IsConst) As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of T1).P ByRef modopt(System.Runtime.CompilerServices.IsConst) As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of T1).Test() As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of T1).P As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:=
 "Test
@@ -847,12 +847,12 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
-            Assert.Equal("Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() ByRef As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P ByRef As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
-            Assert.Equal("Function CL1(Of T1).Test() ByRef As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of T1).P ByRef As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef Function CL1(Of T1).Test() As T1", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef Property CL1(Of T1).P As T1", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:=
 "Test
@@ -942,12 +942,12 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             Dim cl2Base = compilation.GetTypeByMetadataName("CL2").BaseType
-            Assert.Equal("Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() ByRef modopt(System.Runtime.CompilerServices.IsConst) As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P ByRef modopt(System.Runtime.CompilerServices.IsConst) As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)).P As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong)", cl2Base.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             Dim cl1 = compilation.GetTypeByMetadataName("CL1`1")
-            Assert.Equal("Function CL1(Of T1).Test() ByRef modopt(System.Runtime.CompilerServices.IsConst) As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
-            Assert.Equal("ReadOnly Property CL1(Of T1).P ByRef modopt(System.Runtime.CompilerServices.IsConst) As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
+            Assert.Equal("ByRef modopt(System.Runtime.CompilerServices.IsConst) Function CL1(Of T1).Test() As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of MethodSymbol)("Test").ToTestDisplayString())
+            Assert.Equal("ReadOnly ByRef modopt(System.Runtime.CompilerServices.IsConst) Property CL1(Of T1).P As T1 modopt(System.Runtime.CompilerServices.IsVolatile)", cl1.GetMember(Of PropertySymbol)("P").ToTestDisplayString())
 
             CompileAndVerify(compilation, expectedOutput:=
 "Test

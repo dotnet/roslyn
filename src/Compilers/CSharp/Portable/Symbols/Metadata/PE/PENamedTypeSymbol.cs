@@ -1818,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         if (((object)getMethod != null) || ((object)setMethod != null))
                         {
-                            members.Add(new PEPropertySymbol(moduleSymbol, this, propertyDef, getMethod, setMethod));
+                            members.Add(PEPropertySymbol.Create(moduleSymbol, this, propertyDef, getMethod, setMethod));
                         }
                     }
                     catch (BadImageFormatException)

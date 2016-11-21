@@ -196,9 +196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return 0; }
+            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ParameterSymbol CopyParameter(ParameterSymbol parameter, MethodSymbol owner)
         {
-            return new SynthesizedParameterSymbol(
+            return SynthesizedParameterSymbol.Create(
                 owner,
                 parameter.Type,
                 parameter.Ordinal,
