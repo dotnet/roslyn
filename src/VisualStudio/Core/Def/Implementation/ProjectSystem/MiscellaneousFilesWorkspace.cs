@@ -85,10 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private LanguageInformation TryGetLanguageInformation(string filename)
         {
-            Guid fileLanguageGuid;
             LanguageInformation languageInformation = null;
 
-            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out fileLanguageGuid)))
+            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
             {
                 _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
             }
@@ -232,12 +231,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _foregroundThreadAffinitization.AssertIsForeground();
 
             var workspaceRegistration = (WorkspaceRegistration)sender;
-            uint docCookie;
 
             // Since WorkspaceChanged notifications may be asynchronous and happened on a different thread,
             // we might have already unsubscribed for this synchronously from the RDT while we were in the process of sending this
             // request back to the UI thread.
-            if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out docCookie))
+            if (!_docCookieToWorkspaceRegistration.TryGetKey(workspaceRegistration, out var docCookie))
             {
                 return;
             }
@@ -253,9 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (workspaceRegistration.Workspace == null)
             {
-                HostProject hostProject;
-
-                if (_docCookiesToHostProject.TryGetValue(docCookie, out hostProject))
+                if (_docCookiesToHostProject.TryGetValue(docCookie, out var hostProject))
                 {
                     // The workspace was taken from us and released and we have only asynchronously found out now.
                     var document = hostProject.Document;
@@ -294,12 +290,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool TryUntrackClosingDocument(uint docCookie, string moniker)
         {
             bool unregisteredRegistration = false;
-
             // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
             // causes us to set the workspace to null, which we then respond to as an indication that we should
             // attach again.
-            WorkspaceRegistration registration;
-            if (_docCookieToWorkspaceRegistration.TryGetValue(docCookie, out registration))
+            if (_docCookieToWorkspaceRegistration.TryGetValue(docCookie, out var registration))
             {
                 registration.WorkspaceChanged -= Registration_WorkspaceChanged;
                 _docCookieToWorkspaceRegistration = _docCookieToWorkspaceRegistration.RemoveKey(docCookie);
@@ -380,15 +374,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void DetachFromDocument(uint docCookie, string moniker)
         {
             _foregroundThreadAffinitization.AssertIsForeground();
-
-            HostProject hostProject;
-
             if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
             {
                 return;
             }
 
-            if (_docCookiesToHostProject.TryGetValue(docCookie, out hostProject))
+            if (_docCookiesToHostProject.TryGetValue(docCookie, out var hostProject))
             {
                 var document = hostProject.Document;
 
@@ -435,8 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private HostProject GetHostProject(ProjectId id)
         {
-            HostProject project;
-            _hostProjects.TryGetValue(id, out project);
+            _hostProjects.TryGetValue(id, out var project);
             return project;
         }
 

@@ -28,16 +28,12 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
                 return "";
             }
 
-            IVisualStudioHostProject ivisualStudioHostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project envDTEProject;
-
             var folders = new List<string>();
             var defaultNamespace = "";
 
             if (workspace is VisualStudioWorkspaceImpl)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(project.Id, out ivisualStudioHostProject, out hierarchy, out envDTEProject);
+                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(project.Id, out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
 
                 try
                 {
@@ -54,15 +50,11 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
         {
-            IVisualStudioHostProject ivisualStudioHostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project envDTEProject;
-
             var folders = new List<string>();
 
             if (workspace is VisualStudioWorkspaceImpl)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(projectId, out ivisualStudioHostProject, out hierarchy, out envDTEProject);
+                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(projectId, out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
 
                 var projectItems = envDTEProject.ProjectItems;
 

@@ -30,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public VersionStamp GetInitialProjectVersionFromSemanticVersion(Project project, VersionStamp semanticVersion)
         {
-            Versions versions;
-            if (!TryGetInitialVersions(s_initialSemanticVersions, project, SemanticVersion, out versions))
+            if (!TryGetInitialVersions(s_initialSemanticVersions, project, SemanticVersion, out var versions))
             {
                 return VersionStamp.Default;
             }
@@ -46,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public VersionStamp GetInitialDependentProjectVersionFromDependentSemanticVersion(Project project, VersionStamp dependentSemanticVersion)
         {
-            Versions versions;
-            if (!TryGetInitialVersions(s_initialDependentSemanticVersions, project, DependentSemanticVersion, out versions))
+            if (!TryGetInitialVersions(s_initialDependentSemanticVersions, project, DependentSemanticVersion, out var versions))
             {
                 return VersionStamp.Default;
             }
@@ -82,8 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
 
         public void LoadInitialSemanticVersions(Project project)
         {
-            Versions unused;
-            if (!s_initialSemanticVersions.TryGetValue(project.Id, out unused))
+            if (!s_initialSemanticVersions.TryGetValue(project.Id, out var unused))
             {
                 PersistedVersionStampLogger.LogProject();
 

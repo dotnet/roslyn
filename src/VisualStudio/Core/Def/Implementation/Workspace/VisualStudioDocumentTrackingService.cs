@@ -266,8 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             internal string GetDebuggerDisplay()
             {
-                object caption;
-                Frame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out caption);
+                Frame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var caption);
                 return caption.ToString();
             }
         }

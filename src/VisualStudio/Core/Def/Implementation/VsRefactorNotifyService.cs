@@ -21,11 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
             AssertIsForeground();
-
-            Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap;
-            string[] rqnames;
-
-            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out rqnames))
+            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
@@ -63,11 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
             AssertIsForeground();
-
-            Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap;
-            string[] rqnames;
-
-            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out rqnames))
+            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
@@ -112,11 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             hierarchyToItemIDsMap = null;
             rqnames = null;
-
-            string rqname;
-            VisualStudioWorkspaceImpl visualStudioWorkspace;
-
-            if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out visualStudioWorkspace, out hierarchyToItemIDsMap, out rqname))
+            if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out var visualStudioWorkspace, out hierarchyToItemIDsMap, out var rqname))
             {
                 return false;
             }
@@ -192,8 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     continue;
                 }
 
-                List<uint> itemIDsForCurrentHierarchy;
-                if (!hierarchyToItemIDsMap.TryGetValue(project.Hierarchy, out itemIDsForCurrentHierarchy))
+                if (!hierarchyToItemIDsMap.TryGetValue(project.Hierarchy, out var itemIDsForCurrentHierarchy))
                 {
                     itemIDsForCurrentHierarchy = new List<uint>();
                     hierarchyToItemIDsMap.Add(project.Hierarchy, itemIDsForCurrentHierarchy);
