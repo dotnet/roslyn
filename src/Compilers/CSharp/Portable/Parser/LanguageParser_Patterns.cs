@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
-                    return this.ParseType(ParseTypeMode.AfterIsOrCaseOrOutOrTupleComma);
+                    return this.ParseType(ParseTypeMode.AfterIsOrCase);
                 default:
                     // attempt to disambiguate.
                     break;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCaseOrOutOrTupleComma);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
 
                     tk = this.CurrentToken.ContextualKind;
                     if (!type.IsMissing)
@@ -129,21 +129,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // sequence of tokens. Note that these rules are not applied when parsing a *type-argument-list*
         // in a *namespace-or-type-name* (§3.8).
         //
-        private ExpressionSyntax ParseExpressionOrDeclaration(bool firstInTuple, MessageID feature)
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
         {
-            var tk = this.CurrentToken.Kind;
-
-            // If it is a nameof, skip the 'if' and parse as an expression. 
-            if (!SyntaxFacts.IsPredefinedType(tk) && tk != SyntaxKind.IdentifierToken)
-            {
-                return this.ParseSubExpression(Precedence.Expression);
-            }
-
             var resetPoint = this.GetResetPoint();
             try
             {
-                TypeSyntax type = this.ParseType(firstInTuple ? ParseTypeMode.FirstElementOfPossibleTupleLiteral : ParseTypeMode.AfterIsOrCaseOrOutOrTupleComma);
-                if (!type.IsMissing && this.IsTrueIdentifier())
+                TypeSyntax type = this.ParseType(mode);
+                if (!type.IsMissing &&
+                    (this.IsTrueIdentifier() ||
+                     permitTupleDesignation && (type.IsVar || type.Kind == SyntaxKind.PredefinedType) && this.CurrentToken.Kind == SyntaxKind.OpenParenToken))
                 {
                     var designation = CheckFeatureAvailability(ParseDesignation(), feature);
                     return _syntaxFactory.DeclarationExpression(type, designation);
@@ -175,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCaseOrOutOrTupleComma);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
                     if (!type.IsMissing)
                     {
                         // X.Y.Z id

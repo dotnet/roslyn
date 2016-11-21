@@ -2078,7 +2078,6 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            // the duplicate reporting of CS8136 below is due to open issue https://github.com/dotnet/roslyn/issues/12905
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
@@ -2093,6 +2092,7 @@ namespace System
 @"
 class C
 {
+    int x2, x3;
     void M()
     {
         (int x1, x2) = (1, 2);
@@ -2109,12 +2109,12 @@ namespace System
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,18): error CS1031: Type expected
+                // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x2").WithLocation(6, 18),
-                // (7,10): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
+                // (8,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (x3, int x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x3").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x3, int x4)").WithLocation(8, 9)
                 );
         }
 
