@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch == '(')
             {
-                string insertionText;
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out insertionText))
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
                 {
                     return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
                 }
