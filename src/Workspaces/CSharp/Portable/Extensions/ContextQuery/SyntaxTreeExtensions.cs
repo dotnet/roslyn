@@ -922,8 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            SyntaxToken nameToken;
-            if (!syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out nameToken))
+            if (!syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var nameToken))
             {
                 return false;
             }

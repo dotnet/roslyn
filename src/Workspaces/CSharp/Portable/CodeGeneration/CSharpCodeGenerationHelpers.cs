@@ -263,8 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return node;
             }
 
-            string comment;
-            var result = TryGetDocumentationComment(symbol, "///", out comment, cancellationToken)
+            var result = TryGetDocumentationComment(symbol, "///", out var comment, cancellationToken)
                 ? node.WithPrependedLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(comment))
                       .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
                 : node;
