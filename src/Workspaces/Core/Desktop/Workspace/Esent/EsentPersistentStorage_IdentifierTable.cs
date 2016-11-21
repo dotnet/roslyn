@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Esent
                     return VersionStamp.Default;
                 }
 
-                using (var reader = new ObjectReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     return VersionStamp.ReadFrom(reader);
                 }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Esent
                     return true;
                 }
 
-                using (var reader = new ObjectReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var formatVersion = reader.ReadString();
                     if (formatVersion != IdentifierSetSerializationVersion)
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Esent
                         identifierId = identifierMap[identifier];
 
                         using (var stream = accessor.GetWriteStream(key, identifierId))
-                        using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                        using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
                         {
                             writer.WriteString(IdentifierSetSerializationVersion);
                             WriteList(writer, positions);
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
             accessor.PrepareBatchOneInsert();
             using (var stream = accessor.GetWriteStream(key, identifierId))
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new StreamObjectWriter(stream))
             {
                 version.WriteTo(writer);
             }
