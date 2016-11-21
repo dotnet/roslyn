@@ -367,8 +367,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 if (chunk.CharacterSpans.Count > 0)
                 {
                     var candidateParts = GetWordSpans(candidate);
-                    List<TextSpan> matchedSpans;
-                    var camelCaseWeight = TryCamelCaseMatch(candidate, includeMatchSpans, candidateParts, chunk, CompareOptions.None, out matchedSpans);
+                    var camelCaseWeight = TryCamelCaseMatch(candidate, includeMatchSpans, candidateParts, chunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseWeight.HasValue)
                     {
                         return new PatternMatch(
