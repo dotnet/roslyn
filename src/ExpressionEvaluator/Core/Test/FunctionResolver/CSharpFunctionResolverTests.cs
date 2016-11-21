@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 VerifySignatures(requestG);
             }
 
-            // Two modules after after two requests for same module,
+            // Two modules after two requests for same module,
             // ... resolver enabled.
             moduleA = new Module(bytesA, name: "A.dll");
             moduleB = new Module(bytesB, name: "B.dll");

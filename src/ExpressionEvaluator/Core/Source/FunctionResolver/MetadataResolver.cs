@@ -11,6 +11,8 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
+    internal delegate void OnFunctionResolvedDelegate<TModule, TRequest>(TModule module, TRequest request, int token, int version, int ilOffset);
+
     internal sealed class MetadataResolver<TProcess, TModule, TRequest>
         where TProcess : class
         where TModule : class
@@ -18,21 +20,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private static readonly StringComparer s_stringComparer = StringComparer.Ordinal;
 
-        private readonly FunctionResolverBase<TProcess, TModule, TRequest> _resolver;
         private readonly TProcess _process;
         private readonly TModule _module;
         private readonly MetadataReader _reader;
+        private readonly OnFunctionResolvedDelegate<TModule, TRequest> _onFunctionResolved;
 
         internal MetadataResolver(
-            FunctionResolverBase<TProcess, TModule, TRequest> resolver,
             TProcess process,
             TModule module,
-            MetadataReader reader)
+            MetadataReader reader,
+            OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
-            _resolver = resolver;
             _process = process;
             _module = module;
             _reader = reader;
+            _onFunctionResolved = onFunctionResolved;
         }
 
         internal void Resolve(TRequest request, RequestSignature signature)
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             MethodDefinitionHandle handle)
         {
             Debug.Assert(!handle.IsNil);
-            _resolver.OnFunctionResolved(_module, request, token: MetadataTokens.GetToken(handle), version: 1, ilOffset: 0);
+            _onFunctionResolved(_module, request, token: MetadataTokens.GetToken(handle), version: 1, ilOffset: 0);
         }
 
         private void OnAccessorResolved(
