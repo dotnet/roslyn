@@ -575,13 +575,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static implicit operator SeparatedSyntaxList<SyntaxNode>(SeparatedSyntaxList<TNode> nodes)
-        {
-            return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
-        }
+            => new SeparatedSyntaxList<SyntaxNode>(nodes._list);
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
-        {
-            return new SeparatedSyntaxList<TNode>(nodes._list);
-        }
+        /// <summary>
+        /// It is always allowed to down-cast <see cref="SeparatedSyntaxList{SyntaxNode}"/> to a
+        /// <see cref="SeparatedSyntaxList{TNode}"/>.  No checking is performed at cast time if
+        /// the cast is safe to perform (as that would be too costly).  As such, accessing elements
+        /// from the resultant <see cref="SeparatedSyntaxList{TNode}"/> may result in 
+        /// <see cref="InvalidCastException"/>s later on during program execution.
+        /// </summary>
+        public static explicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+            => new SeparatedSyntaxList<TNode>(nodes._list);
     }
 }

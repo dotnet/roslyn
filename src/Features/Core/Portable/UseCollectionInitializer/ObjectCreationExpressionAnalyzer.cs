@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+            var arguments = _syntaxFacts.GetArgumentsOfInvocationExpression<SyntaxNode>(invocationExpression);
             if (arguments.Count < 1)
             {
                 return false;

@@ -1395,11 +1395,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetArgumentsOfInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
-            Dim arguments = TryCast(invocationExpression, InvocationExpressionSyntax)?.ArgumentList?.Arguments
-            Return If(arguments.HasValue, arguments.Value, Nothing)
-        End Function
-
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
@@ -1563,6 +1558,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetExpressionOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInvocationExpression
             Return DirectCast(node, InvocationExpressionSyntax).Expression
+        End Function
+
+        Public Function GetArgumentsOfInvocationExpression(Of TSyntaxNode As SyntaxNode)(node As SyntaxNode) As SeparatedSyntaxList(Of TSyntaxNode) Implements ISyntaxFactsService.GetArgumentsOfInvocationExpression
+            Dim arguments = TryCast(node, InvocationExpressionSyntax)?.ArgumentList?.Arguments
+            Return If(arguments.HasValue, CType(CType(arguments.Value, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TSyntaxNode)), Nothing)
         End Function
 
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression

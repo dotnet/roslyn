@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
                 if (syntaxFacts.IsInvocationExpression(expression))
                 {
-                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
+                    var arguments = syntaxFacts.GetArgumentsOfInvocationExpression<SyntaxNode>(expression);
                     var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                         match.SpanStart, arguments[0].SpanStart));
 
