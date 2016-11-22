@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Versions.props" />
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -30,7 +31,7 @@
 
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />
