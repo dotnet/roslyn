@@ -100,9 +100,6 @@
     <Compile Include="VisualBasicLanguageInstructionDecoder.vb" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

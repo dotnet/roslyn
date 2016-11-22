@@ -354,6 +354,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters.
         ''' If nothing has been substituted for a given type parameter,

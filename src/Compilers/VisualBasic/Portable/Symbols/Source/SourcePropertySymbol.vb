@@ -316,6 +316,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 EnsureSignature()
@@ -743,6 +749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             returnsByRef:=False,
                                                                             [type]:=retType,
                                                                             typeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            countOfCustomModifiersPrecedingByRef:=0,
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 
@@ -1040,15 +1047,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return _lazyDocComment
         End Function
-
-        Private Sub CopyPropertyCustomModifiers(propertyWithCustomModifiers As PropertySymbol, ByRef type As TypeSymbol, ByRef typeCustomModifiers As ImmutableArray(Of CustomModifier))
-            Debug.Assert(propertyWithCustomModifiers IsNot Nothing)
-            typeCustomModifiers = propertyWithCustomModifiers.TypeCustomModifiers
-            Dim overriddenPropertyType As TypeSymbol = propertyWithCustomModifiers.Type
-            If type.IsSameTypeIgnoringAll(overriddenPropertyType) Then
-                type = overriddenPropertyType
-            End If
-        End Sub
 
         Private Shared Function DecodeModifiers(modifiers As SyntaxTokenList,
                                                 container As SourceMemberContainerTypeSymbol,

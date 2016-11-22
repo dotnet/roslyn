@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly _setMethod As PEMethodSymbol
         Private ReadOnly _handle As PropertyDefinitionHandle
         Private ReadOnly _typeCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         Private _lazyDocComment As Tuple(Of CultureInfo, String)
@@ -70,14 +71,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim metadataDecoder = New MetadataDecoder(moduleSymbol, containingType)
             Dim propEx As BadImageFormatException = Nothing
-            Dim propertyParams = metadataDecoder.GetSignatureForProperty(handle, _signatureHeader, propEx, allowByRefReturn:=True)
+            Dim propertyParams = metadataDecoder.GetSignatureForProperty(handle, _signatureHeader, propEx)
             Debug.Assert(propertyParams.Length > 0)
 
             Dim unusedSignatureHeader As SignatureHeader = Nothing
             Dim getEx As BadImageFormatException = Nothing
-            Dim getParams = If(_getMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_getMethod.Handle, unusedSignatureHeader, getEx, allowByRefReturn:=True))
+            Dim getParams = If(_getMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_getMethod.Handle, unusedSignatureHeader, getEx))
             Dim setEx As BadImageFormatException = Nothing
-            Dim setParams = If(_setMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_setMethod.Handle, unusedSignatureHeader, setEx, allowByRefReturn:=False))
+            Dim setParams = If(_setMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_setMethod.Handle, unusedSignatureHeader, setEx))
 
             Dim signaturesMatch = DoSignaturesMatch(metadataDecoder, propertyParams, _getMethod, getParams, _setMethod, setParams)
             Dim parametersMatch = True
@@ -96,11 +97,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 _setMethod.SetAssociatedProperty(Me, MethodKind.PropertySet)
             End If
 
-            _returnsByRef = propertyParams(0).IsByRef
-            _propertyType = propertyParams(0).Type
+            Dim returnInfo As ParamInfo(Of TypeSymbol) = propertyParams(0)
+
+            _returnsByRef = returnInfo.IsByRef
+            _propertyType = returnInfo.Type
             _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol)
 
-            _typeCustomModifiers = VisualBasicCustomModifier.Convert(propertyParams(0).CustomModifiers)
+            _typeCustomModifiers = VisualBasicCustomModifier.Convert(returnInfo.CustomModifiers)
+            _countOfCustomModifiersPrecedingByRef = returnInfo.CountOfCustomModifiersPrecedingByRef
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -237,6 +241,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return _typeCustomModifiers
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _countOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

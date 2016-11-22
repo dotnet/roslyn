@@ -245,9 +245,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsTupleType => _symbol.IsTupleType;
 
-            public ImmutableArray<ITypeSymbol> TupleElementTypes => _symbol.TupleElementTypes;
-
-            public ImmutableArray<string> TupleElementNames => _symbol.TupleElementNames;
+            public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
 
             public INamedTypeSymbol TupleUnderlyingType => _symbol.TupleUnderlyingType;
 

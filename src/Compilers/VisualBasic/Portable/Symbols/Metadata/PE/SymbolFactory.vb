@@ -28,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             rank, sizes, lowerBounds, moduleSymbol.ContainingAssembly)
         End Function
 
-        Friend Overrides Function GetByRefReturnTypeSymbol(moduleSymbol As PEModuleSymbol, referencedType As TypeSymbol, countOfCustomModifiersPrecedingByRef As UShort) As TypeSymbol
-            Return GetUnsupportedMetadataTypeSymbol(moduleSymbol, Nothing) ' No special support for this scenario in VB.
-        End Function
-
         Friend Overrides Function GetSpecialType(moduleSymbol As PEModuleSymbol, specialType As SpecialType) As TypeSymbol
             Return moduleSymbol.ContainingAssembly.GetSpecialType(specialType)
         End Function

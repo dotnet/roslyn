@@ -1,11 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
     public class ExtractMethodTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new ExtractMethodCodeRefactoringProvider();
-        }
+            => new ExtractMethodCodeRefactoringProvider();
 
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1170,5 +1171,144 @@ compareTokens: false);
     }
 }");
         }
-     }
+
+        [WorkItem(15218, "https://github.com/dotnet/roslyn/issues/15218")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestCancellationTokenGoesLast()
+        {
+            await TestAsync(
+@"using System;
+using System.Threading;
+
+class C
+{
+    void M(CancellationToken ct)
+    {
+        var v = 0;
+
+        [|if (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            Console.WriteLine(v);
+        }|]
+    }
+}",
+@"using System;
+using System.Threading;
+
+class C
+{
+    void M(CancellationToken ct)
+    {
+        var v = 0;
+        {|Rename:NewMethod|}(v, ct);
+    }
+
+    private static void NewMethod(int v, CancellationToken ct)
+    {
+        if (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            Console.WriteLine(v);
+        }
+    }
+}");
+        }
+
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseVar1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        [|var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }|]
+
+        Console.WriteLine(v);
+    }
+}",
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        var v = {|Rename:NewMethod|}(i);
+
+        Console.WriteLine(v);
+    }
+
+    private static string NewMethod(int i)
+    {
+        var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }
+
+        return v;
+    }
+}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestUseVar2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        [|var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }|]
+
+        Console.WriteLine(v);
+    }
+}",
+@"using System;
+
+class C
+{
+    void Foo(int i)
+    {
+        string v = {|Rename:NewMethod|}(i);
+
+        Console.WriteLine(v);
+    }
+
+    private static string NewMethod(int i)
+    {
+        var v = (string)null;
+
+        switch (i)
+        {
+            case 0: v = ""0""; break;
+            case 1: v = ""1""; break;
+        }
+
+        return v;
+    }
+}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+    }
 }

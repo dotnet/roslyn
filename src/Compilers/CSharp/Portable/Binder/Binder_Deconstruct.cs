@@ -740,6 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
+                    CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
                     return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 

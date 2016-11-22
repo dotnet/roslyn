@@ -159,15 +159,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var documentAndSnapshot = GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = GetMatchingDocumentAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return null;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -586,15 +585,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
-                    var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = await GetMatchingDocumentAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return false;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -728,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return translatedSpan.Span.ToTextSpan();
             }
 
-            private static async Task<ValueTuple<Document, ITextSnapshot>?> GetMatchingDocumentAndSnapshotAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
+            private static async Task<Document> GetMatchingDocumentAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
             {
                 var buffer = givenSnapshot.TextBuffer;
                 if (buffer == null)
@@ -763,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                return ValueTuple.Create(document, snapshot);
+                return document;
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)

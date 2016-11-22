@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -14,12 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
         public string ManageStylesButtonText => ServicesVSResources.Manage_styles;
 
-        private readonly EnforcementLevel[] _notifications = new[]
+        private readonly NotificationOptionViewModel[] _notifications = new[]
         {
-            new EnforcementLevel(DiagnosticSeverity.Hidden),
-            new EnforcementLevel(DiagnosticSeverity.Info),
-            new EnforcementLevel(DiagnosticSeverity.Warning),
-            new EnforcementLevel(DiagnosticSeverity.Error),
+            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
+            new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+            new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
         };
 
         public ObservableCollection<NamingRuleViewModel> CodeStyleItems { get; set; }
@@ -35,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 viewModel.NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles);
                 viewModel.Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-                viewModel.NotificationPreferences = new List<EnforcementLevel>(_notifications);
+                viewModel.NotificationPreferences = new List<NotificationOptionViewModel>(_notifications);
 
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
-                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Name == new EnforcementLevel(namingRule.EnforcementLevel).Name);
+                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Value == namingRule.EnforcementLevel);
                 
                 viewModels.Add(viewModel);
             }
@@ -196,16 +198,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             {
                 Specifications = new ObservableCollection<SymbolSpecification>();
                 NamingStyles = new ObservableCollection<NamingStyle>();
-                NotificationPreferences = new List<EnforcementLevel>();
+                NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 
             private SymbolSpecification _selectedSpecification;
             private NamingStyle _selectedNamingStyle;
-            private EnforcementLevel _selectedNotification;
+            private NotificationOptionViewModel _selectedNotification;
 
             public ObservableCollection<SymbolSpecification> Specifications { get; set; }
             public ObservableCollection<NamingStyle> NamingStyles { get; set; }
-            public IEnumerable<EnforcementLevel> NotificationPreferences { get; set; }
+            public IEnumerable<NotificationOptionViewModel> NotificationPreferences { get; set; }
 
             public SymbolSpecification SelectedSpecification
             {
@@ -230,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     SetProperty(ref _selectedNamingStyle, value);
                 }
             }
-            public EnforcementLevel SelectedNotificationPreference
+            public NotificationOptionViewModel SelectedNotificationPreference
             {
                 get
                 {

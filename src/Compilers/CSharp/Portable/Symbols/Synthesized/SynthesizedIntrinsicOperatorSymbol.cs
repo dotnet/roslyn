@@ -272,6 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
         public override Symbol AssociatedSymbol
         {
             get

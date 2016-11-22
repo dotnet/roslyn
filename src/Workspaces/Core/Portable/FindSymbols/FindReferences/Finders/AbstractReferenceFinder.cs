@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             string identifier,
             Document document,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
             var tokens = await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(identifier, cancellationToken).ConfigureAwait(false);
@@ -160,21 +160,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken).ConfigureAwait(false);
         }
 
-        protected static Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> GetStandardSymbolsMatchFunction(
+        protected static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsMatchFunction(
             ISymbol symbol, Func<SyntaxToken, SyntaxNode> findParentNode, Solution solution, CancellationToken cancellationToken)
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode = findParentNode ?? (t => t.Parent);
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch =
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch =
                 (token, model) => nodeMatch(findParentNode(token), model);
 
             return symbolsMatch;
         }
 
-        protected static Func<SyntaxNode, SemanticModel, ValueTuple<bool, CandidateReason>> GetStandardSymbolsNodeMatchFunction(
+        protected static Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsNodeMatchFunction(
             ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            Func<SyntaxNode, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch =
+            Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch =
                 (node, model) =>
                 {
                     var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
@@ -184,15 +184,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
                     {
-                        return ValueTuple.Create(true, CandidateReason.None);
+                        return (matched: true, CandidateReason.None);
                     }
                     else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
                     {
-                        return ValueTuple.Create(true, symbolInfoToMatch.CandidateReason);
+                        return (matched: true, symbolInfoToMatch.CandidateReason);
                     }
                     else
                     {
-                        return ValueTuple.Create(false, CandidateReason.None);
+                        return (matched: false, CandidateReason.None);
                     }
                 };
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             IEnumerable<SyntaxToken> tokens,
             Func<SyntaxToken, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
             var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
@@ -219,13 +219,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (tokensMatch(token))
                 {
                     var match = symbolsMatch(token, semanticModel);
-                    if (match.Item1)
+                    if (match.matched)
                     {
                         var alias = FindReferenceCache.GetAliasInfo(semanticFacts, semanticModel, token, cancellationToken);
 
                         var location = token.GetLocation();
                         var isWrittenTo = semanticFacts.IsWrittenTo(semanticModel, token.Parent, cancellationToken);
-                        locations.Add(new ReferenceLocation(document, alias, location, isImplicit: false, isWrittenTo: isWrittenTo, candidateReason: match.Item2));
+                        locations.Add(new ReferenceLocation(
+                            document, alias, location, isImplicit: false, 
+                            isWrittenTo: isWrittenTo, candidateReason: match.reason));
                     }
                 }
             }
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<ReferenceLocation> nonAliasReferences,
             ISymbol symbol,
             Document document,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
             var aliasSymbols = await GetAliasSymbolsAsync(document, nonAliasReferences, cancellationToken).ConfigureAwait(false);
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol,
             Document document,
             ImmutableArray<IAliasSymbol> aliasSymbols,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -562,7 +564,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             TSymbol symbol,
             Document document,
             Func<SyntaxToken, bool> tokensMatch,
-            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolsMatch,
+            Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

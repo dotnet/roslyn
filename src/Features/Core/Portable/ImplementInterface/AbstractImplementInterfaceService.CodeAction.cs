@@ -147,10 +147,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private static string GetDescription(ISymbol throughMember)
             {
-                return throughMember.TypeSwitch(
-                    (IFieldSymbol field) => field.Name,
-                    (IPropertySymbol property) => property.Name,
-                    _ => Contract.FailWithReturn<string>());
+                switch (throughMember)
+                {
+                    case IFieldSymbol field: return field.Name;
+                    case IPropertySymbol property: return property.Name;
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)

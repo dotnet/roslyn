@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.FindReferences
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Structure
 
         Private Class TestContext
-            Inherits FindReferencesContext
+            Inherits FindUsagesContext
 
             Private ReadOnly gate As Object = New Object()
 

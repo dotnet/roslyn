@@ -741,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 refKind: RefKind.None,
                                 returnType: null,
                                 returnTypeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                                countOfCustomModifiersPrecedingByRef: 0,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
                             break;
                         }
@@ -756,6 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 refKind: RefKind.None,
                                 type: null,
                                 typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                                countOfCustomModifiersPrecedingByRef: 0,
                                 isStatic: false,
                                 explicitInterfaceImplementations: ImmutableArray<PropertySymbol>.Empty);
                             break;

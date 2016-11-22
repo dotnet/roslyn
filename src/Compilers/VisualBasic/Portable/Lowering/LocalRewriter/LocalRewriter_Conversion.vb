@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tupleTypeSymbol = TupleTypeSymbol.Create(DirectCast(srcType, NamedTypeSymbol))
             End If
 
-            Dim srcElementFields = tupleTypeSymbol.TupleDefaultElementFields
+            Dim srcElementFields = tupleTypeSymbol.TupleElements
 
             Dim fieldAccessorsBuilder = ArrayBuilder(Of BoundExpression).GetInstance(numElements)
             Dim assignmentToTemp As BoundExpression = Nothing

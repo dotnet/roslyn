@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly LocalizableString _expressionBodyTitle;
         private readonly LocalizableString _blockBodyTitle;
 
-        public bool OpenFileOnly(Workspace workspace) => true;
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseExpressionBodyDiagnosticAnalyzer(
             string diagnosticId,

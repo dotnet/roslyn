@@ -39,12 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportInferenceFailure(diagnosticsOpt);
                         }
-                        else if (localSymbol.ContainingSymbol.Kind == SymbolKind.Method &&
-                                 ((MethodSymbol)localSymbol.ContainingSymbol).IsAsync &&
-                                 type.IsRestrictedType())
+                        else
                         {
-                            var declaration = (DeclarationExpressionSyntax)this.Syntax;
-                            Binder.Error(diagnosticsOpt, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, type);
+                            TypeSyntax typeSyntax = ((DeclarationExpressionSyntax)Syntax).Type;
+                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeSyntax);
                         }
                     }
 

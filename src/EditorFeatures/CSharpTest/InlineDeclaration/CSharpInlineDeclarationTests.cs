@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeButKeepIntrinsics());
+}", options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2<T>(out T i)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]

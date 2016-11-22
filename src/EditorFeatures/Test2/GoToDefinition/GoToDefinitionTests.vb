@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Private Function TestAsync(workspaceDefinition As XElement, Optional expectedResult As Boolean = True) As Tasks.Task
             Return GoToTestHelpers.TestAsync(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
+                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters, externalDefinitionProviders), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters, externalDefinitionProviders))
+                        DirectCast(New CSharpGoToDefinitionService(presenters, {}), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters, {}))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -62,6 +62,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         <Document>
             class [|SomeClass|] { }
             class OtherClass { Some$$Class obj; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class MyClass
+{
+    public string [|Prop1|] { get; set; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instance = new MyClass();
+
+        var x = new
+        {
+            instance.$$Prop1
+        };
+    }
+}        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestVisualBasicGoToDefinitionOnAnonymousMember() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+public class MyClass1
+    public property [|Prop1|] as integer
+end class
+class Program
+    sub Main()
+        dim instance = new MyClass1()
+
+        dim x as new With { instance.$$Prop1 }
+    end sub
+end class
         </Document>
     </Project>
 </Workspace>

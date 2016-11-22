@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(symbol, document, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => ValueTuple.Create(true, CandidateReason.None),
+                (t, m) => (matched: true, reason: CandidateReason.None),
                 cancellationToken);
         }
 

@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
             protected abstract bool AcceptsExtraArguments { get; }
-            protected abstract Cci.CallingConvention CallingConvention { get; }
             protected abstract Cci.ISignature UnderlyingMethodSignature { get; }
             protected abstract Cci.INamespace ContainingNamespace { get; }
 
@@ -276,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.ISpecializedMethodReference Cci.IMethodReference.AsSpecializedMethodReference => null;
 
-            Cci.CallingConvention Cci.ISignature.CallingConvention => CallingConvention;
+            Cci.CallingConvention Cci.ISignature.CallingConvention => UnderlyingMethodSignature.CallingConvention;
 
             ushort Cci.ISignature.ParameterCount => (ushort)_parameters.Length;
 
@@ -287,6 +286,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers =>
                 UnderlyingMethodSignature.ReturnValueCustomModifiers;
+
+            ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef =>
+                UnderlyingMethodSignature.CountOfCustomModifiersPrecedingByRef;
 
             bool Cci.ISignature.ReturnValueIsByRef => UnderlyingMethodSignature.ReturnValueIsByRef;
 

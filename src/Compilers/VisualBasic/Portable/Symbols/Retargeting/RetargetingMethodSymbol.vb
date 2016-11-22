@@ -161,6 +161,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _underlyingMethod.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
                 Return _underlyingMethod.ParameterCount

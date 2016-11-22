@@ -435,26 +435,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </remarks>
         Friend Function GetAssemblyForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As AssemblySymbol
             Dim assemblyRef As AssemblyReferenceHandle = Me.Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase, matchedName)
-            Try
-                Return If(assemblyRef.IsNil, Nothing, Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)))
-            Catch mrEx As BadImageFormatException
-                Return Nothing
-            End Try
+            Return If(assemblyRef.IsNil, Nothing, GetReferencedAssemblySymbol(assemblyRef))
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
             For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
-                Dim assembly As AssemblySymbol
-
-                Try
-                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value))
-                Catch ex As BadImageFormatException
+                Dim assembly As AssemblySymbol = GetReferencedAssemblySymbol(forwarder.Value)
+                If assembly Is Nothing Then
                     Continue For
-                End Try
+                End If
 
                 Dim name = MetadataTypeName.FromFullName(forwarder.Key)
                 Yield assembly.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
             Next
+        End Function
+
+        Private Overloads Function GetReferencedAssemblySymbol(assemblyRef As AssemblyReferenceHandle) As AssemblySymbol
+            Dim referencedAssemblyIndex As Integer
+            Try
+                referencedAssemblyIndex = Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)
+            Catch ex As BadImageFormatException
+                Return Nothing
+            End Try
+            Return GetReferencedAssemblySymbol(referencedAssemblyIndex)
         End Function
 
         Public Overrides Function GetMetadata() As ModuleMetadata
