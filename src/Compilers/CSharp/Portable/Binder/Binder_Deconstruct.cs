@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
-                        return BindDeconstructionVariables(declType, component.Designation, diagnostics);
+                        return BindDeconstructionVariables(declType, component.Type, component.Designation, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -688,6 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DeconstructionVariable BindDeconstructionVariables(
             TypeSymbol declType,
+            TypeSyntax typeSyntax,
             VariableDesignationSyntax node,
             DiagnosticBag diagnostics)
         {
@@ -696,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionVariable(declType, typeSyntax, single, diagnostics), node);
                     }
                 case SyntaxKind.DiscardedDesignation:
                     {
@@ -709,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionVariables(declType, n, diagnostics));
+                            builder.Add(BindDeconstructionVariables(declType, typeSyntax, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -725,6 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindDeconstructionVariable(
             TypeSymbol declType,
+            TypeSyntax typeSyntax,
             SingleVariableDesignationSyntax designation,
             DiagnosticBag diagnostics)
         {
