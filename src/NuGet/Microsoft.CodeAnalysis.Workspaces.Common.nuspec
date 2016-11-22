@@ -17,6 +17,7 @@
       <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
       <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
       <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
+      <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
     </dependencies>
 
     <language>en-US</language>
