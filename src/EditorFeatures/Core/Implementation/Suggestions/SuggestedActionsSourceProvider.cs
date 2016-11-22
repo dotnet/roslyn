@@ -18,9 +18,11 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -54,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IWaitIndicator WaitIndicator;
 
+        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+
         [ImportingConstructor]
         public SuggestedActionsSourceProvider(
             ICodeRefactoringService codeRefactoringService,
@@ -61,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices)
         {
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
@@ -69,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             EditHandler = editHandler;
             WaitIndicator = waitIndicator;
             OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
+
+            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

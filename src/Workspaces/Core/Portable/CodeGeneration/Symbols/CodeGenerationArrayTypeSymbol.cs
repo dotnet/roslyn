@@ -12,6 +12,30 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public int Rank { get; }
 
+        public bool IsSZArray
+        {
+            get
+            {
+                return Rank == 1;
+            }
+        }
+
+        public ImmutableArray<int> Sizes
+        {
+            get
+            {
+                return ImmutableArray<int>.Empty;
+            }
+        }
+
+        public ImmutableArray<int> LowerBounds
+        {
+            get
+            {
+                return default(ImmutableArray<int>);
+            }
+        }
+
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
             : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
         {

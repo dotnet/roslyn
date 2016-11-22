@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 using static TestResources.NetFX.ValueTuple;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -201,6 +202,89 @@ namespace System
 }
 }
 ";
+
+        [Fact]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        public void InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
+        {
+            var src1 = @"
+public interface I1<T> {}
+
+public interface I2 : I1<(int a, int b)> {}
+public interface I3 : I1<(int c, int d)> {}";
+
+            var src2 = @"
+class C1 : I2, I1<(int a, int b)> {}
+class C2 : I3, I1<(int c, int d)> {}";
+
+            var comp1 = CreateCompilationWithMscorlib(src1, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
+
+            var comp2 = CreateCompilationWithMscorlib(src2,
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilationWithMscorlib(src2,
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference() });
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        public void ConstraintAttributesAreNotSharedAcrossTypeRefs()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+
+public abstract class C1
+{
+    public abstract void M<T>(T t)
+        where T : IEnumerable<(int a, int b)>;
+}
+public abstract class C2
+{
+    public abstract void M<T>(T t)
+        where T : IEnumerable<(int c, int d)>;
+}";
+
+            var src2 = @"
+class C3 : C1
+{
+    public override void M<U>(U u)
+    {
+        int x;
+        foreach (var kvp in u)
+        {
+            x = kvp.a + kvp.b;
+        }
+    }
+}
+
+class C4 : C2
+{
+    public override void M<U>(U u)
+    {
+        int x;
+        foreach (var kvp in u)
+        {
+            x = kvp.c + kvp.d;
+        }
+    }
+}";
+
+            var comp1 = CreateCompilationWithMscorlib(src1,
+                references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
+
+            var comp2 = CreateCompilationWithMscorlib(src2,
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilationWithMscorlib(src2,
+                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference() });
+            comp3.VerifyDiagnostics();
+        }
+
 
         [Fact]
         public void InterfaceAttributes()
@@ -8673,7 +8757,6 @@ class C
             Assert.Null(m1Tuple.ComImportCoClass);
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers);
             Assert.False(m1Tuple.IsComImport);
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty);
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty);
             Assert.True(m1Tuple.GetAttributes().IsEmpty);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString());
@@ -9934,7 +10017,6 @@ class C
             Assert.Null(m1Tuple.ComImportCoClass);
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers);
             Assert.False(m1Tuple.IsComImport);
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty);
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty);
             Assert.True(m1Tuple.GetAttributes().IsEmpty);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString());

@@ -51,6 +51,7 @@ try
 }
 catch
 {
+  Write-Error $_.Exception.Message
   # Return an empty string and let the caller fallback or handle this as appropriate
   return ""
 }

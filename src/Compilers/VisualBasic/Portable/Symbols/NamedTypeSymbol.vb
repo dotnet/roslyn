@@ -49,23 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        ''' Returns custom modifiers for the type argument that has been substituted for the type parameter. 
+        ''' The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
+        ''' array.
         ''' </summary>
-        Friend MustOverride ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+        Public MustOverride Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
 
-        Friend Function CreateEmptyTypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Dim arity = Me.Arity
-
-            If arity > 0 Then
-                Return CreateEmptyTypeArgumentsCustomModifiers(arity)
-            Else
-                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+        Friend Function GetEmptyTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            If ordinal < 0 OrElse ordinal >= Me.Arity Then
+                Throw New IndexOutOfRangeException()
             End If
-        End Function
 
-        Friend Shared Function CreateEmptyTypeArgumentsCustomModifiers(arity As Integer) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Debug.Assert(arity > 0)
-            Return ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(arity, ImmutableArray(Of CustomModifier).Empty).ToImmutableAndFree()
+            Return ImmutableArray(Of CustomModifier).Empty
         End Function
 
         Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
@@ -1016,8 +1011,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Me.HasTypeArgumentsCustomModifiers Then
                 Dim modifiersErrorInfo As DiagnosticInfo = Nothing
 
-                For Each modifiers In Me.TypeArgumentsCustomModifiers
-                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
+                For i As Integer = 0 To Me.Arity - 1
+                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)))
                 Next
 
                 Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
@@ -1128,6 +1123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.OriginalDefinition
             End Get
         End Property
+
+        Private Function INamedTypeSymbol_GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier) Implements INamedTypeSymbol.GetTypeArgumentCustomModifiers
+            Return GetTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Private ReadOnly Property INamedTypeSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TypeArguments
             Get

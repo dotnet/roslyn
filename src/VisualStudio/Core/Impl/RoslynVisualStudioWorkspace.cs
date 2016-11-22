@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -27,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
 
@@ -35,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         private RoslynVisualStudioWorkspace(
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
-            [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
@@ -47,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
 
-            _navigableItemsPresenters = navigableItemsPresenters;
             _streamingPresenters = streamingPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
 
@@ -143,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode();
                 }
                 else
                 {
@@ -185,8 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_navigableItemsPresenters.Any() &&
-                !_streamingPresenters.Any())
+            if (!_streamingPresenters.Any())
             {
                 return false;
             }
@@ -199,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject, 
-                _navigableItemsPresenters, _streamingPresenters, cancellationToken);
+                _streamingPresenters, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -233,7 +230,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
+                solution, referencedSymbols, includeHiddenLocations: false);
 
             foreach (var presenter in _referencedSymbolsPresenters)
             {

@@ -228,5 +228,114 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attribute.ApplicationSyntaxReference.GetSyntax() as T :
                 null;
         }
+
+        public static int GetInsertionIndex<TDeclaration>(
+            SyntaxList<TDeclaration> declarationList,
+            TDeclaration declaration,
+            CodeGenerationOptions options,
+            IList<bool> availableIndices,
+            IComparer<TDeclaration> comparer,
+            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
+            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
+            where TDeclaration : SyntaxNode
+        {
+            Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
+
+            if (options != null)
+            {
+                // Try to strictly obey the after option by inserting immediately after the member containing the location
+                if (options.AfterThisLocation != null)
+                {
+                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
+                    if (afterMember != null)
+                    {
+                        var index = declarationList.IndexOf(afterMember);
+                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                        if (index != -1)
+                        {
+                            return index;
+                        }
+                    }
+                }
+
+                // Try to strictly obey the before option by inserting immediately before the member containing the location
+                if (options.BeforeThisLocation != null)
+                {
+                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
+                    if (beforeMember != null)
+                    {
+                        var index = declarationList.IndexOf(beforeMember);
+                        index = GetPreferredIndex(index, availableIndices, forward: false);
+                        if (index != -1)
+                        {
+                            return index;
+                        }
+                    }
+                }
+
+                if (options.AutoInsertionLocation)
+                {
+                    if (declarationList.IsEmpty())
+                    {
+                        return 0;
+                    }
+                    else if (declarationList.IsSorted(comparer))
+                    {
+                        var result = Array.BinarySearch(declarationList.ToArray(), declaration, comparer);
+                        var index = GetPreferredIndex(result < 0 ? ~result : result, availableIndices, forward: true);
+                        if (index != -1)
+                        {
+                            return index;
+                        }
+                    }
+
+                    if (after != null)
+                    {
+                        var member = after(declarationList);
+                        if (member != null)
+                        {
+                            var index = declarationList.IndexOf(member);
+                            if (index >= 0)
+                            {
+                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
+                                if (index != -1)
+                                {
+                                    return index;
+                                }
+                            }
+                        }
+                    }
+
+                    if (before != null)
+                    {
+                        var member = before(declarationList);
+                        if (member != null)
+                        {
+                            var index = declarationList.IndexOf(member);
+
+                            if (index >= 0)
+                            {
+                                index = GetPreferredIndex(index, availableIndices, forward: false);
+                                if (index != -1)
+                                {
+                                    return index;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Otherwise, add the declaration to the end.
+            {
+                var index = GetPreferredIndex(declarationList.Count, availableIndices, forward: false);
+                if (index != -1)
+                {
+                    return index;
+                }
+            }
+
+            return declarationList.Count;
+        }
     }
 }

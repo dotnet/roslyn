@@ -11,8 +11,10 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'"></PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common\Comparison.cs" />
     <Compile Include="Common\Parameter.cs" />
@@ -75,10 +77,6 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>

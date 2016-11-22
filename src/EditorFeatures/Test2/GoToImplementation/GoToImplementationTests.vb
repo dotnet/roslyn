@@ -2,23 +2,48 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToImplementation
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToImplementation
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     Public Class GoToImplementationTests
-        Private Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
-            Return GoToTestHelpers.TestAsync(workspaceDefinition, shouldSucceed,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)))
-                    Dim service = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToImplementationService(presenters, {}), IGoToImplementationService),
-                        New VisualBasicGoToImplementationService(presenters, {}))
+        Private Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
+            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+                Dim documentWithCursor = workspace.DocumentWithCursor
+                Dim position = documentWithCursor.CursorPosition.Value
 
-                    Dim message As String = Nothing
-                    Return service.TryGoToImplementation(document, cursorPosition, CancellationToken.None, message)
-                End Function)
+                Dim document = workspace.CurrentSolution.GetDocument(documentWithCursor.Id)
+                Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
+
+                Dim context = New SimpleFindUsagesContext(CancellationToken.None)
+                Await findUsagesService.FindImplementationsAsync(document, position, context)
+
+                If Not shouldSucceed Then
+                    Assert.NotNull(context.Message)
+                Else
+                    Dim actualDefinitions = context.GetDefinitions().
+                                                    SelectMany(Function(d) d.SourceSpans).
+                                                    Select(Function(ss) New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan)).
+                                                    ToList()
+                    actualDefinitions.Sort()
+
+                    Dim expectedDefinitions = workspace.Documents.SelectMany(
+                        Function(d) d.SelectedSpans.Select(Function(ss) New FilePathAndSpan(d.FilePath, ss))).ToList()
+
+                    expectedDefinitions.Sort()
+
+                    Assert.Equal(actualDefinitions.Count, expectedDefinitions.Count)
+
+                    For i = 0 To actualDefinitions.Count - 1
+                        Dim actual = actualDefinitions(i)
+                        Dim expected = expectedDefinitions(i)
+
+                        Assert.True(actual.CompareTo(expected) = 0,
+                                    $"Expected: ({expected}) but got: ({actual})")
+                    Next
+                End If
+            End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>

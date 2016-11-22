@@ -874,7 +874,6 @@ namespace A
                     New TestNotificationService(),
                     testProjectManagementService,
                     syntaxFactsService,
-                    workspace.Services.GetService(Of IGeneratedCodeRecognitionService)(),
                     New GenerateTypeDialogOptions(isPublicOnlyAccessibility, typeKindvalue, isAttribute),
                     typeName,
                     If(document.Project.Language = LanguageNames.CSharp, ".cs", ".vb"),

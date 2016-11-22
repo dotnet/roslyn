@@ -28,6 +28,7 @@
           <Interface Name="IDkmModuleInstanceLoadNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
           <Interface Name="IDkmModuleModifiedNotification"/>
+          <Interface Name="IDkmModuleSymbolsLoadedNotification"/>
         </InterfaceGroup>
       </Implements>
     </Class>

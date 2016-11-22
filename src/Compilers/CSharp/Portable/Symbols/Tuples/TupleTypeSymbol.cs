@@ -180,30 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamedTypeSymbol ReplaceRestExtensionType(NamedTypeSymbol tupleCompatibleType, ArrayBuilder<TypeWithModifiers> typeArgumentsBuilder, TupleTypeSymbol extensionTuple)
         {
-            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-            if (tupleCompatibleType.HasTypeArgumentsCustomModifiers)
-            {
-                modifiers = tupleCompatibleType.TypeArgumentsCustomModifiers;
-            }
+            var hasModifiers = tupleCompatibleType.HasTypeArgumentsCustomModifiers;
 
             var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
             typeArgumentsBuilder.Clear();
 
             for (int i = 0; i < RestPosition - 1; i++)
             {
-                typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], GetModifiers(modifiers, i)));
+                typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], hasModifiers ? tupleCompatibleType.GetTypeArgumentCustomModifiers(i) : ImmutableArray<CustomModifier>.Empty));
             }
 
-            typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, GetModifiers(modifiers, RestPosition - 1)));
+            typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, hasModifiers ? tupleCompatibleType.GetTypeArgumentCustomModifiers(RestPosition - 1) : ImmutableArray<CustomModifier>.Empty));
 
             tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutable(), unbound: false);
             return tupleCompatibleType;
-        }
-
-        private static ImmutableArray<CustomModifier> GetModifiers(ImmutableArray<ImmutableArray<CustomModifier>> modifiers, int i)
-        {
-            return modifiers.IsDefaultOrEmpty ? ImmutableArray<CustomModifier>.Empty : modifiers[i];
         }
 
         /// <summary>
@@ -1265,12 +1255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         internal override bool HasTypeArgumentsCustomModifiers
