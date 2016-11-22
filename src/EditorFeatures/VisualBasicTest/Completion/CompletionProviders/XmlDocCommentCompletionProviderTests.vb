@@ -542,5 +542,236 @@ End Class
             Await VerifyItemsExistAsync(text, "returns")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestReturnsAlreadyOnMethod() As Task
+            Dim text = "
+Class C
+    ''' <returns></returns>
+    ''' <$$
+    Function M() As Integer
+    End Function
+End Class
+"
+
+            Await VerifyItemsAbsentAsync(text, "returns")
+        End Function
+
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ReadWritePropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public Property P As Integer
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "returns")
+        End Function
+
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ReadOnlyPropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public ReadOnly Property P As Integer
+        Get
+        End Get
+    End Property
+End Class
+"
+
+            Await VerifyItemExistsAsync(text, "returns")
+        End Function
+
+        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WriteOnlyPropertyReturns() As Task
+            Dim text = "
+Class C
+    ''' <$$
+    Public WriteOnly Property P As Integer
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Await VerifyItemIsAbsentAsync(Text, "returns")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestValueAlreadyOnProperty() As Task
+            Dim text = "
+Class C
+    ''' <value></value>
+    ''' <$$
+    Property P() As Integer
+    End Property
+End Class
+"
+
+            Await VerifyItemsAbsentAsync(text, "value")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestListTypes() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <list type=""$$""
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "number", "bullet", "table")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeCommitOnSpace() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Dim after = "
+Class C
+    ''' <summary>
+    ''' <see$$/>
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyCustomCommitProviderAsync(text, "see", after, commitChar:=" "c)
+        End Function
+
+        <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeLangwordValues() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$""
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "Await", "Class")
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSeeAttributesOnSpace() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see $$
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "langword", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SeeLangwordValuesOnQuote() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""$$
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SeeLangwordValuesOnStartOfWord() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <see langword=""A$$""
+    ''' </summary>
+    Sub Foo()
+    End Sub
+End Class
+"
+            Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParamNames() As Task
+            Dim text = "
+Class C
+    ''' <param name=""$$""
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "i")
+            Await VerifyItemsAbsentAsync(text, "T")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParamRefNames() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <paramref name=""$$""
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "i")
+            Await VerifyItemsAbsentAsync(text, "T")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamNames() As Task
+            Dim text = "
+Class C
+    ''' <typeparam name=""$$""
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "T")
+            Await VerifyItemsAbsentAsync(text, "i")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeParamRefNames() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <typeparamref name=""$$""
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "T")
+            Await VerifyItemsAbsentAsync(text, "i")
+        End Function
+
     End Class
 End Namespace
