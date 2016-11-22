@@ -38,6 +38,8 @@
                 "Dlls\\SyntaxVisualizerControl\\Roslyn.SyntaxVisualizer.Control.dll",
                 "Dlls\\SyntaxVisualizerDgmlHelper\\Roslyn.SyntaxVisualizer.DgmlHelper.dll",
                 "Dlls\\SyntaxVisualizerExtension\\Roslyn.SyntaxVisualizer.Extension.dll",
+                "Dlls\\RazorServiceHub\\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll",
+                "Dlls\\RazorVisualStudio\\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll",
                 "Dlls\\TextEditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
                 "Dlls\\VisualStudioInteractiveServices\\Microsoft.VisualStudio.InteractiveServices.dll",
                 "Dlls\\Workspaces.Desktop\\Microsoft.CodeAnalysis.Workspaces.Desktop.dll",

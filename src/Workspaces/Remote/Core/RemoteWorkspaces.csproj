@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
