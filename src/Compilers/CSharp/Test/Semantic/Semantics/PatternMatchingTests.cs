@@ -1292,7 +1292,7 @@ b");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -1342,7 +1342,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -1453,7 +1453,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -1519,19 +1519,19 @@ f");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
@@ -1603,13 +1603,13 @@ f");
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
@@ -2096,7 +2096,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2141,7 +2141,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -2185,7 +2185,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2237,7 +2237,7 @@ throw 2");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -2426,7 +2426,7 @@ a:      Test1(2 is var x1);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2473,7 +2473,7 @@ a:          Test2(2 is var x1, x1);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -3490,6 +3490,110 @@ public class C
             var x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is int _: {i is int _}, "");
+        Write($""is var _: {i is var _}, "");
+        switch (3)
+        {
+            case int _:
+                Write(""case int _, "");
+                break;
+        }
+        switch (3)
+        {
+            case var _:
+                Write(""case var _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
+            Assert.Equal("int _", declaration1.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+            var discard2 = GetDiscardDesignations(tree).Skip(1).First();
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+
+            var discard3 = GetDiscardDesignations(tree).Skip(2).First();
+            Assert.Null(model.GetDeclaredSymbol(discard3));
+            var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
+            Assert.Equal("int _", declaration3.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration3).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+
+            var discard4 = GetDiscardDesignations(tree).Skip(3).First();
+            Assert.Null(model.GetDeclaredSymbol(discard4));
+            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            Assert.Equal("var _", declaration4.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration4).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+        }
+
+        [Fact]
+        public void UnderscoreInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        if (i is int _) { Write(_); }
+        if (i is var _) { Write(_); }
+        switch (3)
+        {
+            case int _:
+                Write(_);
+                break;
+        }
+        switch (3)
+        {
+            case var _:
+                Write(_);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,33): error CS0103: The name '_' does not exist in the current context
+                //         if (i is int _) { Write(_); }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 33),
+                // (9,33): error CS0103: The name '_' does not exist in the current context
+                //         if (i is var _) { Write(_); }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 33),
+                // (13,23): error CS0103: The name '_' does not exist in the current context
+                //                 Write(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 23),
+                // (19,23): error CS0103: The name '_' does not exist in the current context
+                //                 Write(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(19, 23)
+                );
         }
     }
 }

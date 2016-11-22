@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -520,10 +519,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationVarDecl = new BoundExpressionStatement(assignment.Syntax, loweredAssignment);
                 RemovePlaceholderReplacement(deconstruction.TargetPlaceholder);
 
-                iterationVariables = assignment.LeftVariables.SelectAsArray(v => ((BoundLocal)v).LocalSymbol);
+                iterationVariables = GetLocalSymbols(assignment.LeftVariables);
             }
 
             return iterationVarDecl;
+        }
+
+        private static ImmutableArray<LocalSymbol> GetLocalSymbols(ImmutableArray<BoundExpression> leftVariables)
+        {
+            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
+            foreach (var variable in leftVariables)
+            {
+                if (variable.Kind == BoundKind.Local)
+                {
+                    builder.Add(((BoundLocal)variable).LocalSymbol);
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private static BoundBlock CreateBlockDeclaringIterationVariables(

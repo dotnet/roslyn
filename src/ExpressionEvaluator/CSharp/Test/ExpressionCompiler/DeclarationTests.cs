@@ -119,10 +119,11 @@ class C
 
                    testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
 {
-  // Code size      103 (0x67)
+  // Code size      105 (0x69)
   .maxstack  4
   .locals init (System.Guid V_0,
-                int V_1)
+                int V_1,
+                string V_2)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""z1""
@@ -146,14 +147,88 @@ class C
   IL_0044:  ldfld      ""int System.ValueTuple<int, string>.Item1""
   IL_0049:  stloc.1
   IL_004a:  ldfld      ""string System.ValueTuple<int, string>.Item2""
-  IL_004f:  ldstr      ""z1""
-  IL_0054:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_0059:  ldloc.1
-  IL_005a:  stind.i4
-  IL_005b:  ldstr      ""z2""
-  IL_0060:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
-  IL_0065:  stind.ref
-  IL_0066:  ret
+  IL_004f:  stloc.2
+  IL_0050:  ldstr      ""z1""
+  IL_0055:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_005a:  ldloc.1
+  IL_005b:  stind.i4
+  IL_005c:  ldstr      ""z2""
+  IL_0061:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_0066:  ldloc.2
+  IL_0067:  stind.ref
+  IL_0068:  ret
+}");
+               });
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationWithDiscard()
+        {
+            var source = @"
+class C
+{
+    void Test()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+               {
+                   var context = CreateMethodContext(runtime, methodName: "C.Test");
+
+                   ResultProperties resultProperties;
+                   string error;
+                   var testData = new CompilationTestData();
+                   ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                   context.CompileExpression(
+                       "(_, string z2) = (1, null);",
+                       DkmEvaluationFlags.None,
+                       NoAliases,
+                       DebuggerDiagnosticFormatter.Instance,
+                       out resultProperties,
+                       out error,
+                       out missingAssemblyIdentities,
+                       EnsureEnglishUICulture.PreferredOrNull,
+                       testData);
+                   Assert.Null(error);
+                   Assert.Empty(missingAssemblyIdentities);
+
+                   Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                   Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                   Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                   Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                   Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+
+                   testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  4
+  .locals init (System.Guid V_0,
+                int V_1,
+                string V_2)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""z2""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldc.i4.1
+  IL_001f:  ldnull
+  IL_0020:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0025:  dup
+  IL_0026:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_002b:  stloc.1
+  IL_002c:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_0031:  stloc.2
+  IL_0032:  ldstr      ""z2""
+  IL_0037:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
+  IL_003c:  ldloc.2
+  IL_003d:  stind.ref
+  IL_003e:  ret
 }");
                });
         }

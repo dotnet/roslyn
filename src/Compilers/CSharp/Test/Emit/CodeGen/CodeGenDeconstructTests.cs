@@ -2141,11 +2141,12 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       49 (0x31)
+  // Code size       51 (0x33)
   .maxstack  3
   .locals init (int V_0, //x1
                 string V_1, //x2
-                int V_2)
+                int V_2,
+                string V_3)
   IL_0000:  ldc.i4.1
   IL_0001:  ldstr      ""hello""
   IL_0006:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
@@ -2153,16 +2154,18 @@ class C
   IL_000c:  ldfld      ""int System.ValueTuple<int, string>.Item1""
   IL_0011:  stloc.2
   IL_0012:  ldfld      ""string System.ValueTuple<int, string>.Item2""
-  IL_0017:  ldloc.2
-  IL_0018:  stloc.0
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.0
-  IL_001b:  box        ""int""
-  IL_0020:  ldstr      "" ""
-  IL_0025:  ldloc.1
-  IL_0026:  call       ""string string.Concat(object, object, object)""
-  IL_002b:  call       ""void System.Console.WriteLine(string)""
-  IL_0030:  ret
+  IL_0017:  stloc.3
+  IL_0018:  ldloc.2
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.3
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  box        ""int""
+  IL_0022:  ldstr      "" ""
+  IL_0027:  ldloc.1
+  IL_0028:  call       ""string string.Concat(object, object, object)""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
 }
 ");
         }
@@ -2307,9 +2310,9 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(string x1, byte x2, var x3)", lhs.ToString());
-                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal(@"(null, 2, 3)", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
@@ -2343,9 +2346,9 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(string x1, var x2)", lhs.ToString());
-                Assert.Equal("System.Void", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
 
-                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Skip(1).First();
+                var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal(@"(null, (1, 2))", literal.ToString());
                 Assert.Null(model.GetTypeInfo(literal).Type);
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
@@ -2418,7 +2421,8 @@ Deconstructing (1, hello)
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular,
+                            sourceSymbolValidator: validator, additionalRefs: s_valueTupleRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -2491,6 +2495,16 @@ Deconstructing (1, hello)
         private static SingleVariableDesignationSyntax GetDeconstructionVariable(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+        }
+
+        private static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
         private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
@@ -2884,46 +2898,49 @@ class C
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       72 (0x48)
+  // Code size       76 (0x4c)
   .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
                 int V_1, //x1
                 int V_2, //x2
-                int V_3)
+                int V_3,
+                int V_4)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0033
+    IL_000b:  br.s       IL_0037
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
     IL_0013:  dup
     IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
     IL_0019:  stloc.3
     IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_001f:  ldloc.3
-    IL_0020:  stloc.1
-    IL_0021:  stloc.2
-    IL_0022:  ldloc.1
-    IL_0023:  box        ""int""
-    IL_0028:  ldloc.2
-    IL_0029:  box        ""int""
-    IL_002e:  call       ""void C.Print(object, object)""
-    IL_0033:  ldloc.0
-    IL_0034:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0039:  brtrue.s   IL_000d
-    IL_003b:  leave.s    IL_0047
+    IL_001f:  stloc.s    V_4
+    IL_0021:  ldloc.3
+    IL_0022:  stloc.1
+    IL_0023:  ldloc.s    V_4
+    IL_0025:  stloc.2
+    IL_0026:  ldloc.1
+    IL_0027:  box        ""int""
+    IL_002c:  ldloc.2
+    IL_002d:  box        ""int""
+    IL_0032:  call       ""void C.Print(object, object)""
+    IL_0037:  ldloc.0
+    IL_0038:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_003d:  brtrue.s   IL_000d
+    IL_003f:  leave.s    IL_004b
   }
   finally
   {
-    IL_003d:  ldloc.0
-    IL_003e:  brfalse.s  IL_0046
-    IL_0040:  ldloc.0
-    IL_0041:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0046:  endfinally
+    IL_0041:  ldloc.0
+    IL_0042:  brfalse.s  IL_004a
+    IL_0044:  ldloc.0
+    IL_0045:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_004a:  endfinally
   }
-  IL_0047:  ret
+  IL_004b:  ret
 }
 ");
         }
@@ -2972,18 +2989,19 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       95 (0x5f)
+  // Code size       99 (0x63)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
                 int V_2, //x1
                 int V_3, //x2
-                int V_4)
+                int V_4,
+                int V_5)
   IL_0000:  call       ""(int, int)[] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0058
+  IL_0008:  br.s       IL_005c
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
@@ -2991,41 +3009,43 @@ class C
   IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0017:  stloc.s    V_4
   IL_0019:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001e:  ldloc.s    V_4
-  IL_0020:  stloc.2
-  IL_0021:  stloc.3
-  IL_0022:  ldc.i4.4
-  IL_0023:  newarr     ""object""
-  IL_0028:  dup
-  IL_0029:  ldc.i4.0
-  IL_002a:  ldloc.2
-  IL_002b:  box        ""int""
-  IL_0030:  stelem.ref
-  IL_0031:  dup
-  IL_0032:  ldc.i4.1
-  IL_0033:  ldstr      "" ""
-  IL_0038:  stelem.ref
-  IL_0039:  dup
-  IL_003a:  ldc.i4.2
-  IL_003b:  ldloc.3
-  IL_003c:  box        ""int""
-  IL_0041:  stelem.ref
-  IL_0042:  dup
-  IL_0043:  ldc.i4.3
-  IL_0044:  ldstr      "" - ""
-  IL_0049:  stelem.ref
-  IL_004a:  call       ""string string.Concat(params object[])""
-  IL_004f:  call       ""void System.Console.Write(string)""
-  IL_0054:  ldloc.1
-  IL_0055:  ldc.i4.1
-  IL_0056:  add
-  IL_0057:  stloc.1
+  IL_001e:  stloc.s    V_5
+  IL_0020:  ldloc.s    V_4
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.s    V_5
+  IL_0025:  stloc.3
+  IL_0026:  ldc.i4.4
+  IL_0027:  newarr     ""object""
+  IL_002c:  dup
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldloc.2
+  IL_002f:  box        ""int""
+  IL_0034:  stelem.ref
+  IL_0035:  dup
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldstr      "" ""
+  IL_003c:  stelem.ref
+  IL_003d:  dup
+  IL_003e:  ldc.i4.2
+  IL_003f:  ldloc.3
+  IL_0040:  box        ""int""
+  IL_0045:  stelem.ref
+  IL_0046:  dup
+  IL_0047:  ldc.i4.3
+  IL_0048:  ldstr      "" - ""
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""string string.Concat(params object[])""
+  IL_0053:  call       ""void System.Console.Write(string)""
   IL_0058:  ldloc.1
-  IL_0059:  ldloc.0
-  IL_005a:  ldlen
-  IL_005b:  conv.i4
-  IL_005c:  blt.s      IL_000a
-  IL_005e:  ret
+  IL_0059:  ldc.i4.1
+  IL_005a:  add
+  IL_005b:  stloc.1
+  IL_005c:  ldloc.1
+  IL_005d:  ldloc.0
+  IL_005e:  ldlen
+  IL_005f:  conv.i4
+  IL_0060:  blt.s      IL_000a
+  IL_0062:  ret
 }");
         }
 
@@ -3072,7 +3092,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      110 (0x6e)
+  // Code size      114 (0x72)
   .maxstack  3
   .locals init ((int, int)[,] V_0,
                 int V_1,
@@ -3081,7 +3101,8 @@ class C
                 int V_4,
                 int V_5, //x1
                 int V_6, //x2
-                int V_7)
+                int V_7,
+                int V_8)
   IL_0000:  call       ""(int, int)[,] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3096,12 +3117,12 @@ class C
   IL_0017:  ldc.i4.0
   IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_001d:  stloc.3
-  IL_001e:  br.s       IL_0069
+  IL_001e:  br.s       IL_006d
   IL_0020:  ldloc.0
   IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0027:  stloc.s    V_4
-  IL_0029:  br.s       IL_0060
+  IL_0029:  br.s       IL_0064
   IL_002b:  ldloc.0
   IL_002c:  ldloc.3
   IL_002d:  ldloc.s    V_4
@@ -3110,29 +3131,31 @@ class C
   IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_003a:  stloc.s    V_7
   IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0041:  ldloc.s    V_7
-  IL_0043:  stloc.s    V_5
-  IL_0045:  stloc.s    V_6
-  IL_0047:  ldloc.s    V_5
-  IL_0049:  box        ""int""
-  IL_004e:  ldloc.s    V_6
-  IL_0050:  box        ""int""
-  IL_0055:  call       ""void C.Print(object, object)""
-  IL_005a:  ldloc.s    V_4
-  IL_005c:  ldc.i4.1
-  IL_005d:  add
-  IL_005e:  stloc.s    V_4
-  IL_0060:  ldloc.s    V_4
-  IL_0062:  ldloc.2
-  IL_0063:  ble.s      IL_002b
-  IL_0065:  ldloc.3
-  IL_0066:  ldc.i4.1
-  IL_0067:  add
-  IL_0068:  stloc.3
+  IL_0041:  stloc.s    V_8
+  IL_0043:  ldloc.s    V_7
+  IL_0045:  stloc.s    V_5
+  IL_0047:  ldloc.s    V_8
+  IL_0049:  stloc.s    V_6
+  IL_004b:  ldloc.s    V_5
+  IL_004d:  box        ""int""
+  IL_0052:  ldloc.s    V_6
+  IL_0054:  box        ""int""
+  IL_0059:  call       ""void C.Print(object, object)""
+  IL_005e:  ldloc.s    V_4
+  IL_0060:  ldc.i4.1
+  IL_0061:  add
+  IL_0062:  stloc.s    V_4
+  IL_0064:  ldloc.s    V_4
+  IL_0066:  ldloc.2
+  IL_0067:  ble.s      IL_002b
   IL_0069:  ldloc.3
-  IL_006a:  ldloc.1
-  IL_006b:  ble.s      IL_0020
-  IL_006d:  ret
+  IL_006a:  ldc.i4.1
+  IL_006b:  add
+  IL_006c:  stloc.3
+  IL_006d:  ldloc.3
+  IL_006e:  ldloc.1
+  IL_006f:  ble.s      IL_0020
+  IL_0071:  ret
 }");
         }
 
@@ -3186,43 +3209,48 @@ static class Extension
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       64 (0x40)
+  // Code size       69 (0x45)
   .maxstack  3
   .locals init (string V_0,
                 int V_1,
-                int V_2, //x2
-                int V_3,
+                int V_2, //x1
+                int V_3, //x2
                 int V_4,
-                int V_5)
+                int V_5,
+                int V_6)
   IL_0000:  call       ""string C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0036
+  IL_0008:  br.s       IL_003b
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  callvirt   ""char string.this[int].get""
-  IL_0011:  ldloca.s   V_3
-  IL_0013:  ldloca.s   V_4
+  IL_0011:  ldloca.s   V_4
+  IL_0013:  ldloca.s   V_5
   IL_0015:  call       ""void Extension.Deconstruct(char, out int, out int)""
-  IL_001a:  ldloc.3
-  IL_001b:  ldloc.s    V_4
-  IL_001d:  stloc.s    V_5
-  IL_001f:  ldloc.s    V_5
+  IL_001a:  ldloc.s    V_4
+  IL_001c:  ldloc.s    V_5
+  IL_001e:  stloc.s    V_6
+  IL_0020:  dup
   IL_0021:  stloc.2
-  IL_0022:  box        ""int""
-  IL_0027:  ldloc.2
-  IL_0028:  box        ""int""
-  IL_002d:  call       ""void C.Print(object, object)""
-  IL_0032:  ldloc.1
-  IL_0033:  ldc.i4.1
-  IL_0034:  add
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  ldloc.0
-  IL_0038:  callvirt   ""int string.Length.get""
-  IL_003d:  blt.s      IL_000a
-  IL_003f:  ret
+  IL_0022:  ldloc.s    V_6
+  IL_0024:  stloc.3
+  IL_0025:  pop
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""int""
+  IL_002c:  ldloc.3
+  IL_002d:  box        ""int""
+  IL_0032:  call       ""void C.Print(object, object)""
+  IL_0037:  ldloc.1
+  IL_0038:  ldc.i4.1
+  IL_0039:  add
+  IL_003a:  stloc.1
+  IL_003b:  ldloc.1
+  IL_003c:  ldloc.0
+  IL_003d:  callvirt   ""int string.Length.get""
+  IL_0042:  blt.s      IL_000a
+  IL_0044:  ret
 }");
         }
 
@@ -3409,62 +3437,67 @@ Deconstructing (5, 6)
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       98 (0x62)
+  // Code size      103 (0x67)
   .maxstack  3
   .locals init (System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> V_0,
-                int V_1, //x2
-                int V_2, //x3
-                int V_3,
-                Pair<int, int> V_4,
-                int V_5,
+                long V_1, //x1
+                int V_2, //x2
+                int V_3, //x3
+                int V_4,
+                Pair<int, int> V_5,
                 int V_6,
                 int V_7,
-                int V_8)
+                int V_8,
+                int V_9)
   IL_0000:  call       ""System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>> C.M()""
   IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>> System.Collections.Generic.IEnumerable<Pair<int, Pair<int, int>>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_004d
+    IL_000b:  br.s       IL_0052
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""Pair<int, Pair<int, int>> System.Collections.Generic.IEnumerator<Pair<int, Pair<int, int>>>.Current.get""
-    IL_0013:  ldloca.s   V_3
-    IL_0015:  ldloca.s   V_4
+    IL_0013:  ldloca.s   V_4
+    IL_0015:  ldloca.s   V_5
     IL_0017:  callvirt   ""void Pair<int, Pair<int, int>>.Deconstruct(out int, out Pair<int, int>)""
-    IL_001c:  ldloc.s    V_4
-    IL_001e:  ldloca.s   V_5
-    IL_0020:  ldloca.s   V_6
+    IL_001c:  ldloc.s    V_5
+    IL_001e:  ldloca.s   V_6
+    IL_0020:  ldloca.s   V_7
     IL_0022:  callvirt   ""void Pair<int, int>.Deconstruct(out int, out int)""
-    IL_0027:  ldloc.3
-    IL_0028:  conv.i8
-    IL_0029:  ldloc.s    V_5
-    IL_002b:  stloc.s    V_7
-    IL_002d:  ldloc.s    V_6
-    IL_002f:  stloc.s    V_8
-    IL_0031:  ldloc.s    V_7
+    IL_0027:  ldloc.s    V_4
+    IL_0029:  conv.i8
+    IL_002a:  ldloc.s    V_6
+    IL_002c:  stloc.s    V_8
+    IL_002e:  ldloc.s    V_7
+    IL_0030:  stloc.s    V_9
+    IL_0032:  dup
     IL_0033:  stloc.1
     IL_0034:  ldloc.s    V_8
     IL_0036:  stloc.2
-    IL_0037:  box        ""long""
-    IL_003c:  ldloc.1
-    IL_003d:  box        ""int""
-    IL_0042:  ldloc.2
-    IL_0043:  box        ""int""
-    IL_0048:  call       ""void C.Print(object, object, object)""
-    IL_004d:  ldloc.0
-    IL_004e:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0053:  brtrue.s   IL_000d
-    IL_0055:  leave.s    IL_0061
+    IL_0037:  ldloc.s    V_9
+    IL_0039:  stloc.3
+    IL_003a:  pop
+    IL_003b:  ldloc.1
+    IL_003c:  box        ""long""
+    IL_0041:  ldloc.2
+    IL_0042:  box        ""int""
+    IL_0047:  ldloc.3
+    IL_0048:  box        ""int""
+    IL_004d:  call       ""void C.Print(object, object, object)""
+    IL_0052:  ldloc.0
+    IL_0053:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0058:  brtrue.s   IL_000d
+    IL_005a:  leave.s    IL_0066
   }
   finally
   {
-    IL_0057:  ldloc.0
-    IL_0058:  brfalse.s  IL_0060
-    IL_005a:  ldloc.0
-    IL_005b:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0060:  endfinally
+    IL_005c:  ldloc.0
+    IL_005d:  brfalse.s  IL_0065
+    IL_005f:  ldloc.0
+    IL_0060:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0065:  endfinally
   }
-  IL_0061:  ret
+  IL_0066:  ret
 }
 ");
         }
@@ -4206,12 +4239,43 @@ int (x, y) = (1, 2);
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
+                // (2,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // int (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
+                );
+
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xSymbol = model.GetDeclaredSymbol(x);
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
+            var xType = ((FieldSymbol)xSymbol).Type;
+            Assert.False(xType.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
+
+            var y = GetDeconstructionVariable(tree, "y");
+            var ySymbol = model.GetDeclaredSymbol(y);
+            Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
+            var yType = ((FieldSymbol)ySymbol).Type;
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Int32", yType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InvalidDeconstructionInScript_2()
+        {
+            var source =
+@"
+(int (x, y), int z) = ((1, 2), 3);
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
                 // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // int (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x").WithLocation(2, 6),
-                // (2,9): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // int (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "y").WithLocation(2, 9)
+                // (int (x, y), int z) = ((1, 2), 3);
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
 
 
@@ -4293,7 +4357,7 @@ var (z, y) = (1, 2);
             Assert.Equal("System.Int32 Script.y", firstYSymbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, firstYSymbol.Kind);
 
-            var secondY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").Skip(1).First();
+            var secondY = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "y").ElementAt(1);
             var secondYSymbol = model.GetDeclaredSymbol(secondY);
             Assert.Equal("System.Int32 Script.y", secondYSymbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, secondYSymbol.Kind);
@@ -4324,7 +4388,7 @@ var (x, (y, x)) = (1, (2, ""hello""));
             Assert.Equal("System.Int32 Script.x", firstXSymbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, firstXSymbol.Kind);
 
-            var secondX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").Skip(1).First();
+            var secondX = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == "x").ElementAt(1);
             var secondXSymbol = model.GetDeclaredSymbol(secondX);
             Assert.Equal("System.String Script.x", secondXSymbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, secondXSymbol.Kind);
@@ -4499,15 +4563,9 @@ System.Console.Write($""{x1} {x2} {x3}"");
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // (3,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(3, 6),
-                // (3,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(3, 11),
-                // (3,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, (x2, x3))").WithLocation(3, 5)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -4546,15 +4604,9 @@ System.Console.Write($""{x1} {x2} {x3}"");
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
+                // (6,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 6),
-                // (6,11): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 11),
-                // (6,15): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
-                // var (x1, (x2, x3)) = (1, (2, 3));
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, (x2, x3))").WithLocation(6, 5)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -4668,6 +4720,831 @@ System.Console.Write($""{x1} {x2} {x3}"");
             Assert.Equal(SymbolKind.NamedType, model.GetSymbolInfo(x3Type).Symbol.Kind);
             Assert.Equal("var", model.GetSymbolInfo(x3Type).Symbol.ToDisplayString());
             Assert.Null(model.GetAliasInfo(x3Type));
+        }
+
+        [Fact]
+        public void SimpleDiscardWithConversion()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (int _, var x) = (new C(1), 1);
+        (var _, var y) = (new C(2), 2);
+        var (_, z) = (new C(3), 3);
+        System.Console.Write($""Output {x} {y} {z}."");
+    }
+    int _i;
+    public C(int i) { _i = i; }
+    public static implicit operator int(C c) { System.Console.Write($""Converted {c._i}. ""); return 0; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Converted 1. Output 1 2 3.");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("int _", declaration1.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+            var discard3 = GetDiscardDesignations(tree).ElementAt(2);
+            var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
+            Assert.Equal("var (_, z)", declaration3.ToString());
+            //Assert.Equal("", model.GetTypeInfo(var_2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+        }
+
+        [Fact]
+        public void CannotDeconstructIntoDiscardOfWrongType()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (int _, string _) = (""hello"", 42);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         (int _, string _) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 30),
+                // (6,39): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         (int _, string _) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "42").WithArguments("int", "string").WithLocation(6, 39)
+                );
+        }
+
+        [Fact]
+        public void DiscardFromDeconstructMethod()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (var _, string y) = new C();
+        System.Console.Write(y);
+    }
+    void Deconstruct(out int x, out string y) { x = 42; y = ""hello""; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "hello");
+        }
+
+        [Fact]
+        public void ShortDiscardInDeclaration()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, var x) = (1, 2);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard = GetDiscardIdentifiers(tree).First();
+            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void UnderscoreLocalInDeconstructDeclaration()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int _;
+        (_, var x) = (1, 2);
+        System.Console.Write(_);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,10): error CS8184: Cannot reference _ in a deconstruction declaration
+                //         (_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(7, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("(_, var x)", discard.Parent.Parent.ToString());
+            var symbol = (LocalSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ShortDiscardInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (_, _, x) = (1, 2, 3);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void MixedDeconstructionIsBlocked()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int i;
+        (i, var x) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,10): error CS1031: Type expected
+                //         (i, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "i").WithLocation(7, 10),
+                // (7,10): error CS0128: A local variable or function named 'i' is already defined in this scope
+                //         (i, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(7, 10),
+                // (6,13): warning CS0168: The variable 'i' is declared but never used
+                //         int i;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void DiscardInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (_, x) = (1, 2);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardIdentifiers(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var tuple1 = (TupleExpressionSyntax)discard1.Parent.Parent;
+            Assert.Equal("(_, x)", tuple1.ToString());
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiscardInDeconstructDeclaration()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        var (_, x) = (1, 2);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var tuple1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
+            Assert.Equal("var (_, x)", tuple1.ToString());
+            //Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString()); // fix null type  https://github.com/dotnet/roslyn/issues/15450
+        }
+
+        [Fact]
+        public void UnderscoreLocalInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int x, _;
+        (_, x) = (1, 2);
+        System.Console.Write($""{_} {x}"");
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("(_, x)", discard.Parent.Parent.ToString());
+            var symbol = (LocalSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiscardInForeach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        foreach (var (_, x) in new[] { (1, ""hello"") }) { System.Console.Write(""1 ""); }
+        foreach ((_, var x) in new[] { (1, ""hello"") }) { System.Console.Write(""2""); }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
+            Assert.Equal("var (_, x)", declaration1.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+            var discard3 = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("(_, var x)", discard3.Parent.Parent.ToString());
+            var symbol3 = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            //Assert.Equal("System.Int32", symbol3.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TwoDiscardsInForeach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        foreach ((_, _) in new[] { (1, ""hello"") }) { System.Console.Write(""2""); }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS1001: Identifier expected
+                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(6, 25),
+                // (6,25): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 25),
+                // (6,19): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 19),
+                // (6,22): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 22),
+                // (6,9): error CS0030: Cannot convert type '(int, string)' to '(_, _)'
+                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("(int, string)", "(_, _)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreLocalDisallowedInForEach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        {
+            foreach ((var x, _) in new[] { (1, ""hello"") }) { System.Console.Write(""2 ""); }
+        }
+        {
+            int _;
+            foreach ((var y, _) in new[] { (1, ""hello"") }) { System.Console.Write(""4""); } // error
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,30): error CS8184: Cannot reference _ in a deconstruction declaration
+                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(11, 30),
+                // (11,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "_").WithArguments("string", "int").WithLocation(11, 30),
+                // (10,17): warning CS0168: The variable '_' is declared but never used
+                //             int _;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void TwoDiscardsInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (_, _) = (new C(), new C());
+    }
+    public C() { System.Console.Write(""C""); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "CC");
+        }
+
+        [Fact]
+        public void SingleDiscardInAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        _ = M();
+    }
+    public static int M() { System.Console.Write(""M""); return 1; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "M");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardIdentifiers(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard1).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SingleDiscardInAsyncAssignment()
+        {
+            var source =
+@"
+class C
+{
+    async void M()
+    {
+        System.Threading.Tasks.Task.Delay(new System.TimeSpan(0)); // warning
+        _ = System.Threading.Tasks.Task.Delay(new System.TimeSpan(0)); // fire-and-forget
+        await System.Threading.Tasks.Task.Delay(new System.TimeSpan(0));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+                //         System.Threading.Tasks.Task.Delay(new System.TimeSpan(0));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "System.Threading.Tasks.Task.Delay(new System.TimeSpan(0))").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void SingleDiscardInUntypedAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        _ = null;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = null;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreLocalInAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int _;
+        _ = M();
+        System.Console.Write(_);
+    }
+    public static int M() { return 1; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void DeclareAndUseLocalInDeconstruction()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (var x, x) = (1, 2);
+        (y, var y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            // mixing declaration and expressions isn't supported yet
+            comp.VerifyDiagnostics(
+                // (6,17): error CS1031: Type expected
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(6, 17),
+                // (7,10): error CS1031: Type expected
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "y").WithLocation(7, 10),
+                // (6,17): error CS0128: A local variable or function named 'x' is already defined in this scope
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,17): error CS0128: A local variable or function named 'y' is already defined in this scope
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void OutVarAndUsageInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (M(out var x).P, x) = (1, x);
+        System.Console.Write(x);
+    }
+    static C M(out int i) { i = 42; return new C(); }
+    int P { set { System.Console.Write($""Written {value}. ""); } }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Written 1. 42");
+        }
+
+        [Fact]
+        public void OutDiscardInDeconstructAssignment()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int _;
+        (M(out var _).P, _) = (1, 2);
+        System.Console.Write(_);
+    }
+    static C M(out int i) { i = 42; return new C(); }
+    int P { set { System.Console.Write($""Written {value}. ""); } }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Written 1. 2");
+        }
+
+        [Fact]
+        public void OutDiscardInDeconstructTarget()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (x, _) = (M(out var x), 2);
+        System.Console.Write(x);
+    }
+    static int M(out int i) { i = 42; return 3; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0841: Cannot use local variable 'x' before it is declared
+                //         (x, _) = (M(out var x), 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 10)
+                );
+        }
+
+
+        [Fact]
+        public void SimpleDiscardDeconstructInScript()
+        {
+            var source =
+@"
+using alias = System.Int32;
+(string _, alias _) = (""hello"", 42);
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var discard1 = GetDiscardDesignations(tree).First();
+                var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+                Assert.Equal("string _", declaration1.ToString());
+                Assert.Null(model.GetDeclaredSymbol(declaration1));
+                Assert.Null(model.GetDeclaredSymbol(discard1));
+
+                var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+                var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+                Assert.Equal("alias _", declaration2.ToString());
+                Assert.Null(model.GetDeclaredSymbol(declaration2));
+                Assert.Null(model.GetDeclaredSymbol(discard2));
+
+                var tuple = (TupleExpressionSyntax)declaration1.Parent.Parent;
+                Assert.Equal("(string _, alias _)", tuple.ToString());
+                Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void SingleDiscardInAssignmentInScript()
+        {
+            var source =
+@"
+int M() { System.Console.Write(""M""); return 1; }
+_ = M();
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "M");
+        }
+
+        [Fact]
+        public void NestedVarDiscardDeconstructionInScript()
+        {
+            var source =
+@"
+(var _, var (_, x3)) = (""hello"", (42, 43));
+System.Console.Write($""{x3}"");
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+                var nestedDeclaration = (DeclarationExpressionSyntax)discard2.Parent.Parent;
+                Assert.Equal("var (_, x3)", nestedDeclaration.ToString());
+                Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
+                Assert.Null(model.GetDeclaredSymbol(discard2));
+                //Assert.Equal("", model.GetTypeInfo(nestedDeclaration).Type.ToString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+                var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
+                Assert.Equal("(var _, var (_, x3))", tuple.ToString());
+                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            };
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "43", sourceSymbolValidator: validator);
+        }
+
+        [Fact]
+        public void VariousDiscardsInForeach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        foreach ((var _, int _, _, var (_, _), int x) in new[] { (1, 2, 3, (4, 5), 6) })
+        {
+            System.Console.Write(x);
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "6");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            Assert.Equal("var _", declaration1.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+            var discard2 = GetDiscardDesignations(tree).ElementAt(1);
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
+            Assert.Equal("int _", declaration2.ToString());
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+
+            var discard3 = GetDiscardIdentifiers(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard3));
+            //Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+        }
+
+        [Fact]
+        public void DiscardInCSharp6Foreach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        foreach (var _ in M())
+        {
+            System.Console.Write(_);
+        }
+    }
+    static System.Collections.Generic.IEnumerable<int> M()
+    {
+        System.Console.Write(""M "");
+        yield return 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "M 1");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            //var discard1 = GetDiscardDesignations(tree).First();
+            //Assert.Null(model.GetDeclaredSymbol(discard1));
+            //var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
+            //Assert.Equal("var _", declaration1.ToString());
+            ////Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+        }
+
+        [Fact]
+        public void ShortDiscardDisallowedInForeach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        foreach (_ in M())
+        {
+        }
+    }
+    static System.Collections.Generic.IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS1001: Identifier expected
+                //         foreach (_ in M())
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(6, 20),
+                // (6,20): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (_ in M())
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 20),
+                // (6,18): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         foreach (_ in M())
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void ExistingUnderscoreLocalInLegacyForeach()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        int _;
+        foreach (var _ in new[] { 1 })
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,22): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         foreach (var _ in new[] { 1 })
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(7, 22),
+                // (6,13): warning CS0168: The variable '_' is declared but never used
+                //         int _;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 13)
+                );
         }
     }
 }
