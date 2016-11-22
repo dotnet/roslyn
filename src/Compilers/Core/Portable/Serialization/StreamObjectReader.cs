@@ -29,6 +29,7 @@ namespace Roslyn.Utilities
     {
         private readonly BinaryReader _reader;
         private readonly ObjectBinder _binder;
+        private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -76,28 +77,51 @@ namespace Roslyn.Utilities
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
+            _recursive = IsRecursive(stream);
+
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
             _binder = binder ?? FixedObjectBinder.Empty;
             _cancellationToken = cancellationToken;
-            _valueStack = SOW.s_variantStackPool.Allocate();
-            _constructionStack = s_constructionStackPool.Allocate();
-            _memberList = SOW.s_variantListPool.Allocate();
-            _memberReader = new VariantListReader(_memberList);
+
+            if (!_recursive)
+            {
+                _valueStack = SOW.s_variantStackPool.Allocate();
+                _constructionStack = s_constructionStackPool.Allocate();
+                _memberList = SOW.s_variantListPool.Allocate();
+                _memberReader = new VariantListReader(_memberList);
+            }
+        }
+
+        internal static bool IsRecursive(Stream stream)
+        {
+            var recursionKind = (EncodingKind)stream.ReadByte(); 
+            switch (recursionKind)
+            {
+                case EncodingKind.Recursive:
+                    return true;
+                case EncodingKind.NonRecursive:
+                    return false;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(recursionKind);
+            }
         }
 
         public void Dispose()
         {
             _referenceMap.Dispose();
 
-            _valueStack.Clear();
-            SOW.s_variantStackPool.Free(_valueStack);
+            if (!_recursive)
+            {
+                _valueStack.Clear();
+                SOW.s_variantStackPool.Free(_valueStack);
 
-            _constructionStack.Clear();
-            s_constructionStackPool.Free(_constructionStack);
+                _constructionStack.Clear();
+                s_constructionStackPool.Free(_constructionStack);
 
-            _memberList.Clear();
-            SOW.s_variantListPool.Free(_memberList);
+                _memberList.Clear();
+                SOW.s_variantListPool.Free(_memberList);
+            }
         }
 
         public override bool ReadBoolean()
@@ -176,7 +200,7 @@ namespace Roslyn.Utilities
             var v = ReadVariant();
 
             // if we didn't get anything, it must have been an object or array header
-            if (v.Kind == VariantKind.None)
+            if (!_recursive && v.Kind == VariantKind.None)
             {
                 v = ConstructFromValues();
             }
@@ -663,8 +687,25 @@ namespace Roslyn.Utilities
                 // custom type case
                 elementType = this.ReadType(elementKind);
 
-                _constructionStack.Push(Construction.CreateArrayConstruction(elementType, length, _valueStack.Count));
-                return Variant.None;
+                if (_recursive)
+                {
+                    // recursive: create instance and read elements next in stream
+                    Array array = Array.CreateInstance(elementType, length);
+
+                    for (int i = 0; i < length; ++i)
+                    {
+                        var value = this.ReadValue();
+                        array.SetValue(value, i);
+                    }
+
+                    return Variant.FromObject(array);
+                }
+                else
+                {
+                    // non-recursive: remember construction info to be used later when all elements are available
+                    _constructionStack.Push(Construction.CreateArrayConstruction(elementType, length, _valueStack.Count));
+                    return Variant.None;
+                }
             }
         }
 
@@ -984,7 +1025,6 @@ namespace Roslyn.Utilities
                     int id = _referenceMap.GetNextReferenceId();
 
                     Type type = this.ReadType();
-                    uint memberCount = this.ReadCompressedUInt();
 
                     Func<ObjectReader, object> typeReader;
                     if (!_binder.TryGetReader(type, out typeReader))
@@ -992,14 +1032,27 @@ namespace Roslyn.Utilities
                         throw NoSerializationReaderException(type.FullName);
                     }
 
-                    if (memberCount == 0)
+                    if (_recursive)
                     {
-                        return ConstructObject(type, (int)memberCount, typeReader, id);
+                        // recursive: read and construct instance immediately from member elements encoding next in the stream
+                        var instance = typeReader(this);
+                        _referenceMap.SetValue(id, instance);
+                        return Variant.FromObject(instance);
                     }
-                    else
+                    else 
                     {
-                        _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
-                        return Variant.None;
+                        uint memberCount = this.ReadCompressedUInt();
+
+                        if (memberCount == 0)
+                        {
+                            return ConstructObject(type, (int)memberCount, typeReader, id);
+                        }
+                        else
+                        {
+                            // non-recursive: remember construction information to invoke later when member elements available on the stack
+                            _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
+                            return Variant.None;
+                        }
                     }
 
                 default:

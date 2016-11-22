@@ -27,6 +27,7 @@ namespace Roslyn.Utilities
     {
         private readonly BinaryWriter _writer;
         private readonly ObjectBinder _binder;
+        private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -62,11 +63,13 @@ namespace Roslyn.Utilities
         /// <param name="stream">The stream to write to.</param>
         /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectReader"/>.</param>
         /// <param name="binder">A binder that provides object and type encoding.</param>
+        /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
         public StreamObjectWriter(
             Stream stream,
             ObjectData knownObjects = null,
             ObjectBinder binder = null,
+            bool recursive = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -76,21 +79,34 @@ namespace Roslyn.Utilities
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
             _binder = binder ?? FixedObjectBinder.Empty;
+            _recursive = recursive;
             _cancellationToken = cancellationToken;
-            _valueStack = s_variantStackPool.Allocate();
-            _memberList = s_variantListPool.Allocate();
-            _memberWriter = new VariantListWriter(_memberList);
+
+            if (_recursive)
+            {
+                _writer.Write((byte)EncodingKind.Recursive);
+            }
+            else
+            {
+                _writer.Write((byte)EncodingKind.NonRecursive);
+                _valueStack = s_variantStackPool.Allocate();
+                _memberList = s_variantListPool.Allocate();
+                _memberWriter = new VariantListWriter(_memberList);
+            }
         }
 
         public void Dispose()
         {
             _referenceMap.Dispose();
 
-            _memberList.Clear();
-            s_variantListPool.Free(_memberList);
+            if (!_recursive)
+            {
+                _memberList.Clear();
+                s_variantListPool.Free(_memberList);
 
-            _valueStack.Clear();
-            s_variantStackPool.Free(_valueStack);
+                _valueStack.Clear();
+                s_variantStackPool.Free(_valueStack);
+            }
         }
 
         public override void WriteBoolean(bool value)
@@ -166,8 +182,15 @@ namespace Roslyn.Utilities
 
         public override void WriteValue(object value)
         {
-            _valueStack.Push(Variant.FromBoxedObject(value));
-            Emit();
+            if (_recursive)
+            {
+                WriteVariant(Variant.FromBoxedObject(value));
+            }
+            else
+            {
+                _valueStack.Push(Variant.FromBoxedObject(value));
+                Emit();
+            }
         }
 
         private void Emit()
@@ -673,10 +696,30 @@ namespace Roslyn.Utilities
                 // emit header up front
                 this.WriteType(elementType);
 
-                // push elements in reverse order so we later emit first element first
-                for (int i = array.Length - 1; i >= 0; i--)
+                if (_recursive)
                 {
-                    _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
+                    // recursive: write elements now
+                    _recursionDepth++;
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    if (_recursionDepth > MaxRecursionDepth)
+                    {
+                        throw new RecursionDepthExceeded();
+                    }
+
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        this.WriteValue(array.GetValue(i));
+                    }
+
+                    _recursionDepth--;
+                }
+                else
+                {
+                    // non-recursive: push elements in reverse order so we later emit first element first
+                    for (int i = array.Length - 1; i >= 0; i--)
+                    {
+                        _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
+                    }
                 }
             }
         }
@@ -895,6 +938,16 @@ namespace Roslyn.Utilities
             }
         }
 
+        private int _recursionDepth;
+        private const int MaxRecursionDepth = 50;
+
+        internal class RecursionDepthExceeded : Exception
+        {
+            public RecursionDepthExceeded()
+            {
+            }
+        }
+
         private void WriteObject(object instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -928,18 +981,37 @@ namespace Roslyn.Utilities
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }
 
-                // gather instance members by writing them into a list of variants
-                _memberList.Clear();
-                typeWriter(_memberWriter, instance);
-
-                // emit object header up front
-                this.WriteObjectHeader(instance, (uint)_memberList.Count);
-
-                // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
-                // push all members in reverse order so we later emit the first member written first
-                for (int i = _memberList.Count - 1; i >= 0; i--)
+                if (_recursive)
                 {
-                    _valueStack.Push(_memberList[i]);
+                    _recursionDepth++;
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                    if (_recursionDepth > MaxRecursionDepth)
+                    {
+                        throw new RecursionDepthExceeded();
+                    }
+
+                    // emit object header up front
+                    this.WriteObjectHeader(instance, 0);
+
+                    typeWriter(this, instance);
+
+                    _recursionDepth--;
+                }
+                else
+                {
+                    // gather instance members by writing them into a list of variants
+                    _memberList.Clear();
+                    typeWriter(_memberWriter, instance);
+
+                    // emit object header up front
+                    this.WriteObjectHeader(instance, (uint)_memberList.Count);
+
+                    // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
+                    // push all members in reverse order so we later emit the first member written first
+                    for (int i = _memberList.Count - 1; i >= 0; i--)
+                    {
+                        _valueStack.Push(_memberList[i]);
+                    }
                 }
             }
         }
@@ -952,7 +1024,11 @@ namespace Roslyn.Utilities
 
             Type type = instance.GetType();
             this.WriteType(type);
-            this.WriteCompressedUInt(memberCount);
+
+            if (!_recursive)
+            {
+                this.WriteCompressedUInt(memberCount);
+            }
         }
 
         private static Exception NoSerializationTypeException(string typeName)
@@ -1013,6 +1089,16 @@ namespace Roslyn.Utilities
         /// </summary>
         internal enum EncodingKind : byte
         {
+            /// <summary>
+            /// The stream is encoding using recursive object serialization
+            /// </summary>
+            Recursive,
+
+            /// <summary>
+            /// The stream is encoded using non-recursive object serialzation
+            /// </summary>
+            NonRecursive,
+
             /// <summary>
             /// The null value
             /// </summary>

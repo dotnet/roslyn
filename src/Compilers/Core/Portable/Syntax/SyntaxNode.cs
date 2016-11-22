@@ -1248,9 +1248,23 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            var start = stream.Position;
+
+            try
             {
-                writer.WriteValue(this.Green);
+                using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+                {
+                    writer.WriteValue(this.Green);
+                }
+            }
+            catch (Exception e) when (e is StreamObjectWriter.RecursionDepthExceeded || StackGuard.IsInsufficientExecutionStackException(e))
+            {
+                stream.Position = start;
+
+                using (var writer = new StreamObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, recursive: false, cancellationToken: cancellationToken))
+                {
+                    writer.WriteValue(this.Green);
+                }
             }
         }
 

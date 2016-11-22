@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class SerializationTests
 
-        Private Sub RoundTrip(text As String)
+        Private Sub RoundTrip(text As String, Optional expectRecursive As Boolean = True)
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
             Dim root = tree.GetRoot()
 
@@ -21,7 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             root.SerializeTo(stream)
 
             stream.Position = 0
+            Assert.Equal(expectRecursive, Roslyn.Utilities.StreamObjectReader.IsRecursive(stream))
 
+            stream.Position = 0
             Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
 
@@ -239,8 +241,8 @@ Module Module15
         x = EnumChildWindows(hw, d, 5)
         'This should always be true, I would think
         If intCounter < 10 Then
-		intcounter = 10
-        End If        
+            intcounter = 10
+        End If
     End Sub
     'Callback function for EnumWindows
     Function EnumChildProc(ByVal hw As Integer, ByVal lp As Integer) As Integer
@@ -421,7 +423,7 @@ Module Module15
 End Module
 ]]>
                        </Foo>.Value
-            RoundTrip(text)
+            RoundTrip(text, expectRecursive:=False)
         End Sub
 
         <Fact>
