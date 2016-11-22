@@ -47,10 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             Diagnostic diagnostic;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
             Func<SyntaxNode, bool> descendIntoChildren = n =>
             {
                 if (!IsRegularCandidate(n) ||
-                    !TrySimplifyTypeNameExpression(context.SemanticModel, n, context.Options, out diagnostic, context.CancellationToken))
+                    !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
                 {
                     return true;
                 }
@@ -62,16 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // find regular node first - search from top to down. once found one, don't get into its children
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             // now search structure trivia
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren: n => !IsCrefCandidate(n), descendIntoTrivia: true))
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (IsCrefCandidate(candidate) &&
-                    TrySimplifyTypeNameExpression(context.SemanticModel, candidate, context.Options, out diagnostic, context.CancellationToken))
+                    TrySimplifyTypeNameExpression(context.SemanticModel, candidate, options, out diagnostic, cancellationToken))
                 {
                     context.ReportDiagnostic(diagnostic);
                 }

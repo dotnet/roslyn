@@ -92,8 +92,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         {
             diagnostic = default(Diagnostic);
 
-            var optionSet = analyzerOptions.GetOptionSet();
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out var diagnosticId, cancellationToken))
+            var syntaxTree = node.SyntaxTree;
+            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return false;
+            }
+            
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
             {
                 return false;
             }

@@ -50,7 +50,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = conditionalExpression.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {

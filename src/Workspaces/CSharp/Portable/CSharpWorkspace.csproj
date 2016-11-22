@@ -100,6 +100,7 @@
     <Compile Include="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="Formatting\CSharpFormattingOptions.Parsers.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -1944,13 +1944,6 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
             this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // Attributes on interface implementation entries 5
-            foreach (ITypeDefinition typeDef in typeDefs)
-            {
-                var interfaceImpls = typeDef.Interfaces(Context);
-                this.AddCustomAttributesToTable(interfaceImpls);
-            }
-
             // TODO: attributes on member reference entries 6
             if (this.IsFullMetadata)
             {
@@ -1970,10 +1963,6 @@ namespace Microsoft.Cci
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
             this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
-            foreach (var param in sortedGenericParameters)
-            {
-                this.AddCustomAttributesToTable(param.GetConstraints(Context));
-            }
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2069,6 +2058,16 @@ namespace Microsoft.Cci
                 {
                     AddCustomAttributeToTable(parentHandle, customAttribute);
                 }
+            }
+        }
+
+        private void AddCustomAttributesToTable(
+            EntityHandle handle,
+            ImmutableArray<ICustomAttribute> attributes)
+        {
+            foreach (var attr in attributes)
+            {
+                AddCustomAttributeToTable(handle, attr);
             }
         }
 
@@ -2368,7 +2367,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateGenericParameters(ImmutableArray<IGenericParameter> sortedGenericParameters)
+
+        private void PopulateGenericParameters(
+            ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
             foreach (IGenericParameter genericParameter in sortedGenericParameters)
             {
@@ -2383,9 +2384,10 @@ namespace Microsoft.Cci
 
                 foreach (var refWithAttributes in genericParameter.GetConstraints(Context))
                 {
-                    metadata.AddGenericParameterConstraint(
+                    var genericConstraintHandle = metadata.AddGenericParameterConstraint(
                         genericParameter: genericParameterHandle,
                         constraint: GetTypeHandle(refWithAttributes.TypeRef));
+                    AddCustomAttributesToTable(genericConstraintHandle, refWithAttributes.Attributes);
                 }
             }
         }
@@ -2421,9 +2423,10 @@ namespace Microsoft.Cci
                 var typeDefHandle = GetTypeDefinitionHandle(typeDef);
                 foreach (var interfaceImpl in typeDef.Interfaces(Context))
                 {
-                    metadata.AddInterfaceImplementation(
+                    var handle = metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
                         implementedInterface: GetTypeHandle(interfaceImpl.TypeRef));
+                    AddCustomAttributesToTable(handle, interfaceImpl.Attributes);
                 }
             }
         }

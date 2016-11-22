@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal class VisualStudioDocumentTrackingService : IDocumentTrackingService, IVsSelectionEvents, IDisposable
     {
-        private readonly NonRoslynTextBufferTracker _tracker;
-
         private IVsMonitorSelection _monitorSelection;
         private uint _cookie;
         private ImmutableList<FrameListener> _visibleFrames;
@@ -26,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public VisualStudioDocumentTrackingService(IServiceProvider serviceProvider)
         {
-            _tracker = new NonRoslynTextBufferTracker(this);
-
             _visibleFrames = ImmutableList<FrameListener>.Empty;
 
             _monitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
@@ -136,11 +133,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public void OnNonRoslynViewOpened(ITextView view)
+        public void OnNonRoslynBufferOpened(ITextBuffer buffer)
         {
-            _tracker.OnOpened(view);
+            buffer.PostChanged += OnNonRoslynBufferChanged;
         }
 
+        public void OnNonRoslynBufferClosed(ITextBuffer buffer)
+        {
+            buffer.PostChanged -= OnNonRoslynBufferChanged;
+        }
+
+        private void OnNonRoslynBufferChanged(object sender, EventArgs e)
+        {
+            this.NonRoslynBufferTextChanged?.Invoke(sender, e);
+        }
         public void Dispose()
         {
             if (_cookie != VSConstants.VSCOOKIE_NIL && _monitorSelection != null)
@@ -268,55 +274,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 Frame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var caption);
                 return caption.ToString();
-            }
-        }
-
-        /// <summary>
-        /// It tracks non roslyn text buffer text changes.
-        /// </summary>
-        private class NonRoslynTextBufferTracker : ForegroundThreadAffinitizedObject
-        {
-            private readonly VisualStudioDocumentTrackingService _owner;
-            private readonly HashSet<ITextView> _views;
-
-            public NonRoslynTextBufferTracker(VisualStudioDocumentTrackingService owner)
-            {
-                _owner = owner;
-                _views = new HashSet<ITextView>();
-            }
-
-            public void OnOpened(ITextView view)
-            {
-                AssertIsForeground();
-
-                if (!_views.Add(view))
-                {
-                    return;
-                }
-
-                view.TextBuffer.PostChanged += OnTextChanged;
-                view.Closed += OnClosed;
-            }
-
-            private void OnClosed(object sender, EventArgs e)
-            {
-                AssertIsForeground();
-
-                var view = sender as ITextView;
-                if (view == null || !_views.Contains(view))
-                {
-                    return;
-                }
-
-                view.TextBuffer.PostChanged -= OnTextChanged;
-                view.Closed -= OnClosed;
-
-                _views.Remove(view);
-            }
-
-            private void OnTextChanged(object sender, EventArgs e)
-            {
-                _owner.NonRoslynBufferTextChanged?.Invoke(sender, e);
             }
         }
     }

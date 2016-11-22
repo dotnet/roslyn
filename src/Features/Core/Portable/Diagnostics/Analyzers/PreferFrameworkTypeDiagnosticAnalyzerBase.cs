@@ -74,14 +74,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
             }
-
+            
             var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var language = semanticModel.Language;
 
             // if the user never prefers this style, do not analyze at all.
