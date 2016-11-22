@@ -18,10 +18,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

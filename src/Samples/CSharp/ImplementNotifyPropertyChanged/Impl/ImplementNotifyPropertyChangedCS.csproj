@@ -25,16 +25,6 @@
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>Microsoft.CodeAnalysis.VisualBasic.Workspaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
-      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
-      <Name>VisualStudioText</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>
@@ -58,7 +48,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
