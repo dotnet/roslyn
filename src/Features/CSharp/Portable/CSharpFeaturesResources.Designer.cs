@@ -107,6 +107,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible deconstruction declaration..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_deconstruction_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_deconstruction_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation {
@@ -293,6 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string deprecated {
             get {
                 return ResourceManager.GetString("deprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;designation name&gt;.
+        /// </summary>
+        internal static string designation_name {
+            get {
+                return ResourceManager.GetString("designation_name", resourceCulture);
             }
         }
         

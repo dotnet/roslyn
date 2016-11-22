@@ -277,6 +277,263 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedDeconstructionDeclarationWithVar() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var a$$) = (1, 2);
+    }
+}]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedDeconstructionDeclarationWithVarAfterComma() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var a, var a$$) = (1, 2);
+    }
+}]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedVarDeconstructionDeclarationWithVar() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var a, var ($$)) = (1, 2);
+    }
+}]]></Document>)
+
+
+                state.SendTypeChars("a")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars(", a")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("(var a, var (a, a)) = ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestVarDeconstructionDeclarationWithVar() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+        $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
+
+                state.SendTypeChars(" (a")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars(", a")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("var (a, a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedDeconstructionDeclarationWithSymbol() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       ($$) = (1, 2);
+    }
+}]]></Document>)
+
+                state.SendTypeChars("vari")
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("x, vari")
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(Variable x, Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestParenthesizedDeconstructionDeclarationWithInt() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Integer
+{
+    public void Foo()
+    {
+       ($$) = (1, 2);
+    }
+}]]></Document>)
+
+                state.SendTypeChars("int")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("x, int")
+                Await state.AssertSelectedCompletionItem(displayText:="int", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("(int x, int ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestIncompleteParenthesizedDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       ($$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
+
+                state.SendTypeChars(", va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                state.SendTypeChars(")")
+                Assert.Contains("(var a, va a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestIncompleteParenthesizedDeconstructionDeclaration2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       ($$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
+
+                state.SendTypeChars(", va")
+                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                state.SendReturn()
+                Assert.Contains("(var a, va a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceInIncompleteParenthesizedDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var as$$
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                ' This completion is hard-selected because the suggestion mode never triggers on backspace
+                ' See issue https://github.com/dotnet/roslyn/issues/15302
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendTypeChars(", var as")
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
+
+                state.SendTypeChars(")")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("(var as, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceInParenthesizedDeconstructionDeclaration() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Variable
+{
+    public void Foo()
+    {
+       (var as$$)
+    }
+}]]></Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                ' This completion is hard-selected because the suggestion mode never triggers on backspace
+                ' See issue https://github.com/dotnet/roslyn/issues/15302
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+
+                state.SendTypeChars(", var as")
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
+
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("(var as, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(

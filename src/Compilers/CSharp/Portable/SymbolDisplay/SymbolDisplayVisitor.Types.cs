@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         //returns true if there are constraints
-        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, INamedTypeSymbol modifiersSourceOpt)
+        private void AddTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, INamedTypeSymbol modifiersSourceOpt = null)
         {
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
             {

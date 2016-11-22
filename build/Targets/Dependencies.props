@@ -10,6 +10,7 @@
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000370-00</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildTasksCore14Version>14.3.0</MicrosoftBuildTasksCore14Version>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>

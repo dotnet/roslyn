@@ -41,5 +41,31 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         {
             _inProc.CleanUpOpenSolution();
         }
+
+        public int ErrorListErrorCount => _inProc.GetErrorListErrorCount();
+
+        public void AddFile(string projectName, string fileName, string contents = null, bool open = false) => _inProc.AddFile(projectName, fileName, contents, open);
+
+        public void SetFileContents(string projectName, string fileName, string contents) => _inProc.SetFileContents(projectName, fileName, contents);
+
+        public string GetFileContents(string projectName, string fileName) => _inProc.GetFileContents(projectName, fileName);
+
+        public void BuildSolution(bool waitForBuildToFinish = false) => _inProc.BuildSolution(waitForBuildToFinish);
+
+        public void OpenFile(string projectName, string fileName) => _inProc.OpenFile(projectName, fileName);
+
+        public void ReloadProject(string projectName) => _inProc.ReloadProject(projectName);
+
+        public void RestoreNuGetPackages() => _inProc.RestoreNuGetPackages();
+
+        public void SaveAll() => _inProc.SaveAll();
+
+        public void ShowErrorList() => _inProc.ShowErrorList();
+
+        public void ShowOutputWindow() => _inProc.ShowOutputWindow();
+
+        public void UnloadProject(string projectName) => _inProc.UnloadProject(projectName);
+
+        public void WaitForNoErrorsInErrorList() => _inProc.WaitForNoErrorsInErrorList();
     }
 }

@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal class CSharpDeclarationComparer : IComparer<SyntaxNode>
     {
-        public static readonly IComparer<SyntaxNode> Instance = new CSharpDeclarationComparer();
-
         private static readonly Dictionary<SyntaxKind, int> s_kindPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.FieldDeclaration, 0 },
@@ -57,8 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.FalseKeyword, 21 },
         };
 
-        private CSharpDeclarationComparer()
+        public static readonly CSharpDeclarationComparer WithNamesInstance = new CSharpDeclarationComparer(includeName: true);
+        public static readonly CSharpDeclarationComparer WithoutNamesInstance = new CSharpDeclarationComparer(includeName: false);
+
+        private readonly bool _includeName;
+
+        private CSharpDeclarationComparer(bool includeName)
         {
+            _includeName = includeName;
         }
 
         public int Compare(SyntaxNode x, SyntaxNode y)
@@ -130,27 +134,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static int Compare(DelegateDeclarationSyntax x, DelegateDeclarationSyntax y)
+        private int Compare(DelegateDeclarationSyntax x, DelegateDeclarationSyntax y)
         {
-            if (EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out var result) &&
-                EqualIdentifierName(x.Identifier, y.Identifier, out result))
+            if (EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out var result))
             {
-                EqualTypeParameterCount(x.TypeParameterList, y.TypeParameterList, out result);
+                if (_includeName)
+                {
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                }
             }
 
             return result;
         }
 
-        private static int Compare(BaseFieldDeclarationSyntax x, BaseFieldDeclarationSyntax y)
+        private int Compare(BaseFieldDeclarationSyntax x, BaseFieldDeclarationSyntax y)
         {
             if (EqualConstness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
-                EqualIdentifierName(
-                    x.Declaration.Variables.FirstOrDefault().Identifier,
-                    y.Declaration.Variables.FirstOrDefault().Identifier,
-                    out result);
+                if (_includeName)
+                {
+                    EqualIdentifierName(
+                        x.Declaration.Variables.FirstOrDefault().Identifier,
+                        y.Declaration.Variables.FirstOrDefault().Identifier,
+                        out result);
+                }
             }
 
             return result;
@@ -167,14 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result;
         }
 
-        private static int Compare(MethodDeclarationSyntax x, MethodDeclarationSyntax y)
+        private int Compare(MethodDeclarationSyntax x, MethodDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result) &&
-                EqualIdentifierName(x.Identifier, y.Identifier, out result) &&
-                EqualTypeParameterCount(x.TypeParameterList, y.TypeParameterList, out result))
+                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
-                EqualParameterCount(x.ParameterList, y.ParameterList, out result);
+                if (!_includeName)
+                {
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                }
             }
 
             return result;
@@ -202,12 +212,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result;
         }
 
-        private static int Compare(EventDeclarationSyntax x, EventDeclarationSyntax y)
+        private int Compare(EventDeclarationSyntax x, EventDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
-                EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                if (_includeName)
+                {
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                }
             }
 
             return result;
@@ -224,53 +237,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result;
         }
 
-        private static int Compare(PropertyDeclarationSyntax x, PropertyDeclarationSyntax y)
+        private int Compare(PropertyDeclarationSyntax x, PropertyDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
-                EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                if (_includeName)
+                {
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                }
             }
 
             return result;
         }
 
-        private static int Compare(EnumDeclarationSyntax x, EnumDeclarationSyntax y)
+        private int Compare(EnumDeclarationSyntax x, EnumDeclarationSyntax y)
         {
             if (EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out var result))
             {
-                EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                if (_includeName)
+                {
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
+                }
             }
 
             return result;
         }
 
-        private static int Compare(BaseTypeDeclarationSyntax x, BaseTypeDeclarationSyntax y)
+        private int Compare(BaseTypeDeclarationSyntax x, BaseTypeDeclarationSyntax y)
         {
             if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
-                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result) &&
-                EqualIdentifierName(x.Identifier, y.Identifier, out result))
+                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
-                if (x.Kind() == SyntaxKind.ClassDeclaration)
+                if (_includeName)
                 {
-                    EqualTypeParameterCount(
-                        ((ClassDeclarationSyntax)x).TypeParameterList,
-                        ((ClassDeclarationSyntax)y).TypeParameterList,
-                        out result);
-                }
-                else if (x.Kind() == SyntaxKind.StructDeclaration)
-                {
-                    EqualTypeParameterCount(
-                        ((StructDeclarationSyntax)x).TypeParameterList,
-                        ((StructDeclarationSyntax)y).TypeParameterList,
-                        out result);
-                }
-                else
-                {
-                    EqualTypeParameterCount(
-                        ((InterfaceDeclarationSyntax)x).TypeParameterList,
-                        ((InterfaceDeclarationSyntax)y).TypeParameterList,
-                        out result);
+                    EqualIdentifierName(x.Identifier, y.Identifier, out result);
                 }
             }
 

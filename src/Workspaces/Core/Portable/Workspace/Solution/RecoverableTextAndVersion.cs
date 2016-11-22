@@ -117,10 +117,6 @@ namespace Microsoft.CodeAnalysis
             public RecoverableText(RecoverableTextAndVersion parent, SourceText text)
                 : base(new ConstantValueSource<SourceText>(text))
             {
-                // TODO: refactor recoverable text like recoverable tree so that
-                //       we can have tree/node concept in recoverable text as well.
-                //       basically tree is handle that can live in memory and node is
-                //       data that come and go.
                 _parent = parent;
             }
 

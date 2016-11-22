@@ -174,12 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.CountOfCustomModifiersPrecedingByRef;
+                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

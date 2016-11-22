@@ -6,13 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -238,10 +238,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                if (CodeAction.Glyph.HasValue)
+                var tags = CodeAction.Tags;
+                if (tags.Length > 0)
                 {
-                    var imageService = Workspace.Services.GetService<IImageMonikerService>();
-                    return imageService.GetImageMoniker((Glyph)CodeAction.Glyph.Value);
+                    foreach (var service in this.SourceProvider.ImageMonikerServices)
+                    {
+                        if (service.Value.TryGetImageMoniker(tags, out var moniker) &&
+                            !moniker.IsNullImage())
+                        {
+                            return moniker;
+                        }
+                    }
                 }
 
                 return default(ImageMoniker);

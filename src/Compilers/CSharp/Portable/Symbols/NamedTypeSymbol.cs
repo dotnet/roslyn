@@ -1473,6 +1473,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
 
+        bool INamedTypeSymbol.IsComImport => IsComImport;
+
         #endregion
 
         #region ISymbol Members

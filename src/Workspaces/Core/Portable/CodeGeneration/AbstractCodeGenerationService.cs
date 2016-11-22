@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
-
+            
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var destinationTree = destinationDeclaration.SyntaxTree;
@@ -220,56 +220,81 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 options = CreateOptionsForMultipleMembers(options);
             }
 
-            var currentDestination = destination;
-
             // Filter out the members that are implicitly declared.  They're implicit, hence we do
             // not want an explicit declaration.
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared);
 
-            if (options.AutoInsertionLocation)
+            return options.AutoInsertionLocation
+                ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
+                : AddMembersToEndOfDestination(destination, filteredMembers, availableIndices, options, cancellationToken);
+        }
+
+        private TDeclarationSyntax AddMembersToEndOfDestination<TDeclarationSyntax>(
+            TDeclarationSyntax destination,
+            IEnumerable<ISymbol> members,
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+            where TDeclarationSyntax : SyntaxNode
+        {
+            var newMembers = new List<SyntaxNode>();
+            var codeGenerationDestination = GetDestination(destination);
+            foreach (var member in members)
             {
-                foreach (var member in filteredMembers)
+                cancellationToken.ThrowIfCancellationRequested();
+                var newMember = GetNewMember(options, codeGenerationDestination, member, cancellationToken);
+
+                if (newMember != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, cancellationToken);
+                    newMembers.Add(newMember);
                 }
             }
-            else
+
+            // Metadata as source generates complete declarations and doesn't modify
+            // existing ones. We can take the members to generate, sort them once,
+            // and then add them in that order to the end of the destination.
+            if (!GeneratingEnum(members) && options.SortMembers)
             {
-                var newMembers = new List<SyntaxNode>();
-                var codeGenerationDestination = GetDestination(destination);
-                foreach (var member in filteredMembers)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var newMember = (SyntaxNode)null;
-                    switch (member)
-                    {
-                        case IEventSymbol @event: newMember = this.CreateEventDeclaration(@event, codeGenerationDestination, options); break;
-                        case IFieldSymbol field: newMember = this.CreateFieldDeclaration(field, codeGenerationDestination, options); break;
-                        case IPropertySymbol property: newMember = this.CreatePropertyDeclaration(property, codeGenerationDestination, options); break;
-                        case IMethodSymbol method: newMember = this.CreateMethodDeclaration(method, codeGenerationDestination, options); break;
-                        case INamedTypeSymbol namedType: newMember = this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken); break;
-                        case INamespaceSymbol @namespace: newMember = this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken); break;
-                    }
+                newMembers.Sort(GetMemberComparer());
+            }
 
-                    if (newMember != null)
-                    {
-                        newMembers.Add(newMember);
-                    }
-                }
+            return this.AddMembers(destination, newMembers);
+        }
 
-                // Metadata as source generates complete declarations and doesn't modify
-                // existing ones. We can take the members to generate, sort them once,
-                // and then add them in that order to the end of the destination.
-                if (!GeneratingEnum(members))
-                {
-                    newMembers.Sort(GetMemberComparer());
-                }
+        private TDeclarationSyntax AddMembersToAppropiateLocationInDestination<TDeclarationSyntax>(
+            TDeclarationSyntax destination,
+            IEnumerable<ISymbol> members,
+            IList<bool> availableIndices,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+            where TDeclarationSyntax  : SyntaxNode
+        {
+            var currentDestination = destination;
 
-                currentDestination = this.AddMembers(currentDestination, newMembers);
+            foreach (var member in members)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, cancellationToken);
             }
 
             return currentDestination;
+        }
+
+        private SyntaxNode GetNewMember(
+            CodeGenerationOptions options, CodeGenerationDestination codeGenerationDestination,
+            ISymbol member, CancellationToken cancellationToken)
+        {
+            switch (member)
+            {
+                case IEventSymbol @event: return this.CreateEventDeclaration(@event, codeGenerationDestination, options);
+                case IFieldSymbol field: return this.CreateFieldDeclaration(field, codeGenerationDestination, options);
+                case IPropertySymbol property: return this.CreatePropertyDeclaration(property, codeGenerationDestination, options);
+                case IMethodSymbol method: return this.CreateMethodDeclaration(method, codeGenerationDestination, options);
+                case INamedTypeSymbol namedType: return this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken);
+                case INamespaceSymbol @namespace: return this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken);
+            }
+
+            return null;
         }
 
         private TDeclarationNode UpdateDestination<TDeclarationNode>(
@@ -319,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 generateMethodBodies: options.GenerateMethodBodies,
                 generateDocumentationComments: options.GenerateDocumentationComments,
                 autoInsertionLocation: options.AutoInsertionLocation,
-                reuseSyntax: options.ReuseSyntax);
+                reuseSyntax: options.ReuseSyntax,
+                sortMembers: options.SortMembers);
             return options;
         }
 

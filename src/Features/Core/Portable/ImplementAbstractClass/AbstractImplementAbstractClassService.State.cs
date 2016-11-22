@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,9 +19,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             public INamedTypeSymbol AbstractClassType { get; }
 
             // The members that are not implemented at all.
-            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers { get; }
 
-            private State(TClassSyntax node, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType, IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers)
+            private State(
+                TClassSyntax node, 
+                INamedTypeSymbol classType, 
+                INamedTypeSymbol abstractClassType,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
             {
                 this.Location = node;
                 this.ClassType = classType;
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var unimplementedMembers = classType.GetAllUnimplementedMembers(
                     SpecializedCollections.SingletonEnumerable(abstractClassType), cancellationToken);
 
-                if (unimplementedMembers != null && unimplementedMembers.Count >= 1)
+                if (unimplementedMembers.Length >= 1)
                 {
                     return new State(node, classType, abstractClassType, unimplementedMembers);
                 }

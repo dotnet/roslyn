@@ -237,8 +237,8 @@ Public Class Test
     End Sub
 End Class",
 "Class EventClass
-    Public Event XEvent()
     Public Event ZEvent()
+    Public Event XEvent()
 End Class
 Public Class Test
     WithEvents EClass As New EventClass
@@ -266,8 +266,8 @@ Public Class Test
     End Sub
 End Class",
 "Class EventClass
-    Public Event XEvent()
     Public Event ZEvent()
+    Public Event XEvent()
 End Class
 Public Class Test
     WithEvents EClass As New EventClass
@@ -295,8 +295,8 @@ Public Class Test
     End Sub
 End Class",
 "Class EventClass
-    Public Event XEvent()
     Public Event ZEvent()
+    Public Event XEvent()
 End Class
 Public Class Test
     WithEvents EClass As New EventClass
@@ -324,8 +324,8 @@ Public Class Test
     End Sub
 End Class",
 "Class EventClass
-    Public Event XEvent()
     Public Event ZEvent()
+    Public Event XEvent()
 End Class
 Public Class Test
     WithEvents EClass As New EventClass

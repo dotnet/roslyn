@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
+        Private ReadOnly Property IParameterTypeInformationRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.RefCustomModifiers
             Get
-                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
+                Return _underlyingParameter.RefCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
@@ -234,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             TDeclaration declaration,
             CodeGenerationOptions options,
             IList<bool> availableIndices,
-            IComparer<TDeclaration> comparer,
+            IComparer<TDeclaration> comparerWithoutNameCheck,
+            IComparer<TDeclaration> comparerWithNameCheck,
             Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
             Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
             where TDeclaration : SyntaxNode
@@ -279,14 +281,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     {
                         return 0;
                     }
-                    else if (declarationList.IsSorted(comparer))
+
+                    var desiredIndex = TryGetDesiredIndexIfGrouped(
+                        declarationList, declaration, availableIndices,
+                        comparerWithoutNameCheck, comparerWithNameCheck);
+                    if (desiredIndex.HasValue)
                     {
-                        var result = Array.BinarySearch(declarationList.ToArray(), declaration, comparer);
-                        var index = GetPreferredIndex(result < 0 ? ~result : result, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
+                        return desiredIndex.Value;
                     }
 
                     if (after != null)
@@ -336,6 +337,107 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return declarationList.Count;
+        }
+
+        public static int? TryGetDesiredIndexIfGrouped<TDeclarationSyntax>(
+            SyntaxList<TDeclarationSyntax> declarationList,
+            TDeclarationSyntax declaration,
+            IList<bool> availableIndices,
+            IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
+            IComparer<TDeclarationSyntax> comparerWithNameCheck)
+            where TDeclarationSyntax : SyntaxNode
+        {
+            var result = TryGetDesiredIndexIfGroupedWorker(
+                declarationList, declaration, availableIndices, 
+                comparerWithoutNameCheck, comparerWithNameCheck);
+            if (result == null)
+            {
+                return null;
+            }
+
+            result = GetPreferredIndex(result.Value, availableIndices, forward: true);
+            if (result == -1)
+            {
+                return null;
+            }
+
+            return result;
+        }
+
+        private static int? TryGetDesiredIndexIfGroupedWorker<TDeclarationSyntax>(
+            SyntaxList<TDeclarationSyntax> declarationList,
+            TDeclarationSyntax declaration,
+            IList<bool> availableIndices,
+            IComparer<TDeclarationSyntax> comparerWithoutNameCheck,
+            IComparer<TDeclarationSyntax> comparerWithNameCheck)
+            where TDeclarationSyntax : SyntaxNode
+        {
+            if (!declarationList.IsSorted(comparerWithoutNameCheck))
+            {
+                // Existing declarations weren't grouped.  Don't try to find a location
+                // to this declaration into.
+                return null;
+            }
+
+            // The list was grouped (by type, staticness, accessibility).  Try to find a location
+            // to put the new declaration into.
+
+            var result = Array.BinarySearch(declarationList.ToArray(), declaration, comparerWithoutNameCheck);
+            var desiredGroupIndex = result < 0 ? ~result : result;
+            Debug.Assert(desiredGroupIndex >= 0);
+            Debug.Assert(desiredGroupIndex <= declarationList.Count);
+
+            // Now, walk forward until we hit the last member of this group.
+            while (desiredGroupIndex < declarationList.Count)
+            {
+                // Stop walking forward if we hit an unavailable index.
+                if (availableIndices != null && !availableIndices[desiredGroupIndex])
+                {
+                    break;
+                }
+
+                if (0 != comparerWithoutNameCheck.Compare(declaration, declarationList[desiredGroupIndex]))
+                {
+                    // Found the index of an item not of our group.
+                    break;
+                }
+
+                desiredGroupIndex++;
+            }
+
+            // Now, walk backward until we find the last member with the same name
+            // as us.  We want to keep overloads together, so we'll place ourselves
+            // after that member.
+            var currentIndex = desiredGroupIndex;
+            while (currentIndex > 0)
+            {
+                var previousIndex = currentIndex - 1;
+
+                // Stop walking backward if we hit an unavailable index.
+                if (availableIndices != null && !availableIndices[previousIndex])
+                {
+                    break;
+                }
+
+                if (0 != comparerWithoutNameCheck.Compare(declaration, declarationList[previousIndex]))
+                {
+                    // Hit the previous group of items.
+                    break;
+                }
+
+                // Still in the same group.  If we find something with the same name
+                // then place ourselves after it.
+                if (0 == comparerWithNameCheck.Compare(declaration, declarationList[previousIndex]))
+                {
+                    // Found something with the same name.  Generate after this item.
+                    return currentIndex;
+                }
+
+                currentIndex--;
+            }
+
+            // Couldn't find anything with our name.  Just place us at the end of this group.
+            return desiredGroupIndex;
         }
     }
 }
