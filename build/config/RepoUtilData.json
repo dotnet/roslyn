@@ -35,6 +35,7 @@
                 "Microsoft.VisualBasic",
                 "Microsoft.Composition",
                 "ManagedEsent",
+                "Microsoft.CodeAnalysis.Elfie",
                 "xunit",
                 "RoslynTools.*",
                 "^Microsoft.?Build.*"
