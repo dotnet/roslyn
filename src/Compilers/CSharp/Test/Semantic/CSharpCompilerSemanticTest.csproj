@@ -76,6 +76,21 @@
     <Compile Include="..\Syntax\Parsing\PatternParsingTests.cs">
       <Link>DELETEME\PatternParsingTests.cs</Link>
     </Compile>
+    <Compile Include="..\Syntax\Parsing\ParsingErrorRecoveryTests.cs">
+      <Link>DELETEME\ParsingErrorRecoveryTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ParserErrorMessageTests.cs">
+      <Link>DELETEME\ParserErrorMessageTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\LambdaParameterParsingTests.cs">
+      <Link>DELETEME\LambdaParameterParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ScriptParsingTests.cs">
+      <Link>DELETEME\ScriptParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\TextExtensions.cs">
+      <Link>DELETEME\TextExtensions.cs</Link>
+    </Compile>
     <Compile Include="Diagnostics\CompilationEventTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
