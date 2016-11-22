@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     constructionStepsOpt);
 
             TypeSymbol returnType = hasErrors ?
-                                        CreateErrorType() :
-                                        constructionStepsOpt.Last().OutputPlaceholder.Type;
+                                    CreateErrorType() :
+                                    constructionStepsOpt.Last().OutputPlaceholder.Type;
 
             var deconstructions = deconstructionSteps.ToImmutableAndFree();
             var conversions = conversionSteps.ToImmutableAndFree();
@@ -246,27 +246,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (!variable.HasNestedVariables)
                 {
-                    switch (variable.Single.Kind)
+                    var pending = variable.Single;
+                    if ((object)pending.Type != null)
                     {
-                        case BoundKind.DeconstructionVariablePendingInference:
-                            {
-                                var pending = (DeconstructionVariablePendingInference)variable.Single;
-                                BoundExpression local = pending.SetInferredType(foundTypes[i], this, diagnostics);
-                                variables[i] = new DeconstructionVariable(local, local.Syntax);
-                            }
-                            break;
-                        case BoundKind.DiscardedExpression:
-                            {
-                                var pending = (BoundDiscardedExpression)variable.Single;
-                                if ((object)pending.Type == null)
-                                {
-                                    variables[i] = new DeconstructionVariable(pending.Update(foundTypes[i]), pending.Syntax);
-                                }
-                            }
-                            break;
+                        continue;
                     }
+
+                    variables[i] = new DeconstructionVariable(SetInferredType(pending, foundTypes[i], diagnostics), pending.Syntax);
                 }
             }
+        }
+
+        private BoundExpression SetInferredType(BoundExpression expression, TypeSymbol type, DiagnosticBag diagnostics)
+        {
+            switch (expression.Kind)
+            {
+                case BoundKind.DeconstructionVariablePendingInference:
+                    {
+                        var pending = (DeconstructionVariablePendingInference)expression;
+                        return pending.SetInferredType(type, this, diagnostics);
+                    }
+                case BoundKind.DiscardedExpression:
+                    {
+                        var pending = (BoundDiscardedExpression)expression;
+                        if ((object)pending.Type == null)
+                        {
+                            return pending.Update(type);
+                        }
+                    }
+                    break;
+            }
+
+            return expression;
         }
 
         /// <summary>
@@ -633,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.HasNestedVariables);
-            var result = BindDeconstructionAssignment(deconstruction, right, locals.NestedVariables, diagnostics, isDeclaration: true, rhsPlaceholder: rightPlaceholder);
+            var result = BindDeconstructionAssignment(deconstruction, right, locals.NestedVariables, diagnostics, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals.NestedVariables);
             return result;
         }
@@ -671,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
-                        return BindDeconstructionDeclarationVariables(declType, component.Designation, diagnostics);
+                        return BindDeconstructionVariables(declType, component.Designation, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -696,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DeconstructionVariable BindDeconstructionDeclarationVariables(
+        private DeconstructionVariable BindDeconstructionVariables(
             TypeSymbol declType,
             VariableDesignationSyntax node,
             DiagnosticBag diagnostics)
@@ -706,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionDeclarationVariable(declType, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
                     }
                 case SyntaxKind.DiscardedDesignation:
                     {
@@ -719,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionDeclarationVariables(declType, n, diagnostics));
+                            builder.Add(BindDeconstructionVariables(declType, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, node);
                     }
@@ -747,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In global statements, returns a BoundFieldAccess when the type was explicit.
         /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
-        private BoundExpression BindDeconstructionDeclarationVariable(
+        private BoundExpression BindDeconstructionVariable(
             TypeSymbol declType,
             SingleVariableDesignationSyntax designation,
             DiagnosticBag diagnostics)

@@ -306,10 +306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
-                case BoundKind.Void:
-                    Debug.Assert(!used);
-                    break;
-
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);

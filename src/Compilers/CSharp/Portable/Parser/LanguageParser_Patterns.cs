@@ -131,26 +131,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //
         private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
         {
+            if (IsPossibleDeclarationExpression(mode, permitTupleDesignation))
+            {
+                TypeSyntax type = this.ParseType(mode);
+                var designation = ParseDesignation();
+                if (feature != 0)
+                {
+                    designation = CheckFeatureAvailability(designation, feature);
+                }
+
+                return _syntaxFactory.DeclarationExpression(type, designation);
+            }
+            else
+            {
+                return this.ParseSubExpression(Precedence.Expression);
+            }
+        }
+
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
+        {
+            if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+            {
+                // can't be a declaration expression.
+                return false;
+            }
+
             var resetPoint = this.GetResetPoint();
             try
             {
-                TypeSyntax type = this.ParseType(mode);
-                if (!type.IsMissing &&
-                    (this.IsTrueIdentifier() ||
-                     permitTupleDesignation && (type.IsVar || type.Kind == SyntaxKind.PredefinedType) && this.CurrentToken.Kind == SyntaxKind.OpenParenToken))
+                SyntaxToken lastTokenOfType;
+                switch (ScanType(out lastTokenOfType))
                 {
-                    var designation = CheckFeatureAvailability(ParseDesignation(), feature);
-                    return _syntaxFactory.DeclarationExpression(type, designation);
+                    case ScanTypeFlags.PointerOrMultiplication:
+                        if (mode == ParseTypeMode.FirstElementOfPossibleTupleLiteral || mode == ParseTypeMode.AfterTupleComma)
+                        {
+                            // Tuples cannot contain pointer types because pointers may not be generic type arguments.
+                            return false;
+                        }
+                        break;
+
+                    case ScanTypeFlags.NotType:
+                        return false;
                 }
-                else
+
+                // check for a designation
+                if (!ScanDesignation(permitTupleDesignation && (lastTokenOfType.IsVar() || IsPredefinedType(lastTokenOfType.Kind))))
                 {
-                    this.Reset(ref resetPoint);
-                    return this.ParseSubExpression(Precedence.Expression);
+                    return false;
                 }
+
+                return mode != ParseTypeMode.FirstElementOfPossibleTupleLiteral || this.CurrentToken.Kind == SyntaxKind.CommaToken;
             }
             finally
             {
+                this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
+            }
+        }
+
+        private bool ScanDesignation(bool permitTuple)
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                default:
+                    return false;
+                case SyntaxKind.IdentifierToken:
+                    var result = this.IsTrueIdentifier();
+                    this.EatToken();
+                    return result;
+                case SyntaxKind.OpenParenToken:
+                    if (!permitTuple)
+                    {
+                        return false;
+                    }
+
+                    bool sawComma = false;
+                    while (true)
+                    {
+                        this.EatToken(); // consume the `(` or `,`
+                        if (!ScanDesignation(true))
+                        {
+                            return false;
+                        }
+                        switch (this.CurrentToken.Kind)
+                        {
+                            case SyntaxKind.CloseParenToken:
+                                this.EatToken();
+                                return sawComma;
+                            case SyntaxKind.CommaToken:
+                                sawComma = true;
+                                continue;
+                            default:
+                                return false;
+                        }
+                    }
             }
         }
 

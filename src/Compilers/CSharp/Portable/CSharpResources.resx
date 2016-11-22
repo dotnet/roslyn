@@ -4984,4 +4984,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
     <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
   </data>
+  <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
+    <value>A declaration is not allowed in this context.</value>
+  </data>
+  <data name="ERR_MustDeclareForeachIteration" xml:space="preserve">
+    <value>A foreach loop must declare its iteration variables.</value>
+  </data>
 </root>

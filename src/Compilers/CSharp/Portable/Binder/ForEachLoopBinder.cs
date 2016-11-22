@@ -236,25 +236,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
                         var variables = node.Variable;
-                        var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                        CSharpSyntaxNode declaration = null;
-                        CSharpSyntaxNode expression = null;
-                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                                variables,
-                                                                                variables,
-                                                                                right: null,
-                                                                                diagnostics: diagnostics,
-                                                                                rightPlaceholder: valuePlaceholder,
-                                                                                declaration: ref declaration,
-                                                                                expression: ref expression);
-
-                        if (expression != null)
+                        if (variables.Kind() == SyntaxKind.TupleExpression || variables.Kind() == SyntaxKind.DeclarationExpression)
                         {
-                            // PROTOTYPE(wildcards): a foreach loop should not deconstruct into existing variables.
-                            // Error(diagnostics, ErrorCode.)
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                            CSharpSyntaxNode declaration = null;
+                            CSharpSyntaxNode expression = null;
+                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                                                                                    variables,
+                                                                                    variables,
+                                                                                    right: null,
+                                                                                    diagnostics: diagnostics,
+                                                                                    rightPlaceholder: valuePlaceholder,
+                                                                                    declaration: ref declaration,
+                                                                                    expression: ref expression);
+
+                            if (expression != null)
+                            {
+                                // error: must declare foreach loop iteration variables.
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                                hasErrors = true;
+                            }
+
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                        }
+                        else if (!node.HasErrors)
+                        {
+                            // error: must declare foreach loop iteration variables.
+                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
                         }
 
-                        deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
                         break;
                     }
@@ -267,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors = hasErrors || iterationVariableType.IsErrorType();
 
             // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
-            if (hasErrors)
+            if (hasErrors || _syntax.HasErrors)
             {
                 return new BoundForEachStatement(
                     _syntax,
