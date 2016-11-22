@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Friend Module Extensions
+
     <Extension>
     Public Function GetReferencedAssemblySymbol(compilation As Compilation, reference As MetadataReference) As AssemblySymbol
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), AssemblySymbol)
@@ -300,3 +301,23 @@ Friend Module Extensions
     End Function
 
 End Module
+Namespace Global.Roslyn.Test.Utilities.VisualBasic
+#Const Skip_Enable = False
+    Namespace Requires
+        Namespace Language
+            Public Class Feature
+                Inherits Global.Xunit.FactAttribute
+
+                Private ReadOnly Property theFeature As InternalSyntax.Feature
+
+                Public Sub New(theFeature As InternalSyntax.Feature)
+                    Me.theFeature = theFeature
+#If Skip_Enabled Then
+                    If theFeature.IsUnavailable Then Skip = "Language Feature " & theFeature.ToString & " is unavailable."
+#End If
+                End Sub
+
+            End Class
+        End Namespace
+    End Namespace
+End Namespace

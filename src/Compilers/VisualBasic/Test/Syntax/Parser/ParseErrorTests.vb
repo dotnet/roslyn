@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
+Imports Roslyn.Test.Utilities.VisualBasic
 
 <CLSCompliant(False)>
 Public Class ParseErrorTests
@@ -2212,7 +2214,36 @@ End Module
     End Sub
 
     <Fact()>
-    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers()
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_a()
+        ParseAndVerify(
+        <![CDATA[
+                Namespace NS1
+                    Module Module1
+                        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
+                            calcSum = 0
+                            If args.Length <= 0 Then Exit Function
+                            For i As Integer = 0 To UBound(args, 1)
+                                calcSum += args(i)
+                            Next i
+                        End Function
+                    End Module
+                End Namespace
+            ]]>, VB14,
+        <errors>
+            <error id="30642"/>
+            <error id="30812"/>
+            <error id="30201"/>
+        </errors>)
+    End Sub
+
+    Private ReadOnly Property VB14 As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+    Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithMyFeature
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_b()
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions),
+                    "Language Feature Unavailable")
+
         ParseAndVerify(<![CDATA[
                 Namespace NS1
                     Module Module1
@@ -2226,13 +2257,11 @@ End Module
                     End Module
                 End Namespace
             ]]>,
+                  MyParseOptions,
         <errors>
             <error id="30642"/>
-            <error id="30812"/>
-            <error id="30201"/>
         </errors>)
     End Sub
-
     <Fact()>
     Public Sub BC30648ERR_UnterminatedStringLiteral()
         ParseAndVerify(<![CDATA[

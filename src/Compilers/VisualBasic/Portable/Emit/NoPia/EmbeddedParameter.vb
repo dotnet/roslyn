@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
@@ -25,7 +26,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetDefaultValue(context As EmitContext) As Cci.IMetadataConstant
-            Return UnderlyingParameter.GetMetadataConstantValue(context)
+            Try
+                Return UnderlyingParameter.GetMetadataConstantValue(context)
+            Catch e As InvalidOperationException
+                Dim vbopts = DirectCast(context.SyntaxNodeOpt.SyntaxTree.Options, VisualBasicParseOptions)
+                If Parser.CheckFeatureAvailability(Feature.ImplicitDefaultValueOnOptionalParameter, vbopts) Then
+                    Return Nothing
+                Else
+                    Throw e
+                End If
+
+            End Try
         End Function
 
         Protected Overrides ReadOnly Property IsIn As Boolean

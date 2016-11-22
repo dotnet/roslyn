@@ -13,11 +13,11 @@ Public MustInherit Class BasicTestBase
     Inherits BasicTestBaseBase
 
     Protected Overloads Function GetCompilationForEmit(
-        source As IEnumerable(Of String),
-        additionalRefs() As MetadataReference,
-        options As VisualBasicCompilationOptions,
-        parseOptions As VisualBasicParseOptions
-    ) As VisualBasicCompilation
+                                                        source As IEnumerable(Of String),
+                                                        additionalRefs() As MetadataReference,
+                                                        options As VisualBasicCompilationOptions,
+                                                        parseOptions As VisualBasicParseOptions
+                                                      ) As VisualBasicCompilation
         Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
     End Function
 
@@ -31,18 +31,18 @@ Public MustInherit Class BasicTestBase
 
     ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerify(
-        source As XElement,
-        expectedOutput As XCData,
-        Optional additionalRefs() As MetadataReference = Nothing,
-        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly) = Nothing,
-        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
-    ) As CompilationVerifier
+                                                source As XElement,
+                                                expectedOutput As XCData,
+                                                Optional additionalRefs() As MetadataReference = Nothing,
+                                                Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+                                                Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+                                                Optional validator As Action(Of PEAssembly) = Nothing,
+                                                Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+                                                Optional expectedSignatures As SignatureDescription() = Nothing,
+                                                Optional options As VisualBasicCompilationOptions = Nothing,
+                                                Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                Optional verify As Boolean = True
+                                            ) As CompilationVerifier
 
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions

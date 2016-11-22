@@ -35,7 +35,10 @@ Friend Module TestOptionExtensions
     Public Function WithFeature(options As VisualBasicParseOptions, feature As String, value As String) As VisualBasicParseOptions
         Return options.WithFeatures(options.Features.Concat({New KeyValuePair(Of String, String)(feature, value)}))
     End Function
-
+    <Extension()>
+    Public Function WithMyFeature(options As VisualBasicParseOptions, feature As String, value As String) As VisualBasicParseOptions
+        Return options.WithFeature("ImplicitDefaultValueOnOptionalParameter", "true")
+    End Function
     <Extension()>
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeature("Strict", "true")
@@ -44,5 +47,14 @@ Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithDeterministicFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeature("Deterministic", "true")
+    End Function
+
+    <Extension()>
+    Public Function WithMyFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeature("ImplicitDefaultValueOnOptionalParameter", "true")
+    End Function
+    <Extension()>
+    Public Function HasFeature(parseoptions As VisualBasicParseOptions, feature As InternalSyntax.Feature) As Boolean
+        Return InternalSyntax.Parser.CheckFeatureAvailability(feature, parseoptions)
     End Function
 End Module

@@ -574,12 +574,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="symbol">The local symbol.</param>
         ''' <param name="type">The local symbol's type. It is passed in because this method is called while the type is being resolved and before it is set.</param>
-        Friend Function BindLocalConstantInitializer(symbol As LocalSymbol,
-                                                type As TypeSymbol,
-                                                name As ModifiedIdentifierSyntax,
-                                                equalsValueOpt As EqualsValueSyntax,
-                                                diagnostics As DiagnosticBag,
-                                                <Out> ByRef constValue As ConstantValue) As BoundExpression
+        Friend Function BindLocalConstantInitializer(
+                                                      symbol As LocalSymbol,
+                                                      type As TypeSymbol,
+                                                      name As ModifiedIdentifierSyntax,
+                                                      equalsValueOpt As EqualsValueSyntax,
+                                                      diagnostics As DiagnosticBag,
+                                          <Out> ByRef constValue As ConstantValue
+                                                    ) As BoundExpression
             constValue = Nothing
 
             Dim valueExpression As BoundExpression = Nothing
@@ -631,11 +633,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Binds a parameter's default value syntax
         ''' </summary>
         Friend Function BindParameterDefaultValue(
-            targetType As TypeSymbol,
-            equalsValueSyntax As EqualsValueSyntax,
-            diagnostics As DiagnosticBag,
-            <Out> ByRef constValue As ConstantValue
-        ) As BoundExpression
+                                                   targetType As TypeSymbol,
+                                                   equalsValueSyntax As EqualsValueSyntax,
+                                                   diagnostics As DiagnosticBag,
+                                       <Out> ByRef constValue As ConstantValue
+                                                 ) As BoundExpression
             constValue = Nothing
 
             Dim boundInitValue As BoundExpression = BindValue(equalsValueSyntax.Value, diagnostics)
