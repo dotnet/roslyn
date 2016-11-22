@@ -16,6 +16,7 @@
       <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
       <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
       <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
+      <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
     </dependencies>
 
     <language>en-US</language>
