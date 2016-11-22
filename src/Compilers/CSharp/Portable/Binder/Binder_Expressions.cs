@@ -1190,28 +1190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
 
             CSharpSyntaxNode parent = node.Parent;
-            if (parent?.Kind() != SyntaxKind.Argument ||
-                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
-            {
-                return false;
-            }
-
-            parent = parent.Parent;
-            if (parent?.Kind() == SyntaxKind.BracketedArgumentList)
-            {
-                return true;
-            }
-
-            if (parent?.Kind() == SyntaxKind.ArgumentList)
-            {
-                parent = parent.Parent;
-                return parent?.Kind() == SyntaxKind.InvocationExpression ||
-                        parent?.Kind() == SyntaxKind.ObjectCreationExpression ||
-                        parent?.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                        parent?.Kind() == SyntaxKind.ThisConstructorInitializer;
-            }
-
-            return false;
+            return (parent?.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword);
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)

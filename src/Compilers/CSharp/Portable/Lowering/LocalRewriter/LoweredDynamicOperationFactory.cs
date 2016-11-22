@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (discardCount == 0)
             {
-                return default(ImmutableArray<LocalSymbol>);
+                return ImmutableArray<LocalSymbol>.Empty;
             }
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance(discardCount);

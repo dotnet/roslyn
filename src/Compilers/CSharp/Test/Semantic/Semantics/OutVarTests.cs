@@ -27832,17 +27832,18 @@ public class C
     @"
 public class C
 {
-    static void M(out object x) { x = 1; }
-    static void M(out int x) { x = 2; System.Console.Write(""int returning M""); }
+    static void M(out object x) { x = 1; System.Console.Write(""object returing M. ""); }
+    static void M(out int x) { x = 2; System.Console.Write(""int returning M.""); }
     static void Main()
     {
+        M(out object _);
         M(out int _);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "int returning M");
+            CompileAndVerify(comp, expectedOutput: "object returing M. int returning M.");
         }
 
         [Fact]
@@ -27853,11 +27854,12 @@ public class C
 public class C
 {
     static void M(out object x) { x = 1; }
-    static void M(out int x) { x = 2; System.Console.Write(""int returning M""); }
+    static void M(out int x) { x = 2; }
     static void Main()
     {
         M(out var _);
         M(out _);
+        M(out byte _);
     }
 }
 ";
@@ -27868,7 +27870,10 @@ public class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(8, 9),
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out _);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(9, 9),
+                // (10,20): error CS1503: Argument 1: cannot convert from 'out byte' to 'out object'
+                //         M(out byte _);
+                Diagnostic(ErrorCode.ERR_BadArgType, "_").WithArguments("1", "out byte", "out object").WithLocation(10, 20)
                 );
         }
 

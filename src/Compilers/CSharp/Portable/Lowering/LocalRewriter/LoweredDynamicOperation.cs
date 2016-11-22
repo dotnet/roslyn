@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_factory == null)
             {
-                Debug.Assert(SiteInitialization == null && SiteInvocation is BoundBadExpression && _temps.IsDefault);
+                Debug.Assert(SiteInitialization == null && SiteInvocation is BoundBadExpression && _temps.IsDefaultOrEmpty);
                 return SiteInvocation;
             }
 
             // TODO (tomat): we might be able to use SiteInvocation.Type instead of resultType once we stop using GetLoweredType
-            if (_temps.IsDefault)
+            if (_temps.IsDefaultOrEmpty)
             {
                 return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);
             }

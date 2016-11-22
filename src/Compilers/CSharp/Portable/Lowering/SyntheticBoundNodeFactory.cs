@@ -1297,8 +1297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (discardsCount != 0)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, b) => arg.Kind == BoundKind.DiscardedExpression ?  this.MakeTempForDiscard((BoundDiscardedExpression)arg, b) : arg,
-                    builder);
+                    (arg, t) => arg.Kind == BoundKind.DiscardedExpression ?  t.Item1.MakeTempForDiscard((BoundDiscardedExpression)arg, t.Item2) : arg,
+                    ValueTuple.Create(this, builder));
             }
 
             return arguments;
