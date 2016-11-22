@@ -14,7 +14,6 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-
     <!-- This VSIX must be compiled with the Dev15 SDK due to the specific 
          set of references it uses.  Yet when doing so it can't link in all
          of the Dev14 VSIX that we are creating.  Hence when building specifically
@@ -26,11 +25,6 @@
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
       <Project>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</Project>
       <Name>EditorFeatures.Next</Name>
