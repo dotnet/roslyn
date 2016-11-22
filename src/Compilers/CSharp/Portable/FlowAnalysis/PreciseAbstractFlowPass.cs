@@ -2696,11 +2696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
-
-        public override BoundNode VisitVoid(BoundVoid node)
-        {
-            return null;
-        }
         #endregion visitors
     }
 }

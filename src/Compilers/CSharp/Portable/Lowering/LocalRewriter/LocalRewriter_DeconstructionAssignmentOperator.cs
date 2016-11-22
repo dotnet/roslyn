@@ -130,11 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
-            if (node.IsDeclaration)
-            {
-                return new BoundVoid(node.Syntax, node.Type);
-            }
-
             BoundExpression loweredConstruction = null;
             foreach (var constructionInfo in node.ConstructionStepsOpt)
             {

@@ -632,29 +632,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.InvocationExpression);
+                        N(SyntaxKind.DeclarationExpression);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "var");
                             }
-                            N(SyntaxKind.ArgumentList);
+                            N(SyntaxKind.ParenthesizedVariableDesignation);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.SingleVariableDesignation);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "x");
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
                                 }
                                 N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.SingleVariableDesignation);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "y");
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
                                 }
                                 N(SyntaxKind.CloseParenToken);
                             }
@@ -967,27 +961,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void OutTuple_04()
         {
-            UsingStatement("M(out (int x, int y));",
-                // (1,21): error CS1003: Syntax error, '=>' expected
-                // M(out (int x, int y));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(1, 21),
-                // (1,21): error CS1525: Invalid expression term ')'
-                // M(out (int x, int y));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21)
-                );
+            // PROTOTYPE(wildcards): require some sort of semantic error here
+            UsingStatement("M(out (int x, int y));");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.OutKeyword);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
         public void OutTuple_05()
         {
-            UsingStatement("M(out (var x, var y));",
-                // (1,21): error CS1003: Syntax error, '=>' expected
-                // M(out (var x, var y));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(1, 21),
-                // (1,21): error CS1525: Invalid expression term ')'
-                // M(out (var x, var y));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21)
-                );
+            // PROTOTYPE(wildcards): require some sort of semantic error here
+            UsingStatement("M(out (var x, var y));");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.OutKeyword);
+                            N(SyntaxKind.TupleExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.DeclarationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]

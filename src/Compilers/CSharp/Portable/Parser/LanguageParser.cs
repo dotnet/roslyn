@@ -1773,6 +1773,11 @@ tryAgain:
             {
                 bool done = false;
 
+                // always consume at least one token.
+                var token = this.EatToken();
+                token = this.AddError(token, ErrorCode.ERR_InvalidMemberDecl, token.Text);
+                tokens.Add(token);
+
                 while (!done)
                 {
                     SyntaxKind kind = this.CurrentToken.Kind;
@@ -1813,13 +1818,7 @@ tryAgain:
                             break;
                     }
 
-                    var token = this.EatToken();
-                    if (tokens.Count == 0)
-                    {
-                        token = this.AddError(token, ErrorCode.ERR_InvalidMemberDecl, token.Text);
-                    }
-
-                    tokens.Add(token);
+                    tokens.Add(this.EatToken());
                 }
 
                 previousNode = AddTrailingSkippedSyntax((CSharpSyntaxNode)previousNode, tokens.ToListNode());
@@ -6472,7 +6471,8 @@ tryAgain:
 
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
 
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
+                (mode != ParseTypeMode.AfterIsOrCase || this.PeekToken(1).Kind != SyntaxKind.IdentifierToken))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -6497,7 +6497,21 @@ tryAgain:
             }
 
             // Check for pointer types (only if pType is NOT an array type)
-            type = this.ParsePointerTypeMods(type);
+            switch (mode)
+            {
+                case ParseTypeMode.AfterIsOrCase:
+                case ParseTypeMode.AfterTupleComma:
+                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                    // these contexts do not permit a pointer type.
+                    break;
+                case ParseTypeMode.Normal:
+                case ParseTypeMode.Parameter:
+                case ParseTypeMode.AfterOut:
+                case ParseTypeMode.ArrayCreation:
+                case ParseTypeMode.AsExpression:
+                    type = this.ParsePointerTypeMods(type);
+                    break;
+            }
 
             // Now check for arrays.
             if (this.IsPossibleRankAndDimensionSpecifier())
@@ -10053,11 +10067,16 @@ tryAgain:
                     // Advance past the open paren or comma.
                     this.EatToken();
 
-                    // Eat 'out' or 'ref' for cases [3, 6]
-                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
+                    // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed, we treat `params`
+                    // similarly for better error recovery.
+                    switch (this.CurrentToken.Kind)
                     {
-                        this.EatToken();
-                        foundRefOrOut = true;
+                        case SyntaxKind.RefKeyword:
+                        case SyntaxKind.OutKeyword:
+                        case SyntaxKind.ParamsKeyword:
+                            this.EatToken();
+                            foundRefOrOut = true;
+                            break;
                     }
 
                     // NOTE: if we see "out" or ref" and part of cases 3,4,5,6 followed by EOF, we'll parse as a lambda.
@@ -10082,7 +10101,10 @@ tryAgain:
                         return false;
                     }
 
-                    switch (this.PeekToken(1).Kind)
+                    // eat the identifier
+                    this.EatToken();
+
+                    switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.EndOfFileToken:
                             return true;
@@ -10092,7 +10114,7 @@ tryAgain:
                             continue;
 
                         case SyntaxKind.CloseParenToken:
-                            switch (this.PeekToken(2).Kind)
+                            switch (this.PeekToken(1).Kind)
                             {
                                 case SyntaxKind.EndOfFileToken:
                                 case SyntaxKind.EqualsGreaterThanToken:
@@ -10154,7 +10176,7 @@ tryAgain:
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -10167,7 +10189,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
                         var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
@@ -10197,11 +10219,11 @@ tryAgain:
 
                     ArgumentSyntax arg;
 
-                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
                         arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
                     }
                     else

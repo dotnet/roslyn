@@ -396,8 +396,6 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="IsDeclaration" Type="bool"/>
-
     <!-- Various assignable expressions, in a flat structure (no nesting) -->
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
 
@@ -423,11 +421,6 @@
   <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
     <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundVoid" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind, but it will always be the void type  -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">

@@ -3104,6 +3104,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A declaration is not allowed in this context..
+        /// </summary>
+        internal static string ERR_DeclarationExpressionNotPermitted {
+            get {
+                return ResourceManager.GetString("ERR_DeclarationExpressionNotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deconstruction &apos;var (...)&apos; form disallows a specific type for &apos;var&apos;..
         /// </summary>
         internal static string ERR_DeconstructionVarFormDisallowsSpecificType {
@@ -6187,6 +6196,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MultiTypeInDeclaration {
             get {
                 return ResourceManager.GetString("ERR_MultiTypeInDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A foreach loop must declare its iteration variables..
+        /// </summary>
+        internal static string ERR_MustDeclareForeachIteration {
+            get {
+                return ResourceManager.GetString("ERR_MustDeclareForeachIteration", resourceCulture);
             }
         }
         

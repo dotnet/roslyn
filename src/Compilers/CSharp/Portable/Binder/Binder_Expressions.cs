@@ -647,6 +647,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType("ref"));
                     }
 
+                case SyntaxKind.DeclarationExpression:
+                    return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -700,6 +703,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. It isn't clear what use cases would motivate us to change the precedence to support it
                 default:
                     return false;
+            }
+        }
+
+        // Bind a declaration expression where it isn't permitted.
+        private BoundExpression BindDeclarationExpression(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            // This is an error, as declaration expressions are handled specially in every context in which
+            // they are permitted. So we have a context in which they are *not* permitted. Nevertheless, we
+            // bind it and then give one nice message.
+
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
+            Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
+            return BindDeclarationVariables(declType, node.Designation, diagnostics);
+        }
+
+        // Bind a declaration variable where it isn't permitted.
+        private BoundExpression BindDeclarationVariables(TypeSymbol declType, VariableDesignationSyntax node, DiagnosticBag diagnostics)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)node;
+                        var result = BindDeconstructionVariable(declType, single, diagnostics);
+
+                        // for error recovery, we force inference of the type of a misplaced declaration expression
+                        if ((object)declType == null)
+                        {
+                            result = SetInferredType(result, CreateErrorType("var"), diagnostics);
+                        }
+                        return result;
+                    }
+                case SyntaxKind.DiscardedDesignation:
+                    {
+                        var discarded = (DiscardedDesignationSyntax)node;
+                        return BindDiscardedExpression(discarded, declType);
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)node;
+                        var builder = ArrayBuilder<BoundExpression>.GetInstance();
+                        foreach (var n in tuple.Variables)
+                        {
+                            builder.Add(BindDeclarationVariables(declType, n, diagnostics));
+                        }
+                        var subExpressions = builder.ToImmutableAndFree();
+                        var tupleType = (TypeSymbol)this.Compilation.CreateTupleTypeSymbol(subExpressions.Select<BoundExpression, ITypeSymbol>(e => e.Type).ToImmutableArray());
+                        return new BoundTupleLiteral(node, ImmutableArray<string>.Empty, subExpressions, tupleType);
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
